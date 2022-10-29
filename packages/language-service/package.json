@@ -1,0 +1,38 @@
+{
+  "name": "@effect/language-service",
+  "version": "0.0.0",
+  "type": "module",
+  "repository": "https://github.com/Effect-TS/language-service.git",
+  "author": "Mattia Manzati",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "scripts": {
+    "clean": "yarn org:rimraf build tsbuildinfo dist",
+    "lint": "yarn org:eslint . --ext .ts,.tsx",
+    "autofix": "yarn lint --fix"
+  },
+  "main": "./index.cjs",
+  "exports": {
+    ".": {
+      "import": "./build/cjs/index.js"
+    },
+    "./*": {
+      "import": "./build/cjs/*.js"
+    },
+    "./test/*": {
+      "import": "./build/test/*.js"
+    }
+  },
+  "dependencies": {
+    "@effect/core": "^0.0.15",
+    "@tsplus/runtime": "^0.1.10",
+    "@tsplus/stdlib": "^0.2.8"
+  },
+  "config": {
+    "side": [],
+    "modules": []
+  }
+}

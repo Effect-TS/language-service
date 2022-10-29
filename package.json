@@ -1,0 +1,51 @@
+{
+  "name": "org",
+  "private": true,
+  "type": "module",
+  "repository": "https://github.com/Effect-TS/language-service.git",
+  "author": "Mattia Manzati",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "node packages/language-service/build/cjs/main.js",
+    "clean": "yarn workspace @effect/language-service clean && rimraf tsconfig.tsbuildinfo",
+    "build": "tsc -b tsconfig.json",
+    "build-watch": "yarn build --watch",
+    "circular": "yarn org:madge --ts-config ./tsconfig.madge.json --circular --no-color --no-spinner --warning packages/*/build/cjs packages/*/build/test",
+    "test": "vitest",
+    "autofix": "yarn workspace @effect/language-service autofix",
+    "lint": "yarn workspace @effect/language-service lint",
+    "tc": "yarn workspace @effect/language-service tc",
+    "postinstall": "tsplus-install",
+    "org:rimraf": "cd $INIT_CWD && rimraf",
+    "org:tsc": "cd $INIT_CWD && tsc",
+    "org:eslint": "cd $INIT_CWD && eslint",
+    "org:madge": "cd $INIT_CWD && madge",
+    "debug:vscode": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/"
+  },
+  "packageManager": "yarn@3.2.1",
+  "devDependencies": {
+    "@repo-tooling/eslint-plugin-dprint": "^0.0.4",
+    "@tsplus/installer": "0.0.146",
+    "@types/node": "^18.6.3",
+    "@typescript-eslint/eslint-plugin": "^5.32.0",
+    "@typescript-eslint/parser": "^5.32.0",
+    "eslint": "^8.21.0",
+    "eslint-import-resolver-typescript": "^3.4.0",
+    "eslint-plugin-codegen": "0.16.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-sort-destructure-keys": "^1.4.0",
+    "madge": "^5.0.1",
+    "rimraf": "^3.0.2",
+    "ts-morph": "^16.0.0",
+    "typescript": "^4.8.4",
+    "vite": "^3.0.4",
+    "vitest": "0.20.3"
+  },
+  "resolutions": {
+    "eslint-plugin-codegen": "patch:eslint-plugin-codegen@npm:0.16.1#.yarn/patches/eslint-plugin-codegen-npm-0.16.1-87770191cd"
+  }
+}

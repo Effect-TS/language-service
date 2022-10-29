@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../build/cjs",
+    "declarationDir": "../build/dts",
+    "tsBuildInfoFile": "../build/tsbuildinfo/cjs.tsbuildinfo",
+    "tsPlusConfig": "../../../tsplus.config.json",
+    "rootDir": ".",
+    "types": []
+  },
+  "include": ["./**/*.ts"]
+}

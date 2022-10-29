@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@effect/language-service": ["./packages/language-service/build/cjs/index.js"],
+      "@effect/language-service/test/*": ["./packages/language-service/build/test/*"],
+      "@effect/language-service/*": ["./packages/language-service/build/cjs/*"]
+    }
+  },
+  "include": [
+    "./packages/language-service/build/cjs/**/*.js",
+    "./packages/language-service/build/test/**/*.js"
+  ]
+}
