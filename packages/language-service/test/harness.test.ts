@@ -84,7 +84,9 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
   for (const [lineAndCol] of firstLine.matchAll(/([0-9]+:[0-9]+)/gm)) {
     // create the language service
-    const languageServiceHost = createMockLanguageServiceHost(fileName, sourceWithMarker)
+    const sourceText = "// Result of running refactor " + refactor.name +
+      " at position " + lineAndCol + sourceWithMarker.substring(firstLine.length)
+    const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
     const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
     const sourceFile = languageService.getProgram()?.getSourceFile(fileName)
     if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
@@ -115,8 +117,10 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
       .provideService(AST.LanguageServiceApi, languageService)
       .unsafeRunSync()
 
-    expect(O.isSome(canApply)).toBe(true)
-    if (O.isNone(canApply)) return
+    if (O.isNone(canApply)) {
+      expect(sourceText).toMatchSnapshot()
+      return
+    }
 
     // run the refactor and ensure it matches the snapshot
     const formatContext = ts.formatting.getFormatContext(
@@ -137,7 +141,7 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
           .unsafeRunSync()
     )
 
-    expect(applyEdits(edits, fileName, sourceWithMarker)).toMatchSnapshot()
+    expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()
   }
 }
 

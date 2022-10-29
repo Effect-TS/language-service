@@ -13,7 +13,9 @@ export default createRefactor({
       const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
       const pipeCalls = $(Effect.filterPar(nodes, isPipeCall))
 
-      return pipeCalls.filter(ts.isCallExpression).filter(node => node.arguments.length > 1).head.map(node => ({
+      return pipeCalls.filter(ts.isCallExpression).filter(node =>
+        node.expression.pos <= textRange.pos && node.expression.end >= textRange.end
+      ).filter(node => node.arguments.length > 1).head.map(node => ({
         description: "Remove pipe call",
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))

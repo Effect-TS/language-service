@@ -13,7 +13,9 @@ export default createRefactor({
       const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
       const pipeableCallExpressions = $(Effect.filterPar(nodes.reverse, isPipeableCallExpression))
 
-      return pipeableCallExpressions.filter(ts.isCallExpression).head.map(node => ({
+      return pipeableCallExpressions.filter(ts.isCallExpression).filter(node =>
+        node.expression.pos <= textRange.pos && node.expression.end >= textRange.end
+      ).head.map(node => ({
         description: `Rewrite ${AST.getHumanReadableName(sourceFile, node.expression)} to pipe`,
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))

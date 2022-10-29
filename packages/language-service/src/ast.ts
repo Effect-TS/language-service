@@ -109,6 +109,21 @@ export function getNodesContainingRange(
   textRange: ts.TextRange
 ) {
   return Do(($) => {
+    const ts = $(Effect.service(TypeScriptApi))
+
+    const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
+    if (!precedingToken) return Chunk.empty()
+
+    let result = Chunk.empty<ts.Node>()
+    let parent = precedingToken
+    while (parent) {
+      result = result.append(parent)
+      parent = parent.parent
+    }
+
+    return result
+  })
+  return Do(($) => {
     let result: Chunk<ts.Node> = Chunk.empty()
 
     $(

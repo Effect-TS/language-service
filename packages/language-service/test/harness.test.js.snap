@@ -1,7 +1,7 @@
 // Vitest Snapshot v1
 
 exports[`addPipe.ts > addPipe.ts 1`] = `
-"// 5:18
+"// Result of running refactor effect/addPipe at position 5:18
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
 
@@ -10,7 +10,7 @@ const test = pipe(T.succeed(1), T.map((a: number) => a * 2))
 `;
 
 exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts 1`] = `
-"// 4:28
+"// Result of running refactor effect/asyncAwaitToGen at position 4:28
 import * as Effect from \\"@effect/core/io/Effect\\"
 
 export function refactorMe(arg: string) {
@@ -22,7 +22,7 @@ export function refactorMe(arg: string) {
 `;
 
 exports[`asyncAwaitToGenTryPromise.ts > asyncAwaitToGenTryPromise.ts 1`] = `
-"// 4:28
+"// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:28
 import * as Effect from \\"@effect/core/io/Effect\\"
 
 export function refactorMe(arg: string) {
@@ -37,7 +37,7 @@ export function refactorMe(arg: string) {
 `;
 
 exports[`functionToArrow.ts > functionToArrow.ts 1`] = `
-"// 5:20,12:20,21:5
+"// Result of running refactor effect/functionToArrow at position 5:20
 /**
  * Docs
  */
@@ -63,7 +63,7 @@ class Sample {
 `;
 
 exports[`functionToArrow.ts > functionToArrow.ts 2`] = `
-"// 5:20,12:20,21:5
+"// Result of running refactor effect/functionToArrow at position 12:20
 /**
  * Docs
  */
@@ -92,7 +92,7 @@ class Sample {
 `;
 
 exports[`functionToArrow.ts > functionToArrow.ts 3`] = `
-"// 5:20,12:20,21:5
+"// Result of running refactor effect/functionToArrow at position 21:5
 /**
  * Docs
  */
@@ -121,7 +121,7 @@ class Sample {
 `;
 
 exports[`removeCurryArrow.ts > removeCurryArrow.ts 1`] = `
-"// 7:12
+"// Result of running refactor effect/removeCurryArrow at position 7:12
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
 
@@ -133,10 +133,23 @@ const test = pipe(
 `;
 
 exports[`removePipe.ts > removePipe.ts 1`] = `
-"// 5:16
+"// Result of running refactor effect/removePipe at position 5:16
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
 
 const test = T.map(a => a * 1)(T.succeed(1))
+"
+`;
+
+exports[`removePipe.ts > removePipe.ts 2`] = `
+"// Result of running refactor effect/removePipe at position 7:7
+import * as T from \\"@effect/core/io/Effect\\"
+import { pipe } from \\"@tsplus/stdlib/data/Function\\"
+
+const test = pipe(
+  1,
+  T.succeed,
+  T.map(a => a * 1)
+)
 "
 `;
