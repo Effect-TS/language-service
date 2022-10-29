@@ -22,6 +22,9 @@
     "./*": {
       "import": "./build/cjs/*.js"
     },
+    "./test/utils": {
+      "import": "./build/test/utils.js"
+    },
     "./test/*": {
       "import": "./build/test/*.js"
     }

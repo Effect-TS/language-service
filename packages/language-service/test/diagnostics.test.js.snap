@@ -1,0 +1,6 @@
+// Vitest Snapshot v1
+
+exports[`removeCurryArrow.ts > removeCurryArrow.ts 1`] = `
+"(_) => T.log(_)
+6:8 - 6:23 | This arrow function may be not needed."
+`;

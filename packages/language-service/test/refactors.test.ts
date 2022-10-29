@@ -1,47 +1,10 @@
 import * as AST from "@effect/language-service/ast"
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
+import { createMockLanguageServiceHost } from "@effect/language-service/test/utils"
 import * as O from "@tsplus/stdlib/data/Maybe"
 import * as fs from "fs"
 import ts from "typescript/lib/tsserverlibrary"
-
-function createMockLanguageServiceHost(fileName: string, sourceText: string): ts.LanguageServiceHost {
-  return {
-    getCompilationSettings() {
-      return {
-        ...ts.getDefaultCompilerOptions(),
-        strict: true,
-        target: ts.ScriptTarget.ESNext,
-        noEmit: true,
-        moduleResolution: ts.ModuleResolutionKind.NodeJs
-      }
-    },
-    getScriptFileNames() {
-      return [fileName]
-    },
-    getScriptVersion(_fileName) {
-      return ""
-    },
-    getScriptSnapshot(_fileName) {
-      if (_fileName === fileName) {
-        return ts.ScriptSnapshot.fromString(sourceText)
-      }
-      return ts.ScriptSnapshot.fromString(fs.readFileSync(_fileName).toString())
-    },
-    getCurrentDirectory: () => ".",
-    getDefaultLibFileName(options) {
-      return ts.getDefaultLibFilePath(options)
-    },
-    fileExists: (_fileName) => {
-      if (_fileName === fileName) return true
-      return fs.existsSync(_fileName)
-    },
-    readFile: (_fileName) => {
-      if (_fileName === fileName) return sourceText
-      return fs.readFileSync(_fileName).toString()
-    }
-  }
-}
 
 /**
  * Loop through text changes, and update start and end positions while running
@@ -79,7 +42,7 @@ function applyEdits(edits: readonly ts.FileTextChanges[], fileName: string, sour
 }
 
 export function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
-  const sourceWithMarker = fs.readFileSync(require.resolve(__dirname + "/../../examples/" + fileName))
+  const sourceWithMarker = fs.readFileSync(require.resolve(__dirname + "/../../examples/refactors/" + fileName))
     .toString("utf8")
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
   for (const [lineAndCol] of firstLine.matchAll(/([0-9]+:[0-9]+)/gm)) {
@@ -145,7 +108,7 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
   }
 }
 
-function testRefactor(name: string, refactor: RefactorDefinition, fileNames: string[]) {
+function testFiles(name: string, refactor: RefactorDefinition, fileNames: string[]) {
   for (const fileName of fileNames) {
     describe(fileName, () => {
       it(fileName, () => {
@@ -155,4 +118,4 @@ function testRefactor(name: string, refactor: RefactorDefinition, fileNames: str
   }
 }
 
-Object.keys(refactors).map(refactorName => testRefactor(refactorName, refactors[refactorName]!, [refactorName + ".ts"]))
+Object.keys(refactors).map(refactorName => testFiles(refactorName, refactors[refactorName]!, [refactorName + ".ts"]))

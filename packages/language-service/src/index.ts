@@ -36,7 +36,8 @@ export default function init(modules: { typescript: typeof import("typescript/li
                 length: _.node.end - _.node.pos,
                 messageText: _.messageText,
                 category: _.category,
-                code: diagnostic.code
+                code: diagnostic.code,
+                source: "effect"
               }))
             )
         )

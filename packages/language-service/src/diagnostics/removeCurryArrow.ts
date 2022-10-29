@@ -4,7 +4,7 @@ import { createDiagnostic } from "@effect/language-service/diagnostics/definitio
 import { isCurryArrow } from "@effect/language-service/utils"
 
 export default createDiagnostic({
-  code: 424242,
+  code: 1001,
   apply: (sourceFile) =>
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
