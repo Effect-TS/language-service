@@ -79,6 +79,7 @@ export function isCurryArrow(arrow: ts.Node) {
 
 export function transformAsyncAwaitToEffectGen(
   node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+  effectName: string,
   onAwait: (expression: ts.Expression) => ts.Expression
 ) {
   return Do($ => {
@@ -109,7 +110,7 @@ export function transformAsyncAwaitToEffectGen(
 
     const effectGenCallExp = ts.factory.createCallExpression(
       ts.factory.createPropertyAccessExpression(
-        ts.factory.createIdentifier("Effect"),
+        ts.factory.createIdentifier(effectName),
         "gen"
       ),
       undefined,

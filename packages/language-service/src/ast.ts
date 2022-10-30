@@ -123,12 +123,10 @@ export function collectAll<R, E>(rootNode: ts.Node, test: (node: ts.Node) => Eff
 
     function visitor(node: ts.Node) {
       if (test(node).provideEnvironment(env).unsafeRunSync()) result = result.append(node)
-      ts.visitEachChild(node, visitor, ts.nullTransformationContext)
-
-      return node
+      ts.forEachChild(node, visitor)
     }
 
-    ts.visitNode(rootNode, visitor)
+    visitor(rootNode)
 
     return result
   })
@@ -146,8 +144,30 @@ export function getRelevantTokens(
       (ts.isMemberName(previousToken) || ts.isKeyword(previousToken.kind))
     ) {
       const contextToken = ts.findPrecedingToken(previousToken.getFullStart(), sourceFile, /*startNode*/ undefined)! // TODO: GH#18217
-      return { contextToken, previousToken }
+      return { contextToken: Maybe.some(contextToken), previousToken: Maybe.some(previousToken) }
     }
     return { contextToken: Maybe.fromNullable(previousToken), previousToken: Maybe.fromNullable(previousToken) }
+  })
+}
+
+export function findModuleImportIdentifierName(
+  sourceFile: ts.SourceFile,
+  moduleName: string
+) {
+  return Do($ => {
+    const ts = $(Effect.service(TypeScriptApi))
+
+    return Maybe.fromNullable(ts.forEachChild(sourceFile, node => {
+      if (!ts.isImportDeclaration(node)) return
+      const moduleSpecifier = node.moduleSpecifier
+      if (!ts.isStringLiteral(moduleSpecifier)) return
+      if (moduleSpecifier.text !== moduleName) return
+      const importClause = node.importClause
+      if (!importClause) return
+      const namedBindings = importClause.namedBindings
+      if (!namedBindings) return
+      if (!ts.isNamespaceImport(namedBindings)) return
+      return namedBindings.name.text
+    }))
   })
 }

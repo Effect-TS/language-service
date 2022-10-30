@@ -28,7 +28,7 @@
   "packageManager": "yarn@3.2.1",
   "devDependencies": {
     "@repo-tooling/eslint-plugin-dprint": "^0.0.4",
-    "@tsplus/installer": "0.0.146",
+    "@tsplus/installer": "0.0.149",
     "@types/node": "^18.6.3",
     "@typescript-eslint/eslint-plugin": "^5.32.0",
     "@typescript-eslint/parser": "^5.32.0",

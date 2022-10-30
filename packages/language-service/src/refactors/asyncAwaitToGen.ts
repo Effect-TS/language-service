@@ -18,11 +18,13 @@ export default createRefactor({
         description: "Rewrite to Effect.gen",
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))
+          const importedEffectName = $(AST.findModuleImportIdentifierName(sourceFile, "@effect/core/io/Effect"))
+          const effectName = importedEffectName.getOrElse("Effect")
 
-          const newDeclaration = $(transformAsyncAwaitToEffectGen(node, expression =>
+          const newDeclaration = $(transformAsyncAwaitToEffectGen(node, effectName, expression =>
             ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier("Effect"),
+                ts.factory.createIdentifier(effectName),
                 "promise"
               ),
               undefined,

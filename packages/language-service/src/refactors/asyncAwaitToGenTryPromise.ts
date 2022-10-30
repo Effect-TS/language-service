@@ -18,6 +18,9 @@ export default createRefactor({
         description: "Rewrite to Effect.gen with failures",
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))
+          const importedEffectName = $(AST.findModuleImportIdentifierName(sourceFile, "@effect/core/io/Effect"))
+          const effectName = importedEffectName.getOrElse("Effect")
+
           let errorCount = 0
 
           function createErrorADT() {
@@ -34,10 +37,10 @@ export default createRefactor({
             ])
           }
 
-          const newDeclaration = $(transformAsyncAwaitToEffectGen(node, expression =>
+          const newDeclaration = $(transformAsyncAwaitToEffectGen(node, effectName, expression =>
             ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier("Effect"),
+                ts.factory.createIdentifier(effectName),
                 "tryCatchPromise"
               ),
               undefined,

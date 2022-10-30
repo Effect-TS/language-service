@@ -11,11 +11,11 @@ const test = pipe(T.succeed(1), T.map((a: number) => a * 2))
 
 exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
-import * as Effect from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/core/io/Effect\\"
 
 export function refactorMe(arg: string) {
-    return Effect.gen(function*($) {
-        return yield* $(Effect.promise(Promise.resolve(1)))
+    return T.gen(function*($) {
+        return yield* $(T.promise(Promise.resolve(1)))
     })
 }
 "
