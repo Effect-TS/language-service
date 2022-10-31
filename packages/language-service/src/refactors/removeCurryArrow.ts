@@ -10,10 +10,10 @@ export default createRefactor({
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
 
-      const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
-      const curryArrowNodes = $(Effect.filter(nodes, isCurryArrow))
+      const nodes = AST.getNodesContainingRange(ts)(sourceFile, textRange)
+      const curryArrowNodes = nodes.filter(isCurryArrow(ts))
 
-      return curryArrowNodes.filter(ts.isArrowFunction).head.map(node => ({
+      return curryArrowNodes.head.map(node => ({
         description: `Remove arrow ${AST.getHumanReadableName(sourceFile, node.body)}`,
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))

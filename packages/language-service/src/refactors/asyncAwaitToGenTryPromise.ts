@@ -1,7 +1,7 @@
 import * as T from "@effect/core/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { transformAsyncAwaitToEffectGen } from "@effect/language-service/utils"
+import { findModuleImportIdentifierName, transformAsyncAwaitToEffectGen } from "@effect/language-service/utils"
 
 export default createRefactor({
   name: "effect/asyncAwaitToGenTryPromise",
@@ -10,7 +10,7 @@ export default createRefactor({
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
 
-      const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
+      const nodes = (AST.getNodesContainingRange(ts)(sourceFile, textRange))
 
       return nodes.filter(ts.isFunctionDeclaration).filter(node => !!node.body).filter(node =>
         !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)
@@ -18,7 +18,7 @@ export default createRefactor({
         description: "Rewrite to Effect.gen with failures",
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))
-          const importedEffectName = $(AST.findModuleImportIdentifierName(sourceFile, "@effect/core/io/Effect"))
+          const importedEffectName = (findModuleImportIdentifierName(ts)(sourceFile, "@effect/core/io/Effect"))
           const effectName = importedEffectName.getOrElse("Effect")
 
           let errorCount = 0

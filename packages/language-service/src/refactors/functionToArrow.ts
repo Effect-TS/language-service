@@ -9,7 +9,7 @@ export default createRefactor({
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
 
-      const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
+      const nodes = AST.getNodesContainingRange(ts)(sourceFile, textRange)
 
       return nodes.filter(ts.isFunctionDeclaration).concat(nodes.filter(ts.isMethodDeclaration)).filter(node =>
         !!node.body

@@ -83,12 +83,9 @@ export function hasModifier(node: ts.Declaration, kind: ts.ModifierFlags) {
  * Gets the closest node that contains given TextRange
  */
 export function getNodesContainingRange(
-  sourceFile: ts.SourceFile,
-  textRange: ts.TextRange
+  ts: TypeScriptApi
 ) {
-  return Do(($) => {
-    const ts = $(Effect.service(TypeScriptApi))
-
+  return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
     if (!precedingToken) return Chunk.empty()
 
@@ -115,29 +112,25 @@ export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
   return text.length > 10 ? text.substring(0, 10) + "..." : text
 }
 
-export function collectAll<R, E>(rootNode: ts.Node, test: (node: ts.Node) => Effect<R, E, boolean>) {
-  return Do(($) => {
-    const ts = $(Effect.service(TypeScriptApi))
-    const env = $(Effect.environment<R>())
-    let result = Chunk.empty<ts.Node>()
+export function collectAll(ts: TypeScriptApi) {
+  return <A extends ts.Node>(rootNode: ts.Node, test: (node: ts.Node) => node is A) => {
+    let result = Chunk.empty<A>()
 
     function visitor(node: ts.Node) {
-      if (test(node).provideEnvironment(env).unsafeRunSync()) result = result.append(node)
+      if (test(node)) result = result.append(node)
       ts.forEachChild(node, visitor)
     }
 
     visitor(rootNode)
 
     return result
-  })
+  }
 }
 
 export function getRelevantTokens(
-  position: number,
-  sourceFile: ts.SourceFile
+  ts: TypeScriptApi
 ) {
-  return Do(($) => {
-    const ts = $(Effect.service(TypeScriptApi))
+  return ((position: number, sourceFile: ts.SourceFile) => {
     const previousToken = ts.findPrecedingToken(position, sourceFile)
     if (
       previousToken && position <= previousToken.end &&
@@ -147,27 +140,5 @@ export function getRelevantTokens(
       return { contextToken: Maybe.some(contextToken), previousToken: Maybe.some(previousToken) }
     }
     return { contextToken: Maybe.fromNullable(previousToken), previousToken: Maybe.fromNullable(previousToken) }
-  })
-}
-
-export function findModuleImportIdentifierName(
-  sourceFile: ts.SourceFile,
-  moduleName: string
-) {
-  return Do($ => {
-    const ts = $(Effect.service(TypeScriptApi))
-
-    return Maybe.fromNullable(ts.forEachChild(sourceFile, node => {
-      if (!ts.isImportDeclaration(node)) return
-      const moduleSpecifier = node.moduleSpecifier
-      if (!ts.isStringLiteral(moduleSpecifier)) return
-      if (moduleSpecifier.text !== moduleName) return
-      const importClause = node.importClause
-      if (!importClause) return
-      const namedBindings = importClause.namedBindings
-      if (!namedBindings) return
-      if (!ts.isNamespaceImport(namedBindings)) return
-      return namedBindings.name.text
-    }))
   })
 }

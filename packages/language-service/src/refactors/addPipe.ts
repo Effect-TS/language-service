@@ -10,16 +10,16 @@ export default createRefactor({
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
 
-      const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
-      const pipeableCallExpressions = $(Effect.filterPar(nodes.reverse, isPipeableCallExpression))
+      const nodes = AST.getNodesContainingRange(ts)(sourceFile, textRange)
+      const pipeableCallExpressions = Chunk.from(nodes.reverse).filter(isPipeableCallExpression(ts))
 
-      return pipeableCallExpressions.filter(ts.isCallExpression).filter(node =>
+      return pipeableCallExpressions.filter(node =>
         node.expression.pos <= textRange.pos && node.expression.end >= textRange.end
       ).head.map(node => ({
         description: `Rewrite ${AST.getHumanReadableName(sourceFile, node.expression)} to pipe`,
         apply: Do($ => {
           const changeTracker = $(T.service(AST.ChangeTrackerApi))
-          const args = $(asPipeArguments(node))
+          const args = asPipeArguments(ts)(node)
 
           const newNode = ts.factory.createCallExpression(
             ts.factory.createIdentifier("pipe"),

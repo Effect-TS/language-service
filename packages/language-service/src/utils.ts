@@ -1,20 +1,18 @@
 import * as AST from "@effect/language-service/ast"
 import type ts from "typescript/lib/tsserverlibrary"
 
-export function isPipeCall(node: ts.Node) {
-  return Do($ => {
-    const ts = $(Effect.service(AST.TypeScriptApi))
+export function isPipeCall(ts: AST.TypeScriptApi) {
+  return (node: ts.Node) => {
     if (!ts.isCallExpression(node)) return false
     const expression = node.expression
     if (!ts.isIdentifier(expression)) return false
     if (expression.getText(node.getSourceFile()) !== "pipe") return false
     return true
-  })
+  }
 }
 
-export function asPipeableCallExpression(node: ts.Node) {
-  return Do($ => {
-    const ts = $(Effect.service(AST.TypeScriptApi))
+export function asPipeableCallExpression(ts: AST.TypeScriptApi) {
+  return (node: ts.Node) => {
     // ensure the node is a call expression
     if (!ts.isCallExpression(node)) return Maybe.none
     // with just 1 arg
@@ -26,42 +24,53 @@ export function asPipeableCallExpression(node: ts.Node) {
     // same goes for identifiers, string literal or numbers
     if (ts.isStringLiteral(arg) || ts.isNumericLiteral(arg) || ts.isIdentifier(arg)) return Maybe.none
     return Maybe.some([node.expression, arg] as const)
-  })
+  }
 }
 
-export function asPipeArguments(initialNode: ts.Node) {
-  return Do($ => {
+export function asPipeArguments(ts: AST.TypeScriptApi) {
+  return (initialNode: ts.Node) => {
     let result = Chunk.empty<ts.Expression>()
-    $(
-      Effect.iterate(Maybe.some(initialNode), node => node.isSome())(
-        maybeNode =>
-          Do($ => {
-            if (maybeNode.isNone()) return Maybe.none
-
-            const node = maybeNode.value
-            const maybePipeable = $(asPipeableCallExpression(node))
-            if (maybePipeable.isNone()) {
-              result = result.append(node as ts.Expression)
-              return Maybe.none
-            }
-            const [exp, arg] = maybePipeable.value
-            result = result.append(exp)
-
-            return Maybe.some(arg)
-          })
-      )
-    )
+    let currentNode: Maybe<ts.Node> = Maybe.some(initialNode)
+    while (currentNode.isSome()) {
+      const node = currentNode.value
+      const maybePipeable = asPipeableCallExpression(ts)(node)
+      if (maybePipeable.isNone()) {
+        result = result.append(node as ts.Expression)
+        break
+      }
+      const [exp, arg] = maybePipeable.value
+      result = result.append(exp)
+      currentNode = Maybe.some(arg)
+    }
     return result.reverse
-  })
+  }
 }
 
-export function isPipeableCallExpression(node: ts.Node) {
-  return asPipeableCallExpression(node).map(_ => _.isSome())
+export function isPipeableCallExpression(ts: AST.TypeScriptApi) {
+  return (node: ts.Node): node is ts.CallExpression => asPipeableCallExpression(ts)(node).isSome()
 }
 
-export function isCurryArrow(arrow: ts.Node) {
-  return Do($ => {
-    const ts = $(Effect.service(AST.TypeScriptApi))
+export function findModuleImportIdentifierName(
+  ts: AST.TypeScriptApi
+) {
+  return (sourceFile: ts.SourceFile, moduleName: string) => {
+    return Maybe.fromNullable(ts.forEachChild(sourceFile, node => {
+      if (!ts.isImportDeclaration(node)) return
+      const moduleSpecifier = node.moduleSpecifier
+      if (!ts.isStringLiteral(moduleSpecifier)) return
+      if (moduleSpecifier.text !== moduleName) return
+      const importClause = node.importClause
+      if (!importClause) return
+      const namedBindings = importClause.namedBindings
+      if (!namedBindings) return
+      if (!ts.isNamespaceImport(namedBindings)) return
+      return namedBindings.name.text
+    }))
+  }
+}
+
+export function isCurryArrow(ts: AST.TypeScriptApi) {
+  return (arrow: ts.Node): arrow is ts.ArrowFunction => {
     if (!ts.isArrowFunction(arrow)) return false
     if (arrow.parameters.length !== 1) return false
     const parameter = arrow.parameters[0]!
@@ -74,7 +83,13 @@ export function isCurryArrow(arrow: ts.Node) {
     const identifier = args[0]!
     if (!ts.isIdentifier(identifier)) return false
     return identifier.text === parameterName.text
-  })
+  }
+}
+
+export function isLiteralConstantValue(ts: AST.TypeScriptApi) {
+  return (node: ts.Node) =>
+    ts.isStringLiteral(node) || ts.isNumericLiteral(node) || node.kind === ts.SyntaxKind.TrueKeyword ||
+    node.kind === ts.SyntaxKind.FalseKeyword || node.kind === ts.SyntaxKind.NullKeyword
 }
 
 export function transformAsyncAwaitToEffectGen(

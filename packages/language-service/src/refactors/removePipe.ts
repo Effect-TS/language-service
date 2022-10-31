@@ -10,8 +10,8 @@ export default createRefactor({
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
 
-      const nodes = $(AST.getNodesContainingRange(sourceFile, textRange))
-      const pipeCalls = $(Effect.filterPar(nodes, isPipeCall))
+      const nodes = (AST.getNodesContainingRange(ts)(sourceFile, textRange))
+      const pipeCalls = nodes.filter(isPipeCall(ts))
 
       return pipeCalls.filter(ts.isCallExpression).filter(node =>
         node.expression.pos <= textRange.pos && node.expression.end >= textRange.end
