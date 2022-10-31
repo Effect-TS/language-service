@@ -50,6 +50,22 @@ export function isPipeableCallExpression(ts: AST.TypeScriptApi) {
   return (node: ts.Node): node is ts.CallExpression => asPipeableCallExpression(ts)(node).isSome()
 }
 
+export function isCombinatorCall(ts: AST.TypeScriptApi) {
+  return (moduleIdentifier: string, moduleMethodName: string) =>
+    (node: ts.Node): node is ts.CallExpression => {
+      if (!ts.isCallExpression(node)) return false
+      const left = node.expression
+      if (!ts.isPropertyAccessExpression(left)) return false
+      const leftModule = left.expression
+      const leftName = left.name
+      if (!ts.isIdentifier(leftModule)) return false
+      if (leftModule.text !== moduleIdentifier) return false
+      if (!ts.isIdentifier(leftName)) return false
+      if (leftName.text !== moduleMethodName) return false
+      return true
+    }
+}
+
 export function findModuleImportIdentifierName(
   ts: AST.TypeScriptApi
 ) {
@@ -87,9 +103,11 @@ export function isCurryArrow(ts: AST.TypeScriptApi) {
 }
 
 export function isLiteralConstantValue(ts: AST.TypeScriptApi) {
-  return (node: ts.Node) =>
-    ts.isStringLiteral(node) || ts.isNumericLiteral(node) || node.kind === ts.SyntaxKind.TrueKeyword ||
-    node.kind === ts.SyntaxKind.FalseKeyword || node.kind === ts.SyntaxKind.NullKeyword
+  return (node: ts.Node) => {
+    return ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
+      node.kind === ts.SyntaxKind.TrueKeyword ||
+      node.kind === ts.SyntaxKind.FalseKeyword || node.kind === ts.SyntaxKind.NullKeyword
+  }
 }
 
 export function transformAsyncAwaitToEffectGen(

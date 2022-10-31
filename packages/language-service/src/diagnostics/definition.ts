@@ -1,5 +1,11 @@
 import type ts from "typescript/lib/tsserverlibrary"
 
+export interface DiagnosticDefinitionMessage {
+  node: ts.Node
+  category: ts.DiagnosticCategory
+  messageText: string
+}
+
 export interface DiagnosticDefinition {
   code: number
   apply: <E>(
@@ -7,11 +13,7 @@ export interface DiagnosticDefinition {
   ) => Effect<
     typeof ts | ts.LanguageService,
     E,
-    Chunk<{
-      node: ts.Node
-      category: ts.DiagnosticCategory
-      messageText: string
-    }>
+    Chunk<DiagnosticDefinitionMessage>
   >
 }
 

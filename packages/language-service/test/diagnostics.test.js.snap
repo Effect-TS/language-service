@@ -1,5 +1,22 @@
 // Vitest Snapshot v1
 
+exports[`noSyncWithConstant.ts > noSyncWithConstant.ts 1`] = `
+" T.sync(() => 42)
+3:10 - 3:27 | Value is constant, instead of using sync you could use succeed.
+
+ T.sync(() => true)
+4:10 - 4:29 | Value is constant, instead of using sync you could use succeed.
+
+ T.sync(() => stuff)
+11:10 - 11:30 | Value is constant, instead of using sync you could use succeed.
+
+ T.failSync(() => 42)
+13:10 - 13:31 | Value is constant, instead of using failSync you could use fail.
+
+ T.dieSync(() => 42)
+16:10 - 16:30 | Value is constant, instead of using dieSync you could use die."
+`;
+
 exports[`removeCurryArrow.ts > removeCurryArrow.ts 1`] = `
 "(_) => T.log(_)
 6:8 - 6:23 | This arrow function may be not needed."
