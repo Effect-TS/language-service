@@ -12,7 +12,9 @@ export function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileNa
   // create the language service
   const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
   const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
-  const sourceFile = languageService.getProgram()?.getSourceFile(fileName)
+  const program = languageService.getProgram()
+  if (!program) throw new Error("No typescript program!")
+  const sourceFile = program.getSourceFile(fileName)
   if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
   // ensure there are no errors in TS file
@@ -33,7 +35,7 @@ export function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileNa
   const resultMessages = diagnostic
     .apply(sourceFile)
     .provideService(AST.TypeScriptApi, ts)
-    .provideService(AST.LanguageServiceApi, languageService)
+    .provideService(AST.TypeScriptProgram, program)
     .unsafeRunSync()
 
   // create human readable messages

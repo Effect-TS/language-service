@@ -51,7 +51,9 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
       " at position " + lineAndCol + sourceWithMarker.substring(firstLine.length)
     const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
     const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
-    const sourceFile = languageService.getProgram()?.getSourceFile(fileName)
+    const program = languageService.getProgram()
+    if (!program) throw new Error("No typescript program!")
+    const sourceFile = program.getSourceFile(fileName)
     if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
     // gets the position to test
@@ -77,7 +79,7 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
     const canApply = refactor
       .apply(sourceFile, textRange)
       .provideService(AST.TypeScriptApi, ts)
-      .provideService(AST.LanguageServiceApi, languageService)
+      .provideService(AST.TypeScriptProgram, program)
       .unsafeRunSync()
 
     if (O.isNone(canApply)) {
@@ -100,7 +102,7 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
         canApply.value.apply
           .provideService(AST.ChangeTrackerApi, changeTracker)
           .provideService(AST.TypeScriptApi, ts)
-          .provideService(AST.LanguageServiceApi, languageService)
+          .provideService(AST.TypeScriptProgram, program)
           .unsafeRunSync()
     )
 

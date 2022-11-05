@@ -9,11 +9,11 @@ export interface RefactorDefinition {
     sourceFile: ts.SourceFile,
     textRange: ts.TextRange
   ) => T.Effect<
-    typeof ts | ts.LanguageService,
+    typeof ts | ts.Program,
     E,
     O.Maybe<{
       description: string
-      apply: T.Effect<typeof ts | ts.LanguageService | ts.textChanges.ChangeTracker, E, void>
+      apply: T.Effect<typeof ts | ts.Program | ts.textChanges.ChangeTracker, E, void>
     }>
   >
 }

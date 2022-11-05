@@ -48,20 +48,8 @@ declare module "typescript/lib/tsserverlibrary" {
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 export type TypeScriptApi = typeof import("typescript/lib/tsserverlibrary")
 export const TypeScriptApi = Tag<TypeScriptApi>()
-export const LanguageServiceApi = Tag<ts.LanguageService>()
+export const TypeScriptProgram = Tag<ts.Program>()
 export const ChangeTrackerApi = Tag<ts.textChanges.ChangeTracker>()
-
-export class NoTypeScriptProgramError {
-  readonly _tag = "NoTypeScriptProgramError"
-}
-
-export function getProgram() {
-  return Effect.serviceWithEffect(
-    LanguageServiceApi,
-    languageService => Effect.sync(() => languageService.getProgram())
-  )
-    .filterOrFail((program): program is ts.Program => !!program, () => new NoTypeScriptProgramError())
-}
 
 export class NoSuchSourceFile {
   readonly _tag = "NoSuchSourceFile"
@@ -71,7 +59,7 @@ export class NoSuchSourceFile {
 }
 
 export function getSourceFile(fileName: string) {
-  return getProgram().map(program => program.getSourceFile(fileName))
+  return Effect.service(TypeScriptProgram).map(program => program.getSourceFile(fileName))
     .filterOrFail((sourceFile): sourceFile is ts.SourceFile => !!sourceFile, () => new NoSuchSourceFile(fileName))
 }
 

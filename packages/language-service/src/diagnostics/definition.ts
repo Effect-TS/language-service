@@ -11,7 +11,7 @@ export interface DiagnosticDefinition {
   apply: <E>(
     sourceFile: ts.SourceFile
   ) => Effect<
-    typeof ts | ts.LanguageService,
+    typeof ts | ts.Program,
     E,
     Chunk<DiagnosticDefinitionMessage>
   >

@@ -1,5 +1,16 @@
 // Vitest Snapshot v1
 
+exports[`ensureGetCallTrace.ts > ensureGetCallTrace.ts 1`] = `
+" <A>(value: A) => T.succeed(value)
+5:28 - 5:62 | This function should be traced. getCallTrace() should be the first line of the body.
+
+ <A, B>(f: (value: A) => B) => T.map(f)
+7:24 - 7:63 | This function should be traced. getCallTrace() should be the first line of the body.
+
+ <A, B>(f: (value: A) => T.Effect<never, never, B>) => T.flatMap(f)
+9:21 - 9:88 | This function should be traced. getCallTrace() should be the first line of the body."
+`;
+
 exports[`noSyncWithConstant.ts > noSyncWithConstant.ts 1`] = `
 " T.sync(() => 42)
 3:10 - 3:27 | Value is constant, instead of using sync you could use succeed.
