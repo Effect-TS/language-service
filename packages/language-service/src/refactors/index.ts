@@ -4,7 +4,8 @@ import asyncAwaitToGenTryPromise from "@effect/language-service/refactors/asyncA
 import functionToArrow from "@effect/language-service/refactors/functionToArrow"
 import removeCurryArrow from "@effect/language-service/refactors/removeCurryArrow"
 import removePipe from "@effect/language-service/refactors/removePipe"
-import updateTypeAnnotation from "@effect/language-service/refactors/updateTypeAnnotation"
+import toggleReturnTypeAnnotation from "@effect/language-service/refactors/toggleReturnTypeAnnotation"
+import toggleTypeAnnotation from "@effect/language-service/refactors/toggleTypeAnnotation"
 
 export default {
   asyncAwaitToGen,
@@ -13,5 +14,6 @@ export default {
   addPipe,
   removeCurryArrow,
   functionToArrow,
-  updateTypeAnnotation
+  toggleTypeAnnotation,
+  toggleReturnTypeAnnotation
 }

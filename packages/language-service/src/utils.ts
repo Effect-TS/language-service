@@ -191,3 +191,29 @@ export function transformAsyncAwaitToEffectGen(
     )
   })
 }
+
+export function addReturnTypeAnnotation(
+  ts: AST.TypeScriptApi,
+  changes: ts.textChanges.ChangeTracker
+) {
+  return (
+    sourceFile: ts.SourceFile,
+    declaration:
+      | ts.FunctionDeclaration
+      | ts.FunctionExpression
+      | ts.ArrowFunction
+      | ts.MethodDeclaration,
+    typeNode: ts.TypeNode
+  ) => {
+    const closeParen = ts.findChildOfKind(declaration, ts.SyntaxKind.CloseParenToken, sourceFile)
+    const needParens = ts.isArrowFunction(declaration) && closeParen === undefined
+    const endNode = needParens ? declaration.parameters[0] : closeParen
+    if (endNode) {
+      if (needParens) {
+        changes.insertNodeBefore(sourceFile, endNode, ts.factory.createToken(ts.SyntaxKind.OpenParenToken))
+        changes.insertNodeAfter(sourceFile, endNode, ts.factory.createToken(ts.SyntaxKind.CloseParenToken))
+      }
+      changes.insertNodeAt(sourceFile, endNode.end, typeNode, { prefix: ": " })
+    }
+  }
+}

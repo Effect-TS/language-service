@@ -2,8 +2,8 @@ import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
 
 export default createRefactor({
-  name: "effect/updateTypeAnnotation",
-  description: "Update type annotation",
+  name: "effect/toggleTypeAnnotation",
+  description: "Toggle type annotation",
   apply: (sourceFile, textRange) =>
     Do($ => {
       const ts = $(Effect.service(AST.TypeScriptApi))
@@ -15,11 +15,16 @@ export default createRefactor({
 
       return variableDeclaration.map(
         node => ({
-          description: "Update type annotation",
+          description: "Toggle type annotation",
           apply: Do($ => {
             const program = $(Effect.service(AST.TypeScriptProgram))
             const typeChecker = program.getTypeChecker()
             const changeTracker = $(Effect.service(AST.ChangeTrackerApi))
+
+            if (node.type) {
+              changeTracker.delete(sourceFile, node.type)
+              return
+            }
 
             const initializer = node.initializer!
             const initializerType = typeChecker.getTypeAtLocation(initializer)
@@ -28,16 +33,9 @@ export default createRefactor({
               node,
               ts.NodeBuilderFlags.NoTruncation
             )
-
-            const newDeclaration = ts.factory.updateVariableDeclaration(
-              node,
-              node.name,
-              node.exclamationToken,
-              initializerTypeNode,
-              initializer
-            )
-
-            changeTracker.replaceNode(sourceFile, node, newDeclaration)
+            if (initializerTypeNode) {
+              changeTracker.insertNodeAt(sourceFile, node.name.end, initializerTypeNode, { prefix: ": " })
+            }
           })
         })
       )
