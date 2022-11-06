@@ -130,3 +130,7 @@ export function getRelevantTokens(
     return { contextToken: Maybe.fromNullable(previousToken), previousToken: Maybe.fromNullable(previousToken) }
   })
 }
+
+export function isNodeInRange(textRange: ts.TextRange) {
+  return (node: ts.Node) => node.pos <= textRange.pos && node.end >= textRange.end
+}

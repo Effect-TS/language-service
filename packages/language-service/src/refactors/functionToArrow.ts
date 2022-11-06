@@ -13,7 +13,7 @@ export default createRefactor({
 
       return nodes.filter(ts.isFunctionDeclaration).concat(nodes.filter(ts.isMethodDeclaration)).filter(node =>
         !!node.body
-      ).filter(node => !!node.name && node.name.pos <= textRange.pos && node.name.end >= textRange.end).head.map(
+      ).filter(node => !!node.name && AST.isNodeInRange(textRange)(node.name)).head.map(
         node => ({
           description: "Convert to arrow",
           apply: Do($ => {

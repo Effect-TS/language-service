@@ -153,3 +153,11 @@ const test = pipe(
 )
 "
 `;
+
+exports[`updateTypeAnnotation.ts > updateTypeAnnotation.ts 1`] = `
+"// Result of running refactor effect/updateTypeAnnotation at position 4:16
+import * as T from \\"@effect/core/io/Effect\\"
+
+export const test1: <A>(value: A) => T.Effect<never, never, A> = T.succeed
+"
+`;
