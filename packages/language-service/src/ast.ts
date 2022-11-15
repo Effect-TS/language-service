@@ -76,6 +76,7 @@ declare module "typescript/lib/tsserverlibrary" {
     export class ChangeTracker {
       static with(context: ts.TextChangesContext, cb: (tracker: ChangeTracker) => void): ts.FileTextChanges[]
       delete(sourceFile: ts.SourceFile, node: ts.Node | ts.NodeArray<ts.TypeParameterDeclaration>): void
+      deleteRange(sourceFile: ts.SourceFile, range: ts.TextRange): void
       replaceNode(sourceFile: ts.SourceFile, oldNode: ts.Node, newNode: ts.Node, options?: ts.ChangeNodeOptions): void
       insertNodeAt(
         sourceFile: ts.SourceFile,

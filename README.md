@@ -1,19 +1,59 @@
-### Starter Monorepo Setup [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/Effect-TS/language-service)
+# language-service
 
-Install the dependencies with: `yarn`
+This package implements a TypeScript language service plugin that allows additional refactors and diagnostics with your VSCode editor (or any editor that supports TypeScript's LSP).
 
-Run prod build with: `yarn build`
+## Installation
 
-Run dev build with `yarn build-watch`
+After `npm install @effect/language-service` in your project, ensure you set your VSCode to use your workspace TypeScript version.
 
-Run test with: `yarn test` (note thet first you need to build)
+Inside your tsconfig.json, you should add the plugin configuration as follows:
 
-Run app with `yarn start`
+```json
+{
+    "compilerOptions": {
+        "plugins": [{
+            "name": "@effect/language-service",
+        }]
+    }
+}
+```
 
-## VSCode
+## Provided refactors
 
-Tasks setup, running the `test-watch` task will run build in watch mode and tests in watch mode.
+Here's a list of the refactors provided by this language service plugin.
 
-Be sure you select the right typescript version, you should be prompted a notice when opening the ide, if that is not the case:
+### Add pipe
 
-Open a TS file like `packages/app/src/index.ts` and then click in the `{}` near `TypeScript` in the bottom right corner of your editor and select the version from the workspace.
+![](images/add-pipe.gif)
+
+Transform a set of function calls to a pipe() call.
+
+### Remove pipe
+
+![](images/remove-pipe.gif)
+
+Transform a pipe() call into a series of regular function calls.
+
+### Remove curry arrow
+
+![](images/remove-curry-arrow.gif)
+
+Removes useless arrow functions.
+
+### Toggle type annotation
+
+![](images/toggle-type-annotation.gif)
+
+With a single refactor, adds or removes type annotations from the definition.
+
+### async-await to Effect.gen
+
+![](images/async-await-to-gen.gif)
+
+Transform an async function definition, into an Effect by using Effect.gen.
+
+### async-await to Effect.gen with tryPromise
+
+![](images/async-await-to-gen-try-promise.gif)
+
+Transform an async function definition, into an Effect by using Effect.gen, and generating a tagged error for each promise call.

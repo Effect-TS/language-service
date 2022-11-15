@@ -22,7 +22,7 @@ export default createRefactor({
             const changeTracker = $(Effect.service(AST.ChangeTrackerApi))
 
             if (node.type) {
-              changeTracker.delete(sourceFile, node.type)
+              changeTracker.deleteRange(sourceFile, { pos: node.type.pos - 2, end: node.type.end })
               return
             }
 
