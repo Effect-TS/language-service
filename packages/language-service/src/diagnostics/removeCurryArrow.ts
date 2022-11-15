@@ -5,6 +5,7 @@ import { isCurryArrow } from "@effect/language-service/utils"
 
 export default createDiagnostic({
   code: 1001,
+  category: "suggestion",
   apply: (sourceFile) =>
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
@@ -13,7 +14,6 @@ export default createDiagnostic({
 
       return nodes.map(node => ({
         node,
-        category: ts.DiagnosticCategory.Suggestion,
         messageText: "This arrow function may be not needed."
       }))
     })

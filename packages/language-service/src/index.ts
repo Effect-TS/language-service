@@ -1,11 +1,16 @@
 import * as T from "@effect/core/io/Effect"
 import * as AST from "@effect/language-service/ast"
-import type { DiagnosticDefinition } from "@effect/language-service/diagnostics/definition"
+import { parseLanguageServicePluginConfig } from "@effect/language-service/config"
+import type {
+  DiagnosticDefinition,
+  DiagnosticDefinitionMessageCategory
+} from "@effect/language-service/diagnostics/definition"
 import diagnostics from "@effect/language-service/diagnostics/index"
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
 import { identity } from "@tsplus/stdlib/data/Function"
 import * as O from "@tsplus/stdlib/data/Maybe"
+import type ts from "typescript/lib/tsserverlibrary"
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 export default function init(modules: { typescript: typeof import("typescript/lib/tsserverlibrary") }) {
@@ -21,6 +26,21 @@ export default function init(modules: { typescript: typeof import("typescript/li
       proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
     }
 
+    function applyConfiguredDiagnosticCategory(diagnostic: DiagnosticDefinition): DiagnosticDefinition {
+      const config = parseLanguageServicePluginConfig(info.config)
+      const category = config.diagnostics[diagnostic.code] || diagnostic.category
+      return ({ ...diagnostic, category })
+    }
+
+    function toTsDiagnosticCategory(category: DiagnosticDefinitionMessageCategory): ts.DiagnosticCategory {
+      return ({
+        none: ts.DiagnosticCategory.Suggestion,
+        suggestion: ts.DiagnosticCategory.Suggestion,
+        warning: ts.DiagnosticCategory.Warning,
+        error: ts.DiagnosticCategory.Error
+      })[category]
+    }
+
     proxy.getSuggestionDiagnostics = (...args) => {
       const suggestionDiagnostics = languageService.getSuggestionDiagnostics(...args)
       const [fileName] = args
@@ -29,7 +49,9 @@ export default function init(modules: { typescript: typeof import("typescript/li
       if (program) {
         const effectDiagnostics = AST.getSourceFile(fileName).flatMap(sourceFile =>
           T.forEachPar(
-            Object.values<DiagnosticDefinition>(diagnostics),
+            Object.values<DiagnosticDefinition>(diagnostics).map(applyConfiguredDiagnosticCategory).filter(_ =>
+              _.category !== "none"
+            ),
             diagnostic =>
               diagnostic.apply(sourceFile).map(results =>
                 results.map(_ => ({
@@ -37,7 +59,7 @@ export default function init(modules: { typescript: typeof import("typescript/li
                   start: _.node.pos,
                   length: _.node.end - _.node.pos,
                   messageText: _.messageText,
-                  category: _.category,
+                  category: toTsDiagnosticCategory(diagnostic.category),
                   code: diagnostic.code,
                   source: "effect"
                 }))

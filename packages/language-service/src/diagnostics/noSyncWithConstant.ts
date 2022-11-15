@@ -10,6 +10,7 @@ import {
 
 export default createDiagnostic({
   code: 1002,
+  category: "warning",
   apply: (sourceFile) =>
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
@@ -38,7 +39,6 @@ export default createDiagnostic({
             return true
           }).map(node => ({
             node,
-            category: ts.DiagnosticCategory.Warning,
             messageText: `Value is constant, instead of using ${methodName} you could use ${suggestedMethodName}.`
           }))
         )

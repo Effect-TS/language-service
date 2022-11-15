@@ -4,6 +4,7 @@ import { createDiagnostic } from "@effect/language-service/diagnostics/definitio
 
 export default createDiagnostic({
   code: 1003,
+  category: "none",
   apply: (sourceFile) =>
     Do($ => {
       const ts = $(T.service(AST.TypeScriptApi))
@@ -55,7 +56,6 @@ export default createDiagnostic({
         return AST.collectAll(ts)(firstStatement, isGetCallTraceCallExpression).isEmpty
       }).map((node) => ({
         node,
-        category: ts.DiagnosticCategory.Warning,
         messageText: `This function should be traced. getCallTrace() should be the first line of the body.`
       }))
     })
