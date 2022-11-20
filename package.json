@@ -60,7 +60,8 @@
     "@effect/core": "^0.0.16",
     "@effect/printer": "^0.1.0",
     "@fp-ts/core": "^0.0.8",
-    "@fp-ts/data": "^0.0.9"
+    "@fp-ts/data": "^0.0.9",
+    "@tsplus/stdlib": "^0.2.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.18.6",

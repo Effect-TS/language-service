@@ -25,6 +25,7 @@ importers:
       '@fp-ts/data': ^0.0.9
       '@repo-tooling/eslint-plugin-dprint': ^0.0.4
       '@rollup/pluginutils': ^5.0.2
+      '@tsplus/stdlib': ^0.2.8
       '@types/benchmark': ^2.1.2
       '@types/chai': ^4.3.3
       '@types/glob': ^8.0.0
@@ -64,6 +65,7 @@ importers:
       '@effect/printer': 0.1.0
       '@fp-ts/core': 0.0.8
       '@fp-ts/data': 0.0.9
+      '@tsplus/stdlib': 0.2.8
     devDependencies:
       '@babel/cli': 7.19.3_@babel+core@7.20.2
       '@babel/core': 7.20.2
@@ -151,6 +153,7 @@ packages:
   /@babel/cli/7.19.3_@babel+core@7.20.2:
     resolution: {integrity: sha512-643/TybmaCAe101m2tSVHi9UKpETXP9c/Ff4mD2tAwkdP6esKIfaauZFc67vGEM6r9fekbEGid+sZhbEnSe3dg==}
     engines: {node: '>=6.9.0'}
+    hasBin: true
     peerDependencies:
       '@babel/core': ^7.0.0-0
     dependencies:
@@ -2486,6 +2489,7 @@ packages:
 
   /docs-ts/0.6.10_l3b72hrr3q6ktkfxedx2jupdzu_dmjzcauo3cshxeipj7bv64ktgm:
     resolution: {integrity: sha512-DTX9c5AJ92ojMOKqqvwF8t77C8Gdgs9FPB8seymHs+F+Wl6aapc3ZkHUM+p8o+jwcBmPoihxssdK903dfwQ1JQ==}
+    hasBin: true
     peerDependencies:
       prettier: ^2.0.0
       typescript: ^3.3.1 || ^4.x
@@ -6327,6 +6331,7 @@ packages:
 
   /ts-node/10.9.1_cbe7ovvae6zqfnmtgctpgpys54:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -6358,6 +6363,7 @@ packages:
   /ts-node/8.10.2_typescript@4.8.4:
     resolution: {integrity: sha512-ISJJGgkIpDdBhWVu3jufsWpK3Rzo7bdiIXJjQc0ynKxVOVcg2oIrf2H2cejminGrptVc6q6/uynAHNCuWGbpVA==}
     engines: {node: '>=6.0.0'}
+    hasBin: true
     peerDependencies:
       typescript: '>=2.7'
     dependencies:
@@ -6371,6 +6377,7 @@ packages:
 
   /ts-patch/2.0.2_typescript@4.8.4:
     resolution: {integrity: sha512-NbgdS/J/ylaARJVaF1w4cPw378yvw6C1026fU5NKC2GO4jCwRlkuE/G7gwknNMHwkAOhwamKjuzkuLw/u4KlBg==}
+    hasBin: true
     peerDependencies:
       typescript: '>=4.0.0'
     dependencies:
@@ -6412,6 +6419,7 @@ packages:
   /tslint/6.1.3_typescript@4.8.4:
     resolution: {integrity: sha512-IbR4nkT96EQOvKE2PW/djGz8iGNeJ4rF2mBfiYaR/nvUWYKJhLwimoJKgjIFEIDibBtOevj7BqCRL4oHeWWUCg==}
     engines: {node: '>=4.8.0'}
+    hasBin: true
     peerDependencies:
       typescript: '>=2.3.0-dev || >=2.4.0-dev || >=2.5.0-dev || >=2.6.0-dev || >=2.7.0-dev || >=2.8.0-dev || >=2.9.0-dev || >=3.0.0-dev || >= 3.1.0-dev || >= 3.2.0-dev || >= 4.0.0-dev'
     dependencies:
@@ -6603,6 +6611,7 @@ packages:
 
   /update-browserslist-db/1.0.10_browserslist@4.21.4:
     resolution: {integrity: sha512-OztqDenkfFkbSG+tRxBeAnCVPckDBcvibKd35yDONx6OU8N7sqgwc7rCbkJ/WcYtVRZ4ba68d6byhC21GFh7sQ==}
+    hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
     dependencies:
@@ -6664,6 +6673,7 @@ packages:
   /vite/3.2.2:
     resolution: {integrity: sha512-pLrhatFFOWO9kS19bQ658CnRYzv0WLbsPih6R+iFeEEhDOuYgYCX2rztUViMz/uy/V8cLCJvLFeiOK7RJEzHcw==}
     engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
     peerDependencies:
       less: '*'
       sass: '*'
@@ -6707,6 +6717,7 @@ packages:
   /vitest/0.24.5:
     resolution: {integrity: sha512-zw6JhPUHtLILQDe5Q39b/SzoITkG+R7hcFjuthp4xsi6zpmfQPOZcHodZ+3bqoWl4EdGK/p1fuMiEwdxgbGLOA==}
     engines: {node: '>=v14.16.0'}
+    hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@vitest/browser': '*'
