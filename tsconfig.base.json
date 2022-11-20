@@ -29,7 +29,7 @@
     "stripInternal": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     "strictNullChecks": true,
     "baseUrl": ".",
     "target": "ES2021",
@@ -37,10 +37,12 @@
     "incremental": true,
     "removeComments": false,
     "paths": {
-      "@effect/language-service": ["./packages/language-service/src/index.ts"],
-      "@effect/language-service/test/*": ["./packages/language-service/test/*"],
-      "@effect/language-service/*": ["./packages/language-service/src/*"]
-    }
+      "@effect/language-service": ["./src/index.ts"],
+      "@effect/language-service/test/*": ["./test/*"],
+      "@effect/language-service/examples/*": ["./examples/*"],
+      "@effect/language-service/*": ["./src/*"]
+    },
+    "plugins": []
   },
   "include": [],
   "exclude": ["node_modules", "build", "lib", "examples"]

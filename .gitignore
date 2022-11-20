@@ -1,9 +1,3 @@
-/.yarn/*
-!/.yarn/releases
-!/.yarn/plugins
-!/.yarn/sdks
-!/.yarn/patches
-
 coverage/
 *.tsbuildinfo
 node_modules/
@@ -13,4 +7,4 @@ yarn-error.log
 tmp/
 build/
 dist/
-~/
+docs/modules

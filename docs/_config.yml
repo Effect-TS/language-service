@@ -1,0 +1,7 @@
+remote_theme: mikearnaldi/just-the-docs
+search_enabled: true
+aux_links:
+  "Docs":
+    - "//effect-ts.github.io/language-service"
+  "GitHub":
+    - "//github.com/effect-ts/language-service"
