@@ -31,7 +31,7 @@
     "@tsplus/stdlib": "^0.2.8"
   },
   "devDependencies": {
-    "@effect/language-service": "link:../",
+    "@effect/language-service": "link:../dist/",
     "typescript": "^4.8.4"
   },
   "config": {

@@ -15,7 +15,7 @@ import * as O from "@tsplus/stdlib/data/Maybe"
 import type ts from "typescript/lib/tsserverlibrary"
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-export default function init(modules: { typescript: typeof import("typescript/lib/tsserverlibrary") }) {
+function init(modules: { typescript: typeof import("typescript/lib/tsserverlibrary") }) {
   const ts = modules.typescript
 
   function create(info: ts.server.PluginCreateInfo) {
@@ -197,3 +197,5 @@ export default function init(modules: { typescript: typeof import("typescript/li
 
   return { create }
 }
+
+module.exports = init

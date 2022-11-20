@@ -17,7 +17,7 @@
     "@effect/printer" "^0.0.4"
     "@tsplus/stdlib" "^0.2.8"
 
-"@effect/language-service@link:..":
+"@effect/language-service@link:../dist":
   version "0.0.0"
   uid ""
 
