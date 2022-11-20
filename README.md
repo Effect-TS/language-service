@@ -10,11 +10,34 @@ Inside your tsconfig.json, you should add the plugin configuration as follows:
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [{
-            "name": "@effect/language-service",
-        }]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
+  }
+}
+```
+
+## Configuration
+
+The severity of diagnostics can be customized by providing additional configuration in your tsconfig.json.
+Accepted values are: `"none" | "suggestion" | "warning" | "error"`
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnostic": {
+          "1003": "warning",
+          "1002": "none"
+        }
+      }
+    ]
+  }
 }
 ```
 
