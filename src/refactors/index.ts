@@ -6,6 +6,7 @@ import removeCurryArrow from "@effect/language-service/refactors/removeCurryArro
 import removePipe from "@effect/language-service/refactors/removePipe"
 import toggleReturnTypeAnnotation from "@effect/language-service/refactors/toggleReturnTypeAnnotation"
 import toggleTypeAnnotation from "@effect/language-service/refactors/toggleTypeAnnotation"
+import wrapWithPipe from "@effect/language-service/refactors/wrapWithPipe"
 
 export default {
   asyncAwaitToGen,
@@ -15,5 +16,6 @@ export default {
   removeCurryArrow,
   functionToArrow,
   toggleTypeAnnotation,
-  toggleReturnTypeAnnotation
+  toggleReturnTypeAnnotation,
+  wrapWithPipe
 }

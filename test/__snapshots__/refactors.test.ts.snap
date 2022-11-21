@@ -396,3 +396,17 @@ const removeAnnotation:number=42
 const removeAnnotationWithSpace = 42
 "
 `;
+
+exports[`wrapWithPipe.ts > wrapWithPipe.ts at 2:13-2:26 1`] = `
+"// Result of running refactor effect/wrapWithPipe at position 2:13-2:26
+const txt = pipe(\\"Hello World\\")
+const txt2 = \\"Hello\\"
+"
+`;
+
+exports[`wrapWithPipe.ts > wrapWithPipe.ts at 3:14-3:21 1`] = `
+"// Result of running refactor effect/wrapWithPipe at position 3:14-3:21
+const txt = \\"Hello World\\"
+const txt2 = pipe(\\"Hello\\")
+"
+`;
