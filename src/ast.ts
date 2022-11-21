@@ -96,6 +96,7 @@ declare module "typescript/lib/tsserverlibrary" {
         options?: ConfigurableStartEnd
       ): void
       insertNodeAfter(sourceFile: ts.SourceFile, after: ts.Node, newNode: ts.Node): void
+      insertText(sourceFile: ts.SourceFile, pos: number, text: string): void
     }
     export function applyChanges(text: string, changes: ReadonlyArray<ts.TextChange>): string
   }

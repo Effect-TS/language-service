@@ -47,11 +47,11 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
   const sourceWithMarker = fs.readFileSync(require.resolve(__dirname + "/../examples/refactors/" + fileName))
     .toString("utf8")
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
-  for (const [lineAndCol] of firstLine.matchAll(/([0-9]+:[0-9]+)/gm)) {
-    it(fileName + " at " + lineAndCol, () => {
+  for (const [textRangeString] of firstLine.matchAll(/([0-9]+:[0-9]+(-[0-9]+:[0-9]+)*)/gm)) {
+    it(fileName + " at " + textRangeString, () => {
       // create the language service
       const sourceText = "// Result of running refactor " + refactor.name +
-        " at position " + lineAndCol + sourceWithMarker.substring(firstLine.length)
+        " at position " + textRangeString + sourceWithMarker.substring(firstLine.length)
       const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
       const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
       const program = languageService.getProgram()
@@ -60,9 +60,18 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
       if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
       // gets the position to test
-      const [line, character] = lineAndCol.split(":")
-      const cursorPosition = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character!)
-      const textRange = { pos: cursorPosition, end: cursorPosition + 1 }
+      let startPos = 0
+      let endPos = 0
+      let i = 0
+      for (const lineAndCol of textRangeString.split("-")) {
+        const [line, character] = lineAndCol.split(":")
+        const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
+        if (i === 0) startPos = pos
+        if (i === 1) endPos = pos
+        i += 1
+      }
+      if (endPos < startPos) endPos = startPos
+      const textRange = { pos: startPos, end: endPos }
 
       // ensure there are no errors in TS file
       const diagnostics = languageService.getCompilerOptionsDiagnostics()
