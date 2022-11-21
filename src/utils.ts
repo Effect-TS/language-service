@@ -1,5 +1,4 @@
-import * as T from "@effect/core/io/Effect"
-import * as AST from "@effect/language-service/ast"
+import type * as AST from "@effect/language-service/ast"
 import * as Ch from "@tsplus/stdlib/collections/Chunk"
 import { pipe } from "@tsplus/stdlib/data/Function"
 import * as O from "@tsplus/stdlib/data/Maybe"
@@ -115,13 +114,13 @@ export function isLiteralConstantValue(ts: AST.TypeScriptApi) {
 }
 
 export function transformAsyncAwaitToEffectGen(
-  node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
-  effectName: string,
-  onAwait: (expression: ts.Expression) => ts.Expression
+  ts: AST.TypeScriptApi
 ) {
-  return T.gen(function*($) {
-    const ts = yield* $(T.service(AST.TypeScriptApi))
-
+  return (
+    node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+    effectName: string,
+    onAwait: (expression: ts.Expression) => ts.Expression
+  ) => {
     function visitor(_: ts.Node): ts.Node {
       if (ts.isAwaitExpression(_)) {
         const expression = ts.visitEachChild(_.expression, visitor, ts.nullTransformationContext)
@@ -193,7 +192,7 @@ export function transformAsyncAwaitToEffectGen(
       undefined,
       newBody
     )
-  })
+  }
 }
 
 export function addReturnTypeAnnotation(

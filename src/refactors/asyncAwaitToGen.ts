@@ -26,7 +26,7 @@ export default createRefactor({
             const importedEffectName = (findModuleImportIdentifierName(ts)(sourceFile, "@effect/core/io/Effect"))
             const effectName = pipe(importedEffectName, O.getOrElse(() => "Effect"))
 
-            const newDeclaration = yield* $(transformAsyncAwaitToEffectGen(node, effectName, (expression) =>
+            const newDeclaration = transformAsyncAwaitToEffectGen(ts)(node, effectName, (expression) =>
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
                   ts.factory.createIdentifier(effectName),
@@ -34,7 +34,7 @@ export default createRefactor({
                 ),
                 undefined,
                 [expression]
-              )))
+              ))
 
             changeTracker.replaceNode(sourceFile, node, newDeclaration)
           })

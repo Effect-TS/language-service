@@ -27,7 +27,7 @@ export default createRefactor({
               const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
 
               if (node.type) {
-                changeTracker.deleteRange(sourceFile, { pos: node.type.pos - 2, end: node.type.end })
+                changeTracker.deleteRange(sourceFile, { pos: node.name.end, end: node.type.end })
                 return
               }
 

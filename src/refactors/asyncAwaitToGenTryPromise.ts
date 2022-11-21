@@ -42,7 +42,7 @@ export default createRefactor({
               ])
             }
 
-            const newDeclaration = yield* $(transformAsyncAwaitToEffectGen(node, effectName, (expression) =>
+            const newDeclaration = (transformAsyncAwaitToEffectGen(ts)(node, effectName, (expression) =>
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
                   ts.factory.createIdentifier(effectName),
