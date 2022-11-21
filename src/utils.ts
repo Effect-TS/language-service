@@ -220,3 +220,24 @@ export function addReturnTypeAnnotation(
     }
   }
 }
+
+export function removeReturnTypeAnnotation(
+  ts: AST.TypeScriptApi,
+  changes: ts.textChanges.ChangeTracker
+) {
+  return (
+    sourceFile: ts.SourceFile,
+    declaration:
+      | ts.FunctionDeclaration
+      | ts.FunctionExpression
+      | ts.ArrowFunction
+      | ts.MethodDeclaration
+  ) => {
+    const closeParen = ts.findChildOfKind(declaration, ts.SyntaxKind.CloseParenToken, sourceFile)
+    const needParens = ts.isArrowFunction(declaration) && closeParen === undefined
+    const endNode = needParens ? declaration.parameters[0] : closeParen
+    if (endNode && declaration.type) {
+      changes.deleteRange(sourceFile, { pos: endNode.end, end: declaration.type.end })
+    }
+  }
+}

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1
 
-exports[`addPipe.ts > addPipe.ts 1`] = `
+exports[`addPipe.ts > addPipe.ts at 5:18 1`] = `
 "// Result of running refactor effect/addPipe at position 5:18
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
@@ -9,7 +9,7 @@ const test = pipe(T.succeed(1), T.map((a: number) => a * 2))
 "
 `;
 
-exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts 1`] = `
+exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -21,7 +21,7 @@ export function refactorMe(arg: string) {
 "
 `;
 
-exports[`asyncAwaitToGenTryPromise.ts > asyncAwaitToGenTryPromise.ts 1`] = `
+exports[`asyncAwaitToGenTryPromise.ts > asyncAwaitToGenTryPromise.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:28
 import * as Effect from \\"@effect/core/io/Effect\\"
 
@@ -36,7 +36,7 @@ export function refactorMe(arg: string) {
 "
 `;
 
-exports[`functionToArrow.ts > functionToArrow.ts 1`] = `
+exports[`functionToArrow.ts > functionToArrow.ts at 5:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 5:20
 /**
  * Docs
@@ -62,7 +62,7 @@ class Sample {
 "
 `;
 
-exports[`functionToArrow.ts > functionToArrow.ts 2`] = `
+exports[`functionToArrow.ts > functionToArrow.ts at 12:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 12:20
 /**
  * Docs
@@ -91,7 +91,7 @@ class Sample {
 "
 `;
 
-exports[`functionToArrow.ts > functionToArrow.ts 3`] = `
+exports[`functionToArrow.ts > functionToArrow.ts at 21:5 1`] = `
 "// Result of running refactor effect/functionToArrow at position 21:5
 /**
  * Docs
@@ -120,7 +120,7 @@ class Sample {
 "
 `;
 
-exports[`removeCurryArrow.ts > removeCurryArrow.ts 1`] = `
+exports[`removeCurryArrow.ts > removeCurryArrow.ts at 7:12 1`] = `
 "// Result of running refactor effect/removeCurryArrow at position 7:12
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
@@ -132,7 +132,7 @@ const test = pipe(
 "
 `;
 
-exports[`removePipe.ts > removePipe.ts 1`] = `
+exports[`removePipe.ts > removePipe.ts at 5:16 1`] = `
 "// Result of running refactor effect/removePipe at position 5:16
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
@@ -141,7 +141,7 @@ const test = T.map(a => a * 1)(T.succeed(1))
 "
 `;
 
-exports[`removePipe.ts > removePipe.ts 2`] = `
+exports[`removePipe.ts > removePipe.ts at 7:7 1`] = `
 "// Result of running refactor effect/removePipe at position 7:7
 import * as T from \\"@effect/core/io/Effect\\"
 import { pipe } from \\"@tsplus/stdlib/data/Function\\"
@@ -154,7 +154,7 @@ const test = pipe(
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts 1`] = `
+exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 4:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 4:32
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -165,10 +165,18 @@ export const test2 = () => (true ? T.succeed(42) : false)
 function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
+
+function removeAnnotation():number{
+  return 42
+}
+
+function removeAnnotationWithSpace(): number {
+  return 42
+}
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts 2`] = `
+exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 6:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 6:32
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -179,10 +187,18 @@ export const test2 = (): false | T.Effect<never, never, number> => (true ? T.suc
 function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
+
+function removeAnnotation():number{
+  return 42
+}
+
+function removeAnnotationWithSpace(): number {
+  return 42
+}
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts 3`] = `
+exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 8:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 8:32
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -193,10 +209,62 @@ export const test2 = () => (true ? T.succeed(42) : false)
 function sillyGenerics<A>(value: A): T.Effect<never, A, never> {
   return T.fail(value)
 }
+
+function removeAnnotation():number{
+  return 42
+}
+
+function removeAnnotationWithSpace(): number {
+  return 42
+}
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 1`] = `
+exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 12:18 1`] = `
+"// Result of running refactor effect/toggleReturnTypeAnnotation at position 12:18
+import * as T from \\"@effect/core/io/Effect\\"
+
+export const test1 = () => T.succeed(42)
+
+export const test2 = () => (true ? T.succeed(42) : false)
+
+function sillyGenerics<A>(value: A) {
+  return T.fail(value)
+}
+
+function removeAnnotation(){
+  return 42
+}
+
+function removeAnnotationWithSpace(): number {
+  return 42
+}
+"
+`;
+
+exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 16:18 1`] = `
+"// Result of running refactor effect/toggleReturnTypeAnnotation at position 16:18
+import * as T from \\"@effect/core/io/Effect\\"
+
+export const test1 = () => T.succeed(42)
+
+export const test2 = () => (true ? T.succeed(42) : false)
+
+function sillyGenerics<A>(value: A) {
+  return T.fail(value)
+}
+
+function removeAnnotation():number{
+  return 42
+}
+
+function removeAnnotationWithSpace() {
+  return 42
+}
+"
+`;
+
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 4:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 4:16
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -215,7 +283,7 @@ const removeAnnotationWithSpace: number = 42
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 2`] = `
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 5:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 5:16
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -234,7 +302,7 @@ const removeAnnotationWithSpace: number = 42
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 3`] = `
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 8:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 8:16
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -253,7 +321,7 @@ const removeAnnotationWithSpace: number = 42
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 4`] = `
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 11:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 11:16
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -272,7 +340,7 @@ const removeAnnotationWithSpace: number = 42
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 5`] = `
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 12:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 12:16
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -291,7 +359,7 @@ const removeAnnotationWithSpace: number = 42
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 6`] = `
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 14:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 14:16
 import * as T from \\"@effect/core/io/Effect\\"
 
@@ -310,7 +378,7 @@ const removeAnnotationWithSpace: number = 42
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts 7`] = `
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 15:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 15:16
 import * as T from \\"@effect/core/io/Effect\\"
 

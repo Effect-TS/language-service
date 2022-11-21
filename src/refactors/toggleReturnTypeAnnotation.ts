@@ -1,7 +1,7 @@
 import * as T from "@effect/core/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { addReturnTypeAnnotation } from "@effect/language-service/utils"
+import { addReturnTypeAnnotation, removeReturnTypeAnnotation } from "@effect/language-service/utils"
 import * as Ch from "@tsplus/stdlib/collections/Chunk"
 import { pipe } from "@tsplus/stdlib/data/Function"
 import * as O from "@tsplus/stdlib/data/Maybe"
@@ -45,7 +45,7 @@ export default createRefactor({
               const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
 
               if (node.type) {
-                changeTracker.delete(sourceFile, node.type)
+                removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
                 return
               }
 

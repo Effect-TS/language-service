@@ -48,79 +48,79 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
     .toString("utf8")
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
   for (const [lineAndCol] of firstLine.matchAll(/([0-9]+:[0-9]+)/gm)) {
-    // create the language service
-    const sourceText = "// Result of running refactor " + refactor.name +
-      " at position " + lineAndCol + sourceWithMarker.substring(firstLine.length)
-    const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
-    const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
-    const program = languageService.getProgram()
-    if (!program) throw new Error("No typescript program!")
-    const sourceFile = program.getSourceFile(fileName)
-    if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
+    it(fileName + " at " + lineAndCol, () => {
+      // create the language service
+      const sourceText = "// Result of running refactor " + refactor.name +
+        " at position " + lineAndCol + sourceWithMarker.substring(firstLine.length)
+      const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
+      const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
+      const program = languageService.getProgram()
+      if (!program) throw new Error("No typescript program!")
+      const sourceFile = program.getSourceFile(fileName)
+      if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
-    // gets the position to test
-    const [line, character] = lineAndCol.split(":")
-    const cursorPosition = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character!)
-    const textRange = { pos: cursorPosition, end: cursorPosition + 1 }
+      // gets the position to test
+      const [line, character] = lineAndCol.split(":")
+      const cursorPosition = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character!)
+      const textRange = { pos: cursorPosition, end: cursorPosition + 1 }
 
-    // ensure there are no errors in TS file
-    const diagnostics = languageService.getCompilerOptionsDiagnostics()
-      .concat(languageService.getSyntacticDiagnostics(fileName))
-      .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
-        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
-        if (diagnostic.file) {
-          const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!)
-          return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
-        } else {
-          return `  Error: ${message}`
-        }
-      })
-    expect(diagnostics).toEqual([])
+      // ensure there are no errors in TS file
+      const diagnostics = languageService.getCompilerOptionsDiagnostics()
+        .concat(languageService.getSyntacticDiagnostics(fileName))
+        .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
+          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
+          if (diagnostic.file) {
+            const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!)
+            return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
+          } else {
+            return `  Error: ${message}`
+          }
+        })
+      expect(diagnostics).toEqual([])
 
-    // check and assert the refactor is executable
-    const canApply = pipe(
-      refactor.apply(sourceFile, textRange),
-      T.provideService(AST.TypeScriptApi, ts),
-      T.provideService(AST.TypeScriptProgram, program),
-      T.unsafeRunSync
-    )
+      // check and assert the refactor is executable
+      const canApply = pipe(
+        refactor.apply(sourceFile, textRange),
+        T.provideService(AST.TypeScriptApi, ts),
+        T.provideService(AST.TypeScriptProgram, program),
+        T.unsafeRunSync
+      )
 
-    if (O.isNone(canApply)) {
-      expect(sourceText).toMatchSnapshot()
-      return
-    }
+      if (O.isNone(canApply)) {
+        expect(sourceText).toMatchSnapshot()
+        return
+      }
 
-    // run the refactor and ensure it matches the snapshot
-    const formatContext = ts.formatting.getFormatContext(
-      ts.getDefaultFormatCodeSettings("\n"),
-      { getNewLine: () => "\n" }
-    )
-    const edits = ts.textChanges.ChangeTracker.with(
-      {
-        formatContext,
-        host: languageServiceHost,
-        preferences: {}
-      },
-      (changeTracker) =>
-        pipe(
-          canApply.value.apply,
-          T.provideService(AST.ChangeTrackerApi, changeTracker),
-          T.provideService(AST.TypeScriptApi, ts),
-          T.provideService(AST.TypeScriptProgram, program),
-          T.unsafeRunSync
-        )
-    )
+      // run the refactor and ensure it matches the snapshot
+      const formatContext = ts.formatting.getFormatContext(
+        ts.getDefaultFormatCodeSettings("\n"),
+        { getNewLine: () => "\n" }
+      )
+      const edits = ts.textChanges.ChangeTracker.with(
+        {
+          formatContext,
+          host: languageServiceHost,
+          preferences: {}
+        },
+        (changeTracker) =>
+          pipe(
+            canApply.value.apply,
+            T.provideService(AST.ChangeTrackerApi, changeTracker),
+            T.provideService(AST.TypeScriptApi, ts),
+            T.provideService(AST.TypeScriptProgram, program),
+            T.unsafeRunSync
+          )
+      )
 
-    expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()
+      expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()
+    })
   }
 }
 
 function testFiles(name: string, refactor: RefactorDefinition, fileNames: Array<string>) {
   for (const fileName of fileNames) {
     describe(fileName, () => {
-      it(fileName, () => {
-        testRefactorOnExample(refactor, fileName)
-      })
+      testRefactorOnExample(refactor, fileName)
     })
   }
 }
