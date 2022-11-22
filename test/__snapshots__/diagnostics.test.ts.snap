@@ -18,9 +18,6 @@ exports[`noSyncWithConstant.ts > noSyncWithConstant.ts 1`] = `
  T.sync(() => true)
 4:10 - 4:29 | Value is constant, instead of using sync you could use succeed.
 
- T.sync(() => stuff)
-11:10 - 11:30 | Value is constant, instead of using sync you could use succeed.
-
  T.failSync(() => 42)
 13:10 - 13:31 | Value is constant, instead of using failSync you could use fail.
 

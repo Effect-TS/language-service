@@ -106,8 +106,8 @@ export function isCurryArrow(ts: AST.TypeScriptApi) {
 }
 
 export function isLiteralConstantValue(ts: AST.TypeScriptApi) {
-  return (node: ts.Node) => {
-    return ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
+  return (node: ts.Node): node is (ts.StringLiteral | ts.NumericLiteral | ts.TrueLiteral | ts.FalseLiteral) => {
+    return ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
       node.kind === ts.SyntaxKind.TrueKeyword ||
       node.kind === ts.SyntaxKind.FalseKeyword || node.kind === ts.SyntaxKind.NullKeyword
   }
@@ -240,4 +240,15 @@ export function removeReturnTypeAnnotation(
       changes.deleteRange(sourceFile, { pos: endNode.end, end: declaration.type.end })
     }
   }
+}
+
+export function getEffectModuleIdentifier(ts: AST.TypeScriptApi) {
+  return (sourceFile: ts.SourceFile) =>
+    pipe(
+      findModuleImportIdentifierName(ts)(sourceFile, "@effect/core/io/Effect"),
+      O.orElse(() => findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect")),
+      O.getOrElse(
+        () => "Effect"
+      )
+    )
 }

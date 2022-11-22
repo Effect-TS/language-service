@@ -31,7 +31,7 @@ Accepted values are: `"none" | "suggestion" | "warning" | "error"`
     "plugins": [
       {
         "name": "@effect/language-service",
-        "diagnostic": {
+        "diagnostics": {
           "1003": "warning",
           "1002": "none"
         }
