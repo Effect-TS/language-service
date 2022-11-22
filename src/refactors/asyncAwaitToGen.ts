@@ -1,7 +1,7 @@
 import * as T from "@effect/core/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { findModuleImportIdentifierName, transformAsyncAwaitToEffectGen } from "@effect/language-service/utils"
+import { getEffectModuleIdentifier, transformAsyncAwaitToEffectGen } from "@effect/language-service/utils"
 import * as Ch from "@tsplus/stdlib/collections/Chunk"
 import { pipe } from "@tsplus/stdlib/data/Function"
 import * as O from "@tsplus/stdlib/data/Maybe"
@@ -23,8 +23,7 @@ export default createRefactor({
           description: "Rewrite to Effect.gen",
           apply: T.gen(function*($) {
             const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
-            const importedEffectName = (findModuleImportIdentifierName(ts)(sourceFile, "@effect/core/io/Effect"))
-            const effectName = pipe(importedEffectName, O.getOrElse(() => "Effect"))
+            const effectName = getEffectModuleIdentifier(ts)(sourceFile)
 
             const newDeclaration = transformAsyncAwaitToEffectGen(ts)(node, effectName, (expression) =>
               ts.factory.createCallExpression(

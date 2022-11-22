@@ -2,6 +2,7 @@ import addPipe from "@effect/language-service/refactors/addPipe"
 import asyncAwaitToGen from "@effect/language-service/refactors/asyncAwaitToGen"
 import asyncAwaitToGenTryPromise from "@effect/language-service/refactors/asyncAwaitToGenTryPromise"
 import functionToArrow from "@effect/language-service/refactors/functionToArrow"
+import noSyncWithConstant from "@effect/language-service/refactors/noSyncWithConstant"
 import removeCurryArrow from "@effect/language-service/refactors/removeCurryArrow"
 import removePipe from "@effect/language-service/refactors/removePipe"
 import toggleReturnTypeAnnotation from "@effect/language-service/refactors/toggleReturnTypeAnnotation"
@@ -17,5 +18,6 @@ export default {
   functionToArrow,
   toggleTypeAnnotation,
   toggleReturnTypeAnnotation,
-  wrapWithPipe
+  wrapWithPipe,
+  noSyncWithConstant
 }
