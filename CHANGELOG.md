@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.4
+
+### Patch Changes
+
+- [#9](https://github.com/Effect-TS/language-service/pull/9) [`d11e191`](https://github.com/Effect-TS/language-service/commit/d11e191e63fdf440ce7b9b62eaffda3febeeb010) Thanks [@mikearnaldi](https://github.com/mikearnaldi)! - Update dependencies
+
 ## 0.0.3
 
 ### Patch Changes
