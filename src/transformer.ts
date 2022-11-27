@@ -22,16 +22,21 @@ declare module "typescript" {
   }
 }
 
-export default function transformer(
+export default function effectPlugin(
   program: ts.Program,
   options?: {
     trace?: { include?: Array<string>; exclude?: Array<string> }
+    debug?: { include?: Array<string>; exclude?: Array<string> }
     optimize?: { include?: Array<string>; exclude?: Array<string> }
     removeUnusedImports?: boolean
   }
 ) {
   const checker = program.getTypeChecker()
   const traceFilter = createFilter(options?.trace?.include, options?.trace?.exclude)
+  const debugFilter = createFilter(
+    options?.debug?.include ?? [],
+    options?.debug?.exclude ?? (options?.debug?.include ? [] : ["**/*"])
+  )
   const optimizeFilter = createFilter(options?.optimize?.include, options?.optimize?.exclude)
   const removeUnusedImports = options?.removeUnusedImports ?? true
   return {
@@ -64,6 +69,30 @@ export default function transformer(
           } catch (e) {
             return undefined
           }
+        }
+
+        const debugVisitor = (node: ts.Node): ts.Node => {
+          const visited = ts.visitEachChild(node, debugVisitor, ctx)
+          if (ts.isArrowFunction(visited)) {
+            return ctx.factory.updateArrowFunction(
+              visited,
+              visited.modifiers,
+              visited.typeParameters,
+              visited.parameters,
+              visited.type,
+              visited.equalsGreaterThanToken,
+              ts.isBlock(visited.body) ?
+                ctx.factory.updateBlock(visited.body, [
+                  ctx.factory.createDebuggerStatement(),
+                  ...visited.body.statements
+                ]) :
+                ctx.factory.createBlock([
+                  ctx.factory.createDebuggerStatement(),
+                  ctx.factory.createReturnStatement(visited.body)
+                ])
+            )
+          }
+          return ts.visitEachChild(node, debugVisitor, ctx)
         }
 
         const traceVisitor = (node: ts.Node): ts.Node => {
@@ -173,6 +202,10 @@ export default function transformer(
 
         if (traceFilter(sourceFile.fileName)) {
           visited = ts.visitNode(visited, traceVisitor)
+        }
+
+        if (debugFilter(sourceFile.fileName)) {
+          visited = ts.visitNode(visited, debugVisitor)
         }
 
         if (removeUnusedImports) {
