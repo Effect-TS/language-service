@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.5
+
+### Patch Changes
+
+- [#11](https://github.com/Effect-TS/language-service/pull/11) [`f00ed7b`](https://github.com/Effect-TS/language-service/commit/f00ed7b4eb1a0b080dcbd2dfe1c293bdd29714ec) Thanks [@mikearnaldi](https://github.com/mikearnaldi)! - Add debug extension in transformer
+
 ## 0.0.4
 
 ### Patch Changes
