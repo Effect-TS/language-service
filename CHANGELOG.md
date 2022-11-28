@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.6
+
+### Patch Changes
+
+- [#13](https://github.com/Effect-TS/language-service/pull/13) [`d894956`](https://github.com/Effect-TS/language-service/commit/d8949560d816f174450e8afc2b558f5ff4300ad1) Thanks [@mikearnaldi](https://github.com/mikearnaldi)! - Support functions and function expressions in debug
+
 ## 0.0.5
 
 ### Patch Changes
