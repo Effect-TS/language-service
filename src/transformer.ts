@@ -73,7 +73,39 @@ export default function effectPlugin(
 
         const debugVisitor = (node: ts.Node): ts.Node => {
           const visited = ts.visitEachChild(node, debugVisitor, ctx)
-          if (ts.isArrowFunction(visited)) {
+          if (ts.isFunctionDeclaration(visited)) {
+            return ctx.factory.updateFunctionDeclaration(
+              visited,
+              visited.modifiers,
+              visited.asteriskToken,
+              visited.name,
+              visited.typeParameters,
+              visited.parameters,
+              visited.type,
+              visited.body ?
+                ctx.factory.updateBlock(visited.body, [
+                  ctx.factory.createDebuggerStatement(),
+                  ...visited.body.statements
+                ]) :
+                visited.body
+            )
+          } else if (ts.isFunctionExpression(visited)) {
+            return ctx.factory.updateFunctionExpression(
+              visited,
+              visited.modifiers,
+              visited.asteriskToken,
+              visited.name,
+              visited.typeParameters,
+              visited.parameters,
+              visited.type,
+              visited.body ?
+                ctx.factory.updateBlock(visited.body, [
+                  ctx.factory.createDebuggerStatement(),
+                  ...visited.body.statements
+                ]) :
+                visited.body
+            )
+          } else if (ts.isArrowFunction(visited)) {
             return ctx.factory.updateArrowFunction(
               visited,
               visited.modifiers,
