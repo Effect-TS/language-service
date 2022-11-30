@@ -1,5 +1,5 @@
 // 4:32,6:32,8:32,12:18,16:18
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 
 export const test1 = () => T.succeed(42)
 

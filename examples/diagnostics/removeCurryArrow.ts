@@ -1,5 +1,5 @@
-import * as T from "@effect/core/io/Effect"
-import { pipe } from "@tsplus/stdlib/data/Function"
+import * as T from "@effect/io/Effect"
+import { pipe } from "@fp-ts/data/Function"
 
 const test = pipe(
   T.succeed("Hello"),

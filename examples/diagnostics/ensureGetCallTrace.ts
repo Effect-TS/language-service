@@ -1,4 +1,4 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 
 declare function getCallTrace(): string | undefined
 

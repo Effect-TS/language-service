@@ -1,4 +1,4 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { parseLanguageServicePluginConfig } from "@effect/language-service/config"
 import type {
@@ -8,10 +8,9 @@ import type {
 import diagnostics from "@effect/language-service/diagnostics/index"
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
-import { pipe } from "@fp-ts/data/Function"
-import * as Ch from "@tsplus/stdlib/collections/Chunk"
-import { identity } from "@tsplus/stdlib/data/Function"
-import * as O from "@tsplus/stdlib/data/Maybe"
+import * as Ch from "@fp-ts/data/Chunk"
+import { identity, pipe } from "@fp-ts/data/Function"
+import * as O from "@fp-ts/data/Option"
 import type ts from "typescript/lib/tsserverlibrary"
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -52,29 +51,31 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
         const effectDiagnostics = pipe(
           AST.getSourceFile(fileName),
           T.flatMap((sourceFile) =>
-            T.forEachPar(
+            pipe(
               Object.values<DiagnosticDefinition>(diagnostics).map(applyConfiguredDiagnosticCategory).filter((_) =>
                 _.category !== "none"
               ),
-              (diagnostic) =>
-                pipe(
-                  diagnostic.apply(sourceFile),
-                  T.map(Ch.map((_) => ({
-                    file: sourceFile,
-                    start: _.node.pos,
-                    length: _.node.end - _.node.pos,
-                    messageText: _.messageText,
-                    category: toTsDiagnosticCategory(diagnostic.category),
-                    code: diagnostic.code,
-                    source: "effect"
-                  })))
-                )
+              T.forEachPar(
+                (diagnostic) =>
+                  pipe(
+                    diagnostic.apply(sourceFile),
+                    T.map(Ch.map((_) => ({
+                      file: sourceFile,
+                      start: _.node.pos,
+                      length: _.node.end - _.node.pos,
+                      messageText: _.messageText,
+                      category: toTsDiagnosticCategory(diagnostic.category),
+                      code: diagnostic.code,
+                      source: "effect"
+                    })))
+                  )
+              )
             )
           ),
           T.map(Ch.flatten),
-          T.map((v) => Array.from(v)),
-          T.provideService(AST.TypeScriptProgram, program),
-          T.provideService(AST.TypeScriptApi, modules.typescript),
+          T.map((e) => Array.from(e)),
+          T.provideService(AST.TypeScriptProgram)(program),
+          T.provideService(AST.TypeScriptApi)(modules.typescript),
           T.unsafeRunSync
         )
 
@@ -93,7 +94,7 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
         const effectRefactors = pipe(
           AST.getSourceFile(fileName),
           T.flatMap((sourceFile) =>
-            T.collectAllWith(
+            pipe(
               Object.values<RefactorDefinition>(refactors).map((refactor) =>
                 pipe(
                   refactor.apply(sourceFile, textRange),
@@ -107,12 +108,14 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
                   })))
                 )
               ),
-              identity
+              T.collectAllWith(
+                identity
+              )
             )
           ),
           T.map((v) => Array.from(v)),
-          T.provideService(AST.TypeScriptProgram, program),
-          T.provideService(AST.TypeScriptApi, modules.typescript),
+          T.provideService(AST.TypeScriptProgram)(program),
+          T.provideService(AST.TypeScriptApi)(modules.typescript),
           T.unsafeRunSync
         )
 
@@ -161,20 +164,21 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
                   (changeTracker) =>
                     pipe(
                       possibleRefactor.value.apply,
-                      T.provideService(AST.ChangeTrackerApi, changeTracker),
+                      T.provideService(AST.ChangeTrackerApi)(changeTracker),
                       T.provideService(
-                        AST.TypeScriptApi,
+                        AST.TypeScriptApi
+                      )(
                         modules.typescript
                       ),
-                      T.provideService(AST.TypeScriptProgram, program),
+                      T.provideService(AST.TypeScriptProgram)(program),
                       T.unsafeRunSync
                     )
                 )
 
                 return { edits }
               }),
-              T.provideService(AST.TypeScriptApi, modules.typescript),
-              T.provideService(AST.TypeScriptProgram, program),
+              T.provideService(AST.TypeScriptApi)(modules.typescript),
+              T.provideService(AST.TypeScriptProgram)(program),
               T.unsafeRunSync
             )
           }

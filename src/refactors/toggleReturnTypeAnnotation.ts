@@ -1,10 +1,10 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
 import { addReturnTypeAnnotation, removeReturnTypeAnnotation } from "@effect/language-service/utils"
-import * as Ch from "@tsplus/stdlib/collections/Chunk"
-import { pipe } from "@tsplus/stdlib/data/Function"
-import * as O from "@tsplus/stdlib/data/Maybe"
+import * as Ch from "@fp-ts/data/Chunk"
+import { pipe } from "@fp-ts/data/Function"
+import * as O from "@fp-ts/data/Option"
 import type ts from "typescript/lib/tsserverlibrary"
 
 type ConvertibleDeclaration =

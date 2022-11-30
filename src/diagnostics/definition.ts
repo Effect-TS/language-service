@@ -1,5 +1,5 @@
-import type * as T from "@effect/core/io/Effect"
-import type * as Ch from "@tsplus/stdlib/collections/Chunk"
+import type * as T from "@effect/io/Effect"
+import type * as Ch from "@fp-ts/data/Chunk"
 
 import type ts from "typescript/lib/tsserverlibrary"
 
