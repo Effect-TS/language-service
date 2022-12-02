@@ -6,10 +6,11 @@ import { createMockLanguageServiceHost } from "@effect/language-service/test/uti
 import * as Ch from "@fp-ts/data/Chunk"
 import { pipe } from "@fp-ts/data/Function"
 import * as fs from "fs"
+import * as path from "path"
 import ts from "typescript/lib/tsserverlibrary"
 
 export function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: string) {
-  const sourceText = fs.readFileSync(require.resolve(__dirname + "/../examples/diagnostics/" + fileName))
+  const sourceText = fs.readFileSync(path.join(__dirname, "..", "examples", "diagnostics", fileName))
     .toString("utf8")
 
   // create the language service

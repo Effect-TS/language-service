@@ -6,6 +6,7 @@ import { createMockLanguageServiceHost } from "@effect/language-service/test/uti
 import { pipe } from "@fp-ts/data/Function"
 import * as O from "@fp-ts/data/Option"
 import * as fs from "fs"
+import * as path from "path"
 import ts from "typescript/lib/tsserverlibrary"
 
 /**
@@ -44,7 +45,7 @@ function applyEdits(edits: ReadonlyArray<ts.FileTextChanges>, fileName: string, 
 }
 
 export function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
-  const sourceWithMarker = fs.readFileSync(require.resolve(__dirname + "/../examples/refactors/" + fileName))
+  const sourceWithMarker = fs.readFileSync(path.join(__dirname, "..", "examples", "refactors", fileName))
     .toString("utf8")
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
   for (const [textRangeString] of firstLine.matchAll(/([0-9]+:[0-9]+(-[0-9]+:[0-9]+)*)/gm)) {

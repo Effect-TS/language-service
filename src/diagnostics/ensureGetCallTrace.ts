@@ -16,9 +16,11 @@ export default createDiagnostic({
       function isEffectType(type: ts.Type) {
         const symbol = type.getSymbol()
         if (!symbol) return false
-        return symbol.getDocumentationComment(typeChecker).some((i) =>
-          i.text.indexOf("Effects model resourceful interaction") > -1
-        )
+        if (symbol.declarations) {
+          return symbol.declarations.some((declaration) =>
+            declaration.getSourceFile().fileName.includes("@effect/io/Effect")
+          )
+        }
       }
 
       function isPipeableCombinator(type: ts.Type) {
