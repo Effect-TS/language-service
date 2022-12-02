@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.8
+
+### Patch Changes
+
+- [#17](https://github.com/Effect-TS/language-service/pull/17) [`69a0ab1`](https://github.com/Effect-TS/language-service/commit/69a0ab17036db0dd00eb460139cb5ea97dafb9ad) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Begin eslint plugins
+
 ## 0.0.7
 
 ### Patch Changes
