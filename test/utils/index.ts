@@ -1,4 +1,6 @@
+import { ESLintUtils } from "@typescript-eslint/utils"
 import * as fs from "fs"
+import * as path from "path"
 import ts from "typescript/lib/tsserverlibrary"
 
 export function createMockLanguageServiceHost(fileName: string, sourceText: string): ts.LanguageServiceHost {
@@ -38,3 +40,11 @@ export function createMockLanguageServiceHost(fileName: string, sourceText: stri
     }
   }
 }
+
+export const ruleTester = new ESLintUtils.RuleTester({
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.json",
+    tsconfigRootDir: path.join(__dirname, "..", "fixtures")
+  }
+})

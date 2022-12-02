@@ -24,8 +24,3 @@ exports[`noSyncWithConstant.ts > noSyncWithConstant.ts 1`] = `
  T.dieSync(() => 42)
 16:10 - 16:30 | Value is constant, instead of using dieSync you could use die."
 `;
-
-exports[`removeCurryArrow.ts > removeCurryArrow.ts 1`] = `
-"(_) => T.log(_)
-6:8 - 6:23 | This arrow function may be not needed."
-`;

@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "declaration": true,
+        "downlevelIteration": true,
+        "plugins": [{
+            "name": "@effect/language-service",
+            "diagnostics": {
+                "1003": "none"
+            }
+        }]
+    }
+}
