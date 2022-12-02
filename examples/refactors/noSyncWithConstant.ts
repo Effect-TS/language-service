@@ -1,5 +1,5 @@
 //7:14
-import * as Effect from "@effect/core/io/Effect"
+import * as Effect from "@effect/io/Effect"
 import { pipe } from "@fp-ts/data/Function"
 
 

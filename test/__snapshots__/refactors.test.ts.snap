@@ -2,8 +2,8 @@
 
 exports[`addPipe.ts > addPipe.ts at 5:18 1`] = `
 "// Result of running refactor effect/addPipe at position 5:18
-import * as T from \\"@effect/core/io/Effect\\"
-import { pipe } from \\"@tsplus/stdlib/data/Function\\"
+import * as T from \\"@effect/io/Effect\\"
+import { pipe } from \\"@fp-ts/data/Function\\"
 
 const test = pipe(T.succeed(1), T.map((a: number) => a * 2))
 "
@@ -11,7 +11,7 @@ const test = pipe(T.succeed(1), T.map((a: number) => a * 2))
 
 exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export function refactorMe(arg: string) {
     return T.gen(function*($) {
@@ -23,7 +23,7 @@ export function refactorMe(arg: string) {
 
 exports[`asyncAwaitToGenTryPromise.ts > asyncAwaitToGenTryPromise.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:28
-import * as Effect from \\"@effect/core/io/Effect\\"
+import * as Effect from \\"@effect/io/Effect\\"
 
 export function refactorMe(arg: string) {
     return Effect.gen(function*($) {
@@ -122,7 +122,7 @@ class Sample {
 
 exports[`noSyncWithConstant.ts > noSyncWithConstant.ts at 7:14 1`] = `
 "// Result of running refactor effect/addPipe at position 7:14
-import * as Effect from \\"@effect/core/io/Effect\\"
+import * as Effect from \\"@effect/io/Effect\\"
 import { pipe } from \\"@fp-ts/data/Function\\"
 
 
@@ -136,8 +136,8 @@ const result =  pipe(
 
 exports[`removeCurryArrow.ts > removeCurryArrow.ts at 7:12 1`] = `
 "// Result of running refactor effect/removeCurryArrow at position 7:12
-import * as T from \\"@effect/core/io/Effect\\"
-import { pipe } from \\"@tsplus/stdlib/data/Function\\"
+import * as T from \\"@effect/io/Effect\\"
+import { pipe } from \\"@fp-ts/data/Function\\"
 
 const test = pipe(
   T.succeed(\\"Hello\\"),
@@ -148,8 +148,8 @@ const test = pipe(
 
 exports[`removePipe.ts > removePipe.ts at 5:16 1`] = `
 "// Result of running refactor effect/removePipe at position 5:16
-import * as T from \\"@effect/core/io/Effect\\"
-import { pipe } from \\"@tsplus/stdlib/data/Function\\"
+import * as T from \\"@effect/io/Effect\\"
+import { pipe } from \\"@fp-ts/data/Function\\"
 
 const test = T.map(a => a * 1)(T.succeed(1))
 "
@@ -157,8 +157,8 @@ const test = T.map(a => a * 1)(T.succeed(1))
 
 exports[`removePipe.ts > removePipe.ts at 7:7 1`] = `
 "// Result of running refactor effect/removePipe at position 7:7
-import * as T from \\"@effect/core/io/Effect\\"
-import { pipe } from \\"@tsplus/stdlib/data/Function\\"
+import * as T from \\"@effect/io/Effect\\"
+import { pipe } from \\"@fp-ts/data/Function\\"
 
 const test = pipe(
   1,
@@ -170,7 +170,7 @@ const test = pipe(
 
 exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 4:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 4:32
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = (): T.Effect<never, never, number> => T.succeed(42)
 
@@ -192,7 +192,7 @@ function removeAnnotationWithSpace(): number {
 
 exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 6:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 6:32
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = () => T.succeed(42)
 
@@ -214,7 +214,7 @@ function removeAnnotationWithSpace(): number {
 
 exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 8:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 8:32
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = () => T.succeed(42)
 
@@ -236,7 +236,7 @@ function removeAnnotationWithSpace(): number {
 
 exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 12:18 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 12:18
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = () => T.succeed(42)
 
@@ -258,7 +258,7 @@ function removeAnnotationWithSpace(): number {
 
 exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 16:18 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 16:18
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = () => T.succeed(42)
 
@@ -280,7 +280,7 @@ function removeAnnotationWithSpace() {
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 4:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 4:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1: <A>(value: A) => T.Effect<never, never, A> = T.succeed
 export const test2 = T.fail(\\"LOL\\")
@@ -299,7 +299,7 @@ const removeAnnotationWithSpace: number = 42
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 5:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 5:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = T.succeed
 export const test2: T.Effect<never, string, never> = T.fail(\\"LOL\\")
@@ -318,7 +318,7 @@ const removeAnnotationWithSpace: number = 42
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 8:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 8:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = T.succeed
 export const test2 = T.fail(\\"LOL\\")
@@ -337,7 +337,7 @@ const removeAnnotationWithSpace: number = 42
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 11:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 11:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = T.succeed
 export const test2 = T.fail(\\"LOL\\")
@@ -356,7 +356,7 @@ const removeAnnotationWithSpace: number = 42
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 12:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 12:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = T.succeed
 export const test2 = T.fail(\\"LOL\\")
@@ -375,7 +375,7 @@ const removeAnnotationWithSpace: number = 42
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 14:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 14:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = T.succeed
 export const test2 = T.fail(\\"LOL\\")
@@ -394,7 +394,7 @@ const removeAnnotationWithSpace: number = 42
 
 exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 15:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 15:16
-import * as T from \\"@effect/core/io/Effect\\"
+import * as T from \\"@effect/io/Effect\\"
 
 export const test1 = T.succeed
 export const test2 = T.fail(\\"LOL\\")

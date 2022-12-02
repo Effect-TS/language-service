@@ -1,8 +1,8 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createDiagnostic } from "@effect/language-service/diagnostics/definition"
+import * as Ch from "@fp-ts/data/Chunk"
 import { pipe } from "@fp-ts/data/Function"
-import * as Ch from "@tsplus/stdlib/collections/Chunk"
 
 export default createDiagnostic({
   code: 1003,
@@ -16,9 +16,11 @@ export default createDiagnostic({
       function isEffectType(type: ts.Type) {
         const symbol = type.getSymbol()
         if (!symbol) return false
-        return symbol.getDocumentationComment(typeChecker).some((i) =>
-          i.text.indexOf("Effects model resourceful interaction") > -1
-        )
+        if (symbol.declarations) {
+          return symbol.declarations.some((declaration) =>
+            declaration.getSourceFile().fileName.includes("@effect/io/Effect")
+          )
+        }
       }
 
       function isPipeableCombinator(type: ts.Type) {

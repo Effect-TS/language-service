@@ -1,8 +1,8 @@
-import * as T from "@effect/core/io/Effect"
-import * as Ch from "@tsplus/stdlib/collections/Chunk"
-import { pipe } from "@tsplus/stdlib/data/Function"
-import * as O from "@tsplus/stdlib/data/Maybe"
-import { Tag } from "@tsplus/stdlib/service/Tag"
+import * as T from "@effect/io/Effect"
+import * as Ch from "@fp-ts/data/Chunk"
+import { Tag } from "@fp-ts/data/Context"
+import { pipe } from "@fp-ts/data/Function"
+import * as O from "@fp-ts/data/Option"
 import type ts from "typescript/lib/tsserverlibrary"
 
 declare module "typescript/lib/tsserverlibrary" {
@@ -141,7 +141,7 @@ export function getSourceFile(fileName: string) {
 }
 
 export function hasModifier(node: ts.Declaration, kind: ts.ModifierFlags) {
-  return T.serviceWith(TypeScriptApi, (ts) => !!(ts.getCombinedModifierFlags(node) & kind))
+  return T.serviceWith(TypeScriptApi)((ts) => !!(ts.getCombinedModifierFlags(node) & kind))
 }
 
 /**
@@ -152,9 +152,9 @@ export function getNodesContainingRange(
 ) {
   return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
-    if (!precedingToken) return Ch.empty()
+    if (!precedingToken) return Ch.empty
 
-    let result = Ch.empty<ts.Node>()
+    let result: Ch.Chunk<ts.Node> = Ch.empty
     let parent = precedingToken
     while (parent) {
       result = pipe(result, Ch.append(parent))
@@ -179,7 +179,7 @@ export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
 
 export function collectAll(ts: TypeScriptApi) {
   return <A extends ts.Node>(rootNode: ts.Node, test: (node: ts.Node) => node is A) => {
-    let result = Ch.empty<A>()
+    let result: Ch.Chunk<A> = Ch.empty
 
     function visitor(node: ts.Node) {
       if (test(node)) result = pipe(result, Ch.append(node))

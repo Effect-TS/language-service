@@ -1,4 +1,4 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 
 const a1 = T.sync(() => 42)
 const a2 = T.sync(() => true)

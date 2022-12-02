@@ -1,7 +1,7 @@
 import type * as AST from "@effect/language-service/ast"
-import * as Ch from "@tsplus/stdlib/collections/Chunk"
-import { pipe } from "@tsplus/stdlib/data/Function"
-import * as O from "@tsplus/stdlib/data/Maybe"
+import * as Ch from "@fp-ts/data/Chunk"
+import { pipe } from "@fp-ts/data/Function"
+import * as O from "@fp-ts/data/Option"
 import type ts from "typescript/lib/tsserverlibrary"
 
 export function isPipeCall(ts: AST.TypeScriptApi) {
@@ -32,8 +32,8 @@ export function asPipeableCallExpression(ts: AST.TypeScriptApi) {
 
 export function asPipeArguments(ts: AST.TypeScriptApi) {
   return (initialNode: ts.Node) => {
-    let result = Ch.empty<ts.Expression>()
-    let currentNode: O.Maybe<ts.Node> = O.some(initialNode)
+    let result: Ch.Chunk<ts.Expression> = Ch.empty
+    let currentNode: O.Option<ts.Node> = O.some(initialNode)
     while (O.isSome(currentNode)) {
       const node = currentNode.value
       const maybePipeable = asPipeableCallExpression(ts)(node)
@@ -245,8 +245,8 @@ export function removeReturnTypeAnnotation(
 export function getEffectModuleIdentifier(ts: AST.TypeScriptApi) {
   return (sourceFile: ts.SourceFile) =>
     pipe(
-      findModuleImportIdentifierName(ts)(sourceFile, "@effect/core/io/Effect"),
-      O.orElse(() => findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect")),
+      findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect"),
+      O.orElse(findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect")),
       O.getOrElse(
         () => "Effect"
       )

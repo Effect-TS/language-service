@@ -1,15 +1,16 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import type { DiagnosticDefinition } from "@effect/language-service/diagnostics/definition"
 import diagnostics from "@effect/language-service/diagnostics/index"
 import { createMockLanguageServiceHost } from "@effect/language-service/test/utils"
-import * as Ch from "@tsplus/stdlib/collections/Chunk"
-import { pipe } from "@tsplus/stdlib/data/Function"
+import * as Ch from "@fp-ts/data/Chunk"
+import { pipe } from "@fp-ts/data/Function"
 import * as fs from "fs"
+import * as path from "path"
 import ts from "typescript/lib/tsserverlibrary"
 
 export function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: string) {
-  const sourceText = fs.readFileSync(require.resolve(__dirname + "/../examples/diagnostics/" + fileName))
+  const sourceText = fs.readFileSync(path.join(__dirname, "..", "examples", "diagnostics", fileName))
     .toString("utf8")
 
   // create the language service
@@ -38,8 +39,8 @@ export function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileNa
   const resultMessages = pipe(
     diagnostic
       .apply(sourceFile),
-    T.provideService(AST.TypeScriptApi, ts),
-    T.provideService(AST.TypeScriptProgram, program),
+    T.provideService(AST.TypeScriptApi)(ts),
+    T.provideService(AST.TypeScriptProgram)(program),
     T.unsafeRunSync
   )
 

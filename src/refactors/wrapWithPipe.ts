@@ -1,7 +1,7 @@
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import * as O from "@tsplus/stdlib/data/Maybe"
+import * as O from "@fp-ts/data/Option"
 
 export default createRefactor({
   name: "effect/wrapWithPipe",

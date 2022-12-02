@@ -1,5 +1,5 @@
 // 4:16,5:16,8:16,11:16,12:16,14:16,15:16
-import * as T from "@effect/core/io/Effect"
+import * as T from "@effect/io/Effect"
 
 export const test1 = T.succeed
 export const test2 = T.fail("LOL")

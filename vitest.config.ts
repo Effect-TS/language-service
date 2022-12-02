@@ -12,8 +12,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@effect/language-service/test": path.resolve(__dirname, "/test"),
-      "@effect/language-service": path.resolve(__dirname, "/src")
+      "@effect/language-service/test": path.join(__dirname, "test"),
+      "@effect/language-service": path.join(__dirname, "src")
     }
   }
 })

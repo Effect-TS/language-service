@@ -1,5 +1,5 @@
-import type * as T from "@effect/core/io/Effect"
-import type * as O from "@tsplus/stdlib/data/Maybe"
+import type * as T from "@effect/io/Effect"
+import type * as O from "@fp-ts/data/Option"
 import type ts from "typescript/lib/tsserverlibrary"
 
 export interface RefactorDefinition {
@@ -11,7 +11,7 @@ export interface RefactorDefinition {
   ) => T.Effect<
     typeof ts | ts.Program,
     E,
-    O.Maybe<{
+    O.Option<{
       description: string
       apply: T.Effect<typeof ts | ts.Program | ts.textChanges.ChangeTracker, E, void>
     }>
