@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.7
+
+### Patch Changes
+
+- [#15](https://github.com/Effect-TS/language-service/pull/15) [`4eedac0`](https://github.com/Effect-TS/language-service/commit/4eedac07d0671be1ab90d4b2cbbb31b1c650419b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Move to effect/io
+
 ## 0.0.6
 
 ### Patch Changes
