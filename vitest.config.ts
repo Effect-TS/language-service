@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [],
   test: {
     include: ["./test/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    exclude: ["./test/utils/**/*.ts", "./test/**/*.init.ts"],
+    exclude: ["./test/utils/**/*.ts", "./test/fixtures/**/*.ts", "./test/**/*.init.ts"],
     globals: true
   },
   resolve: {

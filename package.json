@@ -105,7 +105,10 @@
     "typescript": "^4.9.3",
     "ultra-runner": "^3.10.5",
     "vite": "^3.2.4",
-    "vitest": "0.25.3"
+    "vitest": "0.25.3",
+    "@typescript-eslint/scope-manager": "5.45.0",
+    "@typescript-eslint/type-utils": "5.45.0",
+    "@typescript-eslint/utils": "5.45.0"
   },
   "pnpm": {
     "patchedDependencies": {
