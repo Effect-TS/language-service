@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.9
+
+### Patch Changes
+
+- [#19](https://github.com/Effect-TS/language-service/pull/19) [`eced128`](https://github.com/Effect-TS/language-service/commit/eced12870537e1f075cd9970b745a39f5906acf7) Thanks [@mikearnaldi](https://github.com/mikearnaldi)! - Update deps
+
 ## 0.0.8
 
 ### Patch Changes
