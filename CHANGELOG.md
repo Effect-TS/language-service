@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.10
+
+### Patch Changes
+
+- [#21](https://github.com/Effect-TS/language-service/pull/21) [`8eefaf7`](https://github.com/Effect-TS/language-service/commit/8eefaf70e5bb18c397da4313c81d4e4ecfb44b18) Thanks [@mikearnaldi](https://github.com/mikearnaldi)! - Fix transformer infinite loop
+
 ## 0.0.9
 
 ### Patch Changes
