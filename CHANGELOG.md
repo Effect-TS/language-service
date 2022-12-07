@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.11
+
+### Patch Changes
+
+- [#23](https://github.com/Effect-TS/language-service/pull/23) [`535a2f1`](https://github.com/Effect-TS/language-service/commit/535a2f13f250077dfc28a56537a6493be90c0b9b) Thanks [@mikearnaldi](https://github.com/mikearnaldi)! - Update dependencies and improve semver ranges
+
 ## 0.0.10
 
 ### Patch Changes
