@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.13
+
+### Patch Changes
+
+- [#27](https://github.com/Effect-TS/language-service/pull/27) [`c0636e1`](https://github.com/Effect-TS/language-service/commit/c0636e19d10a352e3905c0fd01e37af7f467b16d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Removed diagnostics and moved them into @effect/eslint-plugin
+
 ## 0.0.12
 
 ### Patch Changes
