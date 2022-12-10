@@ -258,22 +258,6 @@ export function isPipeableCallExpression(ts: TypeScriptApi) {
   return (node: ts.Node): node is ts.CallExpression => O.isSome(asPipeableCallExpression(ts)(node))
 }
 
-export function isCombinatorCall(ts: TypeScriptApi) {
-  return (moduleIdentifier: string, moduleMethodName: string) =>
-    (node: ts.Node): node is ts.CallExpression => {
-      if (!ts.isCallExpression(node)) return false
-      const left = node.expression
-      if (!ts.isPropertyAccessExpression(left)) return false
-      const leftModule = left.expression
-      const leftName = left.name
-      if (!ts.isIdentifier(leftModule)) return false
-      if (leftModule.text !== moduleIdentifier) return false
-      if (!ts.isIdentifier(leftName)) return false
-      if (leftName.text !== moduleMethodName) return false
-      return true
-    }
-}
-
 export function findModuleImportIdentifierName(
   ts: TypeScriptApi
 ) {
@@ -290,31 +274,6 @@ export function findModuleImportIdentifierName(
       if (!ts.isNamespaceImport(namedBindings)) return
       return namedBindings.name.text
     }))
-  }
-}
-
-export function isCurryArrow(ts: TypeScriptApi) {
-  return (arrow: ts.Node): arrow is ts.ArrowFunction => {
-    if (!ts.isArrowFunction(arrow)) return false
-    if (arrow.parameters.length !== 1) return false
-    const parameter = arrow.parameters[0]!
-    const parameterName = parameter.name
-    if (!ts.isIdentifier(parameterName)) return false
-    const body = arrow.body
-    if (!ts.isCallExpression(body)) return false
-    const args = body.arguments
-    if (args.length !== 1) return false
-    const identifier = args[0]!
-    if (!ts.isIdentifier(identifier)) return false
-    return identifier.text === parameterName.text
-  }
-}
-
-export function isLiteralConstantValue(ts: TypeScriptApi) {
-  return (node: ts.Node): node is (ts.StringLiteral | ts.NumericLiteral | ts.TrueLiteral | ts.FalseLiteral) => {
-    return ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
-      node.kind === ts.SyntaxKind.TrueKeyword ||
-      node.kind === ts.SyntaxKind.FalseKeyword || node.kind === ts.SyntaxKind.NullKeyword
   }
 }
 
