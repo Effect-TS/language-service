@@ -1,10 +1,8 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { addReturnTypeAnnotation, removeReturnTypeAnnotation } from "@effect/language-service/utils"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 import type ts from "typescript/lib/tsserverlibrary"
 
 type ConvertibleDeclaration =
@@ -16,10 +14,8 @@ type ConvertibleDeclaration =
 export default createRefactor({
   name: "effect/toggleReturnTypeAnnotation",
   description: "Toggle return type annotation",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
+  apply: (ts, program) =>
+    (sourceFile, textRange) => {
       function isConvertibleDeclaration(node: ts.Node): node is ConvertibleDeclaration {
         switch (node.kind) {
           case ts.SyntaxKind.FunctionDeclaration:
@@ -39,13 +35,11 @@ export default createRefactor({
         O.map(
           (node) => ({
             description: "Toggle return type annotation",
-            apply: T.gen(function*($) {
-              const program = yield* $(T.service(AST.TypeScriptProgram))
+            apply: (changeTracker) => {
               const typeChecker = program.getTypeChecker()
-              const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
 
               if (node.type) {
-                removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
+                AST.removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
                 return
               }
 
@@ -59,10 +53,10 @@ export default createRefactor({
                 returnTypeNodes[0]! :
                 ts.factory.createUnionTypeNode(returnTypeNodes)
 
-              addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, returnTypeNode)
-            })
+              AST.addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, returnTypeNode)
+            }
           })
         )
       )
-    })
+    }
 })

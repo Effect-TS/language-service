@@ -1,22 +1,19 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import {
   isEffectSyncWithConstantCall,
   noSyncWithConstantMethodsMap
 } from "@effect/language-service/diagnostics/noSyncWithConstant"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { getEffectModuleIdentifier, isLiteralConstantValue } from "@effect/language-service/utils"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createRefactor({
   name: "effect/addPipe",
   description: "Rewrite using pipe",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-      const effectIdentifier = getEffectModuleIdentifier(ts)(sourceFile)
+  apply: (ts) =>
+    (sourceFile, textRange) => {
+      const effectIdentifier = AST.getEffectModuleIdentifier(ts)(sourceFile)
 
       const nodes = pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
@@ -33,10 +30,9 @@ export default createRefactor({
           Ch.head,
           O.map((node) => ({
             description: `Rewrite ${methodName} to ${suggestedMethodName}`,
-            apply: T.gen(function*($) {
-              const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
+            apply: (changeTracker: ts.textChanges.ChangeTracker) => {
               const arg = node.arguments[0]
-              if (ts.isArrowFunction(arg) && isLiteralConstantValue(ts)(arg.body)) {
+              if (ts.isArrowFunction(arg) && AST.isLiteralConstantValue(ts)(arg.body)) {
                 const newNode = ts.factory.updateCallExpression(
                   node,
                   ts.factory.createPropertyAccessExpression(
@@ -49,12 +45,12 @@ export default createRefactor({
 
                 changeTracker.replaceNode(sourceFile, node, newNode)
               }
-            })
+            }
           }))
         )
         if (O.isSome(refactor)) return refactor
       }
 
       return O.none
-    })
+    }
 })

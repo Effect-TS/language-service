@@ -1,10 +1,8 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import type { DiagnosticDefinitionMessage } from "@effect/language-service/diagnostics/definition"
 import { createDiagnostic } from "@effect/language-service/diagnostics/definition"
-import { getEffectModuleIdentifier, isCombinatorCall, isLiteralConstantValue } from "@effect/language-service/utils"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export const noSyncWithConstantMethodsMap = {
   sync: "succeed",
@@ -15,9 +13,9 @@ export const noSyncWithConstantMethodsMap = {
 export function isEffectSyncWithConstantCall(ts: AST.TypeScriptApi) {
   return (moduleIdentifier: string, methodName: string) =>
     (node: ts.Node): node is ts.CallExpression => {
-      if (isCombinatorCall(ts)(moduleIdentifier, methodName)(node) && node.arguments.length === 1) {
+      if (AST.isCombinatorCall(ts)(moduleIdentifier, methodName)(node) && node.arguments.length === 1) {
         const arg = node.arguments[0]
-        if (ts.isArrowFunction(arg) && isLiteralConstantValue(ts)(arg.body)) {
+        if (ts.isArrowFunction(arg) && AST.isLiteralConstantValue(ts)(arg.body)) {
           return true
         }
       }
@@ -28,11 +26,9 @@ export function isEffectSyncWithConstantCall(ts: AST.TypeScriptApi) {
 export default createDiagnostic({
   code: 1002,
   category: "warning",
-  apply: (sourceFile) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
-      const effectIdentifier = getEffectModuleIdentifier(ts)(sourceFile)
+  apply: (ts) =>
+    (sourceFile) => {
+      const effectIdentifier = AST.getEffectModuleIdentifier(ts)(sourceFile)
 
       let result: Ch.Chunk<DiagnosticDefinitionMessage> = Ch.empty
 
@@ -53,5 +49,5 @@ export default createDiagnostic({
       }
 
       return result
-    })
+    }
 })

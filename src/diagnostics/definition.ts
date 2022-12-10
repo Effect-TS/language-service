@@ -1,5 +1,5 @@
-import type * as T from "@effect/io/Effect"
-import type * as Ch from "@fp-ts/data/Chunk"
+import type * as AST from "@effect/language-service/utils/AST"
+import type * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 import type ts from "typescript/lib/tsserverlibrary"
 
@@ -13,13 +13,9 @@ export type DiagnosticDefinitionMessageCategory = "none" | "suggestion" | "warni
 export interface DiagnosticDefinition {
   code: number
   category: DiagnosticDefinitionMessageCategory
-  apply: <E>(
+  apply: (ts: AST.TypeScriptApi, program: ts.Program) => (
     sourceFile: ts.SourceFile
-  ) => T.Effect<
-    typeof ts | ts.Program,
-    E,
-    Ch.Chunk<DiagnosticDefinitionMessage>
-  >
+  ) => Ch.Chunk<DiagnosticDefinitionMessage>
 }
 
 export function createDiagnostic(definition: DiagnosticDefinition) {

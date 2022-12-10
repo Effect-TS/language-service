@@ -63,8 +63,6 @@ importers:
       vite: ^3.2.5
       vitest: 0.25.5
     dependencies:
-      '@effect/io': 0.0.32
-      '@effect/printer': 0.1.11
       '@fp-ts/core': 0.0.9
       '@fp-ts/data': 0.0.22
     devDependencies:
@@ -75,6 +73,8 @@ importers:
       '@changesets/cli': 2.25.2
       '@effect-ts/build-utils': 0.40.5
       '@effect-ts/core': 0.60.4
+      '@effect/io': 0.0.32
+      '@effect/printer': 0.1.11
       '@repo-tooling/eslint-plugin-dprint': 0.0.4_typescript@4.9.3
       '@rollup/pluginutils': 5.0.2
       '@types/benchmark': 2.1.2
@@ -703,14 +703,14 @@ packages:
       '@effect/printer': 0.1.11
       '@fp-ts/core': 0.0.9
       '@fp-ts/data': 0.0.22
-    dev: false
+    dev: true
 
   /@effect/printer/0.1.11:
     resolution: {integrity: sha512-95ha+/xFmDGG/FN0mZASJLBaU635IlhDcBxYO6sswqaheCz3s92Ouub+xTomjyPYtev5xAnVHQpZaaxcnjFaHQ==}
     dependencies:
       '@fp-ts/core': 0.0.9
       '@fp-ts/data': 0.0.22
-    dev: false
+    dev: true
 
   /@esbuild/android-arm/0.15.18:
     resolution: {integrity: sha512-5GT+kcs2WVGjVs7+boataCkO5Fg0y4kCjzkB5bAip7H4jfnOS3dA6KPiww9W1OEKTKeAcUVhdZGvgI65OXmUnw==}
@@ -754,13 +754,11 @@ packages:
 
   /@fp-ts/core/0.0.9:
     resolution: {integrity: sha512-FuXKPHTEvvgxV3LulGJXkSpAghovh7wLxux+Pm9LKefC0gtZZQ4OajTjTK5RsQtpyKIsAn26PwdG6W6zksF/UA==}
-    dev: false
 
   /@fp-ts/data/0.0.22:
     resolution: {integrity: sha512-chgnnyMAT17WCfAIbD8vvnJOsPtA2Xi79oMNklexprI9YaV/2u8QeeerHCYKuEJihK6GuIJtAYSsOwjBYMfWcQ==}
     dependencies:
       '@fp-ts/core': 0.0.9
-    dev: false
 
   /@humanwhocodes/config-array/0.11.6:
     resolution: {integrity: sha512-jJr+hPTJYKyDILJfhNSHsjiwXYf26Flsz8DvNndOsHs5pwSnpGUEy8yzF0JYhCEvTDdV2vuOK5tt8BVhwO5/hg==}

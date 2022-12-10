@@ -1,0 +1,45 @@
+lockfileVersion: 5.4
+
+specifiers:
+  '@effect/core': ^0.0.15
+  '@effect/language-service': link:../dist/
+  '@tsplus/runtime': ^0.1.10
+  '@tsplus/stdlib': ^0.2.8
+  typescript: https://cdn.jsdelivr.net/npm/@tsplus/installer@0.0.155/compiler/typescript.tgz
+
+dependencies:
+  '@effect/core': 0.0.15
+  '@tsplus/runtime': 0.1.10
+  '@tsplus/stdlib': 0.2.8
+
+devDependencies:
+  '@effect/language-service': link:../dist
+  typescript: '@cdn.jsdelivr.net/npm/@tsplus/installer@0.0.155/compiler/typescript.tgz'
+
+packages:
+
+  /@effect/core/0.0.15:
+    resolution: {integrity: sha512-cl7KBKJ7RnAK/DjP3l/62021erSCXUyQ3G9b2AFA7IfdyxsZnmDWvdvT0fQUauXC2KxJ1/UmIOgeAzj1f1ulrQ==}
+    dependencies:
+      '@tsplus/stdlib': 0.2.8
+    dev: false
+
+  /@tsplus/runtime/0.1.10:
+    resolution: {integrity: sha512-4D1w2WYL7w+wBcbfIhqCOtmIhU3Jyc/FbxR9imQLcTqw05sr9GKTWkXkv5Q77MHFv5MkAP5bdSkKhgsHhGhiWw==}
+    dependencies:
+      '@tsplus/stdlib': 0.2.8
+    dev: false
+
+  /@tsplus/stdlib/0.2.8:
+    resolution: {integrity: sha512-UKAN06h9V/wUflSbOU1WwACisXEi4+PHwGqR+bwxqcClrEAA8KKTTLZ0ATMbqbVAVTudE0vW4pd5iY6vGvSFBw==}
+    dev: false
+
+  '@cdn.jsdelivr.net/npm/@tsplus/installer@0.0.155/compiler/typescript.tgz':
+    resolution: {tarball: https://cdn.jsdelivr.net/npm/@tsplus/installer@0.0.155/compiler/typescript.tgz}
+    name: typescript
+    version: 5.0.0-tsplus.20221122
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true
+
+publishDirectory: dist

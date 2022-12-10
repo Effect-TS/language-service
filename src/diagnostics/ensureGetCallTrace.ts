@@ -1,16 +1,13 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import { createDiagnostic } from "@effect/language-service/diagnostics/definition"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createDiagnostic({
   code: 1003,
   category: "none",
-  apply: (sourceFile) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-      const program = yield* $(T.service(AST.TypeScriptProgram))
+  apply: (ts, program) =>
+    (sourceFile) => {
       const typeChecker = program.getTypeChecker()
 
       function isEffectType(type: ts.Type) {
@@ -63,5 +60,5 @@ export default createDiagnostic({
           messageText: `This function should be traced. getCallTrace() should be the first line of the body.`
         }))
       )
-    })
+    }
 })

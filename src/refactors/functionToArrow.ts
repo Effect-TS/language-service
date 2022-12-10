@@ -1,18 +1,15 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createRefactor({
   name: "effect/functionToArrow",
   description: "Convert to arrow",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
-      return pipe(
+  apply: (ts) =>
+    (sourceFile, textRange) =>
+      pipe(
         pipe(AST.getNodesContainingRange(ts)(sourceFile, textRange), Ch.filter(ts.isFunctionDeclaration)),
         Ch.concat(pipe(AST.getNodesContainingRange(ts)(sourceFile, textRange), Ch.filter(ts.isMethodDeclaration))),
         Ch.filter((node) => !!node.body),
@@ -21,9 +18,7 @@ export default createRefactor({
         O.map(
           (node) => ({
             description: "Convert to arrow",
-            apply: T.gen(function*($) {
-              const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
-
+            apply: (changeTracker) => {
               const body = node.body!
               let newBody: ts.ConciseBody = ts.factory.createBlock(body.statements)
               if (body.statements.length === 1) {
@@ -72,9 +67,8 @@ export default createRefactor({
                 )
               }
               changeTracker.replaceNode(sourceFile, node, newDeclaration)
-            })
+            }
           })
         )
       )
-    })
 })

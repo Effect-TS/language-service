@@ -1,18 +1,15 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createRefactor({
   name: "effect/toggleTypeAnnotation",
   description: "Toggle type annotation",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
-      return pipe(
+  apply: (ts, program) =>
+    (sourceFile, textRange) =>
+      pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
         Ch.filter(ts.isVariableDeclaration),
         Ch.filter((node) => AST.isNodeInRange(textRange)(node.name)),
@@ -21,10 +18,8 @@ export default createRefactor({
         O.map(
           (node) => ({
             description: "Toggle type annotation",
-            apply: T.gen(function*($) {
-              const program = yield* $(T.service(AST.TypeScriptProgram))
+            apply: (changeTracker) => {
               const typeChecker = program.getTypeChecker()
-              const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
 
               if (node.type) {
                 changeTracker.deleteRange(sourceFile, { pos: node.name.end, end: node.type.end })
@@ -41,9 +36,8 @@ export default createRefactor({
               if (initializerTypeNode) {
                 changeTracker.insertNodeAt(sourceFile, node.name.end, initializerTypeNode, { prefix: ": " })
               }
-            })
+            }
           })
         )
       )
-    })
 })

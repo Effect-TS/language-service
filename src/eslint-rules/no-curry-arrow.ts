@@ -1,5 +1,5 @@
 import * as utils from "@effect/language-service/eslint-rules/utils"
-import * as U from "@effect/language-service/utils"
+import * as AST from "@effect/language-service/utils/AST"
 import * as ts from "typescript/lib/tsserverlibrary"
 
 export default utils.createRule({
@@ -9,7 +9,7 @@ export default utils.createRule({
     return {
       ArrowFunctionExpression(node) {
         const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node)
-        if (U.isCurryArrow(ts)(tsNode)) {
+        if (AST.isCurryArrow(ts)(tsNode)) {
           context.report({
             messageId: "noCurryArrow",
             node
