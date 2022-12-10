@@ -120,32 +120,6 @@ class Sample {
 "
 `;
 
-exports[`noSyncWithConstant.ts > noSyncWithConstant.ts at 7:14 1`] = `
-"// Result of running refactor effect/addPipe at position 7:14
-import * as Effect from \\"@effect/io/Effect\\"
-import { pipe } from \\"@fp-ts/data/Function\\"
-
-
-const result =  pipe(
-    Effect.succeed(\\"hello\\"),
-    Effect.map((hello) => hello + \\", world!\\"),
-    Effect.flatMap((msg) => Effect.log(msg))
-  )
-"
-`;
-
-exports[`removeCurryArrow.ts > removeCurryArrow.ts at 7:12 1`] = `
-"// Result of running refactor effect/removeCurryArrow at position 7:12
-import * as T from \\"@effect/io/Effect\\"
-import { pipe } from \\"@fp-ts/data/Function\\"
-
-const test = pipe(
-  T.succeed(\\"Hello\\"),
-  T.tap(T.log)
-)
-"
-`;
-
 exports[`removePipe.ts > removePipe.ts at 5:16 1`] = `
 "// Result of running refactor effect/removePipe at position 5:16
 import * as T from \\"@effect/io/Effect\\"
