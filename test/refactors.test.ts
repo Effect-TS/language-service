@@ -1,9 +1,6 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
 import { createMockLanguageServiceHost } from "@effect/language-service/test/utils"
-import { pipe } from "@fp-ts/data/Function"
 import * as O from "@fp-ts/data/Option"
 import * as fs from "fs"
 import * as path from "path"
@@ -89,12 +86,7 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
       expect(diagnostics).toEqual([])
 
       // check and assert the refactor is executable
-      const canApply = pipe(
-        refactor.apply(sourceFile, textRange),
-        T.provideService(AST.TypeScriptApi)(ts),
-        T.provideService(AST.TypeScriptProgram)(program),
-        T.unsafeRunSync
-      )
+      const canApply = refactor.apply(ts, program)(sourceFile, textRange)
 
       if (O.isNone(canApply)) {
         expect(sourceText).toMatchSnapshot()
@@ -112,14 +104,7 @@ export function testRefactorOnExample(refactor: RefactorDefinition, fileName: st
           host: languageServiceHost,
           preferences: {}
         },
-        (changeTracker) =>
-          pipe(
-            canApply.value.apply,
-            T.provideService(AST.ChangeTrackerApi)(changeTracker),
-            T.provideService(AST.TypeScriptApi)(ts),
-            T.provideService(AST.TypeScriptProgram)(program),
-            T.unsafeRunSync
-          )
+        (changeTracker) => canApply.value.apply(changeTracker)
       )
 
       expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()

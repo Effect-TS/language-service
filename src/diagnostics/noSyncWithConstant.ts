@@ -1,4 +1,3 @@
-import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import type { DiagnosticDefinitionMessage } from "@effect/language-service/diagnostics/definition"
 import { createDiagnostic } from "@effect/language-service/diagnostics/definition"
@@ -28,10 +27,8 @@ export function isEffectSyncWithConstantCall(ts: AST.TypeScriptApi) {
 export default createDiagnostic({
   code: 1002,
   category: "warning",
-  apply: (sourceFile) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
+  apply: (ts) =>
+    (sourceFile) => {
       const effectIdentifier = getEffectModuleIdentifier(ts)(sourceFile)
 
       let result: Ch.Chunk<DiagnosticDefinitionMessage> = Ch.empty
@@ -53,5 +50,5 @@ export default createDiagnostic({
       }
 
       return result
-    })
+    }
 })

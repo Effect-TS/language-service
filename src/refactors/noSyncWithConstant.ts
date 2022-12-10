@@ -1,4 +1,3 @@
-import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import {
   isEffectSyncWithConstantCall,
@@ -13,9 +12,8 @@ import * as O from "@fp-ts/data/Option"
 export default createRefactor({
   name: "effect/addPipe",
   description: "Rewrite using pipe",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
+  apply: (ts) =>
+    (sourceFile, textRange) => {
       const effectIdentifier = getEffectModuleIdentifier(ts)(sourceFile)
 
       const nodes = pipe(
@@ -33,8 +31,7 @@ export default createRefactor({
           Ch.head,
           O.map((node) => ({
             description: `Rewrite ${methodName} to ${suggestedMethodName}`,
-            apply: T.gen(function*($) {
-              const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
+            apply: (changeTracker: ts.textChanges.ChangeTracker) => {
               const arg = node.arguments[0]
               if (ts.isArrowFunction(arg) && isLiteralConstantValue(ts)(arg.body)) {
                 const newNode = ts.factory.updateCallExpression(
@@ -49,12 +46,12 @@ export default createRefactor({
 
                 changeTracker.replaceNode(sourceFile, node, newNode)
               }
-            })
+            }
           }))
         )
         if (O.isSome(refactor)) return refactor
       }
 
       return O.none
-    })
+    }
 })

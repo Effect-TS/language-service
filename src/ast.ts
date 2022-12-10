@@ -1,4 +1,3 @@
-import * as T from "@effect/io/Effect"
 import * as Ch from "@fp-ts/data/Chunk"
 import { Tag } from "@fp-ts/data/Context"
 import { pipe } from "@fp-ts/data/Function"
@@ -132,16 +131,18 @@ export class NoSuchSourceFile {
   ) {}
 }
 
-export function getSourceFile(fileName: string) {
-  return pipe(
-    T.service(TypeScriptProgram),
-    T.map((program) => program.getSourceFile(fileName)),
-    T.filterOrFail((sourceFile): sourceFile is ts.SourceFile => !!sourceFile, () => new NoSuchSourceFile(fileName))
-  )
+export function getSourceFile(program: ts.Program) {
+  return (fileName: string) => {
+    const sourceFile = program.getSourceFile(fileName)
+    if (!sourceFile) {
+      throw new NoSuchSourceFile(fileName)
+    }
+    return sourceFile
+  }
 }
 
-export function hasModifier(node: ts.Declaration, kind: ts.ModifierFlags) {
-  return T.serviceWith(TypeScriptApi)((ts) => !!(ts.getCombinedModifierFlags(node) & kind))
+export function hasModifier(ts: TypeScriptApi) {
+  return (node: ts.Declaration, kind: ts.ModifierFlags) => !!(ts.getCombinedModifierFlags(node) & kind)
 }
 
 /**

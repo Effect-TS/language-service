@@ -1,4 +1,3 @@
-import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
 import { getEffectModuleIdentifier, transformAsyncAwaitToEffectGen } from "@effect/language-service/utils"
@@ -9,11 +8,9 @@ import * as O from "@fp-ts/data/Option"
 export default createRefactor({
   name: "effect/asyncAwaitToGenTryPromise",
   description: "Convert to Effect.gen with failures",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
-      return pipe(
+  apply: (ts) =>
+    (sourceFile, textRange) =>
+      pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
         Ch.filter(ts.isFunctionDeclaration),
         Ch.filter((node) => !!node.body),
@@ -21,8 +18,7 @@ export default createRefactor({
         Ch.head,
         O.map((node) => ({
           description: "Rewrite to Effect.gen with failures",
-          apply: T.gen(function*($) {
-            const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
+          apply: (changeTracker) => {
             const effectName = getEffectModuleIdentifier(ts)(sourceFile)
 
             let errorCount = 0
@@ -62,8 +58,7 @@ export default createRefactor({
               )))
 
             changeTracker.replaceNode(sourceFile, node, newDeclaration)
-          })
+          }
         }))
       )
-    })
 })

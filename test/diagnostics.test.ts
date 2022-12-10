@@ -1,5 +1,3 @@
-import * as T from "@effect/io/Effect"
-import * as AST from "@effect/language-service/ast"
 import type { DiagnosticDefinition } from "@effect/language-service/diagnostics/definition"
 import diagnostics from "@effect/language-service/diagnostics/index"
 import { createMockLanguageServiceHost } from "@effect/language-service/test/utils"
@@ -36,13 +34,7 @@ export function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileNa
   expect(diagnostics).toEqual([])
 
   // check and assert the diagnostic runs
-  const resultMessages = pipe(
-    diagnostic
-      .apply(sourceFile),
-    T.provideService(AST.TypeScriptApi)(ts),
-    T.provideService(AST.TypeScriptProgram)(program),
-    T.unsafeRunSync
-  )
+  const resultMessages = diagnostic.apply(ts, program)(sourceFile)
 
   // create human readable messages
   const humanMessages = pipe(

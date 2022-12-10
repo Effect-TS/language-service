@@ -1,4 +1,3 @@
-import * as T from "@effect/io/Effect"
 import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
 import { addReturnTypeAnnotation, removeReturnTypeAnnotation } from "@effect/language-service/utils"
@@ -16,10 +15,8 @@ type ConvertibleDeclaration =
 export default createRefactor({
   name: "effect/toggleReturnTypeAnnotation",
   description: "Toggle return type annotation",
-  apply: (sourceFile, textRange) =>
-    T.gen(function*($) {
-      const ts = yield* $(T.service(AST.TypeScriptApi))
-
+  apply: (ts, program) =>
+    (sourceFile, textRange) => {
       function isConvertibleDeclaration(node: ts.Node): node is ConvertibleDeclaration {
         switch (node.kind) {
           case ts.SyntaxKind.FunctionDeclaration:
@@ -39,10 +36,8 @@ export default createRefactor({
         O.map(
           (node) => ({
             description: "Toggle return type annotation",
-            apply: T.gen(function*($) {
-              const program = yield* $(T.service(AST.TypeScriptProgram))
+            apply: (changeTracker) => {
               const typeChecker = program.getTypeChecker()
-              const changeTracker = yield* $(T.service(AST.ChangeTrackerApi))
 
               if (node.type) {
                 removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
@@ -60,9 +55,9 @@ export default createRefactor({
                 ts.factory.createUnionTypeNode(returnTypeNodes)
 
               addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, returnTypeNode)
-            })
+            }
           })
         )
       )
-    })
+    }
 })

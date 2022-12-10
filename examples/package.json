@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@effect/language-service": "link:../dist/",
-    "typescript": "^4.8.4"
+    "typescript": "https://cdn.jsdelivr.net/npm/@tsplus/installer@0.0.155/compiler/typescript.tgz"
   },
   "config": {
     "side": [],
