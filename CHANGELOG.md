@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.12
+
+### Patch Changes
+
+- [#25](https://github.com/Effect-TS/language-service/pull/25) [`7495554`](https://github.com/Effect-TS/language-service/commit/74955548f6ab2c859f685c7c9d750458374612cc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Remove @effect/io dependency
+
 ## 0.0.11
 
 ### Patch Changes
