@@ -1,8 +1,8 @@
-import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createRefactor({
   name: "effect/functionToArrow",

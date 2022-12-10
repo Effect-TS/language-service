@@ -1,5 +1,5 @@
-import type * as AST from "@effect/language-service/ast"
-import type * as Ch from "@fp-ts/data/Chunk"
+import type * as AST from "@effect/language-service/utils/AST"
+import type * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 import type ts from "typescript/lib/tsserverlibrary"
 

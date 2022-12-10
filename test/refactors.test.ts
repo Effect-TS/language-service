@@ -1,7 +1,7 @@
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
 import { createMockLanguageServiceHost } from "@effect/language-service/test/utils"
-import * as O from "@fp-ts/data/Option"
+import * as O from "@effect/language-service/utils/Option"
 import * as fs from "fs"
 import * as path from "path"
 import ts from "typescript/lib/tsserverlibrary"

@@ -1,9 +1,8 @@
-import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { asPipeArguments, isPipeableCallExpression } from "@effect/language-service/utils"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createRefactor({
   name: "effect/addPipe",
@@ -15,12 +14,12 @@ export default createRefactor({
         Ch.reverse,
         Ch.fromIterable,
         Ch.filter(AST.isNodeInRange(textRange)),
-        Ch.filter(isPipeableCallExpression(ts)),
+        Ch.filter(AST.isPipeableCallExpression(ts)),
         Ch.head,
         O.map((node) => ({
           description: `Rewrite ${AST.getHumanReadableName(sourceFile, node.expression)} to pipe`,
           apply: (changeTracker: ts.textChanges.ChangeTracker) => {
-            const args = asPipeArguments(ts)(node)
+            const args = AST.asPipeArguments(ts)(node)
 
             const newNode = ts.factory.createCallExpression(
               ts.factory.createIdentifier("pipe"),

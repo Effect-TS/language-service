@@ -1,5 +1,5 @@
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import * as O from "@fp-ts/data/Option"
+import * as O from "@effect/language-service/utils/Option"
 
 export default createRefactor({
   name: "effect/wrapWithPipe",

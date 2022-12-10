@@ -1,4 +1,3 @@
-import * as AST from "@effect/language-service/ast"
 import { parseLanguageServicePluginConfig } from "@effect/language-service/config"
 import type {
   DiagnosticDefinition,
@@ -7,9 +6,10 @@ import type {
 import diagnostics from "@effect/language-service/diagnostics/index"
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 import type ts from "typescript/lib/tsserverlibrary"
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports

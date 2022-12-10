@@ -1,5 +1,5 @@
-import type * as AST from "@effect/language-service/ast"
-import type * as O from "@fp-ts/data/Option"
+import type * as AST from "@effect/language-service/utils/AST"
+import type * as O from "@effect/language-service/utils/Option"
 import type ts from "typescript/lib/tsserverlibrary"
 
 export interface RefactorDefinition {
@@ -8,10 +8,12 @@ export interface RefactorDefinition {
   apply: (ts: AST.TypeScriptApi, program: ts.Program) => (
     sourceFile: ts.SourceFile,
     textRange: ts.TextRange
-  ) => O.Option<{
-    description: string
-    apply: (changeTracker: ts.textChanges.ChangeTracker) => void
-  }>
+  ) => O.Option<ApplicableRefactorDefinition>
+}
+
+export interface ApplicableRefactorDefinition {
+  description: string
+  apply: (changeTracker: ts.textChanges.ChangeTracker) => void
 }
 
 export function createRefactor(definition: RefactorDefinition) {

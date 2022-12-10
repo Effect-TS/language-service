@@ -1,20 +1,19 @@
-import * as AST from "@effect/language-service/ast"
 import {
   isEffectSyncWithConstantCall,
   noSyncWithConstantMethodsMap
 } from "@effect/language-service/diagnostics/noSyncWithConstant"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { getEffectModuleIdentifier, isLiteralConstantValue } from "@effect/language-service/utils"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 
 export default createRefactor({
   name: "effect/addPipe",
   description: "Rewrite using pipe",
   apply: (ts) =>
     (sourceFile, textRange) => {
-      const effectIdentifier = getEffectModuleIdentifier(ts)(sourceFile)
+      const effectIdentifier = AST.getEffectModuleIdentifier(ts)(sourceFile)
 
       const nodes = pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
@@ -33,7 +32,7 @@ export default createRefactor({
             description: `Rewrite ${methodName} to ${suggestedMethodName}`,
             apply: (changeTracker: ts.textChanges.ChangeTracker) => {
               const arg = node.arguments[0]
-              if (ts.isArrowFunction(arg) && isLiteralConstantValue(ts)(arg.body)) {
+              if (ts.isArrowFunction(arg) && AST.isLiteralConstantValue(ts)(arg.body)) {
                 const newNode = ts.factory.updateCallExpression(
                   node,
                   ts.factory.createPropertyAccessExpression(

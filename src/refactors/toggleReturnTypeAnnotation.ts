@@ -1,9 +1,8 @@
-import * as AST from "@effect/language-service/ast"
 import { createRefactor } from "@effect/language-service/refactors/definition"
-import { addReturnTypeAnnotation, removeReturnTypeAnnotation } from "@effect/language-service/utils"
-import * as Ch from "@fp-ts/data/Chunk"
-import { pipe } from "@fp-ts/data/Function"
-import * as O from "@fp-ts/data/Option"
+import * as AST from "@effect/language-service/utils/AST"
+import { pipe } from "@effect/language-service/utils/Function"
+import * as O from "@effect/language-service/utils/Option"
+import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 import type ts from "typescript/lib/tsserverlibrary"
 
 type ConvertibleDeclaration =
@@ -40,7 +39,7 @@ export default createRefactor({
               const typeChecker = program.getTypeChecker()
 
               if (node.type) {
-                removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
+                AST.removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
                 return
               }
 
@@ -54,7 +53,7 @@ export default createRefactor({
                 returnTypeNodes[0]! :
                 ts.factory.createUnionTypeNode(returnTypeNodes)
 
-              addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, returnTypeNode)
+              AST.addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, returnTypeNode)
             }
           })
         )
