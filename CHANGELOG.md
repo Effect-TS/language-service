@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.15
+
+### Patch Changes
+
+- [#31](https://github.com/Effect-TS/language-service/pull/31) [`ddb5b66`](https://github.com/Effect-TS/language-service/commit/ddb5b6687923e1aff04e8b57c9d984b364bb4ed7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add kind to each refactor definition
+
 ## 0.0.14
 
 ### Patch Changes
