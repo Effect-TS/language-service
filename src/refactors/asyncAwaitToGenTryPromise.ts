@@ -16,6 +16,7 @@ export default createRefactor({
         Ch.filter((node) => !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)),
         Ch.head,
         O.map((node) => ({
+          kind: "refactor.rewrite.effect.asyncAwaitToGenTryPromise",
           description: "Rewrite to Effect.gen with failures",
           apply: (changeTracker) => {
             const effectName = AST.getEffectModuleIdentifier(ts)(sourceFile)
