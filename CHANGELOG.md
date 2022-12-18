@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.14
+
+### Patch Changes
+
+- [#29](https://github.com/Effect-TS/language-service/pull/29) [`adc3745`](https://github.com/Effect-TS/language-service/commit/adc3745e1ed4c6fad0a50ea5b42529d55cc68baa) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Remove useless pipe-related refactors (rewrite to pipe and remove pipe)
+
 ## 0.0.13
 
 ### Patch Changes
