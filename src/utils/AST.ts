@@ -209,55 +209,6 @@ export function isNodeInRange(textRange: ts.TextRange) {
   return (node: ts.Node) => node.pos <= textRange.pos && node.end >= textRange.end
 }
 
-export function isPipeCall(ts: TypeScriptApi) {
-  return (node: ts.Node): node is ts.CallExpression => {
-    if (!ts.isCallExpression(node)) return false
-    const expression = node.expression
-    if (!ts.isIdentifier(expression)) return false
-    if (expression.getText(node.getSourceFile()) !== "pipe") return false
-    return true
-  }
-}
-
-export function asPipeableCallExpression(ts: TypeScriptApi) {
-  return (node: ts.Node) => {
-    // ensure the node is a call expression
-    if (!ts.isCallExpression(node)) return O.none
-    // with just 1 arg
-    if (node.arguments.length !== 1) return O.none
-    const arg = node.arguments[0]!
-    // ideally T.map(n => n * 2) could be piped to pipe(n => n * 2, T.map)
-    // but does not make any sense.
-    if (ts.isArrowFunction(arg)) return O.none
-    // same goes for identifiers, string literal or numbers
-    if (ts.isStringLiteral(arg) || ts.isNumericLiteral(arg) || ts.isIdentifier(arg)) return O.none
-    return O.some([node.expression, arg] as const)
-  }
-}
-
-export function asPipeArguments(ts: TypeScriptApi) {
-  return (initialNode: ts.Node) => {
-    let result: Ch.Chunk<ts.Expression> = Ch.empty
-    let currentNode: O.Option<ts.Node> = O.some(initialNode)
-    while (O.isSome(currentNode)) {
-      const node = currentNode.value
-      const maybePipeable = asPipeableCallExpression(ts)(node)
-      if (O.isNone(maybePipeable)) {
-        result = pipe(result, Ch.append(node as ts.Expression))
-        break
-      }
-      const [exp, arg] = maybePipeable.value
-      result = pipe(result, Ch.append(exp))
-      currentNode = O.some(arg)
-    }
-    return Ch.reverse(result)
-  }
-}
-
-export function isPipeableCallExpression(ts: TypeScriptApi) {
-  return (node: ts.Node): node is ts.CallExpression => O.isSome(asPipeableCallExpression(ts)(node))
-}
-
 export function findModuleImportIdentifierName(
   ts: TypeScriptApi
 ) {
