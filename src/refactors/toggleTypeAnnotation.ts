@@ -17,6 +17,7 @@ export default createRefactor({
         Ch.head,
         O.map(
           (node) => ({
+            kind: "refactor.rewrite.effect.toggleTypeAnnotation",
             description: "Toggle type annotation",
             apply: (changeTracker) => {
               const typeChecker = program.getTypeChecker()

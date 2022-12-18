@@ -38,7 +38,8 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
                     description: refactor.description,
                     actions: [{
                       name: refactor.name,
-                      description: _.description
+                      description: _.description,
+                      kind: _.kind
                     }]
                   }))
                 )

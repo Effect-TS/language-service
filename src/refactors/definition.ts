@@ -12,6 +12,7 @@ export interface RefactorDefinition {
 }
 
 export interface ApplicableRefactorDefinition {
+  kind: string
   description: string
   apply: (changeTracker: ts.textChanges.ChangeTracker) => void
 }

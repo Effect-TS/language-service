@@ -9,6 +9,7 @@ export default createRefactor({
       if (textRange.end - textRange.pos === 0) return O.none
 
       return O.some({
+        kind: "refactor.rewrite.effect.wrapWithPipe",
         description: `Wrap with pipe(...)`,
         apply: (changeTracker) => {
           changeTracker.insertText(sourceFile, textRange.pos, "pipe(")

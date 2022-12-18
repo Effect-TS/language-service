@@ -17,6 +17,7 @@ export default createRefactor({
         Ch.head,
         O.map(
           (node) => ({
+            kind: "refactor.rewrite.effect.functionToArrow",
             description: "Convert to arrow",
             apply: (changeTracker) => {
               const body = node.body!

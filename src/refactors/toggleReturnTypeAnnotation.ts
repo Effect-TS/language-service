@@ -34,6 +34,7 @@ export default createRefactor({
         Ch.head,
         O.map(
           (node) => ({
+            kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",
             description: "Toggle return type annotation",
             apply: (changeTracker) => {
               const typeChecker = program.getTypeChecker()
