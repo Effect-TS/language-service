@@ -35,7 +35,9 @@ export default createRefactor({
                 ts.NodeBuilderFlags.NoTruncation
               )
               if (initializerTypeNode) {
-                changeTracker.insertNodeAt(sourceFile, node.name.end, initializerTypeNode, { prefix: ": " })
+                changeTracker.insertNodeAt(sourceFile, node.name.end, AST.simplifyTypeNode(ts)(initializerTypeNode), {
+                  prefix: ": "
+                })
               }
             }
           })

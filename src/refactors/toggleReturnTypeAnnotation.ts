@@ -54,7 +54,7 @@ export default createRefactor({
                 returnTypeNodes[0]! :
                 ts.factory.createUnionTypeNode(returnTypeNodes)
 
-              AST.addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, returnTypeNode)
+              AST.addReturnTypeAnnotation(ts, changeTracker)(sourceFile, node, AST.simplifyTypeNode(ts)(returnTypeNode))
             }
           })
         )
