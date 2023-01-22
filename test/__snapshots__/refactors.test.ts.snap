@@ -237,6 +237,15 @@ export const test5 = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
 "
 `;
 
@@ -256,6 +265,15 @@ export const test5 = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
 "
 `;
 
@@ -275,6 +293,15 @@ export const test5 = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
 "
 `;
 
@@ -294,6 +321,15 @@ export const test5 = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
 "
 `;
 
@@ -313,6 +349,15 @@ export const test5: (defect: unknown) => T.Effect<never, never, never> = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
 "
 `;
 
@@ -332,6 +377,15 @@ export const test5 = T.die
 
 const removeAnnotation=42
 const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
 "
 `;
 
@@ -351,6 +405,74 @@ export const test5 = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+"
+`;
+
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 20:16 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 20:16
+import * as T from \\"@effect/io/Effect\\"
+
+export const test1 = T.succeed
+export const test2 = T.fail(\\"LOL\\")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6: { (a: 1): boolean; (a: 2): string } = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+"
+`;
+
+exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 24:16 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 24:16
+import * as T from \\"@effect/io/Effect\\"
+
+export const test1 = T.succeed
+export const test2 = T.fail(\\"LOL\\")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7: {
+    (a: 1): boolean;
+    (a: 2): string
+} = functIntersection
 "
 `;
 

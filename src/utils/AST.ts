@@ -367,3 +367,23 @@ export function getEffectModuleIdentifier(ts: TypeScriptApi) {
       )
     )
 }
+
+export function simplifyTypeNode(
+  ts: TypeScriptApi
+) {
+  return (typeNode: ts.TypeNode) => {
+    if (!ts.isIntersectionTypeNode(typeNode)) return typeNode
+    if (!typeNode.types.every(ts.isParenthesizedTypeNode)) return typeNode
+    const callSignatures: Array<ts.CallSignatureDeclaration> = []
+    for (let i = 0; i < typeNode.types.length; i++) {
+      const parenthesized = typeNode.types[i]
+      if (!ts.isParenthesizedTypeNode(parenthesized)) return typeNode
+      const functionType = parenthesized.type
+      if (!ts.isFunctionTypeNode(functionType)) return typeNode
+      callSignatures.push(
+        ts.factory.createCallSignature(functionType.typeParameters, functionType.parameters, functionType.type)
+      )
+    }
+    return ts.factory.createTypeLiteralNode(callSignatures)
+  }
+}
