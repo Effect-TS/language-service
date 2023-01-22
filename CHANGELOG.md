@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.17
+
+### Patch Changes
+
+- [#37](https://github.com/Effect-TS/language-service/pull/37) [`e632c54`](https://github.com/Effect-TS/language-service/commit/e632c547371a2a1cdb53106a6383b97d1cbbd298) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix simplify behaviour with intersections of callables
+
 ## 0.0.16
 
 ### Patch Changes
