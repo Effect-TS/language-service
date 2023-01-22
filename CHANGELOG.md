@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.16
+
+### Patch Changes
+
+- [#35](https://github.com/Effect-TS/language-service/pull/35) [`7fa9273`](https://github.com/Effect-TS/language-service/commit/7fa9273e86871fe7dd79688b85d039bd296fb074) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Make more human readable function type intersections
+
 ## 0.0.15
 
 ### Patch Changes
