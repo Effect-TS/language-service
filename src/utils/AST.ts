@@ -371,19 +371,36 @@ export function getEffectModuleIdentifier(ts: TypeScriptApi) {
 export function simplifyTypeNode(
   ts: TypeScriptApi
 ) {
-  return (typeNode: ts.TypeNode) => {
-    if (!ts.isIntersectionTypeNode(typeNode)) return typeNode
-    if (!typeNode.types.every(ts.isParenthesizedTypeNode)) return typeNode
-    const callSignatures: Array<ts.CallSignatureDeclaration> = []
-    for (let i = 0; i < typeNode.types.length; i++) {
-      const parenthesized = typeNode.types[i]
-      if (!ts.isParenthesizedTypeNode(parenthesized)) return typeNode
-      const functionType = parenthesized.type
-      if (!ts.isFunctionTypeNode(functionType)) return typeNode
-      callSignatures.push(
-        ts.factory.createCallSignature(functionType.typeParameters, functionType.parameters, functionType.type)
-      )
+  function collectCallable(typeNode: ts.TypeNode): O.Option<Array<ts.CallSignatureDeclaration>> {
+    // (() => 1) -> skip to inner node
+    if (ts.isParenthesizedTypeNode(typeNode)) return collectCallable(typeNode.type)
+    // () => 1 -> convert to call signature
+    if (ts.isFunctionTypeNode(typeNode)) {
+      return O.some([
+        ts.factory.createCallSignature(typeNode.typeParameters, typeNode.parameters, typeNode.type)
+      ])
     }
-    return ts.factory.createTypeLiteralNode(callSignatures)
+    // { ... } -> if every member is callsignature, return a merge of all of those
+    if (ts.isTypeLiteralNode(typeNode)) {
+      const allCallSignatures = typeNode.members.every(ts.isCallSignatureDeclaration)
+      if (allCallSignatures) return O.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
+    }
+    // ... & ... -> if both are callable, return merge of both
+    if (ts.isIntersectionTypeNode(typeNode)) {
+      const members = typeNode.types.map(collectCallable)
+      if (members.every(O.isSome)) {
+        return O.some(members.map((_) => O.isSome(_) ? _.value : []).flat())
+      }
+    }
+
+    return O.none
+  }
+
+  return (typeNode: ts.TypeNode) => {
+    const callSignatures = collectCallable(typeNode)
+    if (O.isSome(callSignatures) && callSignatures.value.length > 1) {
+      return ts.factory.createTypeLiteralNode(callSignatures.value)
+    }
+    return typeNode
   }
 }
