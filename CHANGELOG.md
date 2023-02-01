@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.18
+
+### Patch Changes
+
+- [#39](https://github.com/Effect-TS/language-service/pull/39) [`c505074`](https://github.com/Effect-TS/language-service/commit/c505074ca6006ad136e434f90d7f750fbe8593b6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add refactor to rewrite as datafirst
+
 ## 0.0.17
 
 ### Patch Changes
