@@ -404,3 +404,35 @@ export function simplifyTypeNode(
     return typeNode
   }
 }
+
+export function isPipeCall(ts: TypeScriptApi) {
+  return (node: ts.Node): node is ts.CallExpression => {
+    if (!ts.isCallExpression(node)) return false
+    const expression = node.expression
+    if (!ts.isIdentifier(expression)) return false
+    if (expression.getText(node.getSourceFile()) !== "pipe") return false
+    return true
+  }
+}
+
+export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker) {
+  return (node: ts.Node, self: ts.Expression): O.Option<ts.CallExpression> => {
+    if (!ts.isCallExpression(node)) return O.none
+    const signature = checker.getResolvedSignature(node)
+    if (!signature) return O.none
+    const callSignatures = checker.getTypeAtLocation(node.expression).getCallSignatures()
+    for (let i = 0; i < callSignatures.length; i++) {
+      const callSignature = callSignatures[i]
+      if (callSignature.parameters.length === node.arguments.length + 1) {
+        return O.some(
+          ts.factory.createCallExpression(
+            node.expression,
+            [],
+            [self].concat(node.arguments)
+          )
+        )
+      }
+    }
+    return O.none
+  }
+}

@@ -20,27 +20,6 @@ Inside your tsconfig.json, you should add the plugin configuration as follows:
 }
 ```
 
-## Configuration
-
-The severity of diagnostics can be customized by providing additional configuration in your tsconfig.json.
-Accepted values are: `"none" | "suggestion" | "warning" | "error"`
-
-```json
-{
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "@effect/language-service",
-        "diagnostics": {
-          "1003": "warning",
-          "1002": "none"
-        }
-      }
-    ]
-  }
-}
-```
-
 ## Provided refactors
 
 Here's a list of the refactors provided by this language service plugin.
@@ -51,15 +30,11 @@ Here's a list of the refactors provided by this language service plugin.
 
 Transform a set of function calls to a pipe() call.
 
-### Remove pipe
+### Pipeable to DataFirst
 
-![](images/remove-pipe.gif)
+![](images/pipeable-to-datafirst.gif)
 
-Transform a pipe() call into a series of regular function calls.
-
-### Remove curry arrow
-
-![](images/remove-curry-arrow.gif)
+Transform a pipe() call into a series of datafirst function calls (where available).
 
 Removes useless arrow functions.
 
