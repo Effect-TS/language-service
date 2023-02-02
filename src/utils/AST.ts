@@ -410,7 +410,7 @@ export function isPipeCall(ts: TypeScriptApi) {
     if (!ts.isCallExpression(node)) return false
     const expression = node.expression
     if (!ts.isIdentifier(expression)) return false
-    if (expression.getText(node.getSourceFile()) !== "pipe") return false
+    if (expression.text !== "pipe") return false
     return true
   }
 }
