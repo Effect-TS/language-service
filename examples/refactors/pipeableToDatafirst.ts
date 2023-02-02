@@ -1,4 +1,4 @@
-// 5:16,14:16
+// 5:16,14:16,20:16
 import * as T from "@effect/io/Effect"
 import { pipe } from "@fp-ts/data/Function"
 
@@ -15,4 +15,12 @@ const test2 = pipe(
   T.succeed("Hello"),
   T.flatMap(_ => T.log(_)),
   noDataFirst("42")
+)
+
+const test3 = pipe(
+  T.succeed("Hello"),
+  T.flatMap(_ => T.log(_)),
+  noDataFirst("a"),
+  noDataFirst("b"),
+  noDataFirst("c")
 )

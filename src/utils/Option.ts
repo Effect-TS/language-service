@@ -28,3 +28,6 @@ export const fromNullable = <A>(fa: null | undefined | A): Option<A> =>
 export const orElse = <B>(alt: Option<B>) => <A>(self: Option<A>): Option<A | B> => isNone(self) ? alt : self
 
 export const getOrElse = <A>(alt: () => A) => (self: Option<A>): A => isNone(self) ? alt() : self.value
+
+export const flatMap = <A, B>(fn: (a: A) => Option<B>) =>
+  (self: Option<A>): Option<B> => isNone(self) ? self : fn(self.value)
