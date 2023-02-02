@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.19
+
+### Patch Changes
+
+- [#41](https://github.com/Effect-TS/language-service/pull/41) [`282adf4`](https://github.com/Effect-TS/language-service/commit/282adf4b597ea1315c7f92367c60631514324e8d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve handling of non-datafirst in pipeable-to-datafirst rewrite
+
 ## 0.0.18
 
 ### Patch Changes
