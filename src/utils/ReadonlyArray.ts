@@ -38,3 +38,8 @@ export const filter: {
 export const join = (
   glue: string
 ) => <A>(self: ReadonlyArray<A>): string => self.join(glue)
+
+export const reduce = <A, B>(
+  initial: B,
+  fn: (accum: B, current: A) => B
+) => (self: ReadonlyArray<A>) => self.reduce(fn, initial)

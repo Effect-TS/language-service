@@ -1,3 +1,5 @@
+import type { CompletionDefinition } from "@effect/language-service/completions/definition"
+import completions from "@effect/language-service/completions/index"
 import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
 import refactors from "@effect/language-service/refactors/index"
 import * as AST from "@effect/language-service/utils/AST"
@@ -17,6 +19,51 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
     for (const k of Object.keys(info.languageService) as Array<keyof ts.LanguageService>) {
       // @ts-expect-error
       proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
+    }
+
+    proxy.getCompletionsAtPosition = (...args) => {
+      const result = languageService.getCompletionsAtPosition(...args)
+      const [fileName, position] = args
+
+      const program = languageService.getProgram()
+
+      if (program) {
+        const textRange = AST.toTextRange(position)
+        const effectCompletions = pipe(
+          AST.getSourceFile(program)(fileName),
+          (sourceFile) =>
+            pipe(
+              Object.values<CompletionDefinition>(completions).map((completion) =>
+                pipe(
+                  completion.apply(modules.typescript, program)(sourceFile, textRange),
+                  O.map((_) => ({
+                    ..._,
+                    kind: ts.ScriptElementKind.localFunctionElement
+                  }))
+                )
+              ),
+              (_) =>
+                _.reduce(
+                  (arr, maybeCompletion) => arr.concat(O.isSome(maybeCompletion) ? [maybeCompletion.value] : []),
+                  [] as Array<ts.CompletionEntry>
+                )
+            )
+        )
+
+        info.project.projectService.logger.info(
+          "[@effect/language-service] possible completions at " + position + " are " + JSON.stringify(effectCompletions)
+        )
+
+        if (result) return { ...result, entries: effectCompletions.concat(result.entries) }
+        return {
+          entries: effectCompletions,
+          isGlobalCompletion: false,
+          isMemberCompletion: false,
+          isNewIdentifierLocation: false
+        }
+      }
+
+      return result
     }
 
     proxy.getApplicableRefactors = (...args) => {
