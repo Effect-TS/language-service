@@ -188,6 +188,45 @@ const test3 = pipe(T.flatMap(T.succeed(\\"Hello\\"), _ => T.log(_)), noDataFirst
 "
 `;
 
+exports[`toggleLazyConst.ts > toggleLazyConst.ts at 3:10 1`] = `
+"// Result of running refactor effect/toggleLazyConst at position 3:10
+
+const test1 = () => 1
+
+const test2 = () => 1
+
+const test3 = () => {
+    console.log(\\"Hello\\")
+}
+"
+`;
+
+exports[`toggleLazyConst.ts > toggleLazyConst.ts at 5:10 1`] = `
+"// Result of running refactor effect/toggleLazyConst at position 5:10
+
+const test1 = 1
+
+const test2 = 1
+
+const test3 = () => {
+    console.log(\\"Hello\\")
+}
+"
+`;
+
+exports[`toggleLazyConst.ts > toggleLazyConst.ts at 7:10 1`] = `
+"// Result of running refactor effect/toggleLazyConst at position 7:10
+
+const test1 = 1
+
+const test2 = () => 1
+
+const test3 = () => {
+    console.log(\\"Hello\\")
+}
+"
+`;
+
 exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 4:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 4:32
 import * as T from \\"@effect/io/Effect\\"
