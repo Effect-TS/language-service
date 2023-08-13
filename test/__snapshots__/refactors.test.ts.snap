@@ -114,7 +114,7 @@ class Sample {
 exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 5:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 5:16
 import * as T from \\"@effect/io/Effect\\"
-import { pipe } from \\"@fp-ts/data/Function\\"
+import { pipe } from \\"@effect/data/Function\\"
 
 const test = T.map(T.zipRight(T.flatMap(T.succeed(\\"Hello\\"), _ => T.log(_)), T.succeed(42)), _ => _ * 2)
 
@@ -139,7 +139,7 @@ const test3 = pipe(
 exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 14:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 14:16
 import * as T from \\"@effect/io/Effect\\"
-import { pipe } from \\"@fp-ts/data/Function\\"
+import { pipe } from \\"@effect/data/Function\\"
 
 const test = pipe(
   T.succeed(\\"Hello\\"),
@@ -165,7 +165,7 @@ const test3 = pipe(
 exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 20:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 20:16
 import * as T from \\"@effect/io/Effect\\"
-import { pipe } from \\"@fp-ts/data/Function\\"
+import { pipe } from \\"@effect/data/Function\\"
 
 const test = pipe(
   T.succeed(\\"Hello\\"),

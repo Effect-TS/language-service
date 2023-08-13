@@ -19,9 +19,8 @@ importers:
       '@changesets/cli': ^2.25.2
       '@effect-ts/build-utils': 0.40.5
       '@effect-ts/core': ^0.60.2
-      '@effect/io': ~0.1.6
-      '@fp-ts/core': ~0.0.9
-      '@fp-ts/data': ~0.0.22
+      '@effect/data': ^0.17.1
+      '@effect/io': ~0.38.0
       '@repo-tooling/eslint-plugin-dprint': ^0.0.4
       '@rollup/pluginutils': ^5.0.2
       '@types/benchmark': ^2.1.2
@@ -61,9 +60,6 @@ importers:
       ultra-runner: ^3.10.5
       vite: ^3.2.5
       vitest: 0.25.5
-    dependencies:
-      '@fp-ts/core': 0.0.9
-      '@fp-ts/data': 0.0.22
     devDependencies:
       '@babel/cli': 7.19.3_@babel+core@7.20.5
       '@babel/core': 7.20.5
@@ -72,7 +68,8 @@ importers:
       '@changesets/cli': 2.25.2
       '@effect-ts/build-utils': 0.40.5
       '@effect-ts/core': 0.60.4
-      '@effect/io': 0.1.6
+      '@effect/data': 0.17.1
+      '@effect/io': 0.38.0_@effect+data@0.17.1
       '@repo-tooling/eslint-plugin-dprint': 0.0.4_typescript@4.9.3
       '@rollup/pluginutils': 5.0.2
       '@types/benchmark': 2.1.2
@@ -695,12 +692,16 @@ packages:
     resolution: {integrity: sha512-gGnOCvDv6829EeeC+NgTnwIt4XxclR0KqrG7BRemmNX5cm75cF0CKiuEB/o902wjAlt+MdrxTtFC+XsYdLnxzA==}
     dev: true
 
-  /@effect/io/0.1.6:
-    resolution: {integrity: sha512-y3TM9hv4geV9BfMfVWfbTpRZi9g8ASq8jk4yWZ5ZohgQUS06NLZd3oUGmwR6SUgkVPCOoULQB3S9Fp+cXXwF4w==}
+  /@effect/data/0.17.1:
+    resolution: {integrity: sha512-QCYkLE5Y5Dm5Yax5R3GmW4ZIgTx7W+kSZ7yq5eqQ/mFWa8i4yxbLuu8cudqzdeZtRtTGZKlhDxfFfgVtMywXJg==}
+    dev: true
+
+  /@effect/io/0.38.0_@effect+data@0.17.1:
+    resolution: {integrity: sha512-qlVC9ASxNC+L2NKX5qOV9672CE5wWizfwBSFaX2XLI7CC118WRvohCTIPQ52n50Bj5TmR20+na+U9C7e4VkqzA==}
+    peerDependencies:
+      '@effect/data': ^0.17.1
     dependencies:
-      '@fp-ts/core': 0.1.1
-      '@fp-ts/data': 0.1.1
-      typescript: 4.9.5
+      '@effect/data': 0.17.1
     dev: true
 
   /@esbuild/android-arm/0.15.18:
@@ -741,26 +742,6 @@ packages:
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
       - supports-color
-    dev: true
-
-  /@fp-ts/core/0.0.9:
-    resolution: {integrity: sha512-FuXKPHTEvvgxV3LulGJXkSpAghovh7wLxux+Pm9LKefC0gtZZQ4OajTjTK5RsQtpyKIsAn26PwdG6W6zksF/UA==}
-    dev: false
-
-  /@fp-ts/core/0.1.1:
-    resolution: {integrity: sha512-7vQnrnvJAMrXgIwt0qQNhXkPDtm4l8vwql8EvXeY47v/FwnWpDvt1HISoO9Kq3am5SZ0A8Av+4NqPab2FRdKxw==}
-    dev: true
-
-  /@fp-ts/data/0.0.22:
-    resolution: {integrity: sha512-chgnnyMAT17WCfAIbD8vvnJOsPtA2Xi79oMNklexprI9YaV/2u8QeeerHCYKuEJihK6GuIJtAYSsOwjBYMfWcQ==}
-    dependencies:
-      '@fp-ts/core': 0.0.9
-    dev: false
-
-  /@fp-ts/data/0.1.1:
-    resolution: {integrity: sha512-hgsoSDKP01kGY+g/Ino+QX3VEqiPnf0mrhKujMajT4ma0w82i4u0nMEPbBykyMxscQirFemwl7CnWn7G3TadcA==}
-    dependencies:
-      '@fp-ts/core': 0.1.1
     dev: true
 
   /@humanwhocodes/config-array/0.11.6:
@@ -3599,7 +3580,7 @@ packages:
     resolution: {integrity: sha512-oWb1Z6mkHIskLzEJ/XWX0srkpkTQ7vaopMQkyaEIoq0fmtFVxOthb8cCxeT+p3ynTdkk/RZwbgG4brR5BeWECw==}
     engines: {node: '>= 4.0'}
     os: [darwin]
-    deprecated: fsevents 1 will break on node v14+ and could be using insecure binaries. Upgrade to fsevents 2.
+    deprecated: The v1 package contains DANGEROUS / INSECURE binaries. Upgrade to safe fsevents v2
     requiresBuild: true
     dependencies:
       bindings: 1.5.0
@@ -6636,12 +6617,6 @@ packages:
 
   /typescript/4.9.3:
     resolution: {integrity: sha512-CIfGzTelbKNEnLpLdGFgdyKhG23CKdKgQPOBc+OUNrkJ2vr+KSzsSV5kq5iWhEQbok+quxgGzrAtGWCyU7tHnA==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
-    dev: true
-
-  /typescript/4.9.5:
-    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true

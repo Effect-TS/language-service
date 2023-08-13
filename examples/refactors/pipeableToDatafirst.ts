@@ -1,6 +1,6 @@
 // 5:16,14:16,20:16
 import * as T from "@effect/io/Effect"
-import { pipe } from "@fp-ts/data/Function"
+import { pipe } from "@effect/data/Function"
 
 const test = pipe(
   T.succeed("Hello"),
