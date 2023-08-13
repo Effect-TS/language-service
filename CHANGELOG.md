@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.0.20
+
+### Patch Changes
+
+- [#43](https://github.com/Effect-TS/language-service/pull/43) [`42a032c`](https://github.com/Effect-TS/language-service/commit/42a032c2f0c12adc41fbd2d20b7556ac9a3468cb) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add toggle lazy const initializer
+
 ## 0.0.19
 
 ### Patch Changes
