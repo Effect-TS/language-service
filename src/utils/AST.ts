@@ -209,11 +209,11 @@ export function isNodeInRange(textRange: ts.TextRange) {
   return (node: ts.Node) => node.pos <= textRange.pos && node.end >= textRange.end
 }
 
-export function findModuleImportIdentifierName(
+export function findModuleNamedBindings(
   ts: TypeScriptApi
 ) {
-  return (sourceFile: ts.SourceFile, moduleName: string) => {
-    return O.fromNullable(ts.forEachChild(sourceFile, (node) => {
+  return (sourceFile: ts.SourceFile, moduleName: string) =>
+    O.fromNullable(ts.forEachChild(sourceFile, (node) => {
       if (!ts.isImportDeclaration(node)) return
       const moduleSpecifier = node.moduleSpecifier
       if (!ts.isStringLiteral(moduleSpecifier)) return
@@ -222,8 +222,68 @@ export function findModuleImportIdentifierName(
       if (!importClause) return
       const namedBindings = importClause.namedBindings
       if (!namedBindings) return
-      if (!ts.isNamespaceImport(namedBindings)) return
-      return namedBindings.name.text
+      return namedBindings
+    }))
+}
+
+export function findModuleNamespaceImportIdentifierName(
+  ts: TypeScriptApi
+) {
+  return (sourceFile: ts.SourceFile, moduleName: string) =>
+    pipe(
+      findModuleNamedBindings(ts)(sourceFile, moduleName),
+      O.map(
+        (namedBindings) => {
+          if (!ts.isNamespaceImport(namedBindings)) return
+          return namedBindings.name.text
+        }
+      ),
+      O.flatMap(O.fromNullable)
+    )
+}
+
+export function findModuleNamedImportIdentifierName(
+  ts: TypeScriptApi
+) {
+  return (sourceFile: ts.SourceFile, moduleName: string, namedImport: string) =>
+    pipe(
+      findModuleNamedBindings(ts)(sourceFile, moduleName),
+      O.map((namedBindings) => {
+        if (!ts.isNamedImports(namedBindings)) return
+        for (const importSpecifier of namedBindings.elements) {
+          if (importSpecifier.propertyName?.escapedText === namedImport) {
+            return importSpecifier.name?.escapedText || importSpecifier.propertyName?.escapedText
+          }
+        }
+      }),
+      O.flatMap(O.fromNullable)
+    )
+}
+
+export function findModuleImportIdentifierNameViaTypeChecker(
+  ts: TypeScriptApi,
+  typeChecker: ts.TypeChecker
+) {
+  return (sourceFile: ts.SourceFile, importName: string) => {
+    return O.fromNullable(ts.forEachChild(sourceFile, (node) => {
+      if (!ts.isImportDeclaration(node)) return
+      if (!node.importClause) return
+      const namedBindings = node.importClause.namedBindings
+      if (!namedBindings) return
+      if (ts.isNamespaceImport(namedBindings)) {
+        const symbol = typeChecker.getTypeAtLocation(namedBindings).getSymbol()
+        if (!symbol || !symbol.exports) return
+        if (!symbol.exports.has(importName as ts.__String)) return
+        return namedBindings.name.escapedText as string
+      }
+      if (ts.isNamedImports(namedBindings)) {
+        for (const importSpecifier of namedBindings.elements) {
+          const symbol = typeChecker.getTypeAtLocation(importSpecifier).getSymbol()
+          if (!symbol || !symbol.exports) return
+          if (!symbol.exports.has(importName as ts.__String)) return
+          return importSpecifier.name?.escapedText || importSpecifier.propertyName?.escapedText as string
+        }
+      }
     }))
   }
 }
@@ -357,11 +417,12 @@ export function removeReturnTypeAnnotation(
   }
 }
 
-export function getEffectModuleIdentifier(ts: TypeScriptApi) {
+export function getEffectModuleIdentifier(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (sourceFile: ts.SourceFile) =>
     pipe(
-      findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect"),
-      O.orElse(findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect")),
+      findModuleNamespaceImportIdentifierName(ts)(sourceFile, "effect/Effect"),
+      O.orElse(findModuleNamedImportIdentifierName(ts)(sourceFile, "effect", "Effect")),
+      O.orElse(findModuleImportIdentifierNameViaTypeChecker(ts, typeChecker)(sourceFile, "Effect")),
       O.getOrElse(
         () => "Effect"
       )

@@ -7,7 +7,7 @@ import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 export default createRefactor({
   name: "effect/asyncAwaitToGenTryPromise",
   description: "Convert to Effect.gen with failures",
-  apply: (ts) =>
+  apply: (ts, program) =>
     (sourceFile, textRange) =>
       pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
@@ -19,7 +19,7 @@ export default createRefactor({
           kind: "refactor.rewrite.effect.asyncAwaitToGenTryPromise",
           description: "Rewrite to Effect.gen with failures",
           apply: (changeTracker) => {
-            const effectName = AST.getEffectModuleIdentifier(ts)(sourceFile)
+            const effectName = AST.getEffectModuleIdentifier(ts, program.getTypeChecker())(sourceFile)
 
             let errorCount = 0
 

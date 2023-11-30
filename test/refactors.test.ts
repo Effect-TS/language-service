@@ -41,8 +41,10 @@ function applyEdits(edits: ReadonlyArray<ts.FileTextChanges>, fileName: string, 
   return sourceText
 }
 
-export function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
-  const sourceWithMarker = fs.readFileSync(path.join(__dirname, "..", "examples", "refactors", fileName))
+const getExamplesRefactorsDir = () => path.join(__dirname, "..", "examples", "refactors")
+
+function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
+  const sourceWithMarker = fs.readFileSync(path.join(getExamplesRefactorsDir(), fileName))
     .toString("utf8")
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
   for (const [textRangeString] of firstLine.matchAll(/([0-9]+:[0-9]+(-[0-9]+:[0-9]+)*)/gm)) {
@@ -120,4 +122,14 @@ function testFiles(name: string, refactor: RefactorDefinition, fileNames: Array<
   }
 }
 
-Object.keys(refactors).map((refactorName) => testFiles(refactorName, refactors[refactorName]!, [refactorName + ".ts"]))
+function getExampleFileNames(refactorName: string): Array<string> {
+  return fs.readdirSync(getExamplesRefactorsDir())
+    .filter((fileName) =>
+      fileName === refactorName + ".ts" ||
+      fileName.startsWith(refactorName + "_") && fileName.endsWith(".ts")
+    )
+}
+
+Object.keys(refactors).map((refactorName) =>
+  testFiles(refactorName, refactors[refactorName]!, getExampleFileNames(refactorName))
+)

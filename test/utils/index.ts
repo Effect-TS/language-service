@@ -9,7 +9,10 @@ export function createMockLanguageServiceHost(fileName: string, sourceText: stri
         strict: true,
         target: ts.ScriptTarget.ESNext,
         noEmit: true,
-        moduleResolution: ts.ModuleResolutionKind.NodeJs
+        moduleResolution: ts.ModuleResolutionKind.NodeJs,
+        paths: {
+          "@effect/language-service/examples/*": ["./examples/*"]
+        }
       }
     },
     getScriptFileNames() {

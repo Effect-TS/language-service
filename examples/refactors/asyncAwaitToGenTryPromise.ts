@@ -1,5 +1,5 @@
 // 4:28
-import * as Effect from "@effect/io/Effect"
+import * as Effect from "effect/Effect"
 
 export async function refactorMe(arg: string) {
   for (let i = 0; i < 10; i++) {

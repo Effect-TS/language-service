@@ -7,7 +7,7 @@ import * as Ch from "@effect/language-service/utils/ReadonlyArray"
 export default createRefactor({
   name: "effect/asyncAwaitToGen",
   description: "Convert to Effect.gen",
-  apply: (ts) =>
+  apply: (ts, program) =>
     (sourceFile, textRange) =>
       pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
@@ -19,7 +19,7 @@ export default createRefactor({
           kind: "refactor.rewrite.effect.asyncAwaitToGen",
           description: "Rewrite to Effect.gen",
           apply: (changeTracker) => {
-            const effectName = AST.getEffectModuleIdentifier(ts)(sourceFile)
+            const effectName = AST.getEffectModuleIdentifier(ts, program.getTypeChecker())(sourceFile)
 
             const newDeclaration = AST.transformAsyncAwaitToEffectGen(ts)(node, effectName, (expression) =>
               ts.factory.createCallExpression(
