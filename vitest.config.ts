@@ -1,14 +1,9 @@
-/// <reference types="vitest" />
 import path from "path"
-import { defineConfig } from "vite"
+import { defineConfig } from "vitest/config"
 
 export default defineConfig({
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  plugins: [],
   test: {
-    include: ["./test/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    exclude: ["./test/utils/**/*.ts", "./test/fixtures/**/*.ts", "./test/**/*.init.ts"],
-    globals: true
+    include: ["test/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
   },
   resolve: {
     alias: {

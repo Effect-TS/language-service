@@ -1,4 +1,4 @@
-import * as O from "@effect/language-service/utils/Option"
+import * as O from "./Option.js"
 
 export interface Chunk<A> extends ReadonlyArray<A> {}
 
@@ -14,11 +14,13 @@ export const isEmpty = <A>(
 
 export const append = <B>(
   last: B
-) => <A>(self: ReadonlyArray<A>): ReadonlyArray<A | B> => [...self, last] as any
+) =>
+<A>(self: ReadonlyArray<A>): ReadonlyArray<A | B> => [...self, last] as any
 
 export const concat = <B>(
   last: ReadonlyArray<B>
-) => <A>(self: ReadonlyArray<A>): ReadonlyArray<A | B> => [...self, ...last] as any
+) =>
+<A>(self: ReadonlyArray<A>): ReadonlyArray<A | B> => [...self, ...last] as any
 
 export const reverse = <A>(
   self: ReadonlyArray<A>
@@ -37,4 +39,5 @@ export const filter: {
 
 export const join = (
   glue: string
-) => <A>(self: ReadonlyArray<A>): string => self.join(glue)
+) =>
+<A>(self: ReadonlyArray<A>): string => self.join(glue)

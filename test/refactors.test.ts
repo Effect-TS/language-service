@@ -1,10 +1,11 @@
-import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
-import refactors from "@effect/language-service/refactors/index"
-import { createMockLanguageServiceHost } from "@effect/language-service/test/utils"
-import * as O from "@effect/language-service/utils/Option"
+import type { RefactorDefinition } from "@effect/language-service/refactors/definition.js"
+import refactors from "@effect/language-service/refactors/index.js"
+import { createMockLanguageServiceHost } from "@effect/language-service/test/utils/MockLanguageServiceHost.js"
+import * as O from "@effect/language-service/utils/Option.js"
 import * as fs from "fs"
 import * as path from "path"
-import ts from "typescript/lib/tsserverlibrary"
+import ts from "typescript/lib/tsserverlibrary.js"
+import { describe, expect, it } from "vitest"
 
 /**
  * Loop through text changes, and update start and end positions while running
@@ -26,7 +27,11 @@ function forEachTextChange(
   }
 }
 
-function applyEdits(edits: ReadonlyArray<ts.FileTextChanges>, fileName: string, sourceText: string): string {
+function applyEdits(
+  edits: ReadonlyArray<ts.FileTextChanges>,
+  fileName: string,
+  sourceText: string
+): string {
   for (const fileTextChange of edits) {
     if (fileTextChange.fileName === fileName) {
       forEachTextChange(fileTextChange.textChanges, (edit) => {
@@ -53,7 +58,11 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
       const sourceText = "// Result of running refactor " + refactor.name +
         " at position " + textRangeString + sourceWithMarker.substring(firstLine.length)
       const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
-      const languageService = ts.createLanguageService(languageServiceHost, undefined, ts.LanguageServiceMode.Semantic)
+      const languageService = ts.createLanguageService(
+        languageServiceHost,
+        undefined,
+        ts.LanguageServiceMode.Semantic
+      )
       const program = languageService.getProgram()
       if (!program) throw new Error("No typescript program!")
       const sourceFile = program.getSourceFile(fileName)
@@ -79,7 +88,9 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
         .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
           const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
           if (diagnostic.file) {
-            const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!)
+            const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(
+              diagnostic.start!
+            )
             return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
           } else {
             return `  Error: ${message}`
@@ -131,5 +142,6 @@ function getExampleFileNames(refactorName: string): Array<string> {
 }
 
 Object.keys(refactors).map((refactorName) =>
-  testFiles(refactorName, refactors[refactorName]!, getExampleFileNames(refactorName))
+  // @ts-expect-error
+  testFiles(refactorName, refactors[refactorName], getExampleFileNames(refactorName))
 )

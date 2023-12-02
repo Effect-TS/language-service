@@ -1,11 +1,11 @@
-import asyncAwaitToGen from "@effect/language-service/refactors/asyncAwaitToGen"
-import asyncAwaitToGenTryPromise from "@effect/language-service/refactors/asyncAwaitToGenTryPromise"
-import functionToArrow from "@effect/language-service/refactors/functionToArrow"
-import pipeableToDatafirst from "@effect/language-service/refactors/pipeableToDatafirst"
-import toggleLazyConst from "@effect/language-service/refactors/toggleLazyConst"
-import toggleReturnTypeAnnotation from "@effect/language-service/refactors/toggleReturnTypeAnnotation"
-import toggleTypeAnnotation from "@effect/language-service/refactors/toggleTypeAnnotation"
-import wrapWithPipe from "@effect/language-service/refactors/wrapWithPipe"
+import asyncAwaitToGen from "./asyncAwaitToGen.js"
+import asyncAwaitToGenTryPromise from "./asyncAwaitToGenTryPromise.js"
+import functionToArrow from "./functionToArrow.js"
+import pipeableToDatafirst from "./pipeableToDatafirst.js"
+import toggleLazyConst from "./toggleLazyConst.js"
+import toggleReturnTypeAnnotation from "./toggleReturnTypeAnnotation.js"
+import toggleTypeAnnotation from "./toggleTypeAnnotation.js"
+import wrapWithPipe from "./wrapWithPipe.js"
 
 export default {
   asyncAwaitToGen,

@@ -9,7 +9,7 @@ function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
 
-function removeAnnotation():number{
+function removeAnnotation(): number {
   return 42
 }
 

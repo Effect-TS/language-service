@@ -1,6 +1,6 @@
-import type * as AST from "@effect/language-service/utils/AST"
-import type * as O from "@effect/language-service/utils/Option"
-import type ts from "typescript/lib/tsserverlibrary"
+import type ts from "typescript/lib/tsserverlibrary.js"
+import type * as AST from "../utils/AST.js"
+import type * as O from "../utils/Option.js"
 
 export interface RefactorDefinition {
   name: string

@@ -1,9 +1,9 @@
-import { pipe } from "@effect/language-service/utils/Function"
-import * as O from "@effect/language-service/utils/Option"
-import * as Ch from "@effect/language-service/utils/ReadonlyArray"
-import type ts from "typescript/lib/tsserverlibrary"
+import type ts from "typescript/lib/tsserverlibrary.js"
+import { pipe } from "./Function.js"
+import * as O from "./Option.js"
+import * as Ch from "./ReadonlyArray.js"
 
-declare module "typescript/lib/tsserverlibrary" {
+declare module "typescript/lib/tsserverlibrary.js" {
   const nullTransformationContext: ts.TransformationContext
 
   export namespace formatting {
@@ -76,10 +76,21 @@ declare module "typescript/lib/tsserverlibrary" {
     export interface ConfigurableStartEnd extends ConfigurableStart, ConfigurableEnd {
     }
     export class ChangeTracker {
-      static with(context: ts.TextChangesContext, cb: (tracker: ChangeTracker) => void): Array<ts.FileTextChanges>
-      delete(sourceFile: ts.SourceFile, node: ts.Node | ts.NodeArray<ts.TypeParameterDeclaration>): void
+      static with(
+        context: ts.TextChangesContext,
+        cb: (tracker: ChangeTracker) => void
+      ): Array<ts.FileTextChanges>
+      delete(
+        sourceFile: ts.SourceFile,
+        node: ts.Node | ts.NodeArray<ts.TypeParameterDeclaration>
+      ): void
       deleteRange(sourceFile: ts.SourceFile, range: ts.TextRange): void
-      replaceNode(sourceFile: ts.SourceFile, oldNode: ts.Node, newNode: ts.Node, options?: ts.ChangeNodeOptions): void
+      replaceNode(
+        sourceFile: ts.SourceFile,
+        oldNode: ts.Node,
+        newNode: ts.Node,
+        options?: ts.ChangeNodeOptions
+      ): void
       insertNodeAt(
         sourceFile: ts.SourceFile,
         pos: number,
@@ -111,14 +122,18 @@ declare module "typescript/lib/tsserverlibrary" {
     startNode?: ts.Node,
     excludeJsdoc?: boolean
   ): ts.Node | undefined
-  function findChildOfKind<T extends ts.Node>(n: ts.Node, kind: T["kind"], sourceFile: ts.SourceFileLike): T | undefined
+  function findChildOfKind<T extends ts.Node>(
+    n: ts.Node,
+    kind: T["kind"],
+    sourceFile: ts.SourceFileLike
+  ): T | undefined
 
   export function isMemberName(node: ts.Node): node is ts.MemberName
   export function isKeyword(token: ts.SyntaxKind): token is ts.KeywordSyntaxKind
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-export type TypeScriptApi = typeof import("typescript/lib/tsserverlibrary")
+export type TypeScriptApi = typeof import("typescript/lib/tsserverlibrary.js")
 
 export class NoSuchSourceFile {
   readonly _tag = "NoSuchSourceFile"
@@ -138,7 +153,8 @@ export function getSourceFile(program: ts.Program) {
 }
 
 export function hasModifier(ts: TypeScriptApi) {
-  return (node: ts.Declaration, kind: ts.ModifierFlags) => !!(ts.getCombinedModifierFlags(node) & kind)
+  return (node: ts.Declaration, kind: ts.ModifierFlags) =>
+    !!(ts.getCombinedModifierFlags(node) & kind)
 }
 
 /**
@@ -166,7 +182,9 @@ export function getNodesContainingRange(
  * Ensures value is a text range
  */
 export function toTextRange(positionOrRange: number | ts.TextRange): ts.TextRange {
-  return typeof positionOrRange === "number" ? { end: positionOrRange, pos: positionOrRange } : positionOrRange
+  return typeof positionOrRange === "number"
+    ? { end: positionOrRange, pos: positionOrRange }
+    : positionOrRange
 }
 
 export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
@@ -198,10 +216,17 @@ export function getRelevantTokens(
       previousToken && position <= previousToken.end &&
       (ts.isMemberName(previousToken) || ts.isKeyword(previousToken.kind))
     ) {
-      const contextToken = ts.findPrecedingToken(previousToken.getFullStart(), sourceFile, /*startNode*/ undefined)! // TODO: GH#18217
+      const contextToken = ts.findPrecedingToken(
+        previousToken.getFullStart(),
+        sourceFile,
+        /*startNode*/ undefined
+      )! // TODO: GH#18217
       return { contextToken: O.some(contextToken), previousToken: O.some(previousToken) }
     }
-    return { contextToken: O.fromNullable(previousToken), previousToken: O.fromNullable(previousToken) }
+    return {
+      contextToken: O.fromNullable(previousToken),
+      previousToken: O.fromNullable(previousToken)
+    }
   })
 }
 
@@ -281,7 +306,8 @@ export function findModuleImportIdentifierNameViaTypeChecker(
           const symbol = typeChecker.getTypeAtLocation(importSpecifier).getSymbol()
           if (!symbol || !symbol.exports) return
           if (!symbol.exports.has(importName as ts.__String)) return
-          return importSpecifier.name?.escapedText || importSpecifier.propertyName?.escapedText as string
+          return importSpecifier.name?.escapedText ||
+            importSpecifier.propertyName?.escapedText as string
         }
       }
     }))
@@ -302,7 +328,9 @@ export function transformAsyncAwaitToEffectGen(
 
         return ts.factory.createYieldExpression(
           ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-          ts.factory.createCallExpression(ts.factory.createIdentifier("$"), undefined, [onAwait(expression)])
+          ts.factory.createCallExpression(ts.factory.createIdentifier("$"), undefined, [
+            onAwait(expression)
+          ])
         )
       }
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
@@ -388,8 +416,16 @@ export function addReturnTypeAnnotation(
     const endNode = needParens ? declaration.parameters[0] : closeParen
     if (endNode) {
       if (needParens) {
-        changes.insertNodeBefore(sourceFile, endNode, ts.factory.createToken(ts.SyntaxKind.OpenParenToken))
-        changes.insertNodeAfter(sourceFile, endNode, ts.factory.createToken(ts.SyntaxKind.CloseParenToken))
+        changes.insertNodeBefore(
+          sourceFile,
+          endNode,
+          ts.factory.createToken(ts.SyntaxKind.OpenParenToken)
+        )
+        changes.insertNodeAfter(
+          sourceFile,
+          endNode,
+          ts.factory.createToken(ts.SyntaxKind.CloseParenToken)
+        )
       }
       changes.insertNodeAt(sourceFile, endNode.end, typeNode, { prefix: ": " })
     }
@@ -444,7 +480,9 @@ export function simplifyTypeNode(
     // { ... } -> if every member is callsignature, return a merge of all of those
     if (ts.isTypeLiteralNode(typeNode)) {
       const allCallSignatures = typeNode.members.every(ts.isCallSignatureDeclaration)
-      if (allCallSignatures) return O.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
+      if (allCallSignatures) {
+        return O.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
+      }
     }
     // ... & ... -> if both are callable, return merge of both
     if (ts.isIntersectionTypeNode(typeNode)) {
