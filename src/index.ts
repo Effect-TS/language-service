@@ -4,6 +4,7 @@
 import { pipe } from "effect/Function"
 import * as O from "effect/Option"
 import type ts from "typescript"
+import type { PluginOptions } from "./definition.js"
 import { refactors } from "./refactors.js"
 import * as AST from "./utils/AST.js"
 
@@ -16,6 +17,10 @@ const init = (
 
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
+
+    const pluginOptions: PluginOptions = {
+      preferredEffectGenAdapterName: info.config.preferredEffectGenAdapterName ?? "_"
+    }
 
     // create the proxy
     const proxy: ts.LanguageService = Object.create(null)
@@ -37,7 +42,10 @@ const init = (
             pipe(
               Object.values(refactors).map((refactor) =>
                 pipe(
-                  refactor.apply(modules.typescript, program)(sourceFile, textRange),
+                  refactor.apply(modules.typescript, program, pluginOptions)(
+                    sourceFile,
+                    textRange
+                  ),
                   O.map((_) => ({
                     name: refactor.name,
                     description: refactor.description,
@@ -82,7 +90,7 @@ const init = (
           if (refactor.name === refactorName) {
             const sourceFile = AST.getSourceFile(program)(fileName)
             const textRange = AST.toTextRange(positionOrRange)
-            const possibleRefactor = refactor.apply(modules.typescript, program)(
+            const possibleRefactor = refactor.apply(modules.typescript, program, pluginOptions)(
               sourceFile,
               textRange
             )

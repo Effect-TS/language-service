@@ -12,7 +12,7 @@ import type * as AST from "./utils/AST.js"
 export interface RefactorDefinition {
   name: string
   description: string
-  apply: (ts: AST.TypeScriptApi, program: ts.Program) => (
+  apply: (ts: AST.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
     sourceFile: ts.SourceFile,
     textRange: ts.TextRange
   ) => O.Option<ApplicableRefactorDefinition>
@@ -34,4 +34,12 @@ export interface ApplicableRefactorDefinition {
  */
 export function createRefactor(definition: RefactorDefinition) {
   return definition
+}
+
+/**
+ * @since 1.0.0
+ * @category plugin
+ */
+export interface PluginOptions {
+  preferredEffectGenAdapterName: string
 }

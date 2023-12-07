@@ -1,5 +1,56 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts at 4:28 1`] = `
+"// Result of running refactor effect/asyncAwaitToGen at position 4:28
+import * as T from "effect/Effect"
+
+export function refactorMe(arg: string) {
+    return T.gen(function*(_) {
+        return yield* _(T.promise(() => Promise.resolve(1)))
+    })
+}
+"
+`;
+
+exports[`asyncAwaitToGen_namedImport.ts > asyncAwaitToGen_namedImport.ts at 4:28 1`] = `
+"// Result of running refactor effect/asyncAwaitToGen at position 4:28
+import { Effect as T } from "effect"
+
+export function refactorMe(arg: string) {
+    return T.gen(function*(_) {
+        return yield* _(T.promise(() => Promise.resolve(1)))
+    })
+}
+"
+`;
+
+exports[`asyncAwaitToGen_reExport.ts > asyncAwaitToGen_reExport.ts at 4:28 1`] = `
+"// Result of running refactor effect/asyncAwaitToGen at position 4:28
+import { Eff } from "@/utils/reExport.js"
+
+export function refactorMe(arg: string) {
+    return Eff.gen(function*(_) {
+        return yield* _(Eff.promise(() => Promise.resolve(1)))
+    })
+}
+"
+`;
+
+exports[`asyncAwaitToGenTryPromise.ts > asyncAwaitToGenTryPromise.ts at 4:28 1`] = `
+"// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:28
+import * as Effect from "effect/Effect"
+
+export function refactorMe(arg: string) {
+    return Effect.gen(function*(_) {
+        for (let i = 0; i < 10; i++) {
+            yield* _(Effect.tryPromise({ try: () => Promise.resolve(i), catch: error => ({ _tag: "Error1" as const, error }) }))
+        }
+        return yield* _(Effect.tryPromise({ try: () => Promise.resolve(arg), catch: error => ({ _tag: "Error2" as const, error }) }))
+    })
+}
+"
+`;
+
 exports[`functionToArrow.ts > functionToArrow.ts at 5:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 5:20
 /**
@@ -90,8 +141,7 @@ import { pipe } from "effect/Function"
 
 const test = T.map(T.zipRight(T.flatMap(T.succeed("Hello"), (_) => T.log(_)), T.succeed(42)), (_) => _ * 2)
 
-const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) =>
-  pipe(eff, T.zipLeft(T.log(value)))
+const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) => pipe(eff, T.zipLeft(T.log(value)))
 
 const test2 = pipe(
   T.succeed("Hello"),
@@ -109,8 +159,8 @@ const test3 = pipe(
 "
 `;
 
-exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 15:16 1`] = `
-"// Result of running refactor effect/pipeableToDatafirst at position 15:16
+exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 14:16 1`] = `
+"// Result of running refactor effect/pipeableToDatafirst at position 14:16
 import * as T from "effect/Effect"
 import { pipe } from "effect/Function"
 
@@ -121,8 +171,7 @@ const test = pipe(
   T.map((_) => _ * 2)
 )
 
-const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) =>
-  pipe(eff, T.zipLeft(T.log(value)))
+const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) => pipe(eff, T.zipLeft(T.log(value)))
 
 const test2 = pipe(T.flatMap(T.succeed("Hello"), (_) => T.log(_)), noDataFirst("42"))
 
@@ -136,8 +185,8 @@ const test3 = pipe(
 "
 `;
 
-exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 21:16 1`] = `
-"// Result of running refactor effect/pipeableToDatafirst at position 21:16
+exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 20:16 1`] = `
+"// Result of running refactor effect/pipeableToDatafirst at position 20:16
 import * as T from "effect/Effect"
 import { pipe } from "effect/Function"
 
@@ -148,8 +197,7 @@ const test = pipe(
   T.map((_) => _ * 2)
 )
 
-const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) =>
-  pipe(eff, T.zipLeft(T.log(value)))
+const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) => pipe(eff, T.zipLeft(T.log(value)))
 
 const test2 = pipe(
   T.succeed("Hello"),
@@ -171,7 +219,7 @@ const test1 = () => 1
 const test2 = () => 1
 
 const test3 = () => {
-  console.log("Hello")
+    console.log("Hello")
 }
 "
 `;
@@ -184,7 +232,7 @@ const test1 = 1
 const test2 = 1
 
 const test3 = () => {
-  console.log("Hello")
+    console.log("Hello")
 }
 "
 `;
@@ -197,7 +245,7 @@ const test1 = 1
 const test2 = () => 1
 
 const test3 = () => {
-  console.log("Hello")
+    console.log("Hello")
 }
 "
 `;
@@ -214,7 +262,7 @@ function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
 
-function removeAnnotation(): number {
+function removeAnnotation():number{
   return 42
 }
 
@@ -236,7 +284,7 @@ function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
 
-function removeAnnotation(): number {
+function removeAnnotation():number{
   return 42
 }
 
@@ -258,7 +306,7 @@ function sillyGenerics<A>(value: A): T.Effect<never, A, never> {
   return T.fail(value)
 }
 
-function removeAnnotation(): number {
+function removeAnnotation():number{
   return 42
 }
 
@@ -280,7 +328,7 @@ function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
 
-function removeAnnotation() {
+function removeAnnotation(){
   return 42
 }
 
@@ -302,7 +350,7 @@ function sillyGenerics<A>(value: A) {
   return T.fail(value)
 }
 
-function removeAnnotation(): number {
+function removeAnnotation():number{
   return 42
 }
 
@@ -326,7 +374,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -339,13 +387,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -368,7 +416,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -381,13 +429,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -410,7 +458,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -423,13 +471,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -452,7 +500,7 @@ const callable = () => 42
 export const test4: () => number = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -465,13 +513,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -494,7 +542,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5: (defect: unknown) => T.Effect<never, never, never> = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -507,13 +555,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -536,7 +584,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation = 42
+const removeAnnotation=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -549,13 +597,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -578,7 +626,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace = 42
 
 declare function withOverloads(a: 1): boolean
@@ -591,13 +639,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -620,7 +668,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -636,13 +684,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -665,7 +713,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -681,13 +729,13 @@ export const test7: {
 } = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -710,7 +758,7 @@ const callable = () => 42
 export const test4 = callable
 export const test5 = T.die
 
-const removeAnnotation: number = 42
+const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -723,13 +771,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-  (a: 1): boolean
-  (b: 2): string
+    (a: 1): boolean
+    (b: 2): string
 }
 
 declare const intersection2: {
-  (a: 3): number
-  (b: 4): bigint
+    (a: 3): number
+    (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B

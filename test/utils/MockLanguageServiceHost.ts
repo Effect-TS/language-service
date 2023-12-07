@@ -15,7 +15,7 @@ export function createMockLanguageServiceHost(
         module: ts.ModuleKind.NodeNext,
         moduleResolution: ts.ModuleResolutionKind.NodeNext,
         paths: {
-          "@effect/language-service/examples/*": ["./examples/*.js"]
+          "@/*": ["./examples/*"]
         }
       }
     },

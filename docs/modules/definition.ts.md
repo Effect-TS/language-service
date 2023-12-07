@@ -14,6 +14,7 @@ Added in v1.0.0
 
 - [plugin](#plugin)
   - [ApplicableRefactorDefinition (interface)](#applicablerefactordefinition-interface)
+  - [PluginOptions (interface)](#pluginoptions-interface)
   - [RefactorDefinition (interface)](#refactordefinition-interface)
   - [createRefactor](#createrefactor)
 
@@ -35,6 +36,18 @@ export interface ApplicableRefactorDefinition {
 
 Added in v1.0.0
 
+## PluginOptions (interface)
+
+**Signature**
+
+```ts
+export interface PluginOptions {
+  preferredEffectGenAdapterName: string
+}
+```
+
+Added in v1.0.0
+
 ## RefactorDefinition (interface)
 
 **Signature**
@@ -45,7 +58,8 @@ export interface RefactorDefinition {
   description: string
   apply: (
     ts: AST.TypeScriptApi,
-    program: ts.Program
+    program: ts.Program,
+    options: PluginOptions
   ) => (sourceFile: ts.SourceFile, textRange: ts.TextRange) => O.Option<ApplicableRefactorDefinition>
 }
 ```

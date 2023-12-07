@@ -314,7 +314,8 @@ export function findModuleImportIdentifierNameViaTypeChecker(
 }
 
 export function transformAsyncAwaitToEffectGen(
-  ts: TypeScriptApi
+  ts: TypeScriptApi,
+  preferredEffectGenAdapterName: string
 ) {
   return (
     node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
@@ -327,9 +328,13 @@ export function transformAsyncAwaitToEffectGen(
 
         return ts.factory.createYieldExpression(
           ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-          ts.factory.createCallExpression(ts.factory.createIdentifier("$"), undefined, [
-            onAwait(expression)
-          ])
+          ts.factory.createCallExpression(
+            ts.factory.createIdentifier(preferredEffectGenAdapterName),
+            undefined,
+            [
+              onAwait(expression)
+            ]
+          )
         )
       }
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
@@ -337,11 +342,11 @@ export function transformAsyncAwaitToEffectGen(
     const generatorBody = visitor(node.body!)
 
     const generator = ts.factory.createFunctionExpression(
-      [],
+      undefined,
       ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
       undefined,
       [],
-      [ts.factory.createParameterDeclaration(undefined, undefined, "$")],
+      [ts.factory.createParameterDeclaration(undefined, undefined, preferredEffectGenAdapterName)],
       undefined,
       generatorBody as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
     )

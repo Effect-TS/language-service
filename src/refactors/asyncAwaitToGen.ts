@@ -7,7 +7,7 @@ import * as AST from "../utils/AST.js"
 export const asyncAwaitToGen = createRefactor({
   name: "effect/asyncAwaitToGen",
   description: "Convert to Effect.gen",
-  apply: (ts, program) => (sourceFile, textRange) =>
+  apply: (ts, program, options) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
       Ch.filter(ts.isFunctionDeclaration),
@@ -20,7 +20,10 @@ export const asyncAwaitToGen = createRefactor({
         apply: (changeTracker) => {
           const effectName = AST.getEffectModuleIdentifier(ts, program.getTypeChecker())(sourceFile)
 
-          const newDeclaration = AST.transformAsyncAwaitToEffectGen(ts)(
+          const newDeclaration = AST.transformAsyncAwaitToEffectGen(
+            ts,
+            options.preferredEffectGenAdapterName
+          )(
             node,
             effectName,
             (expression) =>
@@ -30,7 +33,16 @@ export const asyncAwaitToGen = createRefactor({
                   "promise"
                 ),
                 undefined,
-                [expression]
+                [
+                  ts.factory.createArrowFunction(
+                    undefined,
+                    undefined,
+                    [],
+                    undefined,
+                    undefined,
+                    expression
+                  )
+                ]
               )
           )
 

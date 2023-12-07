@@ -7,7 +7,7 @@ import * as AST from "../utils/AST.js"
 export const asyncAwaitToGenTryPromise = createRefactor({
   name: "effect/asyncAwaitToGenTryPromise",
   description: "Convert to Effect.gen with failures",
-  apply: (ts, program) => (sourceFile, textRange) =>
+  apply: (ts, program, options) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
       Ch.filter(ts.isFunctionDeclaration),
@@ -36,33 +36,44 @@ export const asyncAwaitToGenTryPromise = createRefactor({
             ])
           }
 
-          const newDeclaration = AST.transformAsyncAwaitToEffectGen(ts)(
+          const newDeclaration = AST.transformAsyncAwaitToEffectGen(
+            ts,
+            options.preferredEffectGenAdapterName
+          )(
             node,
             effectName,
             (expression) =>
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
                   ts.factory.createIdentifier(effectName),
-                  "tryCatchPromise"
+                  "tryPromise"
                 ),
                 undefined,
                 [
-                  ts.factory.createArrowFunction(
-                    undefined,
-                    undefined,
-                    [],
-                    undefined,
-                    undefined,
-                    expression
-                  ),
-                  ts.factory.createArrowFunction(
-                    undefined,
-                    undefined,
-                    [ts.factory.createParameterDeclaration(undefined, undefined, "error")],
-                    undefined,
-                    undefined,
-                    createErrorADT()
-                  )
+                  ts.factory.createObjectLiteralExpression([
+                    ts.factory.createPropertyAssignment(
+                      ts.factory.createIdentifier("try"),
+                      ts.factory.createArrowFunction(
+                        undefined,
+                        undefined,
+                        [],
+                        undefined,
+                        undefined,
+                        expression
+                      )
+                    ),
+                    ts.factory.createPropertyAssignment(
+                      ts.factory.createIdentifier("catch"),
+                      ts.factory.createArrowFunction(
+                        undefined,
+                        undefined,
+                        [ts.factory.createParameterDeclaration(undefined, undefined, "error")],
+                        undefined,
+                        undefined,
+                        createErrorADT()
+                      )
+                    )
+                  ])
                 ]
               )
           )
