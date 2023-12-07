@@ -1,11 +1,11 @@
-import type { RefactorDefinition } from "@effect/language-service/refactors/definition.js"
-import refactors from "@effect/language-service/refactors/index.js"
-import { createMockLanguageServiceHost } from "@effect/language-service/test/utils/MockLanguageServiceHost.js"
-import * as O from "@effect/language-service/utils/Option.js"
+import type { RefactorDefinition } from "@effect/language-service/definition"
+import { refactors } from "@effect/language-service/refactors"
+import * as O from "effect/Option"
 import * as fs from "fs"
 import * as path from "path"
-import ts from "typescript/lib/tsserverlibrary.js"
+import ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.js"
 
 /**
  * Loop through text changes, and update start and end positions while running

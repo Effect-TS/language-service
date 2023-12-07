@@ -30,17 +30,15 @@
     "noImplicitThis": true,
     "noUncheckedIndexedAccess": false,
     "strictNullChecks": true,
-    "baseUrl": ".",
     "target": "ES2022",
     "module": "NodeNext",
     "incremental": true,
     "removeComments": false,
-    "paths": {
-      "@effect/language-service": ["./src/index.ts"],
-      "@effect/language-service/*": ["./src/*"],
-      "@effect/language-service/test/*": ["./test/*"],
-      "@effect/language-service/examples/*": ["./examples/*"],
-    },
     "types": ["node"],
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   }
 }

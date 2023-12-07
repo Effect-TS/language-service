@@ -1,10 +1,11 @@
+import { pipe } from "effect/Function"
+import * as O from "effect/Option"
+import * as Ch from "effect/ReadonlyArray"
+import type ts from "typescript"
+import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
-import { pipe } from "../utils/Function.js"
-import * as O from "../utils/Option.js"
-import * as Ch from "../utils/ReadonlyArray.js"
-import { createRefactor } from "./definition.js"
 
-export default createRefactor({
+export const functionToArrow = createRefactor({
   name: "effect/functionToArrow",
   description: "Convert to arrow",
   apply: (ts) => (sourceFile, textRange) =>
@@ -13,7 +14,7 @@ export default createRefactor({
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
         Ch.filter(ts.isFunctionDeclaration)
       ),
-      Ch.concat(
+      Ch.appendAll(
         pipe(
           AST.getNodesContainingRange(ts)(sourceFile, textRange),
           Ch.filter(ts.isMethodDeclaration)

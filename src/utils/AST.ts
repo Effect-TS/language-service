@@ -1,9 +1,9 @@
-import type ts from "typescript/lib/tsserverlibrary.js"
-import { pipe } from "./Function.js"
-import * as O from "./Option.js"
-import * as Ch from "./ReadonlyArray.js"
+import { pipe } from "effect/Function"
+import * as O from "effect/Option"
+import * as Ch from "effect/ReadonlyArray"
+import type ts from "typescript"
 
-declare module "typescript/lib/tsserverlibrary.js" {
+declare module "typescript" {
   const nullTransformationContext: ts.TransformationContext
 
   export namespace formatting {
@@ -132,8 +132,7 @@ declare module "typescript/lib/tsserverlibrary.js" {
   export function isKeyword(token: ts.SyntaxKind): token is ts.KeywordSyntaxKind
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-export type TypeScriptApi = typeof import("typescript/lib/tsserverlibrary.js")
+export type TypeScriptApi = typeof ts
 
 export class NoSuchSourceFile {
   readonly _tag = "NoSuchSourceFile"
@@ -165,9 +164,9 @@ export function getNodesContainingRange(
 ) {
   return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
-    if (!precedingToken) return Ch.empty
+    if (!precedingToken) return Ch.empty<ts.Node>()
 
-    let result: Ch.Chunk<ts.Node> = Ch.empty
+    let result = Ch.empty<ts.Node>()
     let parent = precedingToken
     while (parent) {
       result = pipe(result, Ch.append(parent))
@@ -194,7 +193,7 @@ export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
 
 export function collectAll(ts: TypeScriptApi) {
   return <A extends ts.Node>(rootNode: ts.Node, test: (node: ts.Node) => node is A) => {
-    let result: Ch.Chunk<A> = Ch.empty
+    let result = Ch.empty<A>()
 
     function visitor(node: ts.Node) {
       if (test(node)) result = pipe(result, Ch.append(node))
@@ -457,8 +456,10 @@ export function getEffectModuleIdentifier(ts: TypeScriptApi, typeChecker: ts.Typ
   return (sourceFile: ts.SourceFile) =>
     pipe(
       findModuleNamespaceImportIdentifierName(ts)(sourceFile, "effect/Effect"),
-      O.orElse(findModuleNamedImportIdentifierName(ts)(sourceFile, "effect", "Effect")),
-      O.orElse(findModuleImportIdentifierNameViaTypeChecker(ts, typeChecker)(sourceFile, "Effect")),
+      O.orElse(() => findModuleNamedImportIdentifierName(ts)(sourceFile, "effect", "Effect")),
+      O.orElse(() =>
+        findModuleImportIdentifierNameViaTypeChecker(ts, typeChecker)(sourceFile, "Effect")
+      ),
       O.getOrElse(
         () => "Effect"
       )
@@ -492,7 +493,7 @@ export function simplifyTypeNode(
       }
     }
 
-    return O.none
+    return O.none()
   }
 
   return (typeNode: ts.TypeNode) => {
@@ -516,9 +517,9 @@ export function isPipeCall(ts: TypeScriptApi) {
 
 export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker) {
   return (node: ts.Node, self: ts.Expression): O.Option<ts.CallExpression> => {
-    if (!ts.isCallExpression(node)) return O.none
+    if (!ts.isCallExpression(node)) return O.none()
     const signature = checker.getResolvedSignature(node)
-    if (!signature) return O.none
+    if (!signature) return O.none()
     const callSignatures = checker.getTypeAtLocation(node.expression).getCallSignatures()
     for (let i = 0; i < callSignatures.length; i++) {
       const callSignature = callSignatures[i]
@@ -532,6 +533,6 @@ export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker
         )
       }
     }
-    return O.none
+    return O.none()
   }
 }

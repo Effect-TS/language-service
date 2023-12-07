@@ -1,10 +1,10 @@
+import { pipe } from "effect/Function"
+import * as O from "effect/Option"
+import * as Ch from "effect/ReadonlyArray"
+import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
-import { pipe } from "../utils/Function.js"
-import * as O from "../utils/Option.js"
-import * as Ch from "../utils/ReadonlyArray.js"
-import { createRefactor } from "./definition.js"
 
-export default createRefactor({
+export const pipeableToDatafirst = createRefactor({
   name: "effect/pipeableToDatafirst",
   description: "Rewrite to datafirst",
   apply: (ts, program) => (sourceFile, textRange) =>
@@ -42,7 +42,7 @@ export default createRefactor({
             }
           }
         }
-        return didSomething ? O.some([node, newNode] as const) : O.none
+        return didSomething ? O.some([node, newNode] as const) : O.none()
       }),
       Ch.filter(O.isSome),
       Ch.map((_) => _.value),

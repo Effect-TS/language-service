@@ -1,8 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
-  "include": [
-    "test",
-  ],
+  "include": ["test"],
   "references": [
     {
       "path": "./tsconfig.src.json"
@@ -11,6 +9,10 @@
   "compilerOptions": {
     "tsBuildInfoFile": ".tsbuildinfo/test.tsbuildinfo",
     "rootDir": "test",
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@effect/language-service/*": ["./src/*.js"]
+    }
   }
 }

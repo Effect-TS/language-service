@@ -1,6 +1,6 @@
 // 7:12
-import * as T from "@effect/io/Effect"
-import { pipe } from "@fp-ts/data/Function"
+import * as T from "effect/Effect"
+import { pipe } from "effect/Function"
 
 const test = pipe(
   T.succeed("Hello"),

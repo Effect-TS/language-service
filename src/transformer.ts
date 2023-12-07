@@ -198,10 +198,10 @@ export default function effectPlugin(
               findSource(declaration).fileName.includes("@fp-ts/data/Function")
             ) {
               if (declaration.name?.getText() === "pipe") {
-                let expr = ts.visitNode(visited.arguments[0], optimizeVisitor)
+                let expr = ts.visitNode(visited.arguments[0], optimizeVisitor) as ts.Expression
                 for (let i = 1; i < visited.arguments.length; i++) {
                   expr = ctx.factory.createCallExpression(
-                    ts.visitNode(visited.arguments[i], optimizeVisitor),
+                    ts.visitNode(visited.arguments[i], optimizeVisitor) as ts.Expression,
                     [],
                     [expr]
                   )
@@ -243,19 +243,19 @@ export default function effectPlugin(
         let visited = sourceFile
 
         if (optimizeFilter(sourceFile.fileName)) {
-          visited = ts.visitNode(visited, optimizeVisitor)
+          visited = ts.visitNode(visited, optimizeVisitor) as ts.SourceFile
         }
 
         if (traceFilter(sourceFile.fileName)) {
-          visited = ts.visitNode(visited, traceVisitor)
+          visited = ts.visitNode(visited, traceVisitor) as ts.SourceFile
         }
 
         if (debugFilter(sourceFile.fileName)) {
-          visited = ts.visitNode(visited, debugVisitor)
+          visited = ts.visitNode(visited, debugVisitor) as ts.SourceFile
         }
 
         if (removeUnusedImports) {
-          visited = ts.visitNode(visited, usedImportsVisitor)
+          visited = ts.visitNode(visited, usedImportsVisitor) as ts.SourceFile
         }
 
         const statements: Array<ts.Statement> = []

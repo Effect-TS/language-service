@@ -1,9 +1,9 @@
-import type ts from "typescript/lib/tsserverlibrary.js"
+import { pipe } from "effect/Function"
+import * as O from "effect/Option"
+import * as Ch from "effect/ReadonlyArray"
+import type ts from "typescript"
+import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
-import { pipe } from "../utils/Function.js"
-import * as O from "../utils/Option.js"
-import * as Ch from "../utils/ReadonlyArray.js"
-import { createRefactor } from "./definition.js"
 
 type ConvertibleDeclaration =
   | ts.FunctionDeclaration
@@ -11,7 +11,7 @@ type ConvertibleDeclaration =
   | ts.ArrowFunction
   | ts.MethodDeclaration
 
-export default createRefactor({
+export const toggleReturnTypeAnnotation = createRefactor({
   name: "effect/toggleReturnTypeAnnotation",
   description: "Toggle return type annotation",
   apply: (ts, program) => (sourceFile, textRange) => {

@@ -12,9 +12,10 @@ export function createMockLanguageServiceHost(
         strict: true,
         target: ts.ScriptTarget.ESNext,
         noEmit: true,
-        moduleResolution: ts.ModuleResolutionKind.NodeJs,
+        module: ts.ModuleKind.NodeNext,
+        moduleResolution: ts.ModuleResolutionKind.NodeNext,
         paths: {
-          "@effect/language-service/examples/*": ["./examples/*"]
+          "@effect/language-service/examples/*": ["./examples/*.js"]
         }
       }
     },

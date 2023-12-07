@@ -1,11 +1,11 @@
-import * as O from "../utils/Option.js"
-import { createRefactor } from "./definition.js"
+import * as O from "effect/Option"
+import { createRefactor } from "../definition.js"
 
-export default createRefactor({
+export const wrapWithPipe = createRefactor({
   name: "effect/wrapWithPipe",
   description: "Wrap with pipe",
   apply: () => (sourceFile, textRange) => {
-    if (textRange.end - textRange.pos === 0) return O.none
+    if (textRange.end - textRange.pos === 0) return O.none()
 
     return O.some({
       kind: "refactor.rewrite.effect.wrapWithPipe",
