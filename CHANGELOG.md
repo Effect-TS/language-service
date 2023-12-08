@@ -1,5 +1,16 @@
 # @effect/language-service
 
+## 0.1.0
+
+### Minor Changes
+
+- [#48](https://github.com/Effect-TS/language-service/pull/48) [`9bb0011`](https://github.com/Effect-TS/language-service/commit/9bb00117c1efe3aa2c7788b9c9eeed1ef001c540) Thanks [@wmaurer](https://github.com/wmaurer)! - Improve Effect imports to work with current effect npm package
+
+- [#48](https://github.com/Effect-TS/language-service/pull/48) [`9bb0011`](https://github.com/Effect-TS/language-service/commit/9bb00117c1efe3aa2c7788b9c9eeed1ef001c540) Thanks [@wmaurer](https://github.com/wmaurer)! - Modernise build setup.
+  Fix asyncWaitToGen problem for TS5.
+  Refactor asyncWaitToGen to work with current Effect API.
+  Add config option `preferredEffectGenAdapterName`.
+
 ## 0.0.21
 
 ### Patch Changes
