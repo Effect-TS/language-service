@@ -1,7 +1,9 @@
 remote_theme: mikearnaldi/just-the-docs
+
+# Enable or disable the site search
 search_enabled: true
+
+# Aux links for the upper right navigation
 aux_links:
-  "Docs":
-    - "//effect-ts.github.io/language-service"
-  "GitHub":
-    - "//github.com/effect-ts/language-service"
+'@effect/language-service on GitHub':
+  - 'https://github.com/Effect-TS/language-service'

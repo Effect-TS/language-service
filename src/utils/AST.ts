@@ -1,9 +1,9 @@
-import { pipe } from "@effect/language-service/utils/Function"
-import * as O from "@effect/language-service/utils/Option"
-import * as Ch from "@effect/language-service/utils/ReadonlyArray"
-import type ts from "typescript/lib/tsserverlibrary"
+import { pipe } from "effect/Function"
+import * as O from "effect/Option"
+import * as Ch from "effect/ReadonlyArray"
+import type ts from "typescript"
 
-declare module "typescript/lib/tsserverlibrary" {
+declare module "typescript" {
   const nullTransformationContext: ts.TransformationContext
 
   export namespace formatting {
@@ -76,10 +76,21 @@ declare module "typescript/lib/tsserverlibrary" {
     export interface ConfigurableStartEnd extends ConfigurableStart, ConfigurableEnd {
     }
     export class ChangeTracker {
-      static with(context: ts.TextChangesContext, cb: (tracker: ChangeTracker) => void): Array<ts.FileTextChanges>
-      delete(sourceFile: ts.SourceFile, node: ts.Node | ts.NodeArray<ts.TypeParameterDeclaration>): void
+      static with(
+        context: ts.TextChangesContext,
+        cb: (tracker: ChangeTracker) => void
+      ): Array<ts.FileTextChanges>
+      delete(
+        sourceFile: ts.SourceFile,
+        node: ts.Node | ts.NodeArray<ts.TypeParameterDeclaration>
+      ): void
       deleteRange(sourceFile: ts.SourceFile, range: ts.TextRange): void
-      replaceNode(sourceFile: ts.SourceFile, oldNode: ts.Node, newNode: ts.Node, options?: ts.ChangeNodeOptions): void
+      replaceNode(
+        sourceFile: ts.SourceFile,
+        oldNode: ts.Node,
+        newNode: ts.Node,
+        options?: ts.ChangeNodeOptions
+      ): void
       insertNodeAt(
         sourceFile: ts.SourceFile,
         pos: number,
@@ -111,14 +122,17 @@ declare module "typescript/lib/tsserverlibrary" {
     startNode?: ts.Node,
     excludeJsdoc?: boolean
   ): ts.Node | undefined
-  function findChildOfKind<T extends ts.Node>(n: ts.Node, kind: T["kind"], sourceFile: ts.SourceFileLike): T | undefined
+  function findChildOfKind<T extends ts.Node>(
+    n: ts.Node,
+    kind: T["kind"],
+    sourceFile: ts.SourceFileLike
+  ): T | undefined
 
   export function isMemberName(node: ts.Node): node is ts.MemberName
   export function isKeyword(token: ts.SyntaxKind): token is ts.KeywordSyntaxKind
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-export type TypeScriptApi = typeof import("typescript/lib/tsserverlibrary")
+export type TypeScriptApi = typeof ts
 
 export class NoSuchSourceFile {
   readonly _tag = "NoSuchSourceFile"
@@ -138,7 +152,8 @@ export function getSourceFile(program: ts.Program) {
 }
 
 export function hasModifier(ts: TypeScriptApi) {
-  return (node: ts.Declaration, kind: ts.ModifierFlags) => !!(ts.getCombinedModifierFlags(node) & kind)
+  return (node: ts.Declaration, kind: ts.ModifierFlags) =>
+    !!(ts.getCombinedModifierFlags(node) & kind)
 }
 
 /**
@@ -149,9 +164,9 @@ export function getNodesContainingRange(
 ) {
   return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
-    if (!precedingToken) return Ch.empty
+    if (!precedingToken) return Ch.empty<ts.Node>()
 
-    let result: Ch.Chunk<ts.Node> = Ch.empty
+    let result = Ch.empty<ts.Node>()
     let parent = precedingToken
     while (parent) {
       result = pipe(result, Ch.append(parent))
@@ -166,7 +181,9 @@ export function getNodesContainingRange(
  * Ensures value is a text range
  */
 export function toTextRange(positionOrRange: number | ts.TextRange): ts.TextRange {
-  return typeof positionOrRange === "number" ? { end: positionOrRange, pos: positionOrRange } : positionOrRange
+  return typeof positionOrRange === "number"
+    ? { end: positionOrRange, pos: positionOrRange }
+    : positionOrRange
 }
 
 export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
@@ -176,7 +193,7 @@ export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
 
 export function collectAll(ts: TypeScriptApi) {
   return <A extends ts.Node>(rootNode: ts.Node, test: (node: ts.Node) => node is A) => {
-    let result: Ch.Chunk<A> = Ch.empty
+    let result = Ch.empty<A>()
 
     function visitor(node: ts.Node) {
       if (test(node)) result = pipe(result, Ch.append(node))
@@ -198,10 +215,17 @@ export function getRelevantTokens(
       previousToken && position <= previousToken.end &&
       (ts.isMemberName(previousToken) || ts.isKeyword(previousToken.kind))
     ) {
-      const contextToken = ts.findPrecedingToken(previousToken.getFullStart(), sourceFile, /*startNode*/ undefined)! // TODO: GH#18217
+      const contextToken = ts.findPrecedingToken(
+        previousToken.getFullStart(),
+        sourceFile,
+        /*startNode*/ undefined
+      )! // TODO: GH#18217
       return { contextToken: O.some(contextToken), previousToken: O.some(previousToken) }
     }
-    return { contextToken: O.fromNullable(previousToken), previousToken: O.fromNullable(previousToken) }
+    return {
+      contextToken: O.fromNullable(previousToken),
+      previousToken: O.fromNullable(previousToken)
+    }
   })
 }
 
@@ -209,11 +233,11 @@ export function isNodeInRange(textRange: ts.TextRange) {
   return (node: ts.Node) => node.pos <= textRange.pos && node.end >= textRange.end
 }
 
-export function findModuleImportIdentifierName(
+export function findModuleNamedBindings(
   ts: TypeScriptApi
 ) {
-  return (sourceFile: ts.SourceFile, moduleName: string) => {
-    return O.fromNullable(ts.forEachChild(sourceFile, (node) => {
+  return (sourceFile: ts.SourceFile, moduleName: string) =>
+    O.fromNullable(ts.forEachChild(sourceFile, (node) => {
       if (!ts.isImportDeclaration(node)) return
       const moduleSpecifier = node.moduleSpecifier
       if (!ts.isStringLiteral(moduleSpecifier)) return
@@ -222,14 +246,76 @@ export function findModuleImportIdentifierName(
       if (!importClause) return
       const namedBindings = importClause.namedBindings
       if (!namedBindings) return
-      if (!ts.isNamespaceImport(namedBindings)) return
-      return namedBindings.name.text
+      return namedBindings
+    }))
+}
+
+export function findModuleNamespaceImportIdentifierName(
+  ts: TypeScriptApi
+) {
+  return (sourceFile: ts.SourceFile, moduleName: string) =>
+    pipe(
+      findModuleNamedBindings(ts)(sourceFile, moduleName),
+      O.map(
+        (namedBindings) => {
+          if (!ts.isNamespaceImport(namedBindings)) return
+          return namedBindings.name.text
+        }
+      ),
+      O.flatMap(O.fromNullable)
+    )
+}
+
+export function findModuleNamedImportIdentifierName(
+  ts: TypeScriptApi
+) {
+  return (sourceFile: ts.SourceFile, moduleName: string, namedImport: string) =>
+    pipe(
+      findModuleNamedBindings(ts)(sourceFile, moduleName),
+      O.map((namedBindings) => {
+        if (!ts.isNamedImports(namedBindings)) return
+        for (const importSpecifier of namedBindings.elements) {
+          if (importSpecifier.propertyName?.escapedText === namedImport) {
+            return importSpecifier.name?.escapedText || importSpecifier.propertyName?.escapedText
+          }
+        }
+      }),
+      O.flatMap(O.fromNullable)
+    )
+}
+
+export function findModuleImportIdentifierNameViaTypeChecker(
+  ts: TypeScriptApi,
+  typeChecker: ts.TypeChecker
+) {
+  return (sourceFile: ts.SourceFile, importName: string) => {
+    return O.fromNullable(ts.forEachChild(sourceFile, (node) => {
+      if (!ts.isImportDeclaration(node)) return
+      if (!node.importClause) return
+      const namedBindings = node.importClause.namedBindings
+      if (!namedBindings) return
+      if (ts.isNamespaceImport(namedBindings)) {
+        const symbol = typeChecker.getTypeAtLocation(namedBindings).getSymbol()
+        if (!symbol || !symbol.exports) return
+        if (!symbol.exports.has(importName as ts.__String)) return
+        return namedBindings.name.escapedText as string
+      }
+      if (ts.isNamedImports(namedBindings)) {
+        for (const importSpecifier of namedBindings.elements) {
+          const symbol = typeChecker.getTypeAtLocation(importSpecifier).getSymbol()
+          if (!symbol || !symbol.exports) return
+          if (!symbol.exports.has(importName as ts.__String)) return
+          return importSpecifier.name?.escapedText ||
+            importSpecifier.propertyName?.escapedText as string
+        }
+      }
     }))
   }
 }
 
 export function transformAsyncAwaitToEffectGen(
-  ts: TypeScriptApi
+  ts: TypeScriptApi,
+  preferredEffectGenAdapterName: string
 ) {
   return (
     node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
@@ -242,7 +328,13 @@ export function transformAsyncAwaitToEffectGen(
 
         return ts.factory.createYieldExpression(
           ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-          ts.factory.createCallExpression(ts.factory.createIdentifier("$"), undefined, [onAwait(expression)])
+          ts.factory.createCallExpression(
+            ts.factory.createIdentifier(preferredEffectGenAdapterName),
+            undefined,
+            [
+              onAwait(expression)
+            ]
+          )
         )
       }
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
@@ -250,11 +342,11 @@ export function transformAsyncAwaitToEffectGen(
     const generatorBody = visitor(node.body!)
 
     const generator = ts.factory.createFunctionExpression(
-      [],
+      undefined,
       ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
       undefined,
       [],
-      [ts.factory.createParameterDeclaration(undefined, undefined, "$")],
+      [ts.factory.createParameterDeclaration(undefined, undefined, preferredEffectGenAdapterName)],
       undefined,
       generatorBody as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
     )
@@ -328,8 +420,16 @@ export function addReturnTypeAnnotation(
     const endNode = needParens ? declaration.parameters[0] : closeParen
     if (endNode) {
       if (needParens) {
-        changes.insertNodeBefore(sourceFile, endNode, ts.factory.createToken(ts.SyntaxKind.OpenParenToken))
-        changes.insertNodeAfter(sourceFile, endNode, ts.factory.createToken(ts.SyntaxKind.CloseParenToken))
+        changes.insertNodeBefore(
+          sourceFile,
+          endNode,
+          ts.factory.createToken(ts.SyntaxKind.OpenParenToken)
+        )
+        changes.insertNodeAfter(
+          sourceFile,
+          endNode,
+          ts.factory.createToken(ts.SyntaxKind.CloseParenToken)
+        )
       }
       changes.insertNodeAt(sourceFile, endNode.end, typeNode, { prefix: ": " })
     }
@@ -357,11 +457,14 @@ export function removeReturnTypeAnnotation(
   }
 }
 
-export function getEffectModuleIdentifier(ts: TypeScriptApi) {
+export function getEffectModuleIdentifier(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (sourceFile: ts.SourceFile) =>
     pipe(
-      findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect"),
-      O.orElse(findModuleImportIdentifierName(ts)(sourceFile, "@effect/io/Effect")),
+      findModuleNamespaceImportIdentifierName(ts)(sourceFile, "effect/Effect"),
+      O.orElse(() => findModuleNamedImportIdentifierName(ts)(sourceFile, "effect", "Effect")),
+      O.orElse(() =>
+        findModuleImportIdentifierNameViaTypeChecker(ts, typeChecker)(sourceFile, "Effect")
+      ),
       O.getOrElse(
         () => "Effect"
       )
@@ -383,7 +486,9 @@ export function simplifyTypeNode(
     // { ... } -> if every member is callsignature, return a merge of all of those
     if (ts.isTypeLiteralNode(typeNode)) {
       const allCallSignatures = typeNode.members.every(ts.isCallSignatureDeclaration)
-      if (allCallSignatures) return O.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
+      if (allCallSignatures) {
+        return O.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
+      }
     }
     // ... & ... -> if both are callable, return merge of both
     if (ts.isIntersectionTypeNode(typeNode)) {
@@ -393,7 +498,7 @@ export function simplifyTypeNode(
       }
     }
 
-    return O.none
+    return O.none()
   }
 
   return (typeNode: ts.TypeNode) => {
@@ -417,9 +522,9 @@ export function isPipeCall(ts: TypeScriptApi) {
 
 export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker) {
   return (node: ts.Node, self: ts.Expression): O.Option<ts.CallExpression> => {
-    if (!ts.isCallExpression(node)) return O.none
+    if (!ts.isCallExpression(node)) return O.none()
     const signature = checker.getResolvedSignature(node)
-    if (!signature) return O.none
+    if (!signature) return O.none()
     const callSignatures = checker.getTypeAtLocation(node.expression).getCallSignatures()
     for (let i = 0; i < callSignatures.length; i++) {
       const callSignature = callSignatures[i]
@@ -433,6 +538,6 @@ export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker
         )
       }
     }
-    return O.none
+    return O.none()
   }
 }

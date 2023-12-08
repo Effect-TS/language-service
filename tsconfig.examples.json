@@ -1,11 +1,18 @@
 {
   "extends": "./tsconfig.base.json",
+  "include": ["examples"],
+  "references": [
+    {
+      "path": "./tsconfig.src.json"
+    }
+  ],
   "compilerOptions": {
-    "tsBuildInfoFile": "build/tsbuildinfo/examples.tsbuildinfo",
+    "tsBuildInfoFile": ".tsbuildinfo/examples.tsbuildinfo",
     "rootDir": "examples",
-    "module": "CommonJS",
-    "outDir": "build/examples"
-  },
-  "include": ["examples/**/*.ts"],
-  "references": [{ "path": "./tsconfig.build.json" }]
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "paths": {
+      "@/*": ["./examples/*"]
+    }
+  }
 }

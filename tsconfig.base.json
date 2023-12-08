@@ -1,21 +1,22 @@
 {
+  "include": [],
   "compilerOptions": {
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
     "moduleDetection": "force",
     "composite": true,
     "downlevelIteration": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "declaration": true,
     "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "preserveSymlinks": true,
-    "moduleResolution": "node",
-    "noEmit": false,
-    "lib": ["ES2021"],
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "isolatedModules": true,
     "sourceMap": true,
     "declarationMap": true,
-    "strict": true,
     "noImplicitReturns": false,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
@@ -25,25 +26,19 @@
     "allowJs": false,
     "checkJs": false,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "stripInternal": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noUncheckedIndexedAccess": false,
     "strictNullChecks": true,
-    "baseUrl": ".",
-    "target": "ES2021",
-    "module": "ES6",
+    "target": "ES2022",
+    "module": "NodeNext",
     "incremental": true,
     "removeComments": false,
-    "paths": {
-      "@effect/language-service": ["./src/index.ts"],
-      "@effect/language-service/test/*": ["./test/*"],
-      "@effect/language-service/examples/*": ["./examples/*"],
-      "@effect/language-service/*": ["./src/*"]
-    },
-    "plugins": []
-  },
-  "include": [],
-  "exclude": ["node_modules", "build", "lib", "examples"]
+    "types": ["node"],
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
+  }
 }

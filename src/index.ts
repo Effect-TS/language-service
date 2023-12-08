@@ -1,16 +1,26 @@
-import type { RefactorDefinition } from "@effect/language-service/refactors/definition"
-import refactors from "@effect/language-service/refactors/index"
-import * as AST from "@effect/language-service/utils/AST"
-import { pipe } from "@effect/language-service/utils/Function"
-import * as O from "@effect/language-service/utils/Option"
-import type ts from "typescript/lib/tsserverlibrary"
+/**
+ * @since 1.0.0
+ */
+import { pipe } from "effect/Function"
+import * as O from "effect/Option"
+import type ts from "typescript"
+import type { PluginOptions } from "./definition.js"
+import { refactors } from "./refactors.js"
+import * as AST from "./utils/AST.js"
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-function init(modules: { typescript: typeof import("typescript/lib/tsserverlibrary") }) {
+const init = (
+  modules: {
+    typescript: typeof ts
+  }
+) => {
   const ts = modules.typescript
 
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
+
+    const pluginOptions: PluginOptions = {
+      preferredEffectGenAdapterName: info.config.preferredEffectGenAdapterName ?? "_"
+    }
 
     // create the proxy
     const proxy: ts.LanguageService = Object.create(null)
@@ -30,9 +40,12 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
           AST.getSourceFile(program)(fileName),
           (sourceFile) =>
             pipe(
-              Object.values<RefactorDefinition>(refactors).map((refactor) =>
+              Object.values(refactors).map((refactor) =>
                 pipe(
-                  refactor.apply(modules.typescript, program)(sourceFile, textRange),
+                  refactor.apply(modules.typescript, program, pluginOptions)(
+                    sourceFile,
+                    textRange
+                  ),
                   O.map((_) => ({
                     name: refactor.name,
                     description: refactor.description,
@@ -46,7 +59,8 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
               ),
               (_) =>
                 _.reduce(
-                  (arr, maybeRefactor) => arr.concat(O.isSome(maybeRefactor) ? [maybeRefactor.value] : []),
+                  (arr, maybeRefactor) =>
+                    arr.concat(O.isSome(maybeRefactor) ? [maybeRefactor.value] : []),
                   [] as Array<ts.ApplicableRefactorInfo>
                 )
             )
@@ -74,18 +88,25 @@ function init(modules: { typescript: typeof import("typescript/lib/tsserverlibra
       if (program) {
         for (const refactor of Object.values(refactors)) {
           if (refactor.name === refactorName) {
-            const sourceFile = (AST.getSourceFile(program)(fileName))
+            const sourceFile = AST.getSourceFile(program)(fileName)
             const textRange = AST.toTextRange(positionOrRange)
-            const possibleRefactor = (refactor.apply(modules.typescript, program)(sourceFile, textRange))
+            const possibleRefactor = refactor.apply(modules.typescript, program, pluginOptions)(
+              sourceFile,
+              textRange
+            )
 
             if (O.isNone(possibleRefactor)) {
               info.project.projectService.logger.info(
-                "[@effect/language-service] requested refactor " + refactorName + " is not applicable"
+                "[@effect/language-service] requested refactor " + refactorName +
+                  " is not applicable"
               )
               return { edits: [] }
             }
 
-            const formatContext = ts.formatting.getFormatContext(formatOptions, info.languageServiceHost)
+            const formatContext = ts.formatting.getFormatContext(
+              formatOptions,
+              info.languageServiceHost
+            )
             const edits = ts.textChanges.ChangeTracker.with(
               {
                 formatContext,

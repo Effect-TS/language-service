@@ -1,3 +1,6 @@
+/**
+ * @since 1.0.0
+ */
 import { createFilter } from "@rollup/pluginutils"
 import ts from "typescript"
 
@@ -22,6 +25,10 @@ declare module "typescript" {
   }
 }
 
+/**
+ * @since 1.0.0
+ * @category plugin
+ */
 export default function effectPlugin(
   program: ts.Program,
   options?: {
@@ -137,21 +144,25 @@ export default function effectPlugin(
             if (declaration) {
               shouldEmbedTrace = ts.getAllJSDocTags(
                 declaration,
-                (tag): tag is ts.JSDocTag => tag.tagName.text === "macro" && tag.comment === "traced"
+                (tag): tag is ts.JSDocTag =>
+                  tag.tagName.text === "macro" && tag.comment === "traced"
               ).length > 0
             }
 
             if (!shouldEmbedTrace) {
-              shouldEmbedTrace = (checker.getSymbolAtLocation(visited.expression)?.getJsDocTags(checker)
-                .filter((tag) =>
-                  tag.name === "macro" && tag.text &&
-                  tag.text.map((d) => d.text).join("\n") === "traced"
-                ) || []).length > 0
+              shouldEmbedTrace =
+                (checker.getSymbolAtLocation(visited.expression)?.getJsDocTags(checker)
+                  .filter((tag) =>
+                    tag.name === "macro" && tag.text &&
+                    tag.text.map((d) => d.text).join("\n") === "traced"
+                  ) || []).length > 0
             }
 
             if (shouldEmbedTrace) {
               const trace = getTrace(
-                ts.isPropertyAccessExpression(visited.expression) ? visited.expression.name : visited.expression
+                ts.isPropertyAccessExpression(visited.expression)
+                  ? visited.expression.name
+                  : visited.expression
               )
               if (typeof trace !== "undefined") {
                 return ctx.factory.createCallExpression(
@@ -187,10 +198,10 @@ export default function effectPlugin(
               findSource(declaration).fileName.includes("@fp-ts/data/Function")
             ) {
               if (declaration.name?.getText() === "pipe") {
-                let expr = ts.visitNode(visited.arguments[0], optimizeVisitor)
+                let expr = ts.visitNode(visited.arguments[0], optimizeVisitor) as ts.Expression
                 for (let i = 1; i < visited.arguments.length; i++) {
                   expr = ctx.factory.createCallExpression(
-                    ts.visitNode(visited.arguments[i], optimizeVisitor),
+                    ts.visitNode(visited.arguments[i], optimizeVisitor) as ts.Expression,
                     [],
                     [expr]
                   )
@@ -204,12 +215,15 @@ export default function effectPlugin(
 
         const usedImportsVisitor = (node: ts.Node): ts.Node => {
           if (ts.isImportDeclaration(node) && node.importClause) {
-            if (node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
+            if (
+              node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)
+            ) {
               node.importClause.namedBindings.elements.forEach((specifier) => {
                 specifier.used = 1
               })
             } else if (
-              node.importClause.namedBindings && ts.isNamespaceImport(node.importClause.namedBindings)
+              node.importClause.namedBindings &&
+              ts.isNamespaceImport(node.importClause.namedBindings)
             ) {
               node.importClause.namedBindings.used = 1
             }
@@ -229,19 +243,19 @@ export default function effectPlugin(
         let visited = sourceFile
 
         if (optimizeFilter(sourceFile.fileName)) {
-          visited = ts.visitNode(visited, optimizeVisitor)
+          visited = ts.visitNode(visited, optimizeVisitor) as ts.SourceFile
         }
 
         if (traceFilter(sourceFile.fileName)) {
-          visited = ts.visitNode(visited, traceVisitor)
+          visited = ts.visitNode(visited, traceVisitor) as ts.SourceFile
         }
 
         if (debugFilter(sourceFile.fileName)) {
-          visited = ts.visitNode(visited, debugVisitor)
+          visited = ts.visitNode(visited, debugVisitor) as ts.SourceFile
         }
 
         if (removeUnusedImports) {
-          visited = ts.visitNode(visited, usedImportsVisitor)
+          visited = ts.visitNode(visited, usedImportsVisitor) as ts.SourceFile
         }
 
         const statements: Array<ts.Statement> = []
@@ -286,12 +300,20 @@ export default function effectPlugin(
               return true
             }
             if (ts.isImportDeclaration(statement) && statement.importClause) {
-              if (statement.importClause.namedBindings && ts.isNamedImports(statement.importClause.namedBindings)) {
-                if (statement.importClause.namedBindings.elements.every((specifier) => specifier.used === 0)) {
+              if (
+                statement.importClause.namedBindings &&
+                ts.isNamedImports(statement.importClause.namedBindings)
+              ) {
+                if (
+                  statement.importClause.namedBindings.elements.every((specifier) =>
+                    specifier.used === 0
+                  )
+                ) {
                   return false
                 }
               } else if (
-                statement.importClause.namedBindings && ts.isNamespaceImport(statement.importClause.namedBindings)
+                statement.importClause.namedBindings &&
+                ts.isNamespaceImport(statement.importClause.namedBindings)
               ) {
                 if (statement.importClause.namedBindings.used === 0) {
                   return false

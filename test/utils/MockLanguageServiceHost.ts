@@ -1,7 +1,10 @@
 import * as fs from "fs"
-import ts from "typescript/lib/tsserverlibrary"
+import ts from "typescript"
 
-export function createMockLanguageServiceHost(fileName: string, sourceText: string): ts.LanguageServiceHost {
+export function createMockLanguageServiceHost(
+  fileName: string,
+  sourceText: string
+): ts.LanguageServiceHost {
   return {
     getCompilationSettings() {
       return {
@@ -9,7 +12,11 @@ export function createMockLanguageServiceHost(fileName: string, sourceText: stri
         strict: true,
         target: ts.ScriptTarget.ESNext,
         noEmit: true,
-        moduleResolution: ts.ModuleResolutionKind.NodeJs
+        module: ts.ModuleKind.NodeNext,
+        moduleResolution: ts.ModuleResolutionKind.NodeNext,
+        paths: {
+          "@/*": ["./examples/*"]
+        }
       }
     },
     getScriptFileNames() {
