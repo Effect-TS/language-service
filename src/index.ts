@@ -5,6 +5,7 @@ import { pipe } from "effect/Function"
 import * as O from "effect/Option"
 import type ts from "typescript"
 import type { PluginOptions } from "./definition.js"
+import { dedupeJsDocTags } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 import * as AST from "./utils/AST.js"
 
@@ -130,6 +131,16 @@ const init = (
         preferences,
         ...args
       )
+    }
+
+    proxy.getQuickInfoAtPosition = (fileName, position, ...args) => {
+      const quickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
+
+      if (quickInfo) {
+        return dedupeJsDocTags(quickInfo)
+      }
+
+      return quickInfo
     }
 
     return proxy
