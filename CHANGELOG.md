@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.2.0
+
+### Minor Changes
+
+- [#50](https://github.com/Effect-TS/language-service/pull/50) [`f3ff991`](https://github.com/Effect-TS/language-service/commit/f3ff991b1fede4ac0faccd7d6800ce5076d7fe7f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Dedupe identical JSDoc tags in hover quickinfo
+
 ## 0.1.0
 
 ### Minor Changes
