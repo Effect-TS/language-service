@@ -9,7 +9,7 @@ const test = pipe(
   T.map((_) => _ * 2)
 )
 
-const noDataFirst = (value: string) => <R, E, A>(eff: T.Effect<R, E, A>) => pipe(eff, T.zipLeft(T.log(value)))
+const noDataFirst = (value: string) => <A, E, R>(eff: T.Effect<A, E, R>) => pipe(eff, T.zipLeft(T.log(value)))
 
 const test2 = pipe(
   T.succeed("Hello"),

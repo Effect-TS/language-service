@@ -1,6 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
-import * as Ch from "effect/ReadonlyArray"
+import * as Option from "effect/Option"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
 
@@ -10,11 +10,11 @@ export const toggleTypeAnnotation = createRefactor({
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
-      Ch.filter(ts.isVariableDeclaration),
-      Ch.filter((node) => AST.isNodeInRange(textRange)(node.name)),
-      Ch.filter((node) => !!node.initializer),
-      Ch.head,
-      O.map(
+      ReadonlyArray.filter(ts.isVariableDeclaration),
+      ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
+      ReadonlyArray.filter((node) => !!node.initializer),
+      ReadonlyArray.head,
+      Option.map(
         (node) => ({
           kind: "refactor.rewrite.effect.toggleTypeAnnotation",
           description: "Toggle type annotation",

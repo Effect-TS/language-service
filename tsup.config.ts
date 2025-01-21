@@ -1,4 +1,5 @@
-import { FileSystem, Path } from "@effect/platform-node"
+import { FileSystem, Path } from "@effect/platform"
+import { NodeFileSystem, NodePath } from "@effect/platform-node"
 import { Effect, Layer } from "effect"
 import { defineConfig } from "tsup"
 
@@ -26,7 +27,7 @@ export default defineConfig({
       }
       yield* _(fs.writeFileString(path.join("dist", "package.json"), JSON.stringify(pkg, null, 2)))
     }).pipe(
-      Effect.provide(Layer.merge(FileSystem.layer, Path.layerPosix))
+      Effect.provide(Layer.merge(NodeFileSystem.layer, NodePath.layerPosix))
     )
 
     return Effect.runPromise(program)

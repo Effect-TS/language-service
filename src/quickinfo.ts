@@ -1,8 +1,8 @@
 /**
  * @since 1.0.0
  */
+import * as ReadonlyArray from "effect/Array"
 import * as Eq from "effect/Equivalence"
-import * as A from "effect/ReadonlyArray"
 import type ts from "typescript"
 
 const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) =>
@@ -21,7 +21,7 @@ export function dedupeJsDocTags(quickInfo: ts.QuickInfo): ts.QuickInfo {
   if (quickInfo.tags) {
     return {
       ...quickInfo,
-      tags: A.dedupeWith(quickInfo.tags, JSDocTagInfoEq)
+      tags: ReadonlyArray.dedupeWith(quickInfo.tags, JSDocTagInfoEq)
     }
   }
   return quickInfo

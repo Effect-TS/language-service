@@ -1,6 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
-import * as Ch from "effect/ReadonlyArray"
+import * as Option from "effect/Option"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
 
@@ -10,14 +10,14 @@ export const toggleLazyConst = createRefactor({
   apply: (ts) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
-      Ch.filter(ts.isVariableDeclaration),
-      Ch.filter((node) => AST.isNodeInRange(textRange)(node.name)),
-      Ch.filter((node) =>
+      ReadonlyArray.filter(ts.isVariableDeclaration),
+      ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
+      ReadonlyArray.filter((node) =>
         !!node.initializer &&
         !(ts.isArrowFunction(node.initializer) && ts.isBlock(node.initializer.body))
       ),
-      Ch.head,
-      O.map(
+      ReadonlyArray.head,
+      Option.map(
         (node) => ({
           kind: "refactor.rewrite.effect.toggleLazyConst",
           description: "Toggle lazy const",

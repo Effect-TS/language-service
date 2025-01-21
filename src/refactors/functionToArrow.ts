@@ -1,6 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
-import * as Ch from "effect/ReadonlyArray"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
@@ -12,18 +12,18 @@ export const functionToArrow = createRefactor({
     pipe(
       pipe(
         AST.getNodesContainingRange(ts)(sourceFile, textRange),
-        Ch.filter(ts.isFunctionDeclaration)
+        ReadonlyArray.filter(ts.isFunctionDeclaration)
       ),
-      Ch.appendAll(
+      ReadonlyArray.appendAll(
         pipe(
           AST.getNodesContainingRange(ts)(sourceFile, textRange),
-          Ch.filter(ts.isMethodDeclaration)
+          ReadonlyArray.filter(ts.isMethodDeclaration)
         )
       ),
-      Ch.filter((node) => !!node.body),
-      Ch.filter((node) => !!node.name && AST.isNodeInRange(textRange)(node.name)),
-      Ch.head,
-      O.map(
+      ReadonlyArray.filter((node) => !!node.body),
+      ReadonlyArray.filter((node) => !!node.name && AST.isNodeInRange(textRange)(node.name)),
+      ReadonlyArray.head,
+      Option.map(
         (node) => ({
           kind: "refactor.rewrite.effect.functionToArrow",
           description: "Convert to arrow",
