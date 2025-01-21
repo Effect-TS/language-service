@@ -1,5 +1,12 @@
 # @effect/language-service
 
+## 0.3.0
+
+### Minor Changes
+
+- [#54](https://github.com/Effect-TS/language-service/pull/54) [`19e5a77`](https://github.com/Effect-TS/language-service/commit/19e5a7744c443ca10ab5cea1bcd70f636c3142d7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - - Update internal version of effect from 2.x beta to 3.12.5
+  - Remove adapter from gen refactors
+
 ## 0.2.0
 
 ### Minor Changes
