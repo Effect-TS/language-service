@@ -1,7 +1,7 @@
 /**
  * @since 1.0.0
  */
-import type * as O from "effect/Option"
+import type * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as AST from "./utils/AST.js"
 
@@ -15,7 +15,7 @@ export interface RefactorDefinition {
   apply: (ts: AST.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
     sourceFile: ts.SourceFile,
     textRange: ts.TextRange
-  ) => O.Option<ApplicableRefactorDefinition>
+  ) => Option.Option<ApplicableRefactorDefinition>
 }
 
 /**
@@ -41,5 +41,4 @@ export function createRefactor(definition: RefactorDefinition) {
  * @category plugin
  */
 export interface PluginOptions {
-  preferredEffectGenAdapterName: string
 }

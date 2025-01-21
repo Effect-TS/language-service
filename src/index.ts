@@ -2,7 +2,7 @@
  * @since 1.0.0
  */
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 import type { PluginOptions } from "./definition.js"
 import { dedupeJsDocTags } from "./quickinfo.js"
@@ -19,9 +19,7 @@ const init = (
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
 
-    const pluginOptions: PluginOptions = {
-      preferredEffectGenAdapterName: info.config.preferredEffectGenAdapterName ?? "_"
-    }
+    const pluginOptions: PluginOptions = {}
 
     // create the proxy
     const proxy: ts.LanguageService = Object.create(null)
@@ -47,7 +45,7 @@ const init = (
                     sourceFile,
                     textRange
                   ),
-                  O.map((_) => ({
+                  Option.map((_) => ({
                     name: refactor.name,
                     description: refactor.description,
                     actions: [{
@@ -61,7 +59,7 @@ const init = (
               (_) =>
                 _.reduce(
                   (arr, maybeRefactor) =>
-                    arr.concat(O.isSome(maybeRefactor) ? [maybeRefactor.value] : []),
+                    arr.concat(Option.isSome(maybeRefactor) ? [maybeRefactor.value] : []),
                   [] as Array<ts.ApplicableRefactorInfo>
                 )
             )
@@ -96,7 +94,7 @@ const init = (
               textRange
             )
 
-            if (O.isNone(possibleRefactor)) {
+            if (Option.isNone(possibleRefactor)) {
               info.project.projectService.logger.info(
                 "[@effect/language-service] requested refactor " + refactorName +
                   " is not applicable"

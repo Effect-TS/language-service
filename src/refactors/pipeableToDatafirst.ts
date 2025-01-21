@@ -1,6 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
-import * as Ch from "effect/ReadonlyArray"
+import * as Option from "effect/Option"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
 
@@ -10,18 +10,18 @@ export const pipeableToDatafirst = createRefactor({
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
-      Ch.filter(AST.isPipeCall(ts)),
-      Ch.filter((node) => AST.isNodeInRange(textRange)(node.expression)),
-      Ch.filter(
+      ReadonlyArray.filter(AST.isPipeCall(ts)),
+      ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.expression)),
+      ReadonlyArray.filter(
         (node) => node.arguments.length > 0
       ),
-      Ch.map((node) => {
+      ReadonlyArray.map((node) => {
         let newNode = node.arguments[0]
         let didSomething = false
         for (let i = 1; i < node.arguments.length; i++) {
           const arg = node.arguments[i]
           const a = AST.asDataFirstExpression(ts, program.getTypeChecker())(arg, newNode)
-          if (O.isSome(a)) {
+          if (Option.isSome(a)) {
             // use found datafirst
             newNode = a.value
             didSomething = true
@@ -42,12 +42,12 @@ export const pipeableToDatafirst = createRefactor({
             }
           }
         }
-        return didSomething ? O.some([node, newNode] as const) : O.none()
+        return didSomething ? Option.some([node, newNode] as const) : Option.none()
       }),
-      Ch.filter(O.isSome),
-      Ch.map((_) => _.value),
-      Ch.head,
-      O.map(([node, newNode]) => ({
+      ReadonlyArray.filter(Option.isSome),
+      ReadonlyArray.map((_) => _.value),
+      ReadonlyArray.head,
+      Option.map(([node, newNode]) => ({
         kind: "refactor.rewrite.effect.pipeableToDatafirst",
         description: "Rewrite to datafirst",
         apply: (changeTracker) => {

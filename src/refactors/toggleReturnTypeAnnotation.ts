@@ -1,6 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
-import * as Ch from "effect/ReadonlyArray"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
@@ -29,9 +29,9 @@ export const toggleReturnTypeAnnotation = createRefactor({
 
     return pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
-      Ch.filter(isConvertibleDeclaration),
-      Ch.head,
-      O.map(
+      ReadonlyArray.filter(isConvertibleDeclaration),
+      ReadonlyArray.head,
+      Option.map(
         (node) => ({
           kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",
           description: "Toggle return type annotation",

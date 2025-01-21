@@ -1,6 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as O from "effect/Option"
-import * as Ch from "effect/ReadonlyArray"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 
 declare module "typescript" {
@@ -164,12 +164,12 @@ export function getNodesContainingRange(
 ) {
   return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
-    if (!precedingToken) return Ch.empty<ts.Node>()
+    if (!precedingToken) return ReadonlyArray.empty<ts.Node>()
 
-    let result = Ch.empty<ts.Node>()
+    let result = ReadonlyArray.empty<ts.Node>()
     let parent = precedingToken
     while (parent) {
-      result = pipe(result, Ch.append(parent))
+      result = pipe(result, ReadonlyArray.append(parent))
       parent = parent.parent
     }
 
@@ -193,10 +193,10 @@ export function getHumanReadableName(sourceFile: ts.SourceFile, node: ts.Node) {
 
 export function collectAll(ts: TypeScriptApi) {
   return <A extends ts.Node>(rootNode: ts.Node, test: (node: ts.Node) => node is A) => {
-    let result = Ch.empty<A>()
+    let result = ReadonlyArray.empty<A>()
 
     function visitor(node: ts.Node) {
-      if (test(node)) result = pipe(result, Ch.append(node))
+      if (test(node)) result = pipe(result, ReadonlyArray.append(node))
       ts.forEachChild(node, visitor)
     }
 
@@ -220,11 +220,11 @@ export function getRelevantTokens(
         sourceFile,
         /*startNode*/ undefined
       )! // TODO: GH#18217
-      return { contextToken: O.some(contextToken), previousToken: O.some(previousToken) }
+      return { contextToken: Option.some(contextToken), previousToken: Option.some(previousToken) }
     }
     return {
-      contextToken: O.fromNullable(previousToken),
-      previousToken: O.fromNullable(previousToken)
+      contextToken: Option.fromNullable(previousToken),
+      previousToken: Option.fromNullable(previousToken)
     }
   })
 }
@@ -237,7 +237,7 @@ export function findModuleNamedBindings(
   ts: TypeScriptApi
 ) {
   return (sourceFile: ts.SourceFile, moduleName: string) =>
-    O.fromNullable(ts.forEachChild(sourceFile, (node) => {
+    Option.fromNullable(ts.forEachChild(sourceFile, (node) => {
       if (!ts.isImportDeclaration(node)) return
       const moduleSpecifier = node.moduleSpecifier
       if (!ts.isStringLiteral(moduleSpecifier)) return
@@ -256,13 +256,13 @@ export function findModuleNamespaceImportIdentifierName(
   return (sourceFile: ts.SourceFile, moduleName: string) =>
     pipe(
       findModuleNamedBindings(ts)(sourceFile, moduleName),
-      O.map(
+      Option.map(
         (namedBindings) => {
           if (!ts.isNamespaceImport(namedBindings)) return
           return namedBindings.name.text
         }
       ),
-      O.flatMap(O.fromNullable)
+      Option.flatMap(Option.fromNullable)
     )
 }
 
@@ -272,7 +272,7 @@ export function findModuleNamedImportIdentifierName(
   return (sourceFile: ts.SourceFile, moduleName: string, namedImport: string) =>
     pipe(
       findModuleNamedBindings(ts)(sourceFile, moduleName),
-      O.map((namedBindings) => {
+      Option.map((namedBindings) => {
         if (!ts.isNamedImports(namedBindings)) return
         for (const importSpecifier of namedBindings.elements) {
           if (importSpecifier.propertyName?.escapedText === namedImport) {
@@ -280,7 +280,7 @@ export function findModuleNamedImportIdentifierName(
           }
         }
       }),
-      O.flatMap(O.fromNullable)
+      Option.flatMap(Option.fromNullable)
     )
 }
 
@@ -289,7 +289,7 @@ export function findModuleImportIdentifierNameViaTypeChecker(
   typeChecker: ts.TypeChecker
 ) {
   return (sourceFile: ts.SourceFile, importName: string) => {
-    return O.fromNullable(ts.forEachChild(sourceFile, (node) => {
+    return Option.fromNullable(ts.forEachChild(sourceFile, (node) => {
       if (!ts.isImportDeclaration(node)) return
       if (!node.importClause) return
       const namedBindings = node.importClause.namedBindings
@@ -314,8 +314,7 @@ export function findModuleImportIdentifierNameViaTypeChecker(
 }
 
 export function transformAsyncAwaitToEffectGen(
-  ts: TypeScriptApi,
-  preferredEffectGenAdapterName: string
+  ts: TypeScriptApi
 ) {
   return (
     node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
@@ -328,13 +327,7 @@ export function transformAsyncAwaitToEffectGen(
 
         return ts.factory.createYieldExpression(
           ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-          ts.factory.createCallExpression(
-            ts.factory.createIdentifier(preferredEffectGenAdapterName),
-            undefined,
-            [
-              onAwait(expression)
-            ]
-          )
+          onAwait(expression)
         )
       }
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
@@ -346,7 +339,7 @@ export function transformAsyncAwaitToEffectGen(
       ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
       undefined,
       [],
-      [ts.factory.createParameterDeclaration(undefined, undefined, preferredEffectGenAdapterName)],
+      [],
       undefined,
       generatorBody as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
     )
@@ -461,11 +454,11 @@ export function getEffectModuleIdentifier(ts: TypeScriptApi, typeChecker: ts.Typ
   return (sourceFile: ts.SourceFile) =>
     pipe(
       findModuleNamespaceImportIdentifierName(ts)(sourceFile, "effect/Effect"),
-      O.orElse(() => findModuleNamedImportIdentifierName(ts)(sourceFile, "effect", "Effect")),
-      O.orElse(() =>
+      Option.orElse(() => findModuleNamedImportIdentifierName(ts)(sourceFile, "effect", "Effect")),
+      Option.orElse(() =>
         findModuleImportIdentifierNameViaTypeChecker(ts, typeChecker)(sourceFile, "Effect")
       ),
-      O.getOrElse(
+      Option.getOrElse(
         () => "Effect"
       )
     )
@@ -474,12 +467,14 @@ export function getEffectModuleIdentifier(ts: TypeScriptApi, typeChecker: ts.Typ
 export function simplifyTypeNode(
   ts: TypeScriptApi
 ) {
-  function collectCallable(typeNode: ts.TypeNode): O.Option<Array<ts.CallSignatureDeclaration>> {
+  function collectCallable(
+    typeNode: ts.TypeNode
+  ): Option.Option<Array<ts.CallSignatureDeclaration>> {
     // (() => 1) -> skip to inner node
     if (ts.isParenthesizedTypeNode(typeNode)) return collectCallable(typeNode.type)
     // () => 1 -> convert to call signature
     if (ts.isFunctionTypeNode(typeNode)) {
-      return O.some([
+      return Option.some([
         ts.factory.createCallSignature(typeNode.typeParameters, typeNode.parameters, typeNode.type)
       ])
     }
@@ -487,23 +482,23 @@ export function simplifyTypeNode(
     if (ts.isTypeLiteralNode(typeNode)) {
       const allCallSignatures = typeNode.members.every(ts.isCallSignatureDeclaration)
       if (allCallSignatures) {
-        return O.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
+        return Option.some(typeNode.members as any as Array<ts.CallSignatureDeclaration>)
       }
     }
     // ... & ... -> if both are callable, return merge of both
     if (ts.isIntersectionTypeNode(typeNode)) {
       const members = typeNode.types.map(collectCallable)
-      if (members.every(O.isSome)) {
-        return O.some(members.map((_) => O.isSome(_) ? _.value : []).flat())
+      if (members.every(Option.isSome)) {
+        return Option.some(members.map((_) => Option.isSome(_) ? _.value : []).flat())
       }
     }
 
-    return O.none()
+    return Option.none()
   }
 
   return (typeNode: ts.TypeNode) => {
     const callSignatures = collectCallable(typeNode)
-    if (O.isSome(callSignatures) && callSignatures.value.length > 1) {
+    if (Option.isSome(callSignatures) && callSignatures.value.length > 1) {
       return ts.factory.createTypeLiteralNode(callSignatures.value)
     }
     return typeNode
@@ -521,15 +516,15 @@ export function isPipeCall(ts: TypeScriptApi) {
 }
 
 export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker) {
-  return (node: ts.Node, self: ts.Expression): O.Option<ts.CallExpression> => {
-    if (!ts.isCallExpression(node)) return O.none()
+  return (node: ts.Node, self: ts.Expression): Option.Option<ts.CallExpression> => {
+    if (!ts.isCallExpression(node)) return Option.none()
     const signature = checker.getResolvedSignature(node)
-    if (!signature) return O.none()
+    if (!signature) return Option.none()
     const callSignatures = checker.getTypeAtLocation(node.expression).getCallSignatures()
     for (let i = 0; i < callSignatures.length; i++) {
       const callSignature = callSignatures[i]
       if (callSignature.parameters.length === node.arguments.length + 1) {
-        return O.some(
+        return Option.some(
           ts.factory.createCallExpression(
             node.expression,
             [],
@@ -538,6 +533,6 @@ export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker
         )
       }
     }
-    return O.none()
+    return Option.none()
   }
 }
