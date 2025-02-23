@@ -1,26 +1,26 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ensureGetCallTrace.ts > ensureGetCallTrace.ts 1`] = `
-" <A>(value: A) => T.succeed(value)
-5:28 - 5:62 | This function should be traced. getCallTrace() should be the first line of the body.
+exports[`missingContextOrError.ts > missingContextOrError.ts 1`] = `
+" eff
+20:9 - 20:13 | Missing 'ServiceC' in the expected Effect context.
 
- <A, B>(f: (value: A) => B) => T.map(f)
-7:24 - 7:63 | This function should be traced. getCallTrace() should be the first line of the body.
+Effect.gen(function*(){
+    const service = yield* ServiceB
+    yield* Effect.fail("error")
+})
+23:18 - 26:2 | Missing 'ServiceB' in the expected Effect context.
 
- <A, B>(f: (value: A) => T.Effect<never, never, B>) => T.flatMap(f)
-9:21 - 9:88 | This function should be traced. getCallTrace() should be the first line of the body."
-`;
+ test3
+29:12 - 29:18 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
-exports[`noSyncWithConstant.ts > noSyncWithConstant.ts 1`] = `
-" T.sync(() => 42)
-3:10 - 3:27 | Value is constant, instead of using sync you could use succeed.
+ test4
+32:12 - 32:18 | Missing 'ServiceC | ServiceA' in the expected Effect context.
 
- T.sync(() => true)
-4:10 - 4:29 | Value is constant, instead of using sync you could use succeed.
 
- T.failSync(() => 42)
-13:10 - 13:31 | Value is constant, instead of using failSync you could use fail.
+        eff
+40:12 - 41:11 | Missing 'ServiceC' in the expected Effect context.
 
- T.dieSync(() => 42)
-16:10 - 16:30 | Value is constant, instead of using dieSync you could use die."
+
+        "-test"
+41:17 - 42:15 | Missing 'ServiceC' in the expected Effect context."
 `;

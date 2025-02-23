@@ -128,7 +128,7 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
   }
 }
 
-function testFiles(name: string, refactor: RefactorDefinition, fileNames: Array<string>) {
+function testFiles(refactor: RefactorDefinition, fileNames: Array<string>) {
   for (const fileName of fileNames) {
     describe(fileName, () => {
       testRefactorOnExample(refactor, fileName)
@@ -146,5 +146,5 @@ function getExampleFileNames(refactorName: string): Array<string> {
 
 Object.keys(refactors).map((refactorName) =>
   // @ts-expect-error
-  testFiles(refactorName, refactors[refactorName], getExampleFileNames(refactorName))
+  testFiles(refactors[refactorName], getExampleFileNames(refactorName))
 )
