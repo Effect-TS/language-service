@@ -1,26 +1,35 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`missingContextOrError.ts > missingContextOrError.ts 1`] = `
-" eff
-20:9 - 20:13 | Missing 'ServiceC' in the expected Effect context.
+exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `
+"effectWithServices
+22:7 - 22:25 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
-Effect.gen(function*(){
-    const service = yield* ServiceB
-    yield* Effect.fail("error")
-})
-23:18 - 26:2 | Missing 'ServiceB' in the expected Effect context.
+effectWithServices
+29:20 - 29:38 | Missing 'ServiceC' in the expected Effect context."
+`;
 
- test3
-29:12 - 29:18 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
+" missingAllServices
+20:12 - 20:31 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
- test4
-32:12 - 32:18 | Missing 'ServiceC | ServiceA' in the expected Effect context.
+ missingServiceC
+22:12 - 22:28 | Missing 'ServiceC' in the expected Effect context.
 
+ missingServiceCWithSubtyping
+26:12 - 26:41 | Missing 'ServiceC' in the expected Effect context.
 
-        eff
-40:12 - 41:11 | Missing 'ServiceC' in the expected Effect context.
+ missingServiceA
+29:9 - 29:25 | Missing 'A' in the expected Effect context."
+`;
 
+exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
+"
+    return effectWithServices
+18:49 - 19:29 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
-        "-test"
-41:17 - 42:15 | Missing 'ServiceC' in the expected Effect context."
+ effectWithServices
+22:61 - 22:80 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+
+ effectWithServices
+24:104 - 24:123 | Missing 'ServiceC' in the expected Effect context."
 `;

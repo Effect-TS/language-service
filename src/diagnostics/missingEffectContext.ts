@@ -2,30 +2,34 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
 import { createDiagnostic } from "../definition.js"
-import * as Parsers from "../utils/Parsers.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import * as TypeParser from "../utils/TypeParser.js"
 
-export const missingContextOrError = createDiagnostic({
+export const missingEffectContext = createDiagnostic({
   code: 1,
   apply: (ts, program) => (sourceFile) => {
     const typeChecker = program.getTypeChecker()
     const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
 
     const visit = (node: ts.Node) => {
-      const entries = Parsers.expectedAndRealType(ts, typeChecker)(node)
+      const entries = TypeParser.expectedAndRealType(ts, typeChecker)(node)
       for (const [node, expectedType, valueNode, realType] of entries) {
-        const expectedEffect = Parsers.effectTypeArguments(ts, typeChecker)(
-          expectedType,
-          node
-        )
-        const realEffect = Parsers.effectTypeArguments(ts, typeChecker)(realType, valueNode)
-        if (Option.isSome(expectedEffect) && Option.isSome(realEffect)) {
+        Option.gen(function*() {
+          const expectedEffect = yield* TypeParser.effectTypeArguments(ts, typeChecker)(
+            expectedType,
+            node
+          )
+          const realEffect = yield* TypeParser.effectTypeArguments(ts, typeChecker)(
+            realType,
+            valueNode
+          )
+
           const missingContext = TypeCheckerApi.getMissingTypeEntriesInTargetType(
             ts,
             typeChecker
           )(
-            realEffect.value.R,
-            expectedEffect.value.R
+            realEffect.R,
+            expectedEffect.R
           )
           if (missingContext.length > 0) {
             effectDiagnostics.push(
@@ -38,7 +42,7 @@ export const missingContextOrError = createDiagnostic({
               }
             )
           }
-        }
+        })
       }
       ts.forEachChild(node, visit)
     }

@@ -108,6 +108,17 @@ export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeCheck
       const realType = typeChecker.getTypeAtLocation(node.right)
       return [[node.left, expectedType, node.right, realType]]
     }
+    if (ts.isReturnStatement(node) && node.expression) {
+      const expectedType = typeChecker.getContextualType(node.expression)
+      const realType = typeChecker.getTypeAtLocation(node.expression)
+      if (expectedType) return [[node, expectedType, node, realType]]
+    }
+    if (ts.isArrowFunction(node) && ts.isExpression(node.body)) {
+      const body = node.body
+      const expectedType = typeChecker.getContextualType(body)
+      const realType = typeChecker.getTypeAtLocation(body)
+      if (expectedType) return [[body, expectedType, body, realType]]
+    }
     return []
   }
 }
