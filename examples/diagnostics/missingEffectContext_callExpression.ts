@@ -19,11 +19,12 @@ function testFn(effect: Effect.Effect<number>){
     return effect
 }
 
+// @ts-expect-error
 testFn(effectWithServices)
-
 
 function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | ServiceB>){
     return effect
 }
 
+// @ts-expect-error
 testFnWithServiceAB(effectWithServices)

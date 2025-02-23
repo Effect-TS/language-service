@@ -2,34 +2,35 @@
 
 exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `
 "effectWithServices
-22:7 - 22:25 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+23:7 - 23:25 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
 effectWithServices
-29:20 - 29:38 | Missing 'ServiceC' in the expected Effect context."
+30:20 - 30:38 | Missing 'ServiceC' in the expected Effect context."
 `;
 
 exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
 " missingAllServices
-20:12 - 20:31 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+21:12 - 21:31 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
  missingServiceC
-22:12 - 22:28 | Missing 'ServiceC' in the expected Effect context.
+24:12 - 24:28 | Missing 'ServiceC' in the expected Effect context.
 
  missingServiceCWithSubtyping
-26:12 - 26:41 | Missing 'ServiceC' in the expected Effect context.
+29:12 - 29:41 | Missing 'ServiceC' in the expected Effect context.
 
  missingServiceA
-29:9 - 29:25 | Missing 'A' in the expected Effect context."
+33:9 - 33:25 | Missing 'A' in the expected Effect context."
 `;
 
 exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
 "
+    // @ts-expect-error
     return effectWithServices
-18:49 - 19:29 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+18:49 - 20:29 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
  effectWithServices
-22:61 - 22:80 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+24:61 - 24:80 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
  effectWithServices
-24:104 - 24:123 | Missing 'ServiceC' in the expected Effect context."
+27:104 - 27:123 | Missing 'ServiceC' in the expected Effect context."
 `;

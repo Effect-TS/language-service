@@ -17,15 +17,19 @@ declare const effectWithServices: Effect.Effect<number, never, ServiceA | Servic
 
 export const noError: Effect.Effect<number> = Effect.succeed(1)
 
+// @ts-expect-error
 export const missingAllServices: Effect.Effect<number> = effectWithServices
 
+// @ts-expect-error
 export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
 
 export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | ServiceB> {}
 
+// @ts-expect-error
 export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
 
 export function missingServiceWithGenericType<A>(service: A){
+    // @ts-expect-error
     const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
     return missingServiceA
 }
