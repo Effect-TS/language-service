@@ -9,30 +9,28 @@ effectWithServices
 `;
 
 exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
-" missingAllServices
-21:12 - 21:31 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+"missingAllServices
+21:13 - 21:31 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
- missingServiceC
-24:12 - 24:28 | Missing 'ServiceC' in the expected Effect context.
+missingServiceC
+24:13 - 24:28 | Missing 'ServiceC' in the expected Effect context.
 
- missingServiceCWithSubtyping
-29:12 - 29:41 | Missing 'ServiceC' in the expected Effect context.
+missingServiceCWithSubtyping
+29:13 - 29:41 | Missing 'ServiceC' in the expected Effect context.
 
- missingServiceA
-33:9 - 33:25 | Missing 'A' in the expected Effect context."
+missingServiceA
+33:10 - 33:25 | Missing 'A' in the expected Effect context."
 `;
 
 exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
-"
-    // @ts-expect-error
-    return effectWithServices
-17:49 - 19:29 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+"return effectWithServices
+19:4 - 19:29 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
- effectWithServices
-23:61 - 23:80 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+effectWithServices
+23:62 - 23:80 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
 
- effectWithServices
-26:104 - 26:123 | Missing 'ServiceC' in the expected Effect context."
+effectWithServices
+26:105 - 26:123 | Missing 'ServiceC' in the expected Effect context."
 `;
 
 exports[`missingEffectError_callExpression.ts > missingEffectError_callExpression.ts 1`] = `
@@ -44,28 +42,26 @@ effectWithErrors
 `;
 
 exports[`missingEffectError_plainAssignment.ts > missingEffectError_plainAssignment.ts 1`] = `
-" missingAllErrors
-21:12 - 21:29 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+"missingAllErrors
+21:13 - 21:29 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
 
- missingErrorC
-24:12 - 24:26 | Missing 'ErrorC' in the expected Effect errors.
+missingErrorC
+24:13 - 24:26 | Missing 'ErrorC' in the expected Effect errors.
 
- missingErrorCWithSubtyping
-29:12 - 29:39 | Missing 'ErrorC' in the expected Effect errors.
+missingErrorCWithSubtyping
+29:13 - 29:39 | Missing 'ErrorC' in the expected Effect errors.
 
- missingErrorA
-33:9 - 33:23 | Missing 'A' in the expected Effect errors."
+missingErrorA
+33:10 - 33:23 | Missing 'A' in the expected Effect errors."
 `;
 
 exports[`missingEffectError_returnSignature.ts > missingEffectError_returnSignature.ts 1`] = `
-"
-    // @ts-expect-error
-    return effectWithErrors
-18:49 - 20:27 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+"return effectWithErrors
+20:4 - 20:27 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
 
- effectWithErrors
-24:61 - 24:78 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+effectWithErrors
+24:62 - 24:78 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
 
- effectWithErrors
-27:93 - 27:110 | Missing 'ErrorC' in the expected Effect errors."
+effectWithErrors
+27:94 - 27:110 | Missing 'ErrorC' in the expected Effect errors."
 `;

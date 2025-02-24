@@ -36,9 +36,12 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
 
     // create human readable messages
     const humanMessages = canApply.map((error) => {
-      const start = ts.getLineAndCharacterOfPosition(sourceFile, error.node.pos)
-      const end = ts.getLineAndCharacterOfPosition(sourceFile, error.node.end)
-      const errorSourceCode = sourceText.substring(error.node.pos, error.node.end)
+      const start = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getStart(sourceFile))
+      const end = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getEnd())
+      const errorSourceCode = sourceText.substring(
+        error.node.getStart(sourceFile),
+        error.node.getEnd()
+      )
 
       return errorSourceCode + "\n" +
         `${start.line + 1}:${start.character} - ${

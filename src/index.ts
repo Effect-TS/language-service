@@ -46,8 +46,8 @@ const init = (
                     sourceFile
                   ).map((_) => ({
                     file: sourceFile,
-                    start: _.node.pos,
-                    length: _.node.end - _.node.pos,
+                    start: _.node.getStart(sourceFile),
+                    length: _.node.getEnd() - _.node.getStart(sourceFile),
                     messageText: _.messageText,
                     category: _.category,
                     code: diagnostic.code,
