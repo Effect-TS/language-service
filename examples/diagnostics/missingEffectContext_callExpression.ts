@@ -1,4 +1,3 @@
-import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 
 class ServiceA extends Effect.Service<ServiceB>()("ServiceA", {
