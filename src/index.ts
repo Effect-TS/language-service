@@ -43,7 +43,8 @@ const init = (
               Object.values(diagnostics).map((diagnostic) =>
                 pipe(
                   diagnostic.apply(modules.typescript, program, pluginOptions)(
-                    sourceFile
+                    sourceFile,
+                    applicableDiagnostics
                   ).map((_) => ({
                     file: sourceFile,
                     start: _.node.getStart(sourceFile),

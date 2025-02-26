@@ -26,7 +26,8 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
 
     // check and assert the refactor is executable
     const canApply = diagnostic.apply(ts, program, { preferredEffectGenAdapterName: "_" })(
-      sourceFile
+      sourceFile,
+      program.getSemanticDiagnostics(sourceFile)
     )
 
     if (canApply.length === 0) {
