@@ -1,6 +1,7 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Order from "effect/Order"
 import type ts from "typescript"
 import type { TypeScriptApi } from "./TSAPI.js"
 
@@ -342,4 +343,14 @@ export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker
     }
     return Option.none()
   }
+}
+
+export function deterministicTypeOrder(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return Order.make((a: ts.Type, b: ts.Type) => {
+    const aName = typeChecker.typeToString(a)
+    const bName = typeChecker.typeToString(b)
+    if (aName < bName) return -1
+    if (aName > bName) return 1
+    return 0
+  })
 }

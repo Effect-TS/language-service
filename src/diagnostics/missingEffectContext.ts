@@ -1,7 +1,9 @@
+import * as ReadonlyArray from "effect/Array"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
 import { createDiagnostic } from "../definition.js"
+import { deterministicTypeOrder } from "../utils/AST.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
@@ -10,6 +12,7 @@ export const missingEffectContext = createDiagnostic({
   apply: (ts, program) => (sourceFile) => {
     const typeChecker = program.getTypeChecker()
     const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+    const sortTypes = ReadonlyArray.sort(deterministicTypeOrder(ts, typeChecker))
 
     const visit = (node: ts.Node) => {
       const entries = TypeParser.expectedAndRealType(ts, typeChecker)(node)
@@ -37,7 +40,7 @@ export const missingEffectContext = createDiagnostic({
                 node,
                 category: ts.DiagnosticCategory.Error,
                 messageText: `Missing '${
-                  missingContext.map((_) => typeChecker.typeToString(_)).join(" | ")
+                  sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
                 }' in the expected Effect context.`
               }
             )

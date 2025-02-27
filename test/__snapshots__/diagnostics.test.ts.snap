@@ -2,7 +2,7 @@
 
 exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `
 "effectWithServices
-22:7 - 22:25 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+22:7 - 22:25 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
 29:20 - 29:38 | Missing 'ServiceC' in the expected Effect context."
@@ -10,7 +10,7 @@ effectWithServices
 
 exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
 "missingAllServices
-21:13 - 21:31 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+21:13 - 21:31 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 missingServiceC
 24:13 - 24:28 | Missing 'ServiceC' in the expected Effect context.
@@ -24,10 +24,10 @@ missingServiceA
 
 exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
 "return effectWithServices
-19:4 - 19:29 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+19:4 - 19:29 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
-23:62 - 23:80 | Missing 'ServiceC | ServiceA | ServiceB' in the expected Effect context.
+23:62 - 23:80 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
 26:105 - 26:123 | Missing 'ServiceC' in the expected Effect context."
@@ -35,7 +35,7 @@ effectWithServices
 
 exports[`missingEffectError_callExpression.ts > missingEffectError_callExpression.ts 1`] = `
 "effectWithErrors
-23:7 - 23:23 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+23:7 - 23:23 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
 30:20 - 30:36 | Missing 'ErrorC' in the expected Effect errors."
@@ -43,7 +43,7 @@ effectWithErrors
 
 exports[`missingEffectError_plainAssignment.ts > missingEffectError_plainAssignment.ts 1`] = `
 "missingAllErrors
-21:13 - 21:29 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+21:13 - 21:29 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 missingErrorC
 24:13 - 24:26 | Missing 'ErrorC' in the expected Effect errors.
@@ -57,10 +57,10 @@ missingErrorA
 
 exports[`missingEffectError_returnSignature.ts > missingEffectError_returnSignature.ts 1`] = `
 "return effectWithErrors
-20:4 - 20:27 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+20:4 - 20:27 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
-24:62 - 24:78 | Missing 'ErrorC | ErrorB | ErrorA' in the expected Effect errors.
+24:62 - 24:78 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
 27:94 - 27:110 | Missing 'ErrorC' in the expected Effect errors."
