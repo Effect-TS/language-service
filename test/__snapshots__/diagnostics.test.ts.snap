@@ -19,7 +19,10 @@ missingServiceCWithSubtyping
 29:13 - 29:41 | Missing 'ServiceC' in the expected Effect context.
 
 missingServiceA
-33:10 - 33:25 | Missing 'A' in the expected Effect context."
+33:10 - 33:25 | Missing 'A' in the expected Effect context.
+
+effectWithServices
+38:10 - 38:28 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context."
 `;
 
 exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
@@ -52,7 +55,10 @@ missingErrorCWithSubtyping
 29:13 - 29:39 | Missing 'ErrorC' in the expected Effect errors.
 
 missingErrorA
-33:10 - 33:23 | Missing 'A' in the expected Effect errors."
+33:10 - 33:23 | Missing 'A' in the expected Effect errors.
+
+effectWithErrors
+38:10 - 38:26 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors."
 `;
 
 exports[`missingEffectError_returnSignature.ts > missingEffectError_returnSignature.ts 1`] = `

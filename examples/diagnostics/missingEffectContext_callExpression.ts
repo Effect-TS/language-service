@@ -27,3 +27,4 @@ function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | Ser
 
 // @ts-expect-error
 testFnWithServiceAB(effectWithServices)
+

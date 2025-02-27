@@ -67,6 +67,41 @@ export function effectTypeArguments(ts: TypeScriptApi, typeChecker: ts.TypeCheck
     })
 }
 
+export function importedEffectModule(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return (node: ts.Node) =>
+    Option.gen(function*() {
+      const type = typeChecker.getTypeAtLocation(node)
+      // if the type has a property "never"
+      const propertySymbol = yield* Option.fromNullable(
+        typeChecker.getPropertyOfType(type, "never")
+      )
+      // and the property type is an effect
+      const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, node)
+      return yield* effectTypeArguments(ts, typeChecker)(propertyType, node).pipe(
+        Option.map(() => node)
+      )
+    })
+}
+
+export function effectGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return (node: ts.Node) =>
+    Option.gen(function*() {
+      // Effect.gen(...)
+      if (!ts.isCallExpression(node)) return yield* Option.none()
+      // ...
+      if (node.arguments.length === 0) return yield* Option.none()
+      // Effect.gen
+      if (!ts.isPropertyAccessExpression(node.expression)) return yield* Option.none()
+      const propertyAccess = node.expression
+      // gen
+      if (propertyAccess.name.text !== "gen") return yield* Option.none()
+      // Effect
+      return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
+        Option.map(() => node)
+      )
+    })
+}
+
 export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (node: ts.Node): Array<[ts.Node, ts.Type, ts.Node, ts.Type]> => {
     if (ts.isVariableDeclaration(node) && node.initializer) {
@@ -118,6 +153,11 @@ export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeCheck
       const expectedType = typeChecker.getContextualType(body)
       const realType = typeChecker.getTypeAtLocation(body)
       if (expectedType) return [[body, expectedType, body, realType]]
+    }
+    if (ts.isSatisfiesExpression(node)) {
+      const expectedType = typeChecker.getTypeAtLocation(node.type)
+      const realType = typeChecker.getTypeAtLocation(node.expression)
+      return [[node.expression, expectedType, node.expression, realType]]
     }
     return []
   }

@@ -33,3 +33,6 @@ export function missingServiceWithGenericType<A>(service: A){
     const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
     return missingServiceA
 }
+
+// @ts-expect-error
+const _ = effectWithServices satisfies Effect.Effect<number, never, never>

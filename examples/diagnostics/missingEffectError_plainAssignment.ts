@@ -33,3 +33,6 @@ export function missingErrorWithGenericType<A>(error: A){
     const missingErrorA: Effect.Effect<never> = Effect.fail(error)
     return missingErrorA
 }
+
+// @ts-expect-error
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
