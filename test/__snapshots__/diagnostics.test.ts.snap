@@ -1,5 +1,16 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`floatingEffect.ts > floatingEffect.ts 1`] = `
+"Effect.succeed("floating")
+5:0 - 5:26 | Effect must be yielded or assigned to a variable.
+
+Effect.never
+7:0 - 7:12 | Effect must be yielded or assigned to a variable.
+
+Effect.never
+10:4 - 10:16 | Effect must be yielded or assigned to a variable."
+`;
+
 exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `
 "effectWithServices
 22:7 - 22:25 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
