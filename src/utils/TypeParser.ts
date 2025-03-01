@@ -90,14 +90,18 @@ export function effectGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
       if (!ts.isCallExpression(node)) return yield* Option.none()
       // ...
       if (node.arguments.length === 0) return yield* Option.none()
+      // firsta argument is a generator function expression
+      const generatorFunction = node.arguments[0]
+      if (!ts.isFunctionExpression(generatorFunction)) return yield* Option.none()
+      if (generatorFunction.asteriskToken === undefined) return yield* Option.none()
       // Effect.gen
       if (!ts.isPropertyAccessExpression(node.expression)) return yield* Option.none()
       const propertyAccess = node.expression
       // gen
       if (propertyAccess.name.text !== "gen") return yield* Option.none()
-      // Effect
+      // check Effect module
       return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
-        Option.map(() => node)
+        Option.map(() => ({ body: generatorFunction.body }))
       )
     })
 }

@@ -82,3 +82,8 @@ effectWithErrors
 effectWithErrors
 27:94 - 27:110 | Missing 'ErrorC' in the expected Effect errors."
 `;
+
+exports[`missingStarInYieldEffectGen.ts > missingStarInYieldEffectGen.ts 1`] = `
+"yield Effect.succeed(1)
+9:4 - 9:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
+`;
