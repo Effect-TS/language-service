@@ -99,7 +99,7 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
       expect(diagnostics).toEqual([])
 
       // check and assert the refactor is executable
-      const canApply = refactor.apply(ts, program, { preferredEffectGenAdapterName: "_" })(
+      const canApply = refactor.apply(ts, program, { diagnostics: false })(
         sourceFile,
         textRange
       )

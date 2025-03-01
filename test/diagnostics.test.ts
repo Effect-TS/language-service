@@ -25,7 +25,7 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
     if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
     // check and assert the refactor is executable
-    const canApply = diagnostic.apply(ts, program, { preferredEffectGenAdapterName: "_" })(
+    const canApply = diagnostic.apply(ts, program, { diagnostics: true })(
       sourceFile,
       program.getSemanticDiagnostics(sourceFile)
     )

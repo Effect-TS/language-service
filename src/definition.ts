@@ -71,4 +71,5 @@ export function createDiagnostic(definition: DiagnosticDefinition) {
  * @category plugin
  */
 export interface PluginOptions {
+  diagnostics: boolean
 }

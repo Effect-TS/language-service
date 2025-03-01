@@ -21,8 +21,12 @@ const init = (
 
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
-
-    const pluginOptions: PluginOptions = {}
+    const pluginOptions: PluginOptions = {
+      diagnostics:
+        info.config && "diagnostics" in info.config && typeof info.config.diagnostics === "boolean"
+          ? info.config.diagnostics
+          : true
+    }
 
     // create the proxy
     const proxy: ts.LanguageService = Object.create(null)
@@ -35,7 +39,7 @@ const init = (
       const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
       const program = languageService.getProgram()
 
-      if (program) {
+      if (pluginOptions.diagnostics && program) {
         const effectDiagnostics: Array<ts.Diagnostic> = pipe(
           Option.fromNullable(program.getSourceFile(fileName)),
           Option.map((sourceFile) =>
