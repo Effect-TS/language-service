@@ -8,7 +8,7 @@ Effect.never
 7:0 - 7:12 | Effect must be yielded or assigned to a variable.
 
 Effect.never
-10:4 - 10:16 | Effect must be yielded or assigned to a variable."
+11:4 - 11:16 | Effect must be yielded or assigned to a variable."
 `;
 
 exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `

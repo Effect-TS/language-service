@@ -7,5 +7,6 @@ Effect.succeed("floating")
 Effect.never
 
 Effect.runPromise(Effect.gen(function*(){
+    const thisIsFine = Effect.succeed(1)
     Effect.never
 }))
