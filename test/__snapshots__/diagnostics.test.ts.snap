@@ -1,26 +1,92 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ensureGetCallTrace.ts > ensureGetCallTrace.ts 1`] = `
-" <A>(value: A) => T.succeed(value)
-5:28 - 5:62 | This function should be traced. getCallTrace() should be the first line of the body.
+exports[`floatingEffect.ts > floatingEffect.ts 1`] = `
+"Effect.succeed("floating")
+5:0 - 5:26 | Effect must be yielded or assigned to a variable.
 
- <A, B>(f: (value: A) => B) => T.map(f)
-7:24 - 7:63 | This function should be traced. getCallTrace() should be the first line of the body.
+Effect.never
+7:0 - 7:12 | Effect must be yielded or assigned to a variable.
 
- <A, B>(f: (value: A) => T.Effect<never, never, B>) => T.flatMap(f)
-9:21 - 9:88 | This function should be traced. getCallTrace() should be the first line of the body."
+Effect.never
+11:4 - 11:16 | Effect must be yielded or assigned to a variable."
 `;
 
-exports[`noSyncWithConstant.ts > noSyncWithConstant.ts 1`] = `
-" T.sync(() => 42)
-3:10 - 3:27 | Value is constant, instead of using sync you could use succeed.
+exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `
+"effectWithServices
+22:7 - 22:25 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
- T.sync(() => true)
-4:10 - 4:29 | Value is constant, instead of using sync you could use succeed.
+effectWithServices
+29:20 - 29:38 | Missing 'ServiceC' in the expected Effect context."
+`;
 
- T.failSync(() => 42)
-13:10 - 13:31 | Value is constant, instead of using failSync you could use fail.
+exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
+"missingAllServices
+21:13 - 21:31 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
- T.dieSync(() => 42)
-16:10 - 16:30 | Value is constant, instead of using dieSync you could use die."
+missingServiceC
+24:13 - 24:28 | Missing 'ServiceC' in the expected Effect context.
+
+missingServiceCWithSubtyping
+29:13 - 29:41 | Missing 'ServiceC' in the expected Effect context.
+
+missingServiceA
+33:10 - 33:25 | Missing 'A' in the expected Effect context.
+
+effectWithServices
+38:10 - 38:28 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context."
+`;
+
+exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
+"return effectWithServices
+19:4 - 19:29 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+
+effectWithServices
+23:62 - 23:80 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+
+effectWithServices
+26:105 - 26:123 | Missing 'ServiceC' in the expected Effect context."
+`;
+
+exports[`missingEffectError_callExpression.ts > missingEffectError_callExpression.ts 1`] = `
+"effectWithErrors
+23:7 - 23:23 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+effectWithErrors
+30:20 - 30:36 | Missing 'ErrorC' in the expected Effect errors."
+`;
+
+exports[`missingEffectError_plainAssignment.ts > missingEffectError_plainAssignment.ts 1`] = `
+"missingAllErrors
+21:13 - 21:29 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+missingErrorC
+24:13 - 24:26 | Missing 'ErrorC' in the expected Effect errors.
+
+missingErrorCWithSubtyping
+29:13 - 29:39 | Missing 'ErrorC' in the expected Effect errors.
+
+missingErrorA
+33:10 - 33:23 | Missing 'A' in the expected Effect errors.
+
+effectWithErrors
+38:10 - 38:26 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors."
+`;
+
+exports[`missingEffectError_returnSignature.ts > missingEffectError_returnSignature.ts 1`] = `
+"return effectWithErrors
+20:4 - 20:27 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+effectWithErrors
+24:62 - 24:78 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+effectWithErrors
+27:94 - 27:110 | Missing 'ErrorC' in the expected Effect errors."
+`;
+
+exports[`missingStarInYieldEffectGen.ts > missingStarInYieldEffectGen.ts 1`] = `
+"yield Effect.succeed(1)
+9:4 - 9:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+yield Effect.succeed(1)
+15:8 - 15:31 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;

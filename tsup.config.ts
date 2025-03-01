@@ -6,6 +6,7 @@ import { defineConfig } from "tsup"
 export default defineConfig({
   entry: ["src/index.ts"],
   clean: true,
+  sourcemap: true,
   noExternal: ["effect"],
   onSuccess() {
     const program = Effect.gen(function*(_) {

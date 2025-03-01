@@ -30,6 +30,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "dev": "tsup --watch",
     "clean": "rimraf dist docs coverage .tsbuildinfo",
     "lint": "eslint src test",
     "lint-fix": "eslint src test --fix",

@@ -11,6 +11,7 @@
     "rootDir": "examples",
     "noEmit": true,
     "noUnusedLocals": false,
+    "strict": true,
     "paths": {
       "@/*": ["./examples/*"]
     }
