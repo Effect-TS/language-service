@@ -20,38 +20,20 @@ Inside your tsconfig.json, you should add the plugin configuration as follows:
 }
 ```
 
-## Provided refactors
+And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
-Here's a list of the refactors provided by this language service plugin.
+## Provided functionalities
 
-### Add pipe
+### Diagnostics
 
-![](images/add-pipe.gif)
+- Better error readability when you're missing errors or service types in your Effect definitions
+- Detect floating Effects that are not yielded or run
+- Detect wrong usage of yield inside Effect gen
 
-Transform a set of function calls to a pipe() call.
+### Refactors
 
-### Pipeable to DataFirst
-
-![](images/pipeable-to-datafirst.gif)
-
-Transform a pipe() call into a series of datafirst function calls (where available).
-
-Removes useless arrow functions.
-
-### Toggle type annotation
-
-![](images/toggle-type-annotation.gif)
-
-With a single refactor, adds or removes type annotations from the definition.
-
-### async-await to Effect.gen
-
-![](images/async-await-to-gen.gif)
-
-Transform an async function definition, into an Effect by using Effect.gen.
-
-### async-await to Effect.gen with tryPromise
-
-![](images/async-await-to-gen-try-promise.gif)
-
-Transform an async function definition, into an Effect by using Effect.gen, and generating a tagged error for each promise call.
+- Transform an async function definition, into an Effect by using Effect.gen.
+- Transform an async function definition, into an Effect by using Effect.gen, and generating a tagged error for each promise call.
+- Function calls to pipe: Transform a set of function calls to a pipe() call.
+- Pipe to datafirst: Transform a pipe() call into a series of datafirst function calls (where available).
+- Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.
