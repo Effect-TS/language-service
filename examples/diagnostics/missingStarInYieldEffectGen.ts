@@ -9,6 +9,7 @@ const missingStarInYield = Effect.gen(function*(){
     yield Effect.succeed(1)
 })
 
+// @ts-expect-error
 const missingStarInMultipleYield = Effect.gen(function*(){
     yield Effect.succeed(1)
     yield Effect.succeed(2)
