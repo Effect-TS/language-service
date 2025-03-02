@@ -24,7 +24,7 @@ export function pipeableType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   }
 }
 
-export function varianceStructCovariant(
+export function varianceStructCovariantType(
   ts: TypeScriptApi,
   typeChecker: ts.TypeChecker
 ) {
@@ -41,13 +41,13 @@ export function varianceStructCovariant(
 export function effectVarianceStruct(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (type: ts.Type, atLocation: ts.Node) =>
     Option.all({
-      A: varianceStructCovariant(ts, typeChecker)(type, atLocation, "_A"),
-      E: varianceStructCovariant(ts, typeChecker)(type, atLocation, "_E"),
-      R: varianceStructCovariant(ts, typeChecker)(type, atLocation, "_R")
+      A: varianceStructCovariantType(ts, typeChecker)(type, atLocation, "_A"),
+      E: varianceStructCovariantType(ts, typeChecker)(type, atLocation, "_E"),
+      R: varianceStructCovariantType(ts, typeChecker)(type, atLocation, "_R")
     })
 }
 
-export function effectTypeArguments(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+export function effectType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (type: ts.Type, atLocation: ts.Node) =>
     Option.gen(function*(_) {
       // should be pipeable
@@ -67,6 +67,23 @@ export function effectTypeArguments(ts: TypeScriptApi, typeChecker: ts.TypeCheck
     })
 }
 
+export function fiberType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return (type: ts.Type, atLocation: ts.Node) =>
+    Option.gen(function*(_) {
+      // there is no better way to check if a type is a fiber right not
+      // so we just check for the existence of the property "await" and "poll"
+      const awaitSymbol = yield* Option.fromNullable(
+        typeChecker.getPropertyOfType(type, "await")
+      )
+      const pollSymbol = yield* Option.fromNullable(
+        typeChecker.getPropertyOfType(type, "poll")
+      )
+      if (!awaitSymbol || !pollSymbol) return yield* Option.none()
+      // and it is also an effect itself
+      return effectType(ts, typeChecker)(type, atLocation)
+    })
+}
+
 export function importedEffectModule(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (node: ts.Node) =>
     Option.gen(function*() {
@@ -77,7 +94,7 @@ export function importedEffectModule(ts: TypeScriptApi, typeChecker: ts.TypeChec
       )
       // and the property type is an effect
       const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, node)
-      return yield* effectTypeArguments(ts, typeChecker)(propertyType, node).pipe(
+      return yield* effectType(ts, typeChecker)(propertyType, node).pipe(
         Option.map(() => node)
       )
     })

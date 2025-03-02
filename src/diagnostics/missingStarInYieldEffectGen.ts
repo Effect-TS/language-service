@@ -16,7 +16,7 @@ export const missingStarInYieldEffectGen = createDiagnostic({
         ts.isYieldExpression(node) && node.expression && node.asteriskToken === undefined
       ) {
         const type = typeChecker.getTypeAtLocation(node.expression)
-        const effect = TypeParser.effectTypeArguments(ts, typeChecker)(type, node.expression)
+        const effect = TypeParser.effectType(ts, typeChecker)(type, node.expression)
         if (Option.isSome(effect)) {
           effectDiagnostics.push({
             node,

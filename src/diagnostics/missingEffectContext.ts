@@ -17,35 +17,37 @@ export const missingEffectContext = createDiagnostic({
     const visit = (node: ts.Node) => {
       const entries = TypeParser.expectedAndRealType(ts, typeChecker)(node)
       for (const [node, expectedType, valueNode, realType] of entries) {
-        Option.gen(function*() {
-          const expectedEffect = yield* TypeParser.effectTypeArguments(ts, typeChecker)(
-            expectedType,
-            node
+        // the expected type is an effect
+        const expectedEffect = TypeParser.effectType(ts, typeChecker)(
+          expectedType,
+          node
+        )
+        if (Option.isNone(expectedEffect)) continue
+        // the real type is an effect
+        const realEffect = TypeParser.effectType(ts, typeChecker)(
+          realType,
+          valueNode
+        )
+        if (Option.isNone(realEffect)) continue
+        // get the missing context types
+        const missingContext = TypeCheckerApi.getMissingTypeEntriesInTargetType(
+          ts,
+          typeChecker
+        )(
+          realEffect.value.R,
+          expectedEffect.value.R
+        )
+        if (missingContext.length > 0) {
+          effectDiagnostics.push(
+            {
+              node,
+              category: ts.DiagnosticCategory.Error,
+              messageText: `Missing '${
+                sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
+              }' in the expected Effect context.`
+            }
           )
-          const realEffect = yield* TypeParser.effectTypeArguments(ts, typeChecker)(
-            realType,
-            valueNode
-          )
-
-          const missingContext = TypeCheckerApi.getMissingTypeEntriesInTargetType(
-            ts,
-            typeChecker
-          )(
-            realEffect.R,
-            expectedEffect.R
-          )
-          if (missingContext.length > 0) {
-            effectDiagnostics.push(
-              {
-                node,
-                category: ts.DiagnosticCategory.Error,
-                messageText: `Missing '${
-                  sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
-                }' in the expected Effect context.`
-              }
-            )
-          }
-        })
+        }
       }
       ts.forEachChild(node, visit)
     }

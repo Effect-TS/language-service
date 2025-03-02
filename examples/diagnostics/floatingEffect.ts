@@ -10,3 +10,9 @@ Effect.runPromise(Effect.gen(function*(){
     const thisIsFine = Effect.succeed(1)
     Effect.never
 }))
+
+Effect.runPromise(Effect.gen(function*(){
+    yield* Effect.succeed(1).pipe(Effect.fork)
+    // ^- This is fine, returns a fiber runtime
+}))
+
