@@ -15,13 +15,18 @@ export const floatingEffect = createDiagnostic({
         ts.isExpressionStatement(node) && (ts.isBlock(node.parent) || ts.isSourceFile(node.parent))
       ) {
         const type = typeChecker.getTypeAtLocation(node.expression)
-        const effect = TypeParser.effectTypeArguments(ts, typeChecker)(type, node.expression)
+        // if type is an effect
+        const effect = TypeParser.effectType(ts, typeChecker)(type, node.expression)
         if (Option.isSome(effect)) {
-          effectDiagnostics.push({
-            node,
-            category: ts.DiagnosticCategory.Error,
-            messageText: `Effect must be yielded or assigned to a variable.`
-          })
+          // and not a fiber (we consider that a valid operation)
+          const fiber = TypeParser.fiberType(ts, typeChecker)(type, node.expression)
+          if (Option.isNone(fiber)) {
+            effectDiagnostics.push({
+              node,
+              category: ts.DiagnosticCategory.Error,
+              messageText: `Effect must be yielded or assigned to a variable.`
+            })
+          }
         }
       }
       ts.forEachChild(node, visit)

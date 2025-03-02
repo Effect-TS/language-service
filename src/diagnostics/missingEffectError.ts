@@ -17,35 +17,38 @@ export const missingEffectError = createDiagnostic({
     const visit = (node: ts.Node) => {
       const entries = TypeParser.expectedAndRealType(ts, typeChecker)(node)
       for (const [node, expectedType, valueNode, realType] of entries) {
-        Option.gen(function*() {
-          const expectedEffect = yield* TypeParser.effectTypeArguments(ts, typeChecker)(
-            expectedType,
-            node
-          )
-          const realEffect = yield* TypeParser.effectTypeArguments(ts, typeChecker)(
-            realType,
-            valueNode
-          )
+        // the expected type is an effect
+        const expectedEffect = TypeParser.effectType(ts, typeChecker)(
+          expectedType,
+          node
+        )
+        if (Option.isNone(expectedEffect)) continue
+        // the real type is an effect
+        const realEffect = TypeParser.effectType(ts, typeChecker)(
+          realType,
+          valueNode
+        )
+        if (Option.isNone(realEffect)) continue
+        // get the missing error types
+        const missingErrorTypes = TypeCheckerApi.getMissingTypeEntriesInTargetType(
+          ts,
+          typeChecker
+        )(
+          realEffect.value.E,
+          expectedEffect.value.E
+        )
 
-          const missingErrorTypes = TypeCheckerApi.getMissingTypeEntriesInTargetType(
-            ts,
-            typeChecker
-          )(
-            realEffect.E,
-            expectedEffect.E
+        if (missingErrorTypes.length > 0) {
+          effectDiagnostics.push(
+            {
+              node,
+              category: ts.DiagnosticCategory.Error,
+              messageText: `Missing '${
+                sortTypes(missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
+              }' in the expected Effect errors.`
+            }
           )
-          if (missingErrorTypes.length > 0) {
-            effectDiagnostics.push(
-              {
-                node,
-                category: ts.DiagnosticCategory.Error,
-                messageText: `Missing '${
-                  sortTypes(missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
-                }' in the expected Effect errors.`
-              }
-            )
-          }
-        })
+        }
       }
       ts.forEachChild(node, visit)
     }
