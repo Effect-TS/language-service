@@ -84,9 +84,24 @@ effectWithErrors
 `;
 
 exports[`missingStarInYieldEffectGen.ts > missingStarInYieldEffectGen.ts 1`] = `
-"yield Effect.succeed(1)
-9:4 - 9:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+"function
+8:38 - 8:46 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.succeed(1)
-15:8 - 15:31 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
+9:4 - 9:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+function
+13:46 - 13:54 | Seems like you used yield instead of yield* inside this Effect.gen.
+
+yield Effect.succeed(1)
+14:4 - 14:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+yield Effect.succeed(2)
+15:4 - 15:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+function
+20:22 - 20:30 | Seems like you used yield instead of yield* inside this Effect.gen.
+
+yield Effect.succeed(1)
+21:8 - 21:31 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;

@@ -9,49 +9,56 @@ export const missingStarInYieldEffectGen = createDiagnostic({
   apply: (ts, program) => (sourceFile) => {
     const typeChecker = program.getTypeChecker()
     const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+    const brokenGenerators = new Set<ts.Node>()
+    const brokenYields = new Set<ts.Node>()
 
-    const visitWhileInGenerator = (node: ts.Node) => {
+    const visit = (functionStarNode: ts.Node | undefined) => (node: ts.Node) => {
       // error if yield is not followed by *
       if (
-        ts.isYieldExpression(node) && node.expression && node.asteriskToken === undefined
+        functionStarNode && ts.isYieldExpression(node) && node.expression &&
+        node.asteriskToken === undefined
       ) {
         const type = typeChecker.getTypeAtLocation(node.expression)
         const effect = TypeParser.effectType(ts, typeChecker)(type, node.expression)
         if (Option.isSome(effect)) {
-          effectDiagnostics.push({
-            node,
-            category: ts.DiagnosticCategory.Error,
-            messageText:
-              `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`
-          })
+          brokenGenerators.add(functionStarNode)
+          brokenYields.add(node)
         }
       }
       // continue if we hit another effect gen
       const effectGen = TypeParser.effectGen(ts, typeChecker)(node)
       if (Option.isSome(effectGen)) {
-        ts.forEachChild(effectGen.value.body, visitWhileInGenerator)
+        ts.forEachChild(effectGen.value.body, visit(effectGen.value.functionStar))
       } // stop when we hit a generator function
       else if (
         (ts.isFunctionExpression(node) || ts.isMethodDeclaration(node)) &&
         node.asteriskToken !== undefined
       ) {
-        ts.forEachChild(node, visit)
+        // continue with new parent function star node
+        ts.forEachChild(node, visit(undefined))
       } else {
-        // any other node
-        ts.forEachChild(node, visitWhileInGenerator)
+        // continue with current parent function star node
+        ts.forEachChild(node, visit(functionStarNode))
       }
     }
+    ts.forEachChild(sourceFile, visit(undefined))
 
-    const visit = (node: ts.Node) => {
-      const effectGen = TypeParser.effectGen(ts, typeChecker)(node)
-      if (Option.isSome(effectGen)) {
-        ts.forEachChild(effectGen.value.body, visitWhileInGenerator)
-      } else {
-        ts.forEachChild(node, visit)
-      }
-    }
-
-    ts.forEachChild(sourceFile, visit)
+    // emit diagnostics
+    brokenGenerators.forEach((node) =>
+      effectDiagnostics.push({
+        node,
+        category: ts.DiagnosticCategory.Error,
+        messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`
+      })
+    )
+    brokenYields.forEach((node) =>
+      effectDiagnostics.push({
+        node,
+        category: ts.DiagnosticCategory.Error,
+        messageText:
+          `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`
+      })
+    )
 
     return effectDiagnostics
   }
