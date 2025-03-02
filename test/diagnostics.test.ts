@@ -35,6 +35,9 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
       return
     }
 
+    // sort by start position
+    canApply.sort((a, b) => a.node.getStart(sourceFile) - b.node.getStart(sourceFile))
+
     // create human readable messages
     const humanMessages = canApply.map((error) => {
       const start = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getStart(sourceFile))

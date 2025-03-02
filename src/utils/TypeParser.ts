@@ -118,7 +118,10 @@ export function effectGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
       if (propertyAccess.name.text !== "gen") return yield* Option.none()
       // check Effect module
       return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
-        Option.map(() => ({ body: generatorFunction.body }))
+        Option.map(() => ({
+          body: generatorFunction.body,
+          functionStar: generatorFunction.getFirstToken()
+        }))
       )
     })
 }
