@@ -84,6 +84,21 @@ export function fiberType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
     })
 }
 
+export function effectSubtype(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return (type: ts.Type, atLocation: ts.Node) =>
+    Option.gen(function*(_) {
+      // there is no better way to check if a type is a subtype of effect
+      // so we just check for the existence of the property "_tag"
+      // which is common for Option, Either, and others
+      const tagSymbol = yield* Option.fromNullable(
+        typeChecker.getPropertyOfType(type, "_tag")
+      )
+      if (!tagSymbol) return yield* Option.none()
+      // and it is also an effect itself
+      return effectType(ts, typeChecker)(type, atLocation)
+    })
+}
+
 export function importedEffectModule(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (node: ts.Node) =>
     Option.gen(function*() {

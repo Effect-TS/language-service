@@ -18,5 +18,10 @@ Effect.runPromise(Effect.gen(function*(){
 
 export function constructorFunction(this: { boot: Effect.Effect<void>}){
     this.boot = Effect.void
+    // ^- This is fine, its another way to perform an assignment
 }
 
+const main = Effect.gen(function*(){
+    yield* Effect.exit(Effect.void)
+    // ^- This is fine, returns an exit
+})

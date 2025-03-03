@@ -1,3 +1,4 @@
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
@@ -31,8 +32,11 @@ export const floatingEffect = createDiagnostic({
         const effect = TypeParser.effectType(ts, typeChecker)(type, node.expression)
         if (Option.isSome(effect)) {
           // and not a fiber (we consider that a valid operation)
-          const fiber = TypeParser.fiberType(ts, typeChecker)(type, node.expression)
-          if (Option.isNone(fiber)) {
+          const allowedFloatingEffects = pipe(
+            TypeParser.fiberType(ts, typeChecker)(type, node.expression),
+            Option.orElse(() => TypeParser.effectSubtype(ts, typeChecker)(type, node.expression))
+          )
+          if (Option.isNone(allowedFloatingEffects)) {
             effectDiagnostics.push({
               node,
               category: ts.DiagnosticCategory.Error,
