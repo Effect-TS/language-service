@@ -4,14 +4,17 @@ import type { ApplicableDiagnosticDefinition } from "../definition.js"
 import { createDiagnostic } from "../definition.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
-function isFloatingExpression(node: ts.Node): node is ts.ExpressionStatement{
+function isFloatingExpression(node: ts.Node): node is ts.ExpressionStatement {
   // should be an expression statement
-  if(!ts.isExpressionStatement(node)) return false
+  if (!ts.isExpressionStatement(node)) return false
   // parent is either block or source file
-  if(!((ts.isBlock(node.parent) || ts.isSourceFile(node.parent)))) return false
+  if (!(ts.isBlock(node.parent) || ts.isSourceFile(node.parent))) return false
   const expression = node.expression
   // this.variable = Effect.succeed is a valid expression
-  if(ts.isBinaryExpression(expression) && expression.operatorToken && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken) return false
+  if (
+    ts.isBinaryExpression(expression) && expression.operatorToken &&
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+  ) return false
   return true
 }
 
