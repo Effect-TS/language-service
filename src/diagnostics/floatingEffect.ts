@@ -1,8 +1,19 @@
 import * as Option from "effect/Option"
-import type ts from "typescript"
+import ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
 import { createDiagnostic } from "../definition.js"
 import * as TypeParser from "../utils/TypeParser.js"
+
+function isFloatingExpression(node: ts.Node): node is ts.ExpressionStatement{
+  // should be an expression statement
+  if(!ts.isExpressionStatement(node)) return false
+  // parent is either block or source file
+  if(!((ts.isBlock(node.parent) || ts.isSourceFile(node.parent)))) return false
+  const expression = node.expression
+  // this.variable = Effect.succeed is a valid expression
+  if(ts.isBinaryExpression(expression) && expression.operatorToken && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken) return false
+  return true
+}
 
 export const floatingEffect = createDiagnostic({
   code: 3,
@@ -11,9 +22,7 @@ export const floatingEffect = createDiagnostic({
     const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
 
     const visit = (node: ts.Node) => {
-      if (
-        ts.isExpressionStatement(node) && (ts.isBlock(node.parent) || ts.isSourceFile(node.parent))
-      ) {
+      if (isFloatingExpression(node)) {
         const type = typeChecker.getTypeAtLocation(node.expression)
         // if type is an effect
         const effect = TypeParser.effectType(ts, typeChecker)(type, node.expression)

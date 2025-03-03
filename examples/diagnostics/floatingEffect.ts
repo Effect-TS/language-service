@@ -16,3 +16,7 @@ Effect.runPromise(Effect.gen(function*(){
     // ^- This is fine, returns a fiber runtime
 }))
 
+export function constructorFunction(this: { boot: Effect.Effect<void>}){
+    this.boot = Effect.void
+}
+
