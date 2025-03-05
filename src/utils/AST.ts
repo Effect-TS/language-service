@@ -83,8 +83,8 @@ export function findModuleNamedImportIdentifierName(
       Option.map((namedBindings) => {
         if (!ts.isNamedImports(namedBindings)) return
         for (const importSpecifier of namedBindings.elements) {
-          if (importSpecifier.propertyName?.escapedText === namedImport) {
-            return importSpecifier.name?.escapedText || importSpecifier.propertyName?.escapedText
+          if (importSpecifier.propertyName?.getText() === namedImport) {
+            return importSpecifier.name?.escapedText || importSpecifier.propertyName?.getText()
           }
         }
       }),
@@ -114,7 +114,7 @@ export function findModuleImportIdentifierNameViaTypeChecker(
           if (!symbol || !symbol.exports) return
           if (!symbol.exports.has(importName as ts.__String)) return
           return importSpecifier.name?.escapedText ||
-            importSpecifier.propertyName?.escapedText as string
+            importSpecifier.propertyName?.getText() as string
         }
       }
     }))
