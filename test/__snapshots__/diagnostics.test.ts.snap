@@ -103,5 +103,23 @@ function
 20:22 - 20:30 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.succeed(1)
-21:8 - 21:31 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
+21:8 - 21:31 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+function
+30:32 - 30:40 | Seems like you used yield instead of yield* inside this Effect.gen.
+
+yield Effect.never
+31:4 - 31:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+function
+34:61 - 34:69 | Seems like you used yield instead of yield* inside this Effect.gen.
+
+yield Effect.never
+35:4 - 35:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+
+function
+38:48 - 38:56 | Seems like you used yield instead of yield* inside this Effect.gen.
+
+yield Effect.never
+39:4 - 39:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;
