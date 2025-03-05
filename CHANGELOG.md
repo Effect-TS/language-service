@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.4.0
+
+### Minor Changes
+
+- [#66](https://github.com/Effect-TS/language-service/pull/66) [`89d6fa9`](https://github.com/Effect-TS/language-service/commit/89d6fa9647717b856113cbd13c41811c033baf4f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Remove old transformer
+
+- [#67](https://github.com/Effect-TS/language-service/pull/67) [`5111a65`](https://github.com/Effect-TS/language-service/commit/5111a65046a01d82583b34ba8f2d1a2d4945e5a5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Handle Effect.fn and Effect.fnUntraced in missing yield star diagnostic
+
+### Patch Changes
+
+- [#64](https://github.com/Effect-TS/language-service/pull/64) [`f8d5018`](https://github.com/Effect-TS/language-service/commit/f8d501886585d58cc391af119463223817ccb93b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Upgrade used TS version
+
 ## 0.3.2
 
 ### Patch Changes
@@ -75,7 +87,7 @@
     Effect.gen(function* () {
       Effect.sync(() => console.log("Hello!"));
       // ^- Effect must be yielded or assigned to a variable.
-    }),
+    })
   );
   ```
 
@@ -90,7 +102,7 @@
     Effect.gen(function* () {
       yield Effect.sync(() => console.log("Hello!"));
       // ^- When yielding Effects inside Effect.gen, you should use yield* instead of yield.
-    }),
+    })
   );
   ```
 
