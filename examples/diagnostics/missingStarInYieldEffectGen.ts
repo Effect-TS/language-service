@@ -21,3 +21,23 @@ const missingStarInInnerYield = Effect.gen(function*(){
         yield Effect.succeed(1)
     })
 })
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})

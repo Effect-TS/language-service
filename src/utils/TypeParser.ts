@@ -141,6 +141,61 @@ export function effectGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
     })
 }
 
+export function effectFnUntracedGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return (node: ts.Node) =>
+    Option.gen(function*() {
+      // Effect.gen(...)
+      if (!ts.isCallExpression(node)) return yield* Option.none()
+      // ...
+      if (node.arguments.length === 0) return yield* Option.none()
+      // firsta argument is a generator function expression
+      const generatorFunction = node.arguments[0]
+      if (!ts.isFunctionExpression(generatorFunction)) return yield* Option.none()
+      if (generatorFunction.asteriskToken === undefined) return yield* Option.none()
+      // Effect.gen
+      if (!ts.isPropertyAccessExpression(node.expression)) return yield* Option.none()
+      const propertyAccess = node.expression
+      // gen
+      if (propertyAccess.name.text !== "fnUntraced") return yield* Option.none()
+      // check Effect module
+      return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
+        Option.map(() => ({
+          body: generatorFunction.body,
+          functionStar: generatorFunction.getFirstToken()
+        }))
+      )
+    })
+}
+
+export function effectFnGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
+  return (node: ts.Node) =>
+    Option.gen(function*() {
+      // Effect.fn(...)
+      if (!ts.isCallExpression(node)) return yield* Option.none()
+      // ...
+      if (node.arguments.length === 0) return yield* Option.none()
+      // firsta argument is a generator function expression
+      const generatorFunction = node.arguments[0]
+      if (!ts.isFunctionExpression(generatorFunction)) return yield* Option.none()
+      if (generatorFunction.asteriskToken === undefined) return yield* Option.none()
+      // either we are using Effect.fn("name")(generatorFunction) or we are using Effect.fn(generatorFunction)
+      const expressionToTest = ts.isCallExpression(node.expression)
+        ? node.expression.expression
+        : node.expression
+      if (!ts.isPropertyAccessExpression(expressionToTest)) return yield* Option.none()
+      const propertyAccess = expressionToTest
+      // fn
+      if (propertyAccess.name.text !== "fn") return yield* Option.none()
+      // check Effect module
+      return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
+        Option.map(() => ({
+          body: generatorFunction.body,
+          functionStar: generatorFunction.getFirstToken()
+        }))
+      )
+    })
+}
+
 export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
   return (node: ts.Node): Array<[ts.Node, ts.Type, ts.Node, ts.Type]> => {
     if (ts.isVariableDeclaration(node) && node.initializer) {

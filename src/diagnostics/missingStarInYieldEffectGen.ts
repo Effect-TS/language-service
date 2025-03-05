@@ -1,3 +1,4 @@
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
@@ -25,10 +26,14 @@ export const missingStarInYieldEffectGen = createDiagnostic({
           brokenYields.add(node)
         }
       }
-      // continue if we hit another effect gen
-      const effectGen = TypeParser.effectGen(ts, typeChecker)(node)
-      if (Option.isSome(effectGen)) {
-        ts.forEachChild(effectGen.value.body, visit(effectGen.value.functionStar))
+      // continue if we hit effect gen-like
+      const effectGenLike = pipe(
+        TypeParser.effectGen(ts, typeChecker)(node),
+        Option.orElse(() => TypeParser.effectFnUntracedGen(ts, typeChecker)(node)),
+        Option.orElse(() => TypeParser.effectFnGen(ts, typeChecker)(node))
+      )
+      if (Option.isSome(effectGenLike)) {
+        ts.forEachChild(effectGenLike.value.body, visit(effectGenLike.value.functionStar))
       } // stop when we hit a generator function
       else if (
         (ts.isFunctionExpression(node) || ts.isMethodDeclaration(node)) &&
