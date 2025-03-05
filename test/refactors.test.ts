@@ -3,7 +3,7 @@ import { refactors } from "@effect/language-service/refactors"
 import * as O from "effect/Option"
 import * as fs from "fs"
 import * as path from "path"
-import ts from "typescript"
+import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
 import { createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.js"
 

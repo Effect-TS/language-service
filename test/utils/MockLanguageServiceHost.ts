@@ -1,5 +1,5 @@
 import * as fs from "fs"
-import ts from "typescript"
+import * as ts from "typescript"
 
 export function createMockLanguageServiceHost(
   fileName: string,

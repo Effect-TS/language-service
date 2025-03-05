@@ -2,6 +2,7 @@
   "include": [],
   "compilerOptions": {
     "strict": true,
+    "allowSyntheticDefaultImports":true,
     "exactOptionalPropertyTypes": true,
     "moduleDetection": "force",
     "composite": true,
@@ -10,7 +11,7 @@
     "esModuleInterop": false,
     "declaration": true,
     "skipLibCheck": true,
-    "emitDecoratorMetadata": true,
+    "emitDecoratorMetadata": false,
     "experimentalDecorators": true,
     "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM"],
