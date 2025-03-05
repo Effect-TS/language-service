@@ -364,7 +364,7 @@ exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 4:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 4:16
 import * as T from "effect/Effect"
 
-export const test1: <A>(value: A) => T.Effect<A, never, never> = T.succeed
+export const test1: <A>(value: A) => T.Effect<A> = T.succeed
 export const test2 = T.fail("LOL")
 
 const predefined = 42
@@ -540,7 +540,7 @@ export const test3 = predefined
 
 const callable = () => 42
 export const test4 = callable
-export const test5: (defect: unknown) => T.Effect<never, never, never> = T.die
+export const test5: (defect: unknown) => T.Effect<never> = T.die
 
 const removeAnnotation:number=42
 const removeAnnotationWithSpace: number = 42
