@@ -131,6 +131,13 @@ declare module "typescript" {
   export interface TypeChecker {
     isTypeAssignableTo(source: ts.Type, target: ts.Type): boolean
   }
+
+  export function typeToDisplayParts(
+    typechecker: ts.TypeChecker,
+    type: ts.Type,
+    enclosingDeclaration?: ts.Node | undefined,
+    flags?: ts.TypeFormatFlags
+  ): Array<ts.SymbolDisplayPart>
 }
 
 export type TypeScriptApi = typeof ts

@@ -22,6 +22,24 @@ Inside your tsconfig.json, you should add the plugin configuration as follows:
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
+## Options
+
+Few options can be provided alongside the initialization of the Language Service Plugin.
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnostics": true, // controls Effect diagnostics (on by default)
+        "quickinfo": true // controls quickinfo over Effect (on by default)
+      }
+    ]
+  }
+}
+```
+
 ## Provided functionalities
 
 ### Diagnostics
