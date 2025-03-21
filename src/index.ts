@@ -6,7 +6,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import type { PluginOptions } from "./definition.js"
 import { diagnostics } from "./diagnostics.js"
-import { dedupeJsDocTags } from "./quickinfo.js"
+import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 import * as AST from "./utils/AST.js"
 
@@ -23,6 +23,10 @@ const init = (
       diagnostics:
         info.config && "diagnostics" in info.config && typeof info.config.diagnostics === "boolean"
           ? info.config.diagnostics
+          : true,
+      quickinfo:
+        info.config && "quickinfo" in info.config && typeof info.config.quickinfo === "boolean"
+          ? info.config.quickinfo
           : true
     }
 
@@ -186,8 +190,15 @@ const init = (
     proxy.getQuickInfoAtPosition = (fileName, position, ...args) => {
       const quickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
 
-      if (quickInfo) {
-        return dedupeJsDocTags(quickInfo)
+      if (pluginOptions.quickinfo && quickInfo) {
+        const dedupedTagsQuickInfo = dedupeJsDocTags(quickInfo)
+
+        const program = languageService.getProgram()
+        if (program) {
+          return prependEffectTypeArguments(ts, program)(fileName, position, dedupedTagsQuickInfo)
+        }
+
+        return dedupedTagsQuickInfo
       }
 
       return quickInfo

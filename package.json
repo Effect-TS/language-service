@@ -36,7 +36,8 @@
     "check": "tsc -b tsconfig.json",
     "circular": "madge --extensions ts --circular --no-color --no-spinner --warning src",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "code-debug": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",

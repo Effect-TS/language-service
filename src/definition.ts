@@ -72,4 +72,5 @@ export function createDiagnostic(definition: DiagnosticDefinition) {
  */
 export interface PluginOptions {
   diagnostics: boolean
+  quickinfo: boolean
 }
