@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.5.0
+
+### Minor Changes
+
+- [#68](https://github.com/Effect-TS/language-service/pull/68) [`79ce0b1`](https://github.com/Effect-TS/language-service/commit/79ce0b1c7c3cd04db53668d76710bc50284ebae9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Adds support for quickinfo for effect
+
+  They can be disabled by the LSP option "quickinfo": false.
+
+  Once you hover a truncated type, you'll see additional information about the Effect type arguments like Success, Failure and Requirements.
+
 ## 0.4.0
 
 ### Minor Changes
