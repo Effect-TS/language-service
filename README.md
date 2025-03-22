@@ -4,9 +4,8 @@ This package implements a TypeScript language service plugin that allows additio
 
 ## Installation
 
-After `npm install @effect/language-service` in your project, ensure you set your VSCode to use your workspace TypeScript version.
-
-Inside your tsconfig.json, you should add the plugin configuration as follows:
+1) `npm install @effect/language-service` in your project
+2) inside your tsconfig.json, you should add the plugin configuration as follows:
 
 ```json
 {
@@ -19,6 +18,10 @@ Inside your tsconfig.json, you should add the plugin configuration as follows:
   }
 }
 ```
+3) Ensure that you set your editor to use your workspace TypeScript version. 
+  
+    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version".
+    - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
@@ -41,6 +44,9 @@ Few options can be provided alongside the initialization of the Language Service
 ```
 
 ## Provided functionalities
+
+### Quickinfo
+- Show the extended type of the current Effect
 
 ### Diagnostics
 
