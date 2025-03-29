@@ -52,7 +52,8 @@ Few options can be provided alongside the initialization of the Language Service
 
 - Better error readability when you're missing errors or service types in your Effect definitions
 - Detect floating Effects that are not yielded or run
-- Detect wrong usage of yield inside Effect gen
+- Detect wrong usage of yield inside Effect.gen
+- Detect unnecessary usages of Effect.gen
 
 ### Refactors
 

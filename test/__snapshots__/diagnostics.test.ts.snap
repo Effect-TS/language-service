@@ -123,3 +123,10 @@ function
 yield Effect.never
 42:4 - 42:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;
+
+exports[`unnecessaryEffectGen.ts > unnecessaryEffectGen.ts 1`] = `
+"Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+12:36 - 14:2 | This Effect.gen is useless here because it only contains a single return statement."
+`;
