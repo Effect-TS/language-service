@@ -30,10 +30,19 @@ export const toggleTypeAnnotation = createRefactor({
 
             const initializer = node.initializer!
             const initializerType = typeChecker.getTypeAtLocation(initializer)
-            const initializerTypeNode = typeChecker.typeToTypeNode(
+            const initializerTypeNode = Option.fromNullable(typeChecker.typeToTypeNode(
               initializerType,
               node,
               ts.NodeBuilderFlags.NoTruncation
+            )).pipe(
+              Option.orElse(() =>
+                Option.fromNullable(typeChecker.typeToTypeNode(
+                  initializerType,
+                  undefined,
+                  ts.NodeBuilderFlags.NoTruncation
+                ))
+              ),
+              Option.getOrUndefined
             )
             if (initializerTypeNode) {
               changeTracker.insertNodeAt(
