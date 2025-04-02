@@ -1,4 +1,4 @@
-// 4:16,5:16,8:16,11:16,12:16,14:16,15:16,20:16,24:16,38:16
+// 4:16,5:16,8:16,11:16,12:16,14:16,15:16,20:16,24:16,38:16,41:15,42:15,43:9,44:9
 import * as T from "effect/Effect"
 
 export const test1 = T.succeed
@@ -36,3 +36,10 @@ declare const intersection2: {
 declare function intersect<A, B>(a: A, b: B): A & B
 
 export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
