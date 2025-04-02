@@ -10,7 +10,7 @@ export const toggleTypeAnnotation = createRefactor({
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
-      ReadonlyArray.filter(ts.isVariableDeclaration),
+      ReadonlyArray.filter(node => ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)),
       ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
       ReadonlyArray.filter((node) => !!node.initializer),
       ReadonlyArray.head,
