@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.5.1
+
+### Patch Changes
+
+- [#73](https://github.com/Effect-TS/language-service/pull/73) [`3c9c1ba`](https://github.com/Effect-TS/language-service/commit/3c9c1ba9a7d5ae6eadc4d4c3e9d0737fd0c8f21f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Avoid to bail-out type generation when imports are missing, show instead partial signature
+
 ## 0.5.0
 
 ### Minor Changes
