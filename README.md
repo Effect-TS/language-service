@@ -59,6 +59,7 @@ Few options can be provided alongside the initialization of the Language Service
 
 - Transform an async function definition, into an Effect by using Effect.gen.
 - Transform an async function definition, into an Effect by using Effect.gen, and generating a tagged error for each promise call.
+- Transform a function returning an Effect.gen into a Effect.fn
 - Function calls to pipe: Transform a set of function calls to a pipe() call.
 - Pipe to datafirst: Transform a pipe() call into a series of datafirst function calls (where available).
 - Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.

@@ -3,6 +3,7 @@
  */
 import { asyncAwaitToGen } from "./refactors/asyncAwaitToGen.js"
 import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise.js"
+import { effectGenToFn } from "./refactors/effectGenToFn.js"
 import { functionToArrow } from "./refactors/functionToArrow.js"
 import { pipeableToDatafirst } from "./refactors/pipeableToDatafirst.js"
 import { toggleLazyConst } from "./refactors/toggleLazyConst.js"
@@ -21,5 +22,6 @@ export const refactors = {
   toggleLazyConst,
   toggleReturnTypeAnnotation,
   toggleTypeAnnotation,
-  wrapWithPipe
+  wrapWithPipe,
+  effectGenToFn
 }

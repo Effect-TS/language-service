@@ -51,6 +51,138 @@ export function refactorMe(arg: string) {
 "
 `;
 
+exports[`effectGenToFn.ts > effectGenToFn.ts at 4:36 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 4:36
+import * as Eff from "effect/Effect"
+
+export const program = Eff.fn(function*() {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+})
+
+export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* () {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}).pipe(
+    Eff.map((a) => a + 1)
+)
+
+export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
+  return Eff.gen(function* () {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+  })
+}
+
+export const sampleReturnsConciseBody = <A extends number, B extends number>(arg1: A, arg2: B) => Eff.gen(function* () {
+  const a = yield* Eff.succeed(arg1)
+  const b = yield* Eff.succeed(arg2)
+  return a + b
+})
+"
+`;
+
+exports[`effectGenToFn.ts > effectGenToFn.ts at 10:67 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 10:67
+import * as Eff from "effect/Effect"
+
+export const program = () => Eff.gen(function* () {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+  })
+
+export const programWithPipes = Eff.fn(function*(fa: number, fb: number) {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}, Eff.map((a) => a + 1))
+
+export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
+  return Eff.gen(function* () {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+  })
+}
+
+export const sampleReturnsConciseBody = <A extends number, B extends number>(arg1: A, arg2: B) => Eff.gen(function* () {
+  const a = yield* Eff.succeed(arg1)
+  const b = yield* Eff.succeed(arg2)
+  return a + b
+})
+"
+`;
+
+exports[`effectGenToFn.ts > effectGenToFn.ts at 19:16 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 19:16
+import * as Eff from "effect/Effect"
+
+export const program = () => Eff.gen(function* () {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+  })
+
+export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* () {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}).pipe(
+    Eff.map((a) => a + 1)
+)
+
+export const sampleReturns = Eff.fn("sampleReturns")(function* <A extends number, B extends number>(arg1: A, arg2: B) {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+})
+
+export const sampleReturnsConciseBody = <A extends number, B extends number>(arg1: A, arg2: B) => Eff.gen(function* () {
+  const a = yield* Eff.succeed(arg1)
+  const b = yield* Eff.succeed(arg2)
+  return a + b
+})
+"
+`;
+
+exports[`effectGenToFn.ts > effectGenToFn.ts at 26:104 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 26:104
+import * as Eff from "effect/Effect"
+
+export const program = () => Eff.gen(function* () {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+  })
+
+export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* () {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}).pipe(
+    Eff.map((a) => a + 1)
+)
+
+export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
+  return Eff.gen(function* () {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+  })
+}
+
+export const sampleReturnsConciseBody = Eff.fn(function* <A extends number, B extends number>(arg1: A, arg2: B) {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+})
+"
+`;
+
 exports[`functionToArrow.ts > functionToArrow.ts at 5:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 5:20
 /**
