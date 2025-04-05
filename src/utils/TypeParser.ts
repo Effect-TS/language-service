@@ -110,7 +110,7 @@ export function importedEffectModule(ts: TypeScriptApi, typeChecker: ts.TypeChec
       // and the property type is an effect
       const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, node)
       return yield* effectType(ts, typeChecker)(propertyType, node).pipe(
-        Option.map(() => node)
+        Option.map(() => node as ts.Expression)
       )
     })
 }
@@ -132,12 +132,14 @@ export function effectGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
       // gen
       if (propertyAccess.name.text !== "gen") return yield* Option.none()
       // check Effect module
-      return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
-        Option.map(() => ({
-          body: generatorFunction.body,
-          functionStar: generatorFunction.getFirstToken()
-        }))
-      )
+      const effectModule = yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression)
+      return ({
+        node,
+        effectModule,
+        generatorFunction,
+        body: generatorFunction.body,
+        functionStar: generatorFunction.getFirstToken()
+      })
     })
 }
 
@@ -158,12 +160,14 @@ export function effectFnUntracedGen(ts: TypeScriptApi, typeChecker: ts.TypeCheck
       // gen
       if (propertyAccess.name.text !== "fnUntraced") return yield* Option.none()
       // check Effect module
-      return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
-        Option.map(() => ({
-          body: generatorFunction.body,
-          functionStar: generatorFunction.getFirstToken()
-        }))
-      )
+      const effectModule = yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression)
+      return ({
+        node,
+        effectModule,
+        generatorFunction,
+        body: generatorFunction.body,
+        functionStar: generatorFunction.getFirstToken()
+      })
     })
 }
 
@@ -187,12 +191,14 @@ export function effectFnGen(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
       // fn
       if (propertyAccess.name.text !== "fn") return yield* Option.none()
       // check Effect module
-      return yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression).pipe(
-        Option.map(() => ({
-          body: generatorFunction.body,
-          functionStar: generatorFunction.getFirstToken()
-        }))
-      )
+      const effectModule = yield* importedEffectModule(ts, typeChecker)(propertyAccess.expression)
+      return ({
+        node,
+        generatorFunction,
+        effectModule,
+        body: generatorFunction.body,
+        functionStar: generatorFunction.getFirstToken()
+      })
     })
 }
 
