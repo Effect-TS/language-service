@@ -10,7 +10,11 @@ export const asyncAwaitToGenTryPromise = createRefactor({
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
       AST.getNodesContainingRange(ts)(sourceFile, textRange),
-      ReadonlyArray.filter(ts.isFunctionDeclaration),
+      ReadonlyArray.filter(
+        (node) =>
+          ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) ||
+          ts.isFunctionExpression(node)
+      ),
       ReadonlyArray.filter((node) => !!node.body),
       ReadonlyArray.filter((node) =>
         !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)
