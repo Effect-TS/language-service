@@ -12,6 +12,56 @@ export function refactorMe(arg: string) {
 "
 `;
 
+exports[`asyncAwaitToGen_anonymous.ts > asyncAwaitToGen_anonymous.ts at 4:44 1`] = `
+"// Result of running refactor effect/asyncAwaitToGen at position 4:44
+import * as Effect from "effect/Effect"
+
+const asyncFunctionDeclaration = function() {
+    return Effect.gen(function*() {
+        const response = yield* Effect.promise(() => fetch("test"))
+        if (response.ok) {
+            const y = yield* Effect.promise(() => response.json())
+            return y
+        }
+        return null
+    })
+}
+
+const asyncArrowFunctionExpression = async () => {
+  const response = await fetch("test")
+  if (response.ok) {
+    const y = await response.json()
+    return y
+  }
+  return null
+}
+"
+`;
+
+exports[`asyncAwaitToGen_anonymous.ts > asyncAwaitToGen_anonymous.ts at 13:41 1`] = `
+"// Result of running refactor effect/asyncAwaitToGen at position 13:41
+import * as Effect from "effect/Effect"
+
+const asyncFunctionDeclaration = async function() {
+  const response = await fetch("test")
+  if (response.ok) {
+    const y = await response.json()
+    return y
+  }
+  return null
+}
+
+const asyncArrowFunctionExpression = () => Effect.gen(function*() {
+    const response = yield* Effect.promise(() => fetch("test"))
+    if (response.ok) {
+        const y = yield* Effect.promise(() => response.json())
+        return y
+    }
+    return null
+})
+"
+`;
+
 exports[`asyncAwaitToGen_namedImport.ts > asyncAwaitToGen_namedImport.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
 import { Effect as T } from "effect"
@@ -48,6 +98,56 @@ export function refactorMe(arg: string) {
         return yield* Effect.tryPromise({ try: () => Promise.resolve(arg), catch: error => ({ _tag: "Error2" as const, error }) })
     })
 }
+"
+`;
+
+exports[`asyncAwaitToGenTryPromise_anonymous.ts > asyncAwaitToGenTryPromise_anonymous.ts at 4:44 1`] = `
+"// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:44
+import * as Effect from "effect/Effect"
+
+const asyncFunctionDeclaration = function() {
+    return Effect.gen(function*() {
+        const response = yield* Effect.tryPromise({ try: () => fetch("test"), catch: error => ({ _tag: "Error1" as const, error }) })
+        if (response.ok) {
+            const y = yield* Effect.tryPromise({ try: () => response.json(), catch: error => ({ _tag: "Error2" as const, error }) })
+            return y
+        }
+        return null
+    })
+}
+
+const asyncArrowFunctionExpression = async () => {
+  const response = await fetch("test")
+  if (response.ok) {
+    const y = await response.json()
+    return y
+  }
+  return null
+}
+"
+`;
+
+exports[`asyncAwaitToGenTryPromise_anonymous.ts > asyncAwaitToGenTryPromise_anonymous.ts at 13:41 1`] = `
+"// Result of running refactor effect/asyncAwaitToGenTryPromise at position 13:41
+import * as Effect from "effect/Effect"
+
+const asyncFunctionDeclaration = async function() {
+  const response = await fetch("test")
+  if (response.ok) {
+    const y = await response.json()
+    return y
+  }
+  return null
+}
+
+const asyncArrowFunctionExpression = () => Effect.gen(function*() {
+    const response = yield* Effect.tryPromise({ try: () => fetch("test"), catch: error => ({ _tag: "Error1" as const, error }) })
+    if (response.ok) {
+        const y = yield* Effect.tryPromise({ try: () => response.json(), catch: error => ({ _tag: "Error2" as const, error }) })
+        return y
+    }
+    return null
+})
 "
 `;
 
