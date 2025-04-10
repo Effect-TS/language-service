@@ -283,6 +283,20 @@ export const sampleReturnsConciseBody = Eff.fn(function* <A extends number, B ex
 "
 `;
 
+exports[`effectGenToFn_classMethod.ts > effectGenToFn_classMethod.ts at 6:17 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 6:17
+import * as Eff from "effect/Effect"
+
+class Test {
+  methodReturnsEffect = Eff.fn("methodReturnsEffect")(function*(arg1: number, arg2: number) {
+        const a = yield* Eff.succeed(arg1)
+        const b = yield* Eff.succeed(arg2)
+        return a + b
+    })
+}
+"
+`;
+
 exports[`functionToArrow.ts > functionToArrow.ts at 5:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 5:20
 /**
