@@ -29,7 +29,10 @@ export const effectGenToFn = createRefactor({
           // then we iterate upwards until we find the function declaration
           while (nodeToReplace) {
             // if arrow function, exit
-            if (ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace)) {
+            if (
+              ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace) ||
+              ts.isMethodDeclaration(nodeToReplace)
+            ) {
               return ({ ...effectGen, pipeArgs, nodeToReplace })
             }
             // concise body go up
@@ -57,7 +60,7 @@ export const effectGenToFn = createRefactor({
           apply: (changeTracker) => {
             // if we have a name in the function declaration,
             // we call Effect.fn with the name
-            const effectFn = nodeToReplace.name ?
+            const effectFn = nodeToReplace.name && ts.isIdentifier(nodeToReplace.name) ?
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
                   effectModule,
@@ -84,27 +87,11 @@ export const effectGenToFn = createRefactor({
                 generatorFunction.body
               ) as ts.Expression].concat(pipeArgs)
             )
-            if (!ts.isArrowFunction(nodeToReplace) && nodeToReplace.name) {
-              const variableDeclaration = ts.factory.createVariableStatement(
-                nodeToReplace.modifiers,
-                ts.factory.createVariableDeclarationList(
-                  [ts.factory.createVariableDeclaration(
-                    nodeToReplace.name,
-                    undefined,
-                    undefined,
-                    effectFnCallWithGenerator
-                  )],
-                  ts.NodeFlags.Const
-                )
-              )
-              changeTracker.replaceNode(
-                sourceFile,
-                nodeToReplace,
-                variableDeclaration
-              )
-            } else {
-              changeTracker.replaceNode(sourceFile, nodeToReplace, effectFnCallWithGenerator)
-            }
+            changeTracker.replaceNode(
+              sourceFile,
+              nodeToReplace,
+              AST.tryPreserveDeclarationSemantics(ts)(nodeToReplace, effectFnCallWithGenerator)
+            )
           }
         })
       )
