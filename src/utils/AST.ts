@@ -355,14 +355,14 @@ export function deterministicTypeOrder(ts: TypeScriptApi, typeChecker: ts.TypeCh
   })
 }
 
-export function tryPreserveDeclarationSemantics(ts: TypeScriptApi){
+export function tryPreserveDeclarationSemantics(ts: TypeScriptApi) {
   return (nodeToReplace: ts.Node, node: ts.Node) => {
     // new node should be an expression!
-    if(!ts.isExpression(node)) return node
+    if (!ts.isExpression(node)) return node
     // ok, we need to replace. is that a method or a function?
-    if(ts.isFunctionDeclaration(nodeToReplace)){
+    if (ts.isFunctionDeclaration(nodeToReplace)) {
       // I need a name!!!
-      if(!nodeToReplace.name) return node
+      if (!nodeToReplace.name) return node
       return ts.factory.createVariableStatement(
         nodeToReplace.modifiers,
         ts.factory.createVariableDeclarationList(
@@ -375,7 +375,7 @@ export function tryPreserveDeclarationSemantics(ts: TypeScriptApi){
           ts.NodeFlags.Const
         )
       )
-    }else if(ts.isMethodDeclaration(nodeToReplace)){
+    } else if (ts.isMethodDeclaration(nodeToReplace)) {
       return ts.factory.createPropertyDeclaration(
         nodeToReplace.modifiers,
         nodeToReplace.name,

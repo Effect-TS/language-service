@@ -29,7 +29,10 @@ export const effectGenToFn = createRefactor({
           // then we iterate upwards until we find the function declaration
           while (nodeToReplace) {
             // if arrow function, exit
-            if (ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace) || ts.isMethodDeclaration(nodeToReplace)) {
+            if (
+              ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace) ||
+              ts.isMethodDeclaration(nodeToReplace)
+            ) {
               return ({ ...effectGen, pipeArgs, nodeToReplace })
             }
             // concise body go up
@@ -84,7 +87,11 @@ export const effectGenToFn = createRefactor({
                 generatorFunction.body
               ) as ts.Expression].concat(pipeArgs)
             )
-            changeTracker.replaceNode(sourceFile, nodeToReplace, AST.tryPreserveDeclarationSemantics(ts)(nodeToReplace, effectFnCallWithGenerator))
+            changeTracker.replaceNode(
+              sourceFile,
+              nodeToReplace,
+              AST.tryPreserveDeclarationSemantics(ts)(nodeToReplace, effectFnCallWithGenerator)
+            )
           }
         })
       )
