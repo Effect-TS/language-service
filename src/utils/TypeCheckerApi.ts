@@ -43,10 +43,10 @@ export function getInferredReturnType(ts: TypeScriptApi, typeChecker: ts.TypeChe
 
   return (node: ts.Node): Option.Option<ts.Type> => {
     let declaration = node
-    while(declaration && !isConvertibleDeclaration(declaration)){
+    while (declaration && !isConvertibleDeclaration(declaration)) {
       declaration = declaration.parent
     }
-    if(!isConvertibleDeclaration(declaration)) return Option.none()
+    if (!isConvertibleDeclaration(declaration)) return Option.none()
 
     if (!declaration || !declaration.body) {
       return Option.none()
@@ -77,8 +77,6 @@ export function getInferredReturnType(ts: TypeScriptApi, typeChecker: ts.TypeChe
     if (!returnType) {
       return Option.none()
     }
-
-    console.log(typeChecker.typeToString(returnType))
 
     return Option.some(returnType)
   }
@@ -128,10 +126,7 @@ export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeCheck
     if (ts.isReturnStatement(node) && node.expression) {
       const expectedType = Option.getOrUndefined(getInferredReturnType(ts, typeChecker)(node))
       const realType = typeChecker.getTypeAtLocation(node.expression)
-      if (expectedType) {
-        console.log("expected type", typeChecker.typeToString(expectedType), "vs", typeChecker.typeToString(realType))
-        return [[node, expectedType, node, realType]]
-      }
+      if (expectedType) return [[node, expectedType, node, realType]]
     }
     if (ts.isArrowFunction(node) && ts.isExpression(node.body)) {
       const body = node.body
