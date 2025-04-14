@@ -1,6 +1,6 @@
 import * as Effect from "effect/Effect"
 
-class ServiceA extends Effect.Service<ServiceB>()("ServiceA", {
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
     succeed: { a: 1}
 }){}
 
@@ -8,7 +8,7 @@ class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
     succeed: { a: 2}
 }){}
 
-class ServiceC extends Effect.Service<ServiceB>()("ServiceC", {
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
     succeed: { a: 3}
 }){}
 

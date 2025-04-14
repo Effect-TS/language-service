@@ -130,6 +130,7 @@ declare module "typescript" {
 
   export interface TypeChecker {
     isTypeAssignableTo(source: ts.Type, target: ts.Type): boolean
+    getUnionType(types: ReadonlyArray<ts.Type>): ts.Type
   }
 
   export function typeToDisplayParts(
