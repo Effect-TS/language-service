@@ -19,6 +19,11 @@ effectWithServices
 29:20 - 29:38 | Missing 'ServiceC' in the expected Effect context."
 `;
 
+exports[`missingEffectContext_lazy.ts > missingEffectContext_lazy.ts 1`] = `
+"return Effect.onExit(evaluate(), () => Effect.void)
+20:2 - 20:53 | Missing 'ServiceA' in the expected Effect context."
+`;
+
 exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
 "missingAllServices
 21:13 - 21:31 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.

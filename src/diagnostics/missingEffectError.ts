@@ -15,7 +15,7 @@ export const missingEffectError = createDiagnostic({
     const sortTypes = ReadonlyArray.sort(deterministicTypeOrder(ts, typeChecker))
 
     const visit = (node: ts.Node) => {
-      const entries = TypeParser.expectedAndRealType(ts, typeChecker)(node)
+      const entries = TypeCheckerApi.expectedAndRealType(ts, typeChecker)(node)
       for (const [node, expectedType, valueNode, realType] of entries) {
         // the expected type is an effect
         const expectedEffect = TypeParser.effectType(ts, typeChecker)(
