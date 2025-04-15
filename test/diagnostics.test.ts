@@ -1,10 +1,11 @@
 import type { DiagnosticDefinition } from "@effect/language-service/definition"
 import { diagnostics } from "@effect/language-service/diagnostics"
+import * as Option from "effect/Option"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.js"
+import { applyEdits, createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.js"
 
 const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
 
@@ -26,8 +27,7 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
 
     // check and assert the refactor is executable
     const canApply = diagnostic.apply(ts, program, { diagnostics: true, quickinfo: false })(
-      sourceFile,
-      program.getSemanticDiagnostics(sourceFile)
+      sourceFile
     )
 
     if (canApply.length === 0) {
@@ -53,6 +53,29 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
         }:${end.character} | ${error.messageText}`
     }).join("\n\n")
     expect(humanMessages).toMatchSnapshot()
+
+    // check fixes
+    canApply.map((error) => {
+      const position = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getStart(sourceFile))
+      let fixedCode = "// no-fixes"
+      const fix = error.fix
+      if (Option.isSome(fix)) {
+        const formatContext = ts.formatting.getFormatContext(
+          ts.getDefaultFormatCodeSettings("\n"),
+          { getNewLine: () => "\n" }
+        )
+        const edits = ts.textChanges.ChangeTracker.with(
+          {
+            formatContext,
+            host: languageServiceHost,
+            preferences: {}
+          },
+          (changeTracker) => fix.value.apply(changeTracker)
+        )
+        fixedCode = applyEdits(edits, fileName, sourceText)
+      }
+      expect(fixedCode).toMatchSnapshot("codefixed at " + position.line + ":" + position.character)
+    })
   })
 }
 

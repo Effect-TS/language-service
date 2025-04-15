@@ -40,7 +40,8 @@ export const floatingEffect = createDiagnostic({
             effectDiagnostics.push({
               node,
               category: ts.DiagnosticCategory.Error,
-              messageText: `Effect must be yielded or assigned to a variable.`
+              messageText: `Effect must be yielded or assigned to a variable.`,
+              fix: Option.none()
             })
           }
         }

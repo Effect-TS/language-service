@@ -11,7 +11,7 @@ export const missingStarInYieldEffectGen = createDiagnostic({
     const typeChecker = program.getTypeChecker()
     const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
     const brokenGenerators = new Set<ts.Node>()
-    const brokenYields = new Set<ts.Node>()
+    const brokenYields = new Set<ts.YieldExpression>()
 
     const visit = (functionStarNode: ts.Node | undefined) => (node: ts.Node) => {
       // error if yield is not followed by *
@@ -53,7 +53,8 @@ export const missingStarInYieldEffectGen = createDiagnostic({
       effectDiagnostics.push({
         node,
         category: ts.DiagnosticCategory.Error,
-        messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`
+        messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`,
+        fix: Option.none()
       })
     )
     brokenYields.forEach((node) =>
@@ -61,7 +62,20 @@ export const missingStarInYieldEffectGen = createDiagnostic({
         node,
         category: ts.DiagnosticCategory.Error,
         messageText:
-          `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`
+          `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
+        fix: Option.some({
+          description: `Replace with yield*`,
+          apply: (changeTracker) =>
+            changeTracker.replaceNode(
+              sourceFile,
+              node,
+              ts.factory.updateYieldExpression(
+                node,
+                ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+                node.expression
+              )
+            )
+        })
       })
     )
 

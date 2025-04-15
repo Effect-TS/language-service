@@ -44,7 +44,8 @@ export const missingEffectContext = createDiagnostic({
               category: ts.DiagnosticCategory.Error,
               messageText: `Missing '${
                 sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
-              }' in the expected Effect context.`
+              }' in the expected Effect context.`,
+              fix: Option.none()
             }
           )
         }

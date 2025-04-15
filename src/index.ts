@@ -1,6 +1,7 @@
 /**
  * @since 1.0.0
  */
+import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
@@ -49,8 +50,7 @@ const init = (
               Object.values(diagnostics).map((diagnostic) =>
                 pipe(
                   diagnostic.apply(modules.typescript, program, pluginOptions)(
-                    sourceFile,
-                    applicableDiagnostics
+                    sourceFile
                   ).map((_) => ({
                     file: sourceFile,
                     start: _.node.getStart(sourceFile),
@@ -76,6 +76,68 @@ const init = (
       }
 
       return applicableDiagnostics
+    }
+
+    proxy.getSupportedCodeFixes = (...args) => {
+      const supportedCodeFixes = languageService.getSupportedCodeFixes(...args)
+      if (pluginOptions.diagnostics) {
+        return supportedCodeFixes.concat(
+          Object.values(diagnostics).map((diagnostic) => "" + diagnostic.code)
+        )
+      }
+      return supportedCodeFixes
+    }
+
+    proxy.getCodeFixesAtPosition = (...args) => {
+      const applicableCodeFixes = languageService.getCodeFixesAtPosition(...args)
+      const [fileName, start, end, errorCodes, formatOptions, preferences] = args
+
+      const program = languageService.getProgram()
+
+      if (pluginOptions.diagnostics && program) {
+        const effectCodeFixes: Array<ts.CodeFixAction> = []
+        for (const errorCode of errorCodes) {
+          Option.gen(function*() {
+            const sourceFile = yield* Option.fromNullable(program.getSourceFile(fileName))
+            const diagnostic = yield* ReadonlyArray.findFirst(
+              Object.values(diagnostics),
+              (_) => _.code === errorCode
+            )
+            const applicableDiagnostics = diagnostic.apply(
+              modules.typescript,
+              program,
+              pluginOptions
+            )(sourceFile)
+            const diagnosticMessage = yield* ReadonlyArray.findFirst(
+              applicableDiagnostics,
+              (_) => _.node.getStart(sourceFile) === start && _.node.getEnd() === end
+            )
+            const fix = yield* diagnosticMessage.fix
+
+            const formatContext = ts.formatting.getFormatContext(
+              formatOptions,
+              info.languageServiceHost
+            )
+            const changes = ts.textChanges.ChangeTracker.with(
+              {
+                formatContext,
+                host: info.languageServiceHost,
+                preferences: preferences || {}
+              },
+              (changeTracker) => fix.apply(changeTracker)
+            )
+            effectCodeFixes.push({
+              fixName: "fix.effect." + diagnostic.code,
+              description: fix.description,
+              changes
+            })
+          })
+        }
+
+        return effectCodeFixes.concat(applicableCodeFixes)
+      }
+
+      return applicableCodeFixes
     }
 
     proxy.getApplicableRefactors = (...args) => {

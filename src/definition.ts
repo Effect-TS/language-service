@@ -43,8 +43,7 @@ export function createRefactor(definition: RefactorDefinition) {
 export interface DiagnosticDefinition {
   code: number
   apply: (ts: TSAPI.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
-    sourceFile: ts.SourceFile,
-    standardDiagnostic: ReadonlyArray<ts.Diagnostic>
+    sourceFile: ts.SourceFile
   ) => Array<ApplicableDiagnosticDefinition>
 }
 
@@ -56,6 +55,10 @@ export interface ApplicableDiagnosticDefinition {
   node: ts.Node
   category: ts.DiagnosticCategory
   messageText: string
+  fix: Option.Option<{
+    description: string
+    apply: (changeTracker: ts.textChanges.ChangeTracker) => void
+  }>
 }
 
 /**

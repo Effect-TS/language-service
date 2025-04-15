@@ -7,3 +7,4 @@ dist/
 build/
 docs/examples/
 .direnv/
+.vscode-debug/

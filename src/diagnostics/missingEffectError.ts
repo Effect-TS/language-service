@@ -45,7 +45,8 @@ export const missingEffectError = createDiagnostic({
               category: ts.DiagnosticCategory.Error,
               messageText: `Missing '${
                 sortTypes(missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
-              }' in the expected Effect errors.`
+              }' in the expected Effect errors.`,
+              fix: Option.none()
             }
           )
         }
