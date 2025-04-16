@@ -42,7 +42,7 @@ export const unnecessaryEffectGen = createDiagnostic({
     brokenGenerators.forEach((node) =>
       effectDiagnostics.push({
         node,
-        category: ts.DiagnosticCategory.Warning,
+        category: ts.DiagnosticCategory.Suggestion,
         messageText:
           `This Effect.gen is useless here because it only contains a single return statement.`
       })
