@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.6.2
+
+### Patch Changes
+
+- [#84](https://github.com/Effect-TS/language-service/pull/84) [`a6d163d`](https://github.com/Effect-TS/language-service/commit/a6d163de182fa79551a61c9bca88a03f3cdb31be) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix useless gen severity
+
 ## 0.6.1
 
 ### Patch Changes
