@@ -4,7 +4,7 @@ This package implements a TypeScript language service plugin that allows additio
 
 ## Installation
 
-1) `npm install @effect/language-service` in your project
+1) `npm install @effect/language-service --save-dev` in your project
 2) inside your tsconfig.json, you should add the plugin configuration as follows:
 
 ```json
