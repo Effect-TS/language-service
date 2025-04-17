@@ -11,7 +11,7 @@ export const effectGenToFn = createRefactor({
   description: "Convert to Effect.fn",
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
-      AST.getNodesContainingRange(ts)(sourceFile, textRange),
+      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
       ReadonlyArray.findFirst((node) =>
         Option.gen(function*() {
           // check if the node is a Effect.gen(...)

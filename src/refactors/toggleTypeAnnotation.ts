@@ -9,7 +9,7 @@ export const toggleTypeAnnotation = createRefactor({
   description: "Toggle type annotation",
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
-      AST.getNodesContainingRange(ts)(sourceFile, textRange),
+      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
       ReadonlyArray.filter((node) =>
         ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)
       ),

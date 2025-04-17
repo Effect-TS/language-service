@@ -2,30 +2,96 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
-import type ts from "typescript"
+import ts from "typescript"
 import type { TypeScriptApi } from "./TSAPI.js"
 
 /**
- * Gets the closest node that contains given TextRange
+ * Collects the given node and all its ancestor nodes that fully contain the specified TextRange.
+ *
+ * This function starts from the provided node and traverses up the AST, collecting
+ * the node itself and its ancestors that encompass the given range.
+ *
+ * @param node - The starting AST node.
+ * @param textRange - The range of text to use for filtering nodes.
+ * @returns An array of nodes, including the starting node and its ancestors, that fully contain the specified range.
  */
-export function getNodesContainingRange(
+function collectSelfAndAncestorNodesInRange(
+  node: ts.Node,
+  textRange: ts.TextRange
+): Array<ts.Node> {
+  let result = ReadonlyArray.empty<ts.Node>()
+  let parent = node
+  while (parent) {
+    if (parent.end >= textRange.end) {
+      result = pipe(result, ReadonlyArray.append(parent))
+    }
+    parent = parent.parent
+  }
+  return result
+}
+
+/**
+ * Collects the node at the given position and all its ancestor nodes
+ * that fully contain the specified TextRange.
+ *
+ * This function starts from the closest token at the given position
+ * and traverses up the AST, collecting nodes that encompass the range.
+ *
+ * @param ts - The TypeScript API.
+ * @returns A function that takes a SourceFile and a TextRange, and returns
+ *          an array of nodes containing the range.
+ */
+export function getAncestorNodesInRange(
   ts: TypeScriptApi
 ) {
   return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
     if (!precedingToken) return ReadonlyArray.empty<ts.Node>()
-
-    let result = ReadonlyArray.empty<ts.Node>()
-    let parent = precedingToken
-    while (parent) {
-      if (parent.end >= textRange.end) {
-        result = pipe(result, ReadonlyArray.append(parent))
-      }
-      parent = parent.parent
-    }
-
-    return result
+    return collectSelfAndAncestorNodesInRange(precedingToken, textRange)
   })
+}
+
+/**
+ * Finds the deepest AST node at the specified position within the given SourceFile.
+ *
+ * This function traverses the AST to locate the node that contains the given position.
+ * If multiple nodes overlap the position, it returns the most specific (deepest) node.
+ *
+ * @param sourceFile - The TypeScript SourceFile to search within.
+ * @param position - The position in the file to locate the node for.
+ * @returns The deepest AST node at the specified position, or undefined if no node is found.
+ */
+function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): ts.Node | undefined {
+  function find(node: ts.Node): ts.Node | undefined {
+    if (position >= node.getStart() && position < node.getEnd()) {
+      // If the position is within this node, keep traversing its children
+      return ts.forEachChild(node, find) || node
+    }
+    return undefined
+  }
+  return find(sourceFile)
+}
+
+/**
+ * Collects the node at the given position, its descendants, and all its ancestor nodes
+ * that fully contain the specified TextRange.
+ *
+ * This function starts by locating the node at the given position within the AST,
+ * traverses down to include its descendants, and then traverses up to include its ancestors,
+ * collecting all nodes that encompass the specified range.
+ *
+ * @param sourceFile - The TypeScript SourceFile to search within.
+ * @param textRange - The range of text to use for filtering nodes.
+ * @returns An array of nodes that are either descendants or ancestors of the node
+ *          at the given position and that fully contain the specified range.
+ */
+export function collectDescendantsAndAncestorsInRange(
+  sourceFile: ts.SourceFile,
+  textRange: ts.TextRange
+) {
+  const nodeAtPosition = findNodeAtPosition(sourceFile, textRange.pos)
+  if (!nodeAtPosition) return ReadonlyArray.empty<ts.Node>()
+  return collectSelfAndAncestorNodesInRange(nodeAtPosition, textRange)
 }
 
 /**

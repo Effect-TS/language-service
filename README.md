@@ -4,8 +4,8 @@ This package implements a TypeScript language service plugin that allows additio
 
 ## Installation
 
-1) `npm install @effect/language-service` in your project
-2) inside your tsconfig.json, you should add the plugin configuration as follows:
+1. `npm install @effect/language-service` in your project
+2. inside your tsconfig.json, you should add the plugin configuration as follows:
 
 ```json
 {
@@ -18,10 +18,11 @@ This package implements a TypeScript language service plugin that allows additio
   }
 }
 ```
-3) Ensure that you set your editor to use your workspace TypeScript version. 
-  
-    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version".
-    - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
+
+3. Ensure that you set your editor to use your workspace TypeScript version.
+
+   - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version".
+   - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
@@ -46,6 +47,7 @@ Few options can be provided alongside the initialization of the Language Service
 ## Provided functionalities
 
 ### Quickinfo
+
 - Show the extended type of the current Effect
 
 ### Diagnostics
@@ -63,3 +65,4 @@ Few options can be provided alongside the initialization of the Language Service
 - Function calls to pipe: Transform a set of function calls to a pipe() call.
 - Pipe to datafirst: Transform a pipe() call into a series of datafirst function calls (where available).
 - Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.
+- Remove unnecessary `Effect.gen` calls by simplifying generator functions that only wrap a single `yield*` statement returning an `Effect`. This refactor replaces the `Effect.gen` wrapper with the inner `Effect` directly, making the code more concise and readable.
