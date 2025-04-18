@@ -59,9 +59,11 @@ export function getAncestorNodesInRange(
  *
  * @param sourceFile - The TypeScript SourceFile to search within.
  * @param position - The position in the file to locate the node for.
- * @returns The deepest AST node at the specified position, or undefined if no node is found.
+ * @returns An `Option`:
+ *          - `Option.some<ts.Node>` if a node is found at the specified position.
+ *          - `Option.none` if no node is found at the specified position.
  */
-function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): ts.Node | undefined {
+function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): Option.Option<ts.Node> {
   function find(node: ts.Node): ts.Node | undefined {
     if (position >= node.getStart() && position < node.getEnd()) {
       // If the position is within this node, keep traversing its children
@@ -69,7 +71,7 @@ function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): ts.Nod
     }
     return undefined
   }
-  return find(sourceFile)
+  return Option.fromNullable(find(sourceFile))
 }
 
 /**
@@ -90,8 +92,8 @@ export function collectDescendantsAndAncestorsInRange(
   textRange: ts.TextRange
 ) {
   const nodeAtPosition = findNodeAtPosition(sourceFile, textRange.pos)
-  if (!nodeAtPosition) return ReadonlyArray.empty<ts.Node>()
-  return collectSelfAndAncestorNodesInRange(nodeAtPosition, textRange)
+  if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
+  return collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
 }
 
 /**
