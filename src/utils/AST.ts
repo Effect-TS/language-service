@@ -3,6 +3,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
 import ts from "typescript"
+import * as TypeParser from "../utils/TypeParser.js"
 import type { TypeScriptApi } from "./TSAPI.js"
 
 /**
@@ -94,6 +95,49 @@ export function collectDescendantsAndAncestorsInRange(
   const nodeAtPosition = findNodeAtPosition(sourceFile, textRange.pos)
   if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
   return collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
+}
+
+/**
+ * Extracts the `Effect` from an `Effect.gen` generator function with a single return statement.
+ *
+ * This function analyzes the provided node to determine if it represents an `Effect.gen` call.
+ * If the generator function body contains exactly one `return` statement, and that statement
+ * yields an `Effect`, the function extracts and returns the inner `Effect`.
+ *
+ * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
+ * @param node - The AST node to analyze.
+ * @returns An `Option`:
+ *          - `Option.some<ts.Node>` containing the inner `Effect` if the node is an `Effect.gen`
+ *            with a single return statement yielding an `Effect`.
+ *          - `Option.none` if the node does not match the criteria.
+ */
+export function getSingleReturnEffectFromEffectGen(
+  typeChecker: ts.TypeChecker,
+  node: ts.Node
+): Option.Option<ts.Node> {
+  // is the node an effect gen-like?
+  const effectGenLike = TypeParser.effectGen(ts, typeChecker)(node)
+
+  if (Option.isSome(effectGenLike)) {
+    // if the node is an effect gen-like, we need to check if its body is just a single return statement
+    const body = effectGenLike.value.body
+    if (
+      body.statements.length === 1 &&
+      ts.isReturnStatement(body.statements[0]) &&
+      body.statements[0].expression &&
+      ts.isYieldExpression(body.statements[0].expression) &&
+      body.statements[0].expression.expression
+    ) {
+      // get the type of the node
+      const nodeToCheck = body.statements[0].expression.expression
+      const type = typeChecker.getTypeAtLocation(nodeToCheck)
+      const maybeEffect = TypeParser.effectType(ts, typeChecker)(type, nodeToCheck)
+      if (Option.isSome(maybeEffect)) {
+        return Option.some(nodeToCheck)
+      }
+    }
+  }
+  return Option.none()
 }
 
 /**

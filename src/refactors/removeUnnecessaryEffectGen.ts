@@ -3,7 +3,6 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 /**
  * Refactor to remove unnecessary `Effect.gen` calls.
@@ -37,34 +36,17 @@ import * as TypeParser from "../utils/TypeParser.js"
 export const removeUnnecessaryEffectGen = createRefactor({
   name: "effect/removeUnnecessaryEffectGen",
   description: "Remove unnecessary Effect.gen",
-  apply: (ts, program) => (sourceFile, textRange) =>
-    pipe(
+  apply: (_, program) => (sourceFile, textRange) => {
+    const typeChecker = program.getTypeChecker()
+    return pipe(
       AST.collectDescendantsAndAncestorsInRange(sourceFile, textRange),
       ReadonlyArray.findFirst((node) =>
         Option.gen(function*() {
-          const typeChecker = program.getTypeChecker()
-          const effectGen = yield* TypeParser.effectGen(ts, typeChecker)(node)
-
-          const body = effectGen.body
-          if (
-            body.statements.length === 1 &&
-            ts.isReturnStatement(body.statements[0]) &&
-            body.statements[0].expression &&
-            ts.isYieldExpression(body.statements[0].expression) &&
-            body.statements[0].expression.expression
-          ) {
-            // get the type of the node
-            const nodeToCheck = body.statements[0].expression.expression
-            const type = typeChecker.getTypeAtLocation(nodeToCheck)
-            const maybeEffect = TypeParser.effectType(ts, typeChecker)(type, nodeToCheck)
-            if (Option.isSome(maybeEffect)) {
-              return yield* Option.some({
-                nodeToReplace: effectGen.node,
-                returnedYieldedEffect: nodeToCheck
-              })
-            }
-          }
-          return yield* Option.none()
+          const returnedYieldedEffect = yield* AST.getSingleReturnEffectFromEffectGen(
+            typeChecker,
+            node
+          )
+          return { nodeToReplace: node, returnedYieldedEffect }
         })
       ),
       Option.map((a) => ({
@@ -75,4 +57,5 @@ export const removeUnnecessaryEffectGen = createRefactor({
         }
       }))
     )
+  }
 })
