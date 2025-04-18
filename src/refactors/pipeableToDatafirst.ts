@@ -9,7 +9,7 @@ export const pipeableToDatafirst = createRefactor({
   description: "Rewrite to datafirst",
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
-      AST.getNodesContainingRange(ts)(sourceFile, textRange),
+      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
       ReadonlyArray.filter(AST.isPipeCall(ts)),
       ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.expression)),
       ReadonlyArray.filter(

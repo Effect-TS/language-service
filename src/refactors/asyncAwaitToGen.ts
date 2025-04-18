@@ -10,7 +10,7 @@ export const asyncAwaitToGen = createRefactor({
   description: "Convert to Effect.gen",
   apply: (ts, program) => (sourceFile, textRange) =>
     pipe(
-      AST.getNodesContainingRange(ts)(sourceFile, textRange),
+      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
       ReadonlyArray.filter((node) =>
         ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node)
       ),

@@ -457,6 +457,126 @@ const test3 = pipe(T.flatMap(T.succeed("Hello"), (_) => T.log(_)), noDataFirst("
 "
 `;
 
+exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 4:22 1`] = `
+"// Result of running refactor effect/removeUnnecessaryEffectGen at position 4:22
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.succeed(42)
+
+Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+export const test2 = Effect.gen(function* () {
+    return yield* Effect.gen(function* () {
+        return yield* Effect.succeed(42)
+    })
+})
+
+export const test3 = Effect.succeed(42).pipe(
+    Effect.andThen((a) => Effect.gen(function* () {
+        return yield* Effect.succeed(a)
+    })),
+)
+"
+`;
+
+exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 8:1 1`] = `
+"// Result of running refactor effect/removeUnnecessaryEffectGen at position 8:1
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+Effect.succeed(42)
+
+export const test2 = Effect.gen(function* () {
+    return yield* Effect.gen(function* () {
+        return yield* Effect.succeed(42)
+    })
+})
+
+export const test3 = Effect.succeed(42).pipe(
+    Effect.andThen((a) => Effect.gen(function* () {
+        return yield* Effect.succeed(a)
+    })),
+)
+"
+`;
+
+exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 12:22 1`] = `
+"// Result of running refactor effect/removeUnnecessaryEffectGen at position 12:22
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+export const test2 = Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+})
+
+export const test3 = Effect.succeed(42).pipe(
+    Effect.andThen((a) => Effect.gen(function* () {
+        return yield* Effect.succeed(a)
+    })),
+)
+"
+`;
+
+exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 13:19 1`] = `
+"// Result of running refactor effect/removeUnnecessaryEffectGen at position 13:19
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+export const test2 = Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+export const test3 = Effect.succeed(42).pipe(
+    Effect.andThen((a) => Effect.gen(function* () {
+        return yield* Effect.succeed(a)
+    })),
+)
+"
+`;
+
+exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 19:27 1`] = `
+"// Result of running refactor effect/removeUnnecessaryEffectGen at position 19:27
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+
+export const test2 = Effect.gen(function* () {
+    return yield* Effect.gen(function* () {
+        return yield* Effect.succeed(42)
+    })
+})
+
+export const test3 = Effect.succeed(42).pipe(
+    Effect.andThen((a) => Effect.succeed(a)),
+)
+"
+`;
+
 exports[`toggleLazyConst.ts > toggleLazyConst.ts at 3:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 3:10
 

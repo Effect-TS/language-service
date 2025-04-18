@@ -58,7 +58,7 @@ export function prependEffectTypeArguments(ts: TypeScriptApi, program: ts.Progra
     const typeChecker = program.getTypeChecker()
 
     const effectTypeArgsDocumentation = pipe(
-      AST.getNodesContainingRange(ts)(sourceFile, AST.toTextRange(position)),
+      AST.getAncestorNodesInRange(ts)(sourceFile, AST.toTextRange(position)),
       ReadonlyArray.head,
       Option.flatMap((_) =>
         TypeParser.effectType(ts, typeChecker)(typeChecker.getTypeAtLocation(_), _)

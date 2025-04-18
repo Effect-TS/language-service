@@ -9,7 +9,7 @@ export const toggleLazyConst = createRefactor({
   description: "Toggle type annotation",
   apply: (ts) => (sourceFile, textRange) =>
     pipe(
-      AST.getNodesContainingRange(ts)(sourceFile, textRange),
+      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
       ReadonlyArray.filter(ts.isVariableDeclaration),
       ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
       ReadonlyArray.filter((node) =>
