@@ -12,7 +12,7 @@ export const toggleReturnTypeAnnotation = createRefactor({
     return Option.gen(function*() {
       const typeChecker = program.getTypeChecker()
       const node = yield* pipe(
-        AST.getNodesContainingRange(ts)(sourceFile, textRange),
+        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
         ReadonlyArray.filter((node) =>
           ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) ||
           ts.isArrowFunction(node) || ts.isMethodDeclaration(node)

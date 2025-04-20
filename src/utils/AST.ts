@@ -2,30 +2,142 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
-import type ts from "typescript"
+import ts from "typescript"
+import * as TypeParser from "../utils/TypeParser.js"
 import type { TypeScriptApi } from "./TSAPI.js"
 
 /**
- * Gets the closest node that contains given TextRange
+ * Collects the given node and all its ancestor nodes that fully contain the specified TextRange.
+ *
+ * This function starts from the provided node and traverses up the AST, collecting
+ * the node itself and its ancestors that encompass the given range.
+ *
+ * @param node - The starting AST node.
+ * @param textRange - The range of text to use for filtering nodes.
+ * @returns An array of nodes, including the starting node and its ancestors, that fully contain the specified range.
  */
-export function getNodesContainingRange(
+function collectSelfAndAncestorNodesInRange(
+  node: ts.Node,
+  textRange: ts.TextRange
+): Array<ts.Node> {
+  let result = ReadonlyArray.empty<ts.Node>()
+  let parent = node
+  while (parent) {
+    if (parent.end >= textRange.end) {
+      result = pipe(result, ReadonlyArray.append(parent))
+    }
+    parent = parent.parent
+  }
+  return result
+}
+
+/**
+ * Collects the node at the given position and all its ancestor nodes
+ * that fully contain the specified TextRange.
+ *
+ * This function starts from the closest token at the given position
+ * and traverses up the AST, collecting nodes that encompass the range.
+ *
+ * @param ts - The TypeScript API.
+ * @returns A function that takes a SourceFile and a TextRange, and returns
+ *          an array of nodes containing the range.
+ */
+export function getAncestorNodesInRange(
   ts: TypeScriptApi
 ) {
   return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
     if (!precedingToken) return ReadonlyArray.empty<ts.Node>()
-
-    let result = ReadonlyArray.empty<ts.Node>()
-    let parent = precedingToken
-    while (parent) {
-      if (parent.end >= textRange.end) {
-        result = pipe(result, ReadonlyArray.append(parent))
-      }
-      parent = parent.parent
-    }
-
-    return result
+    return collectSelfAndAncestorNodesInRange(precedingToken, textRange)
   })
+}
+
+/**
+ * Finds the deepest AST node at the specified position within the given SourceFile.
+ *
+ * This function traverses the AST to locate the node that contains the given position.
+ * If multiple nodes overlap the position, it returns the most specific (deepest) node.
+ *
+ * @param sourceFile - The TypeScript SourceFile to search within.
+ * @param position - The position in the file to locate the node for.
+ * @returns An `Option`:
+ *          - `Option.some<ts.Node>` if a node is found at the specified position.
+ *          - `Option.none` if no node is found at the specified position.
+ */
+function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): Option.Option<ts.Node> {
+  function find(node: ts.Node): ts.Node | undefined {
+    if (position >= node.getStart() && position < node.getEnd()) {
+      // If the position is within this node, keep traversing its children
+      return ts.forEachChild(node, find) || node
+    }
+    return undefined
+  }
+  return Option.fromNullable(find(sourceFile))
+}
+
+/**
+ * Collects the node at the given position, its descendants, and all its ancestor nodes
+ * that fully contain the specified TextRange.
+ *
+ * This function starts by locating the node at the given position within the AST,
+ * traverses down to include its descendants, and then traverses up to include its ancestors,
+ * collecting all nodes that encompass the specified range.
+ *
+ * @param sourceFile - The TypeScript SourceFile to search within.
+ * @param textRange - The range of text to use for filtering nodes.
+ * @returns An array of nodes that are either descendants or ancestors of the node
+ *          at the given position and that fully contain the specified range.
+ */
+export function collectDescendantsAndAncestorsInRange(
+  sourceFile: ts.SourceFile,
+  textRange: ts.TextRange
+) {
+  const nodeAtPosition = findNodeAtPosition(sourceFile, textRange.pos)
+  if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
+  return collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
+}
+
+/**
+ * Extracts the `Effect` from an `Effect.gen` generator function with a single return statement.
+ *
+ * This function analyzes the provided node to determine if it represents an `Effect.gen` call.
+ * If the generator function body contains exactly one `return` statement, and that statement
+ * yields an `Effect`, the function extracts and returns the inner `Effect`.
+ *
+ * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
+ * @param node - The AST node to analyze.
+ * @returns An `Option`:
+ *          - `Option.some<ts.Node>` containing the inner `Effect` if the node is an `Effect.gen`
+ *            with a single return statement yielding an `Effect`.
+ *          - `Option.none` if the node does not match the criteria.
+ */
+export function getSingleReturnEffectFromEffectGen(
+  typeChecker: ts.TypeChecker,
+  node: ts.Node
+): Option.Option<ts.Node> {
+  // is the node an effect gen-like?
+  const effectGenLike = TypeParser.effectGen(ts, typeChecker)(node)
+
+  if (Option.isSome(effectGenLike)) {
+    // if the node is an effect gen-like, we need to check if its body is just a single return statement
+    const body = effectGenLike.value.body
+    if (
+      body.statements.length === 1 &&
+      ts.isReturnStatement(body.statements[0]) &&
+      body.statements[0].expression &&
+      ts.isYieldExpression(body.statements[0].expression) &&
+      body.statements[0].expression.expression
+    ) {
+      // get the type of the node
+      const nodeToCheck = body.statements[0].expression.expression
+      const type = typeChecker.getTypeAtLocation(nodeToCheck)
+      const maybeEffect = TypeParser.effectType(ts, typeChecker)(type, nodeToCheck)
+      if (Option.isSome(maybeEffect)) {
+        return Option.some(nodeToCheck)
+      }
+    }
+  }
+  return Option.none()
 }
 
 /**
