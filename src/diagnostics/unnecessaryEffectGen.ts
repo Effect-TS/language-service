@@ -12,7 +12,7 @@ export const unnecessaryEffectGen = createDiagnostic({
     const brokenGenerators = new Set<ts.Node>()
 
     const visit = (node: ts.Node) => {
-      if (Option.isSome(AST.getSingleReturnEffectFromEffectGen(typeChecker, node))) {
+      if (Option.isSome(AST.getSingleReturnEffectFromEffectGen(ts, typeChecker, node))) {
         brokenGenerators.add(node)
       }
       ts.forEachChild(node, visit)
