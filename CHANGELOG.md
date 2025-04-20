@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.7.1
+
+### Patch Changes
+
+- [#90](https://github.com/Effect-TS/language-service/pull/90) [`63dd3e0`](https://github.com/Effect-TS/language-service/commit/63dd3e07d10bc47f8ff4d4fdc4839147da1f2a5f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix accidental bundle of ts in lsp
+
 ## 0.7.0
 
 ### Minor Changes
