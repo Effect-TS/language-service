@@ -36,13 +36,14 @@ import * as AST from "../utils/AST.js"
 export const removeUnnecessaryEffectGen = createRefactor({
   name: "effect/removeUnnecessaryEffectGen",
   description: "Remove unnecessary Effect.gen",
-  apply: (_, program) => (sourceFile, textRange) => {
+  apply: (ts, program) => (sourceFile, textRange) => {
     const typeChecker = program.getTypeChecker()
     return pipe(
-      AST.collectDescendantsAndAncestorsInRange(sourceFile, textRange),
+      AST.collectDescendantsAndAncestorsInRange(ts, sourceFile, textRange),
       ReadonlyArray.findFirst((node) =>
         Option.gen(function*() {
           const returnedYieldedEffect = yield* AST.getSingleReturnEffectFromEffectGen(
+            ts,
             typeChecker,
             node
           )
