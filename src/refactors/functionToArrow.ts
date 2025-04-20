@@ -11,12 +11,12 @@ export const functionToArrow = createRefactor({
   apply: (ts) => (sourceFile, textRange) =>
     pipe(
       pipe(
-        AST.getNodesContainingRange(ts)(sourceFile, textRange),
+        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
         ReadonlyArray.filter(ts.isFunctionDeclaration)
       ),
       ReadonlyArray.appendAll(
         pipe(
-          AST.getNodesContainingRange(ts)(sourceFile, textRange),
+          AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
           ReadonlyArray.filter(ts.isMethodDeclaration)
         )
       ),
