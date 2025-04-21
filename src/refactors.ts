@@ -13,7 +13,7 @@ import { toggleTypeAnnotation } from "./refactors/toggleTypeAnnotation.js"
 import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
 
 /**
- * @since 1.0.0
+ * @since 1.0.0r
  */
 export const refactors = {
   asyncAwaitToGen,

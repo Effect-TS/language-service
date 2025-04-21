@@ -1,9 +1,16 @@
+import * as Data from "effect/Data"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import type { TypeScriptApi } from "./TSAPI.js"
+import * as Nano from "./Nano.js"
+import * as TypeScriptApi from "./TypeScriptApi.js"
 
-export function getMissingTypeEntriesInTargetType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
-  return (realType: ts.Type, expectedType: ts.Type) => {
+export interface TypeCheckerApi extends ts.TypeChecker {}
+export const TypeCheckerApi = Nano.Tag<TypeCheckerApi>("TypeChecker")
+
+export function getMissingTypeEntriesInTargetType(realType: ts.Type, expectedType: ts.Type) {
+  return Nano.gen(function*() {
+    const typeChecker = yield* Nano.service(TypeCheckerApi)
+
     const result: Array<ts.Type> = []
     const toTest: Array<ts.Type> = [realType]
     while (toTest.length > 0) {
@@ -19,7 +26,7 @@ export function getMissingTypeEntriesInTargetType(ts: TypeScriptApi, typeChecker
       }
     }
     return result
-  }
+  })
 }
 
 type ConvertibleDeclaration =
@@ -28,28 +35,55 @@ type ConvertibleDeclaration =
   | ts.ArrowFunction
   | ts.MethodDeclaration
 
-export function getInferredReturnType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
-  function isConvertibleDeclaration(node: ts.Node): node is ConvertibleDeclaration {
-    switch (node.kind) {
-      case ts.SyntaxKind.FunctionDeclaration:
-      case ts.SyntaxKind.FunctionExpression:
-      case ts.SyntaxKind.ArrowFunction:
-      case ts.SyntaxKind.MethodDeclaration:
-        return true
-      default:
-        return false
-    }
-  }
+class CannotFindAncestorConvertibleDeclarationError
+  extends Data.TaggedError("CannotFindAncestorConvertibleDeclarationError")<{
+    node: ts.Node
+  }>
+{}
 
-  return (node: ts.Node): Option.Option<ts.Type> => {
-    let declaration = node
-    while (declaration && !isConvertibleDeclaration(declaration)) {
-      declaration = declaration.parent
+function getAncestorConvertibleDeclaration(node: ts.Node) {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    let current: ts.Node | undefined = node
+    while (current) {
+      if (
+        ts.isFunctionDeclaration(current) ||
+        ts.isFunctionExpression(current) ||
+        ts.isArrowFunction(current) ||
+        ts.isMethodDeclaration(current)
+      ) {
+        return current
+      }
+      current = current.parent
     }
-    if (!isConvertibleDeclaration(declaration)) return Option.none()
+    return yield* Nano.fail(new CannotFindAncestorConvertibleDeclarationError({ node }))
+  })
+}
 
-    if (!declaration || !declaration.body) {
-      return Option.none()
+class CannotInferReturnTypeFromEmptyBody
+  extends Data.TaggedError("CannotInferReturnTypeFromEmptyBody")<{
+    declaration: ConvertibleDeclaration
+  }>
+{}
+
+class CannotInferReturnType extends Data.TaggedError("CannotInferReturnType")<{
+  declaration: ConvertibleDeclaration
+}> {}
+
+export function getInferredReturnType(
+  declaration: ConvertibleDeclaration
+): Nano.Nano<
+  ts.Type,
+  CannotInferReturnTypeFromEmptyBody | CannotInferReturnType,
+  ts.TypeChecker | TypeScriptApi.TypeScriptApi
+> {
+  return Nano.gen(function*() {
+    const typeChecker = yield* Nano.service(TypeCheckerApi)
+
+    if (!declaration.body) {
+      return yield* Nano.fail(
+        new CannotInferReturnTypeFromEmptyBody({ declaration })
+      )
     }
 
     let returnType: ts.Type | undefined
@@ -67,7 +101,7 @@ export function getInferredReturnType(ts: TypeScriptApi, typeChecker: ts.TypeChe
       if (signature) {
         const typePredicate = typeChecker.getTypePredicateOfSignature(signature)
         if (typePredicate && typePredicate.type) {
-          return Option.some(typePredicate.type)
+          return typePredicate.type
         } else {
           returnType = typeChecker.getReturnTypeOfSignature(signature)
         }
@@ -75,15 +109,26 @@ export function getInferredReturnType(ts: TypeScriptApi, typeChecker: ts.TypeChe
     }
 
     if (!returnType) {
-      return Option.none()
+      return yield* Nano.fail(
+        new CannotInferReturnType({ declaration })
+      )
     }
 
-    return Option.some(returnType)
-  }
+    return returnType
+  })
 }
 
-export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
-  return (node: ts.Node): Array<[ts.Node, ts.Type, ts.Node, ts.Type]> => {
+export function expectedAndRealType(
+  node: ts.Node
+): Nano.Nano<
+  Array<[ts.Node, ts.Type, ts.Node, ts.Type]>,
+  never,
+  ts.TypeChecker | TypeScriptApi.TypeScriptApi
+> {
+  return Nano.gen(function*() {
+    const typeChecker = yield* Nano.service(TypeCheckerApi)
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
     if (ts.isVariableDeclaration(node) && node.initializer) {
       const expectedType = typeChecker.getTypeAtLocation(node.name)
       const realType = typeChecker.getTypeAtLocation(node.initializer)
@@ -124,9 +169,12 @@ export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeCheck
       return [[node.left, expectedType, node.right, realType]]
     }
     if (ts.isReturnStatement(node) && node.expression) {
-      const expectedType = Option.getOrUndefined(getInferredReturnType(ts, typeChecker)(node))
-      const realType = typeChecker.getTypeAtLocation(node.expression)
-      if (expectedType) return [[node, expectedType, node, realType]]
+      const parentDeclaration = yield* Nano.option(getAncestorConvertibleDeclaration(node))
+      if (Option.isSome(parentDeclaration)) {
+        const expectedType = yield* Nano.option(getInferredReturnType(parentDeclaration.value))
+        const realType = typeChecker.getTypeAtLocation(node.expression)
+        if (Option.isSome(expectedType)) return [[node, expectedType.value, node, realType]]
+      }
     }
     if (ts.isArrowFunction(node) && ts.isExpression(node.body)) {
       const body = node.body
@@ -140,5 +188,5 @@ export function expectedAndRealType(ts: TypeScriptApi, typeChecker: ts.TypeCheck
       return [[node.expression, expectedType, node.expression, realType]]
     }
     return []
-  }
+  })
 }

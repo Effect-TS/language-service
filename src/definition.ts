@@ -1,9 +1,15 @@
 /**
  * @since 1.0.0
  */
-import type * as Option from "effect/Option"
+import * as Data from "effect/Data"
 import type ts from "typescript"
-import type * as TSAPI from "./utils/TSAPI.js"
+import type * as Nano from "./utils/Nano.js"
+import type * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
+import type * as TypeScriptApi from "./utils/TypeScriptApi.js"
+
+export class RefactorNotApplicableError
+  extends Data.TaggedError("RefactorNotApplicableError")<{}>
+{}
 
 /**
  * @since 1.0.0
@@ -12,10 +18,14 @@ import type * as TSAPI from "./utils/TSAPI.js"
 export interface RefactorDefinition {
   name: string
   description: string
-  apply: (ts: TSAPI.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
+  apply: (
     sourceFile: ts.SourceFile,
     textRange: ts.TextRange
-  ) => Option.Option<ApplicableRefactorDefinition>
+  ) => Nano.Nano<
+    ApplicableRefactorDefinition,
+    RefactorNotApplicableError,
+    TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi
+  >
 }
 
 /**
@@ -25,7 +35,7 @@ export interface RefactorDefinition {
 export interface ApplicableRefactorDefinition {
   kind: string
   description: string
-  apply: (changeTracker: ts.textChanges.ChangeTracker) => void
+  apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
 /**
@@ -42,7 +52,7 @@ export function createRefactor(definition: RefactorDefinition) {
  */
 export interface DiagnosticDefinition {
   code: number
-  apply: (ts: TSAPI.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
+  apply: (ts: TypeScriptApi.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
     sourceFile: ts.SourceFile,
     standardDiagnostic: ReadonlyArray<ts.Diagnostic>
   ) => Array<ApplicableDiagnosticDefinition>

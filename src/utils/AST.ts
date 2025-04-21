@@ -2,9 +2,9 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
-import ts from "typescript"
+import type ts from "typescript"
 import * as TypeParser from "../utils/TypeParser.js"
-import type { TypeScriptApi } from "./TSAPI.js"
+import type { TypeScriptApi } from "./TypeScriptApi.js"
 
 /**
  * Collects the given node and all its ancestor nodes that fully contain the specified TextRange.
@@ -64,7 +64,11 @@ export function getAncestorNodesInRange(
  *          - `Option.some<ts.Node>` if a node is found at the specified position.
  *          - `Option.none` if no node is found at the specified position.
  */
-function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): Option.Option<ts.Node> {
+function findNodeAtPosition(
+  ts: TypeScriptApi,
+  sourceFile: ts.SourceFile,
+  position: number
+): Option.Option<ts.Node> {
   function find(node: ts.Node): ts.Node | undefined {
     if (position >= node.getStart() && position < node.getEnd()) {
       // If the position is within this node, keep traversing its children
@@ -89,10 +93,11 @@ function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): Option
  *          at the given position and that fully contain the specified range.
  */
 export function collectDescendantsAndAncestorsInRange(
+  ts: TypeScriptApi,
   sourceFile: ts.SourceFile,
   textRange: ts.TextRange
 ) {
-  const nodeAtPosition = findNodeAtPosition(sourceFile, textRange.pos)
+  const nodeAtPosition = findNodeAtPosition(ts, sourceFile, textRange.pos)
   if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
   return collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
 }
@@ -112,6 +117,7 @@ export function collectDescendantsAndAncestorsInRange(
  *          - `Option.none` if the node does not match the criteria.
  */
 export function getSingleReturnEffectFromEffectGen(
+  ts: TypeScriptApi,
   typeChecker: ts.TypeChecker,
   node: ts.Node
 ): Option.Option<ts.Node> {

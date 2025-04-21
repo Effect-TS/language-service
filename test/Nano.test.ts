@@ -28,4 +28,17 @@ describe("nano", () => {
       Either.right({ value: 42 })
     )
   })
+
+  it("should catch exceptions", () => {
+    const result = pipe(
+      Nano.gen(function*() {
+        throw "error"
+        return yield* Nano.succeed(1)
+      }),
+      Nano.run
+    )
+    expect(result).toEqual(
+      Either.left(new Nano.NanoDefectException({ value: "error" }))
+    )
+  })
 })

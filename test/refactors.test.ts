@@ -1,6 +1,10 @@
 import type { RefactorDefinition } from "@effect/language-service/definition"
 import { refactors } from "@effect/language-service/refactors"
-import * as O from "effect/Option"
+import * as Nano from "@effect/language-service/utils/Nano"
+import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
+import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
+import { Either } from "effect"
+import { pipe } from "effect/Function"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -99,12 +103,14 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
       expect(diagnostics).toEqual([])
 
       // check and assert the refactor is executable
-      const canApply = refactor.apply(ts, program, { diagnostics: false, quickinfo: false })(
-        sourceFile,
-        textRange
+      const canApply = pipe(
+        refactor.apply(sourceFile, textRange),
+        Nano.provide(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+        Nano.run
       )
 
-      if (O.isNone(canApply)) {
+      if (Either.isLeft(canApply)) {
         expect(sourceText).toMatchSnapshot()
         return
       }
@@ -120,7 +126,12 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
           host: languageServiceHost,
           preferences: {}
         },
-        (changeTracker) => canApply.value.apply(changeTracker)
+        (changeTracker) =>
+          pipe(
+            canApply.right.apply,
+            Nano.provide(TypeScriptApi.ChangeTracker, changeTracker),
+            Nano.run
+          )
       )
 
       expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()

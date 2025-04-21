@@ -1,5 +1,6 @@
 import * as Data from "effect/Data"
 import * as Either from "effect/Either"
+import { pipe } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
 import * as Gen from "effect/Utils"
@@ -61,6 +62,8 @@ export interface NanoIterator<T extends Nano<any, any, any>> {
  * to provide a familiar effect-like experience in envs
  * where using full blown Effect will cause an Effect-in-Effect issue.
  * It is supposed to be sync only and not stack-safe.
+ * Thrown exceptions are catched and converted into defects,
+ * so worst case scenario, you will get only standard typescript lsp.
  */
 export class Nano<out A, out E = never, out R = never> {
   declare readonly "~nano.success": A
@@ -70,7 +73,7 @@ export class Nano<out A, out E = never, out R = never> {
   constructor(
     public readonly run: (
       ctx: NanoContext<unknown>
-    ) => Either.Either<A, E | NanoInterruptedException | NanoDefectException>
+    ) => Either.Either<Either.Either<A, E>, NanoInterruptedException | NanoDefectException>
   ) {}
 
   [Symbol.iterator](): NanoIterator<Nano<A, E, R>> {
@@ -78,17 +81,26 @@ export class Nano<out A, out E = never, out R = never> {
   }
 }
 
-export const run = <A, E>(fa: Nano<A, E, never>) => fa.run(contextEmpty)
-export const succeed = <A>(value: A) => new Nano(() => (Either.right(value)))
-export const fail = <E>(value: E) => new Nano(() => (Either.left(value)))
-export const sync = <A>(value: () => A) => new Nano(() => (Either.right(value())))
+export const run = <A, E>(fa: Nano<A, E, never>) =>
+  pipe(
+    Either.try({
+      try: () => fa.run(contextEmpty),
+      catch: (error) => (new NanoDefectException({ value: error }))
+    }),
+    Either.flatMap((_) => _),
+    Either.flatMap((_) => _)
+  )
+
+export const succeed = <A>(value: A) => new Nano(() => (Either.right(Either.right(value))))
+export const fail = <E>(value: E) => new Nano(() => Either.right(Either.left(value)))
+export const sync = <A>(value: () => A) => new Nano(() => Either.right(Either.right(value())))
 
 export const service = <I extends NanoTag<any>>(tag: I) =>
   new Nano<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
     contextGet(ctx, tag).pipe(Option.match({
       onNone: () =>
         Either.left(new NanoDefectException({ value: `Cannot find service ${tag.key}` })),
-      onSome: (value) => Either.right(value)
+      onSome: (value) => Either.right(Either.right(value))
     }))
   )
 
@@ -127,7 +139,34 @@ export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
       if (Either.isLeft(result)) {
         return result
       }
-      state = iterator.next(result.right as never)
+      const inner: Either.Either<any, any> = result.right
+      if (Either.isLeft(inner)) {
+        return result
+      }
+      state = iterator.next(inner.right as never)
     }
-    return Either.right(state.value) as any
+    return Either.right(Either.right(state.value)) as any
+  })
+
+export const option = <A, E, R>(fa: Nano<A, E, R>) =>
+  new Nano<Option.Option<A>, never, R>((ctx) => {
+    return Either.match(fa.run(ctx), {
+      onLeft: (cause) => Either.left(cause),
+      onRight: Either.match({
+        onLeft: () => Either.right(Either.right(Option.none())),
+        onRight: (value) => Either.right(Either.right(Option.some(value)))
+      })
+    })
+  })
+
+export const all = <A extends Array<Nano<any, any, any>>>(
+  ...args: A
+): Nano<A[number]["~nano.success"], A[number]["~nano.error"], A[number]["~nano.requirements"]> =>
+  gen(function*() {
+    const results: Array<A[number]["~nano.success"]> = []
+    for (const arg of args) {
+      const result = yield* arg
+      results.push(result)
+    }
+    return results
   })

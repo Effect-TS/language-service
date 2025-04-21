@@ -369,10 +369,7 @@ export function myTest2(name: string) {
 }
 
 class Sample {
-  /**
-   * Docs
-   */
-  /**
+    /**
      * Docs
      */
     test = (name: string) => name.length

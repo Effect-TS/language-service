@@ -1,31 +1,46 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import { createRefactor } from "../definition.js"
+import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
+import * as Nano from "../utils/Nano.js"
+import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
+import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const asyncAwaitToGen = createRefactor({
   name: "effect/asyncAwaitToGen",
   description: "Convert to Effect.gen",
-  apply: (ts, program) => (sourceFile, textRange) =>
-    pipe(
-      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
-      ReadonlyArray.filter((node) =>
-        ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node)
-      ),
-      ReadonlyArray.filter((node) => !!node.body),
-      ReadonlyArray.filter((node) =>
-        !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)
-      ),
-      ReadonlyArray.head,
-      Option.map((node) => ({
+  apply: (sourceFile, textRange) =>
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+
+      const maybeNode = pipe(
+        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
+        ReadonlyArray.filter((node) =>
+          ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) ||
+          ts.isFunctionExpression(node)
+        ),
+        ReadonlyArray.filter((node) => !!node.body),
+        ReadonlyArray.filter((node) =>
+          !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)
+        ),
+        ReadonlyArray.head
+      )
+
+      if (Option.isNone(maybeNode)) return yield* Nano.fail(new RefactorNotApplicableError())
+      const node = maybeNode.value
+
+      return ({
         kind: "refactor.rewrite.effect.asyncAwaitToGen",
         description: "Rewrite to Effect.gen",
-        apply: (changeTracker) => {
+        apply: Nano.gen(function*() {
+          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
           const isImportedEffectModule = TypeParser.importedEffectModule(
             ts,
-            program.getTypeChecker()
+            typeChecker
           )
           const effectModuleIdentifierName = pipe(
             AST.findImportedModuleIdentifier(ts)((node) =>
@@ -61,7 +76,7 @@ export const asyncAwaitToGen = createRefactor({
           )
 
           changeTracker.replaceNode(sourceFile, node, newDeclaration)
-        }
-      }))
-    )
+        })
+      })
+    })
 })
