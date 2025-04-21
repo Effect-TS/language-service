@@ -1,13 +1,10 @@
-/**
- * @since 1.0.0
- */
 import { Either } from "effect"
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import type { PluginOptions } from "./definition.js"
-// import { diagnostics } from "./diagnostics.js"
+import { PluginOptions } from "./definition.js"
+import { diagnostics } from "./diagnostics.js"
 import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 import * as AST from "./utils/AST.js"
@@ -42,41 +39,39 @@ const init = (
 
     proxy.getSemanticDiagnostics = (fileName, ...args) => {
       const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
-      // const program = languageService.getProgram()
+      const program = languageService.getProgram()
 
-      // if (pluginOptions.diagnostics && program) {
-      //   const effectDiagnostics: Array<ts.Diagnostic> = pipe(
-      //     Option.fromNullable(program.getSourceFile(fileName)),
-      //     Option.map((sourceFile) =>
-      //       pipe(
-      //         Object.values(diagnostics).map((diagnostic) =>
-      //           pipe(
-      //             diagnostic.apply(modules.typescript, program, pluginOptions)(
-      //               sourceFile,
-      //               applicableDiagnostics
-      //             ).map((_) => ({
-      //               file: sourceFile,
-      //               start: _.node.getStart(sourceFile),
-      //               length: _.node.getEnd() - _.node.getStart(sourceFile),
-      //               messageText: _.messageText,
-      //               category: _.category,
-      //               code: diagnostic.code,
-      //               source: "effect"
-      //             }))
-      //           )
-      //         ),
-      //         (_) =>
-      //           _.reduce(
-      //             (arr, maybeRefactor) => arr.concat(maybeRefactor),
-      //             [] as Array<ts.Diagnostic>
-      //           )
-      //       )
-      //     ),
-      //     Option.getOrElse(() => [])
-      //   )
+      if (pluginOptions.diagnostics && program) {
+        const sourceFile = program.getSourceFile(fileName)
 
-      //   return effectDiagnostics.concat(applicableDiagnostics)
-      // }
+        if (sourceFile) {
+          return pipe(
+            Nano.gen(function*() {
+              const effectDiagnostics: Array<ts.Diagnostic> = []
+              for (const diagnostic of Object.values(diagnostics)) {
+                const result = yield* Nano.option(diagnostic.apply(sourceFile))
+                if (Option.isSome(result)) {
+                  effectDiagnostics.push(...result.value.map((_) => ({
+                    file: sourceFile,
+                    start: _.node.getStart(sourceFile),
+                    length: _.node.getEnd() - _.node.getStart(sourceFile),
+                    messageText: _.messageText,
+                    category: _.category,
+                    code: diagnostic.code,
+                    source: "effect"
+                  })))
+                }
+              }
+              return effectDiagnostics.concat(applicableDiagnostics)
+            }),
+            Nano.provide(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provide(PluginOptions, pluginOptions),
+            Nano.run,
+            Either.getOrElse(() => applicableDiagnostics)
+          )
+        }
+      }
 
       return applicableDiagnostics
     }
@@ -111,6 +106,7 @@ const init = (
             }),
             Nano.provide(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provide(PluginOptions, pluginOptions),
             Nano.run,
             Either.getOrElse(() => applicableRefactors)
           )
@@ -164,6 +160,7 @@ const init = (
               }),
               Nano.provide(TypeScriptApi.TypeScriptApi, modules.typescript),
               Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.provide(PluginOptions, pluginOptions),
               Nano.run
             )
             if (Either.isRight(result)) {

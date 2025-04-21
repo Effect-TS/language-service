@@ -1,14 +1,11 @@
-/**
- * @since 1.0.0
- */
 import * as ReadonlyArray from "effect/Array"
 import * as Eq from "effect/Equivalence"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as AST from "./utils/AST.js"
-import type { TypeScriptApi } from "./utils/TSAPI.js"
 import * as TypeParser from "./utils/TypeParser.js"
+import type { TypeScriptApi } from "./utils/TypeScriptApi.js"
 
 const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) =>
   fa.kind === fb.kind && fa.text === fb.text
@@ -19,9 +16,6 @@ const JSDocTagInfoEq = Eq.make<ts.JSDocTagInfo>((fa, fb) =>
   (typeof fa.text !== "undefined" ? Eq.array(SymbolDisplayPartEq)(fa.text!, fb.text!) : true)
 )
 
-/**
- * @since 1.0.0
- */
 export function dedupeJsDocTags(quickInfo: ts.QuickInfo): ts.QuickInfo {
   if (quickInfo.tags) {
     return {

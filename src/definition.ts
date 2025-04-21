@@ -1,9 +1,6 @@
-/**
- * @since 1.0.0
- */
 import * as Data from "effect/Data"
 import type ts from "typescript"
-import type * as Nano from "./utils/Nano.js"
+import * as Nano from "./utils/Nano.js"
 import type * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
 import type * as TypeScriptApi from "./utils/TypeScriptApi.js"
 
@@ -11,10 +8,6 @@ export class RefactorNotApplicableError
   extends Data.TaggedError("RefactorNotApplicableError")<{}>
 {}
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export interface RefactorDefinition {
   name: string
   description: string
@@ -24,63 +17,44 @@ export interface RefactorDefinition {
   ) => Nano.Nano<
     ApplicableRefactorDefinition,
     RefactorNotApplicableError,
-    TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi
+    TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | PluginOptions
   >
 }
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export interface ApplicableRefactorDefinition {
   kind: string
   description: string
   apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export function createRefactor(definition: RefactorDefinition) {
   return definition
 }
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export interface DiagnosticDefinition {
   code: number
-  apply: (ts: TypeScriptApi.TypeScriptApi, program: ts.Program, options: PluginOptions) => (
-    sourceFile: ts.SourceFile,
-    standardDiagnostic: ReadonlyArray<ts.Diagnostic>
-  ) => Array<ApplicableDiagnosticDefinition>
+  apply: (
+    sourceFile: ts.SourceFile
+  ) => Nano.Nano<
+    Array<ApplicableDiagnosticDefinition>,
+    never,
+    TypeCheckerApi.TypeCheckerApi | PluginOptions | TypeScriptApi.TypeScriptApi
+  >
 }
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export interface ApplicableDiagnosticDefinition {
   node: ts.Node
   category: ts.DiagnosticCategory
   messageText: string
 }
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export function createDiagnostic(definition: DiagnosticDefinition) {
   return definition
 }
 
-/**
- * @since 1.0.0
- * @category plugin
- */
 export interface PluginOptions {
   diagnostics: boolean
   quickinfo: boolean
 }
+
+export const PluginOptions = Nano.Tag<PluginOptions>("PluginOptions")

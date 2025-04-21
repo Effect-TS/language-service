@@ -1,4 +1,4 @@
-import type { RefactorDefinition } from "@effect/language-service/definition"
+import { PluginOptions, type RefactorDefinition } from "@effect/language-service/definition"
 import { refactors } from "@effect/language-service/refactors"
 import * as Nano from "@effect/language-service/utils/Nano"
 import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
@@ -107,6 +107,7 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
         refactor.apply(sourceFile, textRange),
         Nano.provide(TypeScriptApi.TypeScriptApi, ts),
         Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+        Nano.provide(PluginOptions, { diagnostics: false, quickinfo: false }),
         Nano.run
       )
 

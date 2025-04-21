@@ -1,6 +1,3 @@
-/**
- * @since 1.0.0
- */
 import { asyncAwaitToGen } from "./refactors/asyncAwaitToGen.js"
 import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise.js"
 import { effectGenToFn } from "./refactors/effectGenToFn.js"
@@ -12,9 +9,6 @@ import { toggleReturnTypeAnnotation } from "./refactors/toggleReturnTypeAnnotati
 import { toggleTypeAnnotation } from "./refactors/toggleTypeAnnotation.js"
 import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
 
-/**
- * @since 1.0.0r
- */
 export const refactors = {
   asyncAwaitToGen,
   asyncAwaitToGenTryPromise,

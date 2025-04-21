@@ -1,5 +1,11 @@
 import type { DiagnosticDefinition } from "@effect/language-service/definition"
+import { PluginOptions } from "@effect/language-service/definition"
 import { diagnostics } from "@effect/language-service/diagnostics"
+import * as Nano from "@effect/language-service/utils/Nano"
+import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
+import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
+import * as Either from "effect/Either"
+import { pipe } from "effect/Function"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -25,21 +31,27 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
     if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
     // check and assert the refactor is executable
-    const canApply = diagnostic.apply(ts, program, { diagnostics: true, quickinfo: false })(
-      sourceFile,
-      program.getSemanticDiagnostics(sourceFile)
+    const canApply = pipe(
+      diagnostic.apply(sourceFile),
+      Nano.provide(TypeScriptApi.TypeScriptApi, ts),
+      Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+      Nano.provide(PluginOptions, {
+        diagnostics: true,
+        quickinfo: false
+      }),
+      Nano.run
     )
 
-    if (canApply.length === 0) {
+    if (Either.isLeft(canApply)) {
       expect("// no diagnostics").toMatchSnapshot()
       return
     }
 
     // sort by start position
-    canApply.sort((a, b) => a.node.getStart(sourceFile) - b.node.getStart(sourceFile))
+    canApply.right.sort((a, b) => a.node.getStart(sourceFile) - b.node.getStart(sourceFile))
 
     // create human readable messages
-    const humanMessages = canApply.map((error) => {
+    const humanMessages = canApply.right.map((error) => {
       const start = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getStart(sourceFile))
       const end = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getEnd())
       const errorSourceCode = sourceText.substring(
