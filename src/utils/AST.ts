@@ -2,7 +2,7 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
-import ts from "typescript"
+import type ts from "typescript"
 import * as TypeParser from "../utils/TypeParser.js"
 import type { TypeScriptApi } from "./TSAPI.js"
 
@@ -61,9 +61,11 @@ export function getAncestorNodesInRange(
  * that satisfies the provided `nodePredicate`. The result includes both the output of the
  * `nodePredicate` and the matched node.
  *
- * @param nodePredicate - A function that takes a `TypeChecker` and a `ts.Node` and returns
- *                        an `Option` indicating whether the node satisfies the search criteria.
- * @returns A function that takes a `SourceFile`, a `TypeChecker`, and a position, and returns:
+ * @param nodePredicate - A function that takes the TypeScript API (`ts`), a `TypeChecker`,
+ *                        and a `ts.Node`, and returns an `Option` indicating whether the
+ *                        node satisfies the search criteria.
+ * @returns A function that takes the TypeScript API (`ts`), a `SourceFile`, a `TypeChecker`,
+ *          and a position, and returns:
  *          - `Option.some<[T, ts.Node]>` if a matching node is found, where:
  *              - `T` is the result of the `nodePredicate`.
  *              - `ts.Node` is the matched node.
@@ -71,11 +73,11 @@ export function getAncestorNodesInRange(
  *
  * @example
  * ```ts
- * const findExpression = findNodeAtPosition((typeChecker, node) =>
+ * const findExpression = findNodeAtPosition((ts, typeChecker, node) =>
  *   ts.isExpression(node) ? Option.some(node) : Option.none()
  * );
  *
- * const result = findExpression(sourceFile, typeChecker, position);
+ * const result = findExpression(ts, sourceFile, typeChecker, position);
  * if (Option.isSome(result)) {
  *   const [expression, matchedNode] = result.value;
  *   console.log("Found expression:", expression);
@@ -83,16 +85,17 @@ export function getAncestorNodesInRange(
  * ```
  */
 export function findNodeAtPosition<T extends ts.Node>(
-  nodePredicate: (typeChecker: ts.TypeChecker, node: ts.Node) => Option.Option<T>
+  nodePredicate: (ts: TypeScriptApi, typeChecker: ts.TypeChecker, node: ts.Node) => Option.Option<T>
 ) {
   return function(
+    ts: TypeScriptApi,
     sourceFile: ts.SourceFile,
     typeChecker: ts.TypeChecker,
     position: number
   ): Option.Option<[resultOfPredicate: T, matchedNode: ts.Node]> {
     function find(node: ts.Node): [resultOfPredicate: T, matchedNode: ts.Node] | undefined {
       if (position >= node.getStart() && position < node.getEnd()) {
-        const result = nodePredicate(typeChecker, node)
+        const result = nodePredicate(ts, typeChecker, node)
         return Option.isSome(result) ?
           [result.value, node] :
           ts.forEachChild(node, find)
@@ -110,6 +113,7 @@ export function findNodeAtPosition<T extends ts.Node>(
  * and checks if it represents an `Effect` expression. It uses the TypeScript type checker
  * to verify that the node corresponds to an `Effect` type.
  *
+ * @param ts - The TypeScript API.
  * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
  * @param node - The AST node to analyze.
  * @returns An `Option`:
@@ -118,14 +122,14 @@ export function findNodeAtPosition<T extends ts.Node>(
  *
  * @example
  * ```ts
- * const result = findEffectExpressionAtPosition(sourceFile, typeChecker, position);
+ * const result = findEffectExpressionAtPosition(ts, sourceFile, typeChecker, position);
  * if (Option.isSome(result)) {
  *   const effectExpression = result.value;
  *   console.log("Found Effect expression:", effectExpression.getText());
  * }
  * ```
  */
-export const findEffectExpressionAtPosition = findNodeAtPosition((typeChecker, node) =>
+export const findEffectExpressionAtPosition = findNodeAtPosition((ts, typeChecker, node) =>
   Option.gen(function*() {
     const expr = yield* Option.liftPredicate(node, ts.isExpression)
     yield* TypeParser.effectType(ts, typeChecker)(typeChecker.getTypeAtLocation(expr), expr)
@@ -142,6 +146,7 @@ export const findEffectExpressionAtPosition = findNodeAtPosition((typeChecker, n
  * statement yields an `Effect`. If these conditions are met, the function extracts and
  * returns the inner `Effect`.
  *
+ * @param ts - The TypeScript API.
  * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
  * @param node - The AST node to analyze.
  * @returns An `Option`:
@@ -162,9 +167,10 @@ export const findEffectExpressionAtPosition = findNodeAtPosition((typeChecker, n
  * ```
  */
 export const findSingleReturnEffectFromEffectGenAtPosition = findNodeAtPosition((
+  ts,
   typeChecker,
   node
-) => getSingleReturnEffectFromEffectGen(typeChecker, node))
+) => getSingleReturnEffectFromEffectGen(ts, typeChecker, node))
 
 /**
  * Retrieves the identifier name of the imported `Effect` module in the given SourceFile.
@@ -189,7 +195,7 @@ export const findSingleReturnEffectFromEffectGenAtPosition = findNodeAtPosition(
  * If no `Effect` module is imported, it will return `"Effect"`.
  */
 export function getEffectModuleIdentifierName(
-  ts: TypeParser.TypeScriptApi,
+  ts: TypeScriptApi,
   program: ts.Program,
   sourceFile: ts.SourceFile
 ) {
@@ -213,6 +219,7 @@ export function getEffectModuleIdentifierName(
  * that wraps the provided AST node. The resulting generator function is passed as an
  * argument to the `Effect.gen` call.
  *
+ * @param ts - The TypeScript API.
  * @param effectModuleIdentifierName - The identifier name of the imported `Effect` module
  *                                     (e.g., `"Effect"` or a custom alias like `"T"`).
  * @param node - The AST node to wrap in the `Effect.gen` generator function.
@@ -222,7 +229,7 @@ export function getEffectModuleIdentifierName(
  * Input:
  * ```ts
  * const expression = ts.factory.createIdentifier("Effect.succeed(42)");
- * const result = createEffectGenCallExpression("Effect", expression);
+ * const result = createEffectGenCallExpression(ts, "Effect", expression);
  * ```
  * Output:
  * ```ts
@@ -232,6 +239,7 @@ export function getEffectModuleIdentifierName(
  * ```
  */
 export function createEffectGenCallExpression(
+  ts: TypeScriptApi,
   effectModuleIdentifierName: string,
   node: ts.Node
 ) {
@@ -262,6 +270,7 @@ export function createEffectGenCallExpression(
  * that wraps the provided statement(s) in a block (`{}`). The resulting generator function
  * is passed as an argument to the `Effect.gen` call.
  *
+ * @param ts - The TypeScript API.
  * @param effectModuleIdentifierName - The identifier name of the imported `Effect` module
  *                                     (e.g., `"Effect"` or a custom alias like `"T"`).
  * @param statement - A single statement or an array of statements to wrap in the
@@ -275,7 +284,7 @@ export function createEffectGenCallExpression(
  * const statement = ts.factory.createExpressionStatement(
  *   ts.factory.createCallExpression(ts.factory.createIdentifier("Effect.succeed"), undefined, [ts.factory.createNumericLiteral(42)])
  * );
- * const result = createEffectGenCallExpressionWithBlock("Effect", statement);
+ * const result = createEffectGenCallExpressionWithBlock(ts, "Effect", statement);
  * ```
  * Output:
  * ```ts
@@ -290,7 +299,7 @@ export function createEffectGenCallExpression(
  *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.succeed(42)")),
  *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.fail('error')"))
  * ];
- * const result = createEffectGenCallExpressionWithBlock("Effect", statements);
+ * const result = createEffectGenCallExpressionWithBlock(ts, "Effect", statements);
  * ```
  * Output:
  * ```ts
@@ -301,10 +310,12 @@ export function createEffectGenCallExpression(
  * ```
  */
 export function createEffectGenCallExpressionWithBlock(
+  ts: TypeScriptApi,
   effectModuleIdentifierName: string,
   statement: ts.Statement | Array<ts.Statement>
 ) {
   return createEffectGenCallExpression(
+    ts,
     effectModuleIdentifierName,
     ts.factory.createBlock(Array.isArray(statement) ? statement : [statement], false)
   )
@@ -318,6 +329,7 @@ export function createEffectGenCallExpressionWithBlock(
  * they are all included in the block. The resulting generator function is passed as an
  * argument to the `Effect.gen` call.
  *
+ * @param ts - The TypeScript API.
  * @param effectModuleIdentifierName - The identifier name of the imported `Effect` module
  *                                     (e.g., `"Effect"` or a custom alias like `"T"`).
  * @param statement - A single statement or an array of statements to wrap in the
@@ -331,7 +343,7 @@ export function createEffectGenCallExpressionWithBlock(
  * const statement = ts.factory.createExpressionStatement(
  *   ts.factory.createCallExpression(ts.factory.createIdentifier("Effect.succeed"), undefined, [ts.factory.createNumericLiteral(42)])
  * );
- * const result = createEffectGenCallExpressionWithBlock("Effect", statement);
+ * const result = createEffectGenCallExpressionWithBlock(ts, "Effect", statement);
  * ```
  * Output:
  * ```ts
@@ -348,7 +360,7 @@ export function createEffectGenCallExpressionWithBlock(
  *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.succeed(42)")),
  *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.fail('error')"))
  * ];
- * const result = createEffectGenCallExpressionWithBlock("Effect", statements);
+ * const result = createEffectGenCallExpressionWithBlock(ts, "Effect", statements);
  * ```
  * Output:
  * ```ts
@@ -361,10 +373,12 @@ export function createEffectGenCallExpressionWithBlock(
  * ```
  */
 export function createEffectGenCallExpressionWithGeneratorBlock(
+  ts: TypeScriptApi,
   effectModuleIdentifierName: string,
   statement: ts.Statement | Array<ts.Statement>
 ) {
   return createEffectGenCallExpression(
+    ts,
     effectModuleIdentifierName,
     ts.factory.createBlock(
       [ts.factory.createBlock(Array.isArray(statement) ? statement : [statement], false)],
@@ -380,6 +394,7 @@ export function createEffectGenCallExpressionWithGeneratorBlock(
  * The `yield*` expression is used to delegate to another generator or iterable,
  * and the result is returned from the enclosing generator function.
  *
+ * @param ts - The TypeScript API.
  * @param expr - The expression to be yielded and returned.
  * @returns A `ts.Statement` representing the `return yield*` statement.
  *
@@ -391,14 +406,17 @@ export function createEffectGenCallExpressionWithGeneratorBlock(
  *   undefined,
  *   [ts.factory.createNumericLiteral(42)]
  * );
- * const result = createReturnYieldStarStatement(expression);
+ * const result = createReturnYieldStarStatement(ts, expression);
  * ```
  * Output:
  * ```ts
  * return yield* Effect.succeed(42);
  * ```
  */
-export function createReturnYieldStarStatement(expr: ts.Expression): ts.Statement {
+export function createReturnYieldStarStatement(
+  ts: TypeScriptApi,
+  expr: ts.Expression
+): ts.Statement {
   return ts.factory.createReturnStatement(
     ts.factory.createYieldExpression(
       ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
@@ -414,6 +432,7 @@ export function createReturnYieldStarStatement(expr: ts.Expression): ts.Statemen
  * If the generator function body contains exactly one `return` statement, and that statement
  * yields an `Effect`, the function extracts and returns the inner `Effect`.
  *
+ * @param ts - The TypeScript API.
  * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
  * @param node - The AST node to analyze.
  * @returns An `Option`:
@@ -422,6 +441,7 @@ export function createReturnYieldStarStatement(expr: ts.Expression): ts.Statemen
  *          - `Option.none` if the node does not match the criteria.
  */
 export function getSingleReturnEffectFromEffectGen(
+  ts: TypeScriptApi,
   typeChecker: ts.TypeChecker,
   node: ts.Node
 ): Option.Option<ts.Node> {
@@ -483,7 +503,7 @@ export function transformAsyncAwaitToEffectGen(
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
     }
     const generatorBody = visitor(node.body!)
-    const effectGenCallExp = createEffectGenCallExpression(effectModuleName, generatorBody)
+    const effectGenCallExp = createEffectGenCallExpression(ts, effectModuleName, generatorBody)
 
     let currentFlags = ts.getCombinedModifierFlags(node)
     currentFlags &= ~ts.ModifierFlags.Async

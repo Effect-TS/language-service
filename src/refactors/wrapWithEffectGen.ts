@@ -37,13 +37,15 @@ export const wrapWithEffectGen = createRefactor({
   apply: (ts, program) => (sourceFile, textRange) => {
     return Option.gen(function*() {
       const [effectExpr] = yield* AST.findEffectExpressionAtPosition(
+        ts,
         sourceFile,
         program.getTypeChecker(),
         textRange.pos
       )
       const effectGen = AST.createEffectGenCallExpressionWithBlock(
+        ts,
         AST.getEffectModuleIdentifierName(ts, program, sourceFile),
-        AST.createReturnYieldStarStatement(effectExpr)
+        AST.createReturnYieldStarStatement(ts, effectExpr)
       )
       return {
         kind: "refactor.rewrite.effect.wrapWithEffectGen",

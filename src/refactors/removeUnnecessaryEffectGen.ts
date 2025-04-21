@@ -34,10 +34,11 @@ import * as AST from "../utils/AST.js"
 export const removeUnnecessaryEffectGen = createRefactor({
   name: "effect/removeUnnecessaryEffectGen",
   description: "Remove unnecessary Effect.gen",
-  apply: (_, program) => (sourceFile, textRange) => {
+  apply: (ts, program) => (sourceFile, textRange) => {
     return Option.gen(function*() {
       const [returnedYieldedEffect, nodeToReplace] = yield* AST
         .findSingleReturnEffectFromEffectGenAtPosition(
+          ts,
           sourceFile,
           program.getTypeChecker(),
           textRange.pos
