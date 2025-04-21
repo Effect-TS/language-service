@@ -3,7 +3,6 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import { createRefactor } from "../definition.js"
 import * as AST from "../utils/AST.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const asyncAwaitToGen = createRefactor({
   name: "effect/asyncAwaitToGen",
