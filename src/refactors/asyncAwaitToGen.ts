@@ -23,16 +23,10 @@ export const asyncAwaitToGen = createRefactor({
         kind: "refactor.rewrite.effect.asyncAwaitToGen",
         description: "Rewrite to Effect.gen",
         apply: (changeTracker) => {
-          const isImportedEffectModule = TypeParser.importedEffectModule(
+          const effectModuleIdentifierName = AST.getEffectModuleIdentifierName(
             ts,
-            program.getTypeChecker()
-          )
-          const effectModuleIdentifierName = pipe(
-            AST.findImportedModuleIdentifier(ts)((node) =>
-              Option.isSome(isImportedEffectModule(node))
-            )(sourceFile),
-            Option.map((node) => node.text),
-            Option.getOrElse(() => "Effect")
+            program,
+            sourceFile
           )
 
           const newDeclaration = AST.transformAsyncAwaitToEffectGen(

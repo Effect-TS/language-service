@@ -541,7 +541,7 @@ Effect.gen(function* () {
     return yield* Effect.succeed(42)
 })
 
-export const test2 = Effect.gen(function* () {
+export const test2 = Effect.gen(function*() {
     return yield* Effect.succeed(42)
 })
 
@@ -1436,6 +1436,54 @@ class Person extends Schema.TaggedClass<Person>("Person")("Person", {
 }){
     static decode: (i: { readonly name: string; readonly age: number; readonly _tag: "Person" }, overrideOptions?: ParseOption.ParseOptions) => Effect.Effect<Person, ParseResult.ParseError, never> = Schema.decode(Person)
 }
+"
+`;
+
+exports[`wrapWithEffectGen.ts > wrapWithEffectGen.ts at 4:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 4:22
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.gen(function*() { return yield* Effect.succeed(42) })
+
+export const test2 = Effect.succeed(42).pipe(
+    Effect.map((n) => n + 1), 
+    Effect.map((n) => n - 1)
+)
+"
+`;
+
+exports[`wrapWithEffectGen.ts > wrapWithEffectGen.ts at 6:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 6:22
+import * as Effect from "effect/Effect"
+
+export const test1 = Effect.succeed(42)
+
+export const test2 = Effect.gen(function*() {
+    return yield* Effect.succeed(42).pipe(
+        Effect.map((n) => n + 1),
+        Effect.map((n) => n - 1)
+    )
+})
+"
+`;
+
+exports[`wrapWithEffectGen_EffectAsT.ts > wrapWithEffectGen_EffectAsT.ts at 4:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 4:22
+import * as T from "effect/Effect"
+
+export const test1 = T.gen(function*() { return yield* T.succeed(42) })
+
+const test2 = test1
+"
+`;
+
+exports[`wrapWithEffectGen_EffectAsT.ts > wrapWithEffectGen_EffectAsT.ts at 6:15 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 6:15
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed(42)
+
+const test2 = T.gen(function*() { return yield* test1 })
 "
 `;
 

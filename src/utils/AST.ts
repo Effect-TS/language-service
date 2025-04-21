@@ -53,48 +53,358 @@ export function getAncestorNodesInRange(
 }
 
 /**
- * Finds the deepest AST node at the specified position within the given SourceFile.
+ * Finds the deepest AST node at the specified position within the given SourceFile
+ * that satisfies a custom predicate function.
  *
  * This function traverses the AST to locate the node that contains the given position.
- * If multiple nodes overlap the position, it returns the most specific (deepest) node.
+ * If multiple nodes overlap the position, it returns the most specific (deepest) node
+ * that satisfies the provided `nodePredicate`. The result includes both the output of the
+ * `nodePredicate` and the matched node.
  *
- * @param sourceFile - The TypeScript SourceFile to search within.
- * @param position - The position in the file to locate the node for.
- * @returns An `Option`:
- *          - `Option.some<ts.Node>` if a node is found at the specified position.
- *          - `Option.none` if no node is found at the specified position.
+ * @param nodePredicate - A function that takes a `TypeChecker` and a `ts.Node` and returns
+ *                        an `Option` indicating whether the node satisfies the search criteria.
+ * @returns A function that takes a `SourceFile`, a `TypeChecker`, and a position, and returns:
+ *          - `Option.some<[T, ts.Node]>` if a matching node is found, where:
+ *              - `T` is the result of the `nodePredicate`.
+ *              - `ts.Node` is the matched node.
+ *          - `Option.none` if no matching node is found.
+ *
+ * @example
+ * ```ts
+ * const findExpression = findNodeAtPosition((typeChecker, node) =>
+ *   ts.isExpression(node) ? Option.some(node) : Option.none()
+ * );
+ *
+ * const result = findExpression(sourceFile, typeChecker, position);
+ * if (Option.isSome(result)) {
+ *   const [expression, matchedNode] = result.value;
+ *   console.log("Found expression:", expression);
+ * }
+ * ```
  */
-function findNodeAtPosition(sourceFile: ts.SourceFile, position: number): Option.Option<ts.Node> {
-  function find(node: ts.Node): ts.Node | undefined {
-    if (position >= node.getStart() && position < node.getEnd()) {
-      // If the position is within this node, keep traversing its children
-      return ts.forEachChild(node, find) || node
+export function findNodeAtPosition<T extends ts.Node>(
+  nodePredicate: (typeChecker: ts.TypeChecker, node: ts.Node) => Option.Option<T>
+) {
+  return function(
+    sourceFile: ts.SourceFile,
+    typeChecker: ts.TypeChecker,
+    position: number
+  ): Option.Option<[resultOfPredicate: T, matchedNode: ts.Node]> {
+    function find(node: ts.Node): [resultOfPredicate: T, matchedNode: ts.Node] | undefined {
+      if (position >= node.getStart() && position < node.getEnd()) {
+        const result = nodePredicate(typeChecker, node)
+        return Option.isSome(result) ?
+          [result.value, node] :
+          ts.forEachChild(node, find)
+      }
+      return undefined
     }
-    return undefined
+    return Option.fromNullable(find(sourceFile))
   }
-  return Option.fromNullable(find(sourceFile))
 }
 
 /**
- * Collects the node at the given position, its descendants, and all its ancestor nodes
- * that fully contain the specified TextRange.
+ * Finds an `Effect` expression at the specified position within the given SourceFile.
  *
- * This function starts by locating the node at the given position within the AST,
- * traverses down to include its descendants, and then traverses up to include its ancestors,
- * collecting all nodes that encompass the specified range.
+ * This function traverses the AST to locate the deepest node at the specified position
+ * and checks if it represents an `Effect` expression. It uses the TypeScript type checker
+ * to verify that the node corresponds to an `Effect` type.
  *
- * @param sourceFile - The TypeScript SourceFile to search within.
- * @param textRange - The range of text to use for filtering nodes.
- * @returns An array of nodes that are either descendants or ancestors of the node
- *          at the given position and that fully contain the specified range.
+ * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
+ * @param node - The AST node to analyze.
+ * @returns An `Option`:
+ *          - `Option.some<ts.Expression>` if a matching `Effect` expression is found.
+ *          - `Option.none` if no matching `Effect` expression is found.
+ *
+ * @example
+ * ```ts
+ * const result = findEffectExpressionAtPosition(sourceFile, typeChecker, position);
+ * if (Option.isSome(result)) {
+ *   const effectExpression = result.value;
+ *   console.log("Found Effect expression:", effectExpression.getText());
+ * }
+ * ```
  */
-export function collectDescendantsAndAncestorsInRange(
-  sourceFile: ts.SourceFile,
-  textRange: ts.TextRange
+export const findEffectExpressionAtPosition = findNodeAtPosition((typeChecker, node) =>
+  Option.gen(function*() {
+    const expr = yield* Option.liftPredicate(node, ts.isExpression)
+    yield* TypeParser.effectType(ts, typeChecker)(typeChecker.getTypeAtLocation(expr), expr)
+    return expr
+  })
+)
+
+/**
+ * Finds an `Effect` returned from an `Effect.gen` generator function at the specified position.
+ *
+ * This function traverses the AST to locate the deepest node at the specified position
+ * and checks if it represents an `Effect.gen` generator function. It verifies that the
+ * generator function body contains exactly one `return` statement, and that the `return`
+ * statement yields an `Effect`. If these conditions are met, the function extracts and
+ * returns the inner `Effect`.
+ *
+ * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
+ * @param node - The AST node to analyze.
+ * @returns An `Option`:
+ *          - `Option.some<ts.Node>` containing the inner `Effect` if the node is an `Effect.gen`
+ *            with a single return statement yielding an `Effect`.
+ *          - `Option.none` if the node does not match the criteria.
+ *
+ * @example
+ * Input:
+ * ```ts
+ * const result = Effect.gen(function* () {
+ *   return yield* Effect.succeed(42)
+ * })
+ * ```
+ * Output:
+ * ```ts
+ * const result = Effect.succeed(42)
+ * ```
+ */
+export const findSingleReturnEffectFromEffectGenAtPosition = findNodeAtPosition((
+  typeChecker,
+  node
+) => getSingleReturnEffectFromEffectGen(typeChecker, node))
+
+/**
+ * Retrieves the identifier name of the imported `Effect` module in the given SourceFile.
+ *
+ * This function analyzes the imports in the provided `SourceFile` to determine if the `Effect`
+ * module is imported. If the `Effect` module is found, it returns the identifier name used
+ * for the import (e.g., `Effect` or a custom alias). If the `Effect` module is not imported,
+ * it defaults to returning `"Effect"`.
+ *
+ * @param ts - The TypeScript API.
+ * @param program - The TypeScript program instance, used for type checking.
+ * @param sourceFile - The SourceFile to analyze for imports.
+ * @returns The identifier name of the imported `Effect` module, or `"Effect"` if not found.
+ *
+ * @example
+ * Given the following import:
+ * ```ts
+ * import * as T from "effect/Effect";
+ * ```
+ * The function will return `"T"`.
+ *
+ * If no `Effect` module is imported, it will return `"Effect"`.
+ */
+export function getEffectModuleIdentifierName(
+  ts: TypeParser.TypeScriptApi,
+  program: ts.Program,
+  sourceFile: ts.SourceFile
 ) {
-  const nodeAtPosition = findNodeAtPosition(sourceFile, textRange.pos)
-  if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
-  return collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
+  const isImportedEffectModule = TypeParser.importedEffectModule(
+    ts,
+    program.getTypeChecker()
+  )
+  return pipe(
+    findImportedModuleIdentifier(ts)((node) => Option.isSome(isImportedEffectModule(node)))(
+      sourceFile
+    ),
+    Option.map((node) => node.text),
+    Option.getOrElse(() => "Effect")
+  )
+}
+
+/**
+ * Creates an `Effect.gen` call expression wrapping the provided AST node.
+ *
+ * This function generates a call to `Effect.gen` with a generator function (`function*`)
+ * that wraps the provided AST node. The resulting generator function is passed as an
+ * argument to the `Effect.gen` call.
+ *
+ * @param effectModuleIdentifierName - The identifier name of the imported `Effect` module
+ *                                     (e.g., `"Effect"` or a custom alias like `"T"`).
+ * @param node - The AST node to wrap in the `Effect.gen` generator function.
+ * @returns A `ts.CallExpression` representing the `Effect.gen` call.
+ *
+ * @example
+ * Input:
+ * ```ts
+ * const expression = ts.factory.createIdentifier("Effect.succeed(42)");
+ * const result = createEffectGenCallExpression("Effect", expression);
+ * ```
+ * Output:
+ * ```ts
+ * Effect.gen(function* () {
+ *   return yield* Effect.succeed(42);
+ * });
+ * ```
+ */
+export function createEffectGenCallExpression(
+  effectModuleIdentifierName: string,
+  node: ts.Node
+) {
+  const generator = ts.factory.createFunctionExpression(
+    undefined,
+    ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+    undefined,
+    [],
+    [],
+    undefined,
+    node as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
+  )
+
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier(effectModuleIdentifierName),
+      "gen"
+    ),
+    undefined,
+    [generator]
+  )
+}
+
+/**
+ * Creates an `Effect.gen` call expression wrapping the provided statement(s) in a block.
+ *
+ * This function generates a call to `Effect.gen` with a generator function (`function*`)
+ * that wraps the provided statement(s) in a block (`{}`). The resulting generator function
+ * is passed as an argument to the `Effect.gen` call.
+ *
+ * @param effectModuleIdentifierName - The identifier name of the imported `Effect` module
+ *                                     (e.g., `"Effect"` or a custom alias like `"T"`).
+ * @param statement - A single statement or an array of statements to wrap in the
+ *                    `Effect.gen` generator function.
+ * @returns A `ts.CallExpression` representing the `Effect.gen` call with the block-wrapped
+ *          statement(s).
+ *
+ * @example
+ * Input (single statement):
+ * ```ts
+ * const statement = ts.factory.createExpressionStatement(
+ *   ts.factory.createCallExpression(ts.factory.createIdentifier("Effect.succeed"), undefined, [ts.factory.createNumericLiteral(42)])
+ * );
+ * const result = createEffectGenCallExpressionWithBlock("Effect", statement);
+ * ```
+ * Output:
+ * ```ts
+ * Effect.gen(function* () {
+ *     Effect.succeed(42);
+ * });
+ * ```
+ *
+ * Input (multiple statements):
+ * ```ts
+ * const statements = [
+ *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.succeed(42)")),
+ *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.fail('error')"))
+ * ];
+ * const result = createEffectGenCallExpressionWithBlock("Effect", statements);
+ * ```
+ * Output:
+ * ```ts
+ * Effect.gen(function* () {
+ *     Effect.succeed(42);
+ *     Effect.fail('error');
+ * });
+ * ```
+ */
+export function createEffectGenCallExpressionWithBlock(
+  effectModuleIdentifierName: string,
+  statement: ts.Statement | Array<ts.Statement>
+) {
+  return createEffectGenCallExpression(
+    effectModuleIdentifierName,
+    ts.factory.createBlock(Array.isArray(statement) ? statement : [statement], false)
+  )
+}
+
+/**
+ * Creates an `Effect.gen` call expression wrapping the provided statement(s) in a generator function block.
+ *
+ * This function generates a call to `Effect.gen` with a generator function (`function*`)
+ * that wraps the provided statement(s) inside a block (`{}`). If multiple statements are provided,
+ * they are all included in the block. The resulting generator function is passed as an
+ * argument to the `Effect.gen` call.
+ *
+ * @param effectModuleIdentifierName - The identifier name of the imported `Effect` module
+ *                                     (e.g., `"Effect"` or a custom alias like `"T"`).
+ * @param statement - A single statement or an array of statements to wrap in the
+ *                    `Effect.gen` generator function block.
+ * @returns A `ts.CallExpression` representing the `Effect.gen` call with the block-wrapped
+ *          statement(s).
+ *
+ * @example
+ * Input (single statement):
+ * ```ts
+ * const statement = ts.factory.createExpressionStatement(
+ *   ts.factory.createCallExpression(ts.factory.createIdentifier("Effect.succeed"), undefined, [ts.factory.createNumericLiteral(42)])
+ * );
+ * const result = createEffectGenCallExpressionWithBlock("Effect", statement);
+ * ```
+ * Output:
+ * ```ts
+ * Effect.gen(function* () {
+ *   {
+ *     Effect.succeed(42);
+ *   }
+ * });
+ * ```
+ *
+ * Input (multiple statements):
+ * ```ts
+ * const statements = [
+ *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.succeed(42)")),
+ *   ts.factory.createExpressionStatement(ts.factory.createIdentifier("Effect.fail('error')"))
+ * ];
+ * const result = createEffectGenCallExpressionWithBlock("Effect", statements);
+ * ```
+ * Output:
+ * ```ts
+ * Effect.gen(function* () {
+ *   {
+ *     Effect.succeed(42);
+ *     Effect.fail('error');
+ *   }
+ * });
+ * ```
+ */
+export function createEffectGenCallExpressionWithGeneratorBlock(
+  effectModuleIdentifierName: string,
+  statement: ts.Statement | Array<ts.Statement>
+) {
+  return createEffectGenCallExpression(
+    effectModuleIdentifierName,
+    ts.factory.createBlock(
+      [ts.factory.createBlock(Array.isArray(statement) ? statement : [statement], false)],
+      false
+    )
+  )
+}
+
+/**
+ * Creates a `return yield*` statement for the provided expression.
+ *
+ * This function generates a `return` statement that contains a `yield*` expression.
+ * The `yield*` expression is used to delegate to another generator or iterable,
+ * and the result is returned from the enclosing generator function.
+ *
+ * @param expr - The expression to be yielded and returned.
+ * @returns A `ts.Statement` representing the `return yield*` statement.
+ *
+ * @example
+ * Input:
+ * ```ts
+ * const expression = ts.factory.createCallExpression(
+ *   ts.factory.createIdentifier("Effect.succeed"),
+ *   undefined,
+ *   [ts.factory.createNumericLiteral(42)]
+ * );
+ * const result = createReturnYieldStarStatement(expression);
+ * ```
+ * Output:
+ * ```ts
+ * return yield* Effect.succeed(42);
+ * ```
+ */
+export function createReturnYieldStarStatement(expr: ts.Expression): ts.Statement {
+  return ts.factory.createReturnStatement(
+    ts.factory.createYieldExpression(
+      ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+      expr
+    )
+  )
 }
 
 /**
@@ -173,25 +483,7 @@ export function transformAsyncAwaitToEffectGen(
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
     }
     const generatorBody = visitor(node.body!)
-
-    const generator = ts.factory.createFunctionExpression(
-      undefined,
-      ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-      undefined,
-      [],
-      [],
-      undefined,
-      generatorBody as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
-    )
-
-    const effectGenCallExp = ts.factory.createCallExpression(
-      ts.factory.createPropertyAccessExpression(
-        ts.factory.createIdentifier(effectModuleName),
-        "gen"
-      ),
-      undefined,
-      [generator as any]
-    )
+    const effectGenCallExp = createEffectGenCallExpression(effectModuleName, generatorBody)
 
     let currentFlags = ts.getCombinedModifierFlags(node)
     currentFlags &= ~ts.ModifierFlags.Async

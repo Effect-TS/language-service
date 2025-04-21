@@ -25,16 +25,10 @@ export const asyncAwaitToGenTryPromise = createRefactor({
         kind: "refactor.rewrite.effect.asyncAwaitToGenTryPromise",
         description: "Rewrite to Effect.gen with failures",
         apply: (changeTracker) => {
-          const isImportedEffectModule = TypeParser.importedEffectModule(
+          const effectModuleIdentifierName = AST.getEffectModuleIdentifierName(
             ts,
-            program.getTypeChecker()
-          )
-          const effectModuleIdentifierName = pipe(
-            AST.findImportedModuleIdentifier(ts)((node) =>
-              Option.isSome(isImportedEffectModule(node))
-            )(sourceFile),
-            Option.map((node) => node.text),
-            Option.getOrElse(() => "Effect")
+            program,
+            sourceFile
           )
 
           let errorCount = 0
