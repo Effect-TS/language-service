@@ -3,7 +3,7 @@ import * as Data from "effect/Data"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as Nano from "./Nano.js"
+import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 
 /**

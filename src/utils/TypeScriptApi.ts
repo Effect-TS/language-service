@@ -1,5 +1,5 @@
 import type ts from "typescript"
-import * as Nano from "./Nano.js"
+import * as Nano from "../core/Nano.js"
 
 declare module "typescript" {
   const nullTransformationContext: ts.TransformationContext

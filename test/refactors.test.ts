@@ -1,6 +1,6 @@
+import * as Nano from "@effect/language-service/core/Nano"
 import { PluginOptions, type RefactorDefinition } from "@effect/language-service/definition"
 import { refactors } from "@effect/language-service/refactors"
-import * as Nano from "@effect/language-service/utils/Nano"
 import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
 import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
 import { Either } from "effect"

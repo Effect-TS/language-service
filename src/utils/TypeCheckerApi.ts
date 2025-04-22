@@ -2,7 +2,7 @@ import * as Data from "effect/Data"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
 import type ts from "typescript"
-import * as Nano from "./Nano.js"
+import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 
 export interface TypeCheckerApi extends ts.TypeChecker {}

@@ -1,9 +1,9 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Nano from "../core/Nano.js"
 import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
-import * as Nano from "../utils/Nano.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const toggleLazyConst = createRefactor({

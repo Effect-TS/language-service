@@ -1,7 +1,7 @@
+import * as Nano from "@effect/language-service/core/Nano"
 import type { DiagnosticDefinition } from "@effect/language-service/definition"
 import { PluginOptions } from "@effect/language-service/definition"
 import { diagnostics } from "@effect/language-service/diagnostics"
-import * as Nano from "@effect/language-service/utils/Nano"
 import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
 import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
 import * as Either from "effect/Either"

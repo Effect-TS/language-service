@@ -1,5 +1,5 @@
+import * as Nano from "../core/Nano.js"
 import { createRefactor, RefactorNotApplicableError } from "../definition.js"
-import * as Nano from "../utils/Nano.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const wrapWithPipe = createRefactor({

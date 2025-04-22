@@ -1,4 +1,4 @@
-import * as Nano from "@effect/language-service/utils/Nano"
+import * as Nano from "@effect/language-service/core/Nano"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 
