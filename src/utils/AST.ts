@@ -6,7 +6,6 @@ import type ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 
-
 /**
  * Collects the given node and all its ancestor nodes that fully contain the specified TextRange.
  *
@@ -106,7 +105,6 @@ function findNodeAtPosition(
  *          at the given position and that fully contain the specified range.
  */
 export function collectDescendantsAndAncestorsInRange(
-  ts: TypeScriptApi,
   sourceFile: ts.SourceFile,
   textRange: ts.TextRange
 ) {
