@@ -14,7 +14,7 @@ export const toggleLazyConst = createRefactor({
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
       const maybeNode = pipe(
-        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
         ReadonlyArray.filter(ts.isVariableDeclaration),
         ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
         ReadonlyArray.filter((node) =>

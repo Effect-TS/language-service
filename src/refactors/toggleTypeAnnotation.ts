@@ -16,7 +16,7 @@ export const toggleTypeAnnotation = createRefactor({
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
       const maybeNode = pipe(
-        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
         ReadonlyArray.filter((node) =>
           ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)
         ),
@@ -31,41 +31,44 @@ export const toggleTypeAnnotation = createRefactor({
       return ({
         kind: "refactor.rewrite.effect.toggleTypeAnnotation",
         description: "Toggle type annotation",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+        apply: pipe(
+          Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-          if (node.type) {
-            changeTracker.deleteRange(sourceFile, { pos: node.name.end, end: node.type.end })
-            return
-          }
+            if (node.type) {
+              changeTracker.deleteRange(sourceFile, { pos: node.name.end, end: node.type.end })
+              return
+            }
 
-          const initializer = node.initializer!
-          const initializerType = typeChecker.getTypeAtLocation(initializer)
-          const initializerTypeNode = Option.fromNullable(typeChecker.typeToTypeNode(
-            initializerType,
-            node,
-            ts.NodeBuilderFlags.NoTruncation
-          )).pipe(
-            Option.orElse(() =>
-              Option.fromNullable(typeChecker.typeToTypeNode(
-                initializerType,
-                undefined,
-                ts.NodeBuilderFlags.NoTruncation
-              ))
-            ),
-            Option.getOrUndefined
-          )
-          if (initializerTypeNode) {
-            changeTracker.insertNodeAt(
-              sourceFile,
-              node.name.end,
-              AST.simplifyTypeNode(ts)(initializerTypeNode),
-              {
-                prefix: ": "
-              }
+            const initializer = node.initializer!
+            const initializerType = typeChecker.getTypeAtLocation(initializer)
+            const initializerTypeNode = Option.fromNullable(typeChecker.typeToTypeNode(
+              initializerType,
+              node,
+              ts.NodeBuilderFlags.NoTruncation
+            )).pipe(
+              Option.orElse(() =>
+                Option.fromNullable(typeChecker.typeToTypeNode(
+                  initializerType,
+                  undefined,
+                  ts.NodeBuilderFlags.NoTruncation
+                ))
+              ),
+              Option.getOrUndefined
             )
-          }
-        })
+            if (initializerTypeNode) {
+              changeTracker.insertNodeAt(
+                sourceFile,
+                node.name.end,
+                yield* AST.simplifyTypeNode(initializerTypeNode),
+                {
+                  prefix: ": "
+                }
+              )
+            }
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
       })
     })
 })

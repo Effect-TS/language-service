@@ -1,11 +1,23 @@
 import * as Data from "effect/Data"
 import * as Option from "effect/Option"
+import * as Order from "effect/Order"
 import type ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 
 export interface TypeCheckerApi extends ts.TypeChecker {}
 export const TypeCheckerApi = Nano.Tag<TypeCheckerApi>("TypeChecker")
+
+export const deterministicTypeOrder = Nano.gen(function*() {
+  const typeChecker = yield* Nano.service(TypeCheckerApi)
+  return Order.make((a: ts.Type, b: ts.Type) => {
+    const aName = typeChecker.typeToString(a)
+    const bName = typeChecker.typeToString(b)
+    if (aName < bName) return -1
+    if (aName > bName) return 1
+    return 0
+  })
+})
 
 export function getMissingTypeEntriesInTargetType(realType: ts.Type, expectedType: ts.Type) {
   return Nano.gen(function*() {

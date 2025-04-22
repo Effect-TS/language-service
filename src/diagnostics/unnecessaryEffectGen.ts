@@ -1,17 +1,16 @@
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
 import { createDiagnostic } from "../definition.js"
-import * as AST from "../utils/AST.js"
 import * as Nano from "../utils/Nano.js"
-import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const unnecessaryEffectGen = createDiagnostic({
   code: 5,
   apply: (sourceFile) =>
     Nano.gen(function*() {
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
       const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
@@ -28,7 +27,13 @@ export const unnecessaryEffectGen = createDiagnostic({
         const node = nodeToVisit.shift()!
         ts.forEachChild(node, appendNodeToVisit)
 
-        if (Option.isSome(AST.getSingleReturnEffectFromEffectGen(ts, typeChecker, node))) {
+        const maybeUnnecessaryGen = yield* pipe(
+          TypeParser.effectGen(node),
+          Nano.flatMap(({ body }) => TypeParser.returnYieldEffectBlock(body)),
+          Nano.option
+        )
+
+        if (Option.isSome(maybeUnnecessaryGen)) {
           brokenGenerators.add(node)
         }
       }

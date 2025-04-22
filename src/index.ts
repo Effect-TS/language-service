@@ -64,9 +64,9 @@ const init = (
               }
               return effectDiagnostics.concat(applicableDiagnostics)
             }),
-            Nano.provide(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provide(PluginOptions, pluginOptions),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(PluginOptions, pluginOptions),
             Nano.run,
             Either.getOrElse(() => applicableDiagnostics)
           )
@@ -104,9 +104,9 @@ const init = (
               }
               return applicableRefactors.concat(effectRefactors)
             }),
-            Nano.provide(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provide(PluginOptions, pluginOptions),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(PluginOptions, pluginOptions),
             Nano.run,
             Either.getOrElse(() => applicableRefactors)
           )
@@ -151,16 +151,16 @@ const init = (
                   (changeTracker) =>
                     pipe(
                       applicableRefactor.apply,
-                      Nano.provide(TypeScriptApi.ChangeTracker, changeTracker),
+                      Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
                       Nano.run
                     )
                 )
 
                 return edits
               }),
-              Nano.provide(TypeScriptApi.TypeScriptApi, modules.typescript),
-              Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-              Nano.provide(PluginOptions, pluginOptions),
+              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.provideService(PluginOptions, pluginOptions),
               Nano.run
             )
             if (Either.isRight(result)) {
@@ -189,11 +189,20 @@ const init = (
 
         const program = languageService.getProgram()
         if (program) {
-          return prependEffectTypeArguments(modules.typescript, program)(
-            fileName,
-            position,
-            dedupedTagsQuickInfo
-          )
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              prependEffectTypeArguments(
+                sourceFile,
+                position,
+                dedupedTagsQuickInfo
+              ),
+              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.run,
+              Either.getOrElse(() => dedupedTagsQuickInfo)
+            )
+          }
         }
 
         return dedupedTagsQuickInfo

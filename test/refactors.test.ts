@@ -105,9 +105,9 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
       // check and assert the refactor is executable
       const canApply = pipe(
         refactor.apply(sourceFile, textRange),
-        Nano.provide(TypeScriptApi.TypeScriptApi, ts),
-        Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-        Nano.provide(PluginOptions, { diagnostics: false, quickinfo: false }),
+        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+        Nano.provideService(PluginOptions, { diagnostics: false, quickinfo: false }),
         Nano.run
       )
 
@@ -130,7 +130,7 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
         (changeTracker) =>
           pipe(
             canApply.right.apply,
-            Nano.provide(TypeScriptApi.ChangeTracker, changeTracker),
+            Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
             Nano.run
           )
       )

@@ -20,11 +20,11 @@ export const missingStarInYieldEffectGen = createDiagnostic({
       const brokenYields = new Set<ts.Node>()
 
       const nodeToVisit: Array<[node: ts.Node, functionStarNode: ts.Node | undefined]> = []
-      const appendNodeToVisit = (arg: [node: ts.Node, functionStarNode: ts.Node | undefined]) => {
-        nodeToVisit.push(arg)
+      const appendNodeToVisit = (functionStarNode: ts.Node | undefined) => (node: ts.Node) => {
+        nodeToVisit.push([node, functionStarNode])
         return undefined
       }
-      ts.forEachChild(sourceFile, (_) => appendNodeToVisit([_, undefined]))
+      ts.forEachChild(sourceFile, appendNodeToVisit(undefined))
 
       while (nodeToVisit.length > 0) {
         const [node, functionStarNode] = nodeToVisit.shift()!
@@ -35,32 +35,34 @@ export const missingStarInYieldEffectGen = createDiagnostic({
           node.asteriskToken === undefined
         ) {
           const type = typeChecker.getTypeAtLocation(node.expression)
-          const effect = TypeParser.effectType(ts, typeChecker)(type, node.expression)
+          const effect = yield* Nano.option(TypeParser.effectType(type, node.expression))
           if (Option.isSome(effect)) {
             brokenGenerators.add(functionStarNode)
             brokenYields.add(node)
           }
         }
         // continue if we hit effect gen-like
-        const effectGenLike = pipe(
-          TypeParser.effectGen(ts, typeChecker)(node),
-          Option.orElse(() => TypeParser.effectFnUntracedGen(ts, typeChecker)(node)),
-          Option.orElse(() => TypeParser.effectFnGen(ts, typeChecker)(node))
+        const effectGenLike = yield* pipe(
+          TypeParser.effectGen(node),
+          Nano.orElse(() => TypeParser.effectFnUntracedGen(node)),
+          Nano.orElse(() => TypeParser.effectFnGen(node)),
+          Nano.option
         )
         if (Option.isSome(effectGenLike)) {
-          ts.forEachChild(effectGenLike.value.body, (_) =>
-            appendNodeToVisit([_, effectGenLike.value.functionStar]))
+          ts.forEachChild(
+            effectGenLike.value.body,
+            appendNodeToVisit(effectGenLike.value.functionStar)
+          )
         } // stop when we hit a generator function
         else if (
           (ts.isFunctionExpression(node) || ts.isMethodDeclaration(node)) &&
           node.asteriskToken !== undefined
         ) {
           // continue with new parent function star node
-          ts.forEachChild(node, (_) =>
-            appendNodeToVisit([_, undefined]))
+          ts.forEachChild(node, appendNodeToVisit(undefined))
         } else {
           // continue with current parent function star node
-          ts.forEachChild(node, (_) => appendNodeToVisit([_, functionStarNode]))
+          ts.forEachChild(node, appendNodeToVisit(functionStarNode))
         }
       }
 

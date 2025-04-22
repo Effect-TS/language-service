@@ -5,7 +5,6 @@ import type ts from "typescript"
 import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
 import * as Nano from "../utils/Nano.js"
-import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
@@ -15,51 +14,52 @@ export const effectGenToFn = createRefactor({
   apply: (sourceFile, textRange) =>
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-      const maybeNode = pipe(
-        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
-        ReadonlyArray.findFirst((node) =>
-          Option.gen(function*() {
-            // check if the node is a Effect.gen(...)
-            const effectGen = yield* TypeParser.effectGen(ts, typeChecker)(node)
-            // if parent is a Effect.gen(...).pipe(...) we then move the pipe tot the new Effect.fn
-            let pipeArgs = ts.factory.createNodeArray<ts.Expression>([])
-            let nodeToReplace = node.parent
+      function parseEffectGenNode(node: ts.Node) {
+        return Nano.gen(function*() {
+          // check if the node is a Effect.gen(...)
+          const effectGen = yield* TypeParser.effectGen(node)
+          // if parent is a Effect.gen(...).pipe(...) we then move the pipe tot the new Effect.fn
+          let pipeArgs = ts.factory.createNodeArray<ts.Expression>([])
+          let nodeToReplace = node.parent
+          if (
+            ts.isPropertyAccessExpression(node.parent) && node.parent.name.text === "pipe" &&
+            ts.isCallExpression(node.parent.parent)
+          ) {
+            pipeArgs = node.parent.parent.arguments
+            nodeToReplace = node.parent.parent.parent
+          }
+          // then we iterate upwards until we find the function declaration
+          while (nodeToReplace) {
+            // if arrow function, exit
             if (
-              ts.isPropertyAccessExpression(node.parent) && node.parent.name.text === "pipe" &&
-              ts.isCallExpression(node.parent.parent)
+              ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace) ||
+              ts.isMethodDeclaration(nodeToReplace)
             ) {
-              pipeArgs = node.parent.parent.arguments
-              nodeToReplace = node.parent.parent.parent
+              return ({ ...effectGen, pipeArgs, nodeToReplace })
             }
-            // then we iterate upwards until we find the function declaration
-            while (nodeToReplace) {
-              // if arrow function, exit
-              if (
-                ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace) ||
-                ts.isMethodDeclaration(nodeToReplace)
-              ) {
-                return ({ ...effectGen, pipeArgs, nodeToReplace })
-              }
-              // concise body go up
-              if (ts.isConciseBody(nodeToReplace) || ts.isReturnStatement(nodeToReplace)) {
-                nodeToReplace = nodeToReplace.parent
-                continue
-              }
-              // function body with only one statement, go up
-              if (ts.isBlock(nodeToReplace) && nodeToReplace.statements.length === 1) {
-                nodeToReplace = nodeToReplace.parent
-                continue
-              }
-              // exit
-              break
+            // concise body go up
+            if (ts.isConciseBody(nodeToReplace) || ts.isReturnStatement(nodeToReplace)) {
+              nodeToReplace = nodeToReplace.parent
+              continue
             }
+            // function body with only one statement, go up
+            if (ts.isBlock(nodeToReplace) && nodeToReplace.statements.length === 1) {
+              nodeToReplace = nodeToReplace.parent
+              continue
+            }
+            // exit
+            break
+          }
+          return yield* Nano.fail(new RefactorNotApplicableError())
+        })
+      }
 
-            // nothing, exit
-            return yield* Option.none()
-          })
-        )
+      const maybeNode = yield* pipe(
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+        ReadonlyArray.map(parseEffectGenNode),
+        Nano.firstSuccessOf,
+        Nano.option
       )
 
       if (Option.isNone(maybeNode)) return yield* Nano.fail(new RefactorNotApplicableError())
@@ -68,44 +68,47 @@ export const effectGenToFn = createRefactor({
       return ({
         kind: "refactor.rewrite.effect.effectGenToFn",
         description: "Convert to Effect.fn",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+        apply: pipe(
+          Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-          // if we have a name in the function declaration,
-          // we call Effect.fn with the name
-          const effectFn = nodeToReplace.name && ts.isIdentifier(nodeToReplace.name) ?
-            ts.factory.createCallExpression(
+            // if we have a name in the function declaration,
+            // we call Effect.fn with the name
+            const effectFn = nodeToReplace.name && ts.isIdentifier(nodeToReplace.name) ?
+              ts.factory.createCallExpression(
+                ts.factory.createPropertyAccessExpression(
+                  effectModule,
+                  "fn"
+                ),
+                undefined,
+                [ts.factory.createStringLiteral(nodeToReplace.name.text)]
+              ) :
               ts.factory.createPropertyAccessExpression(
                 effectModule,
                 "fn"
-              ),
+              )
+            // append the generator and pipe arguments to the Effect.fn call
+            const effectFnCallWithGenerator = ts.factory.createCallExpression(
+              effectFn,
               undefined,
-              [ts.factory.createStringLiteral(nodeToReplace.name.text)]
-            ) :
-            ts.factory.createPropertyAccessExpression(
-              effectModule,
-              "fn"
+              [ts.factory.createFunctionExpression(
+                undefined,
+                ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+                undefined,
+                nodeToReplace.typeParameters,
+                nodeToReplace.parameters,
+                nodeToReplace.type,
+                generatorFunction.body
+              ) as ts.Expression].concat(pipeArgs)
             )
-          // append the generator and pipe arguments to the Effect.fn call
-          const effectFnCallWithGenerator = ts.factory.createCallExpression(
-            effectFn,
-            undefined,
-            [ts.factory.createFunctionExpression(
-              undefined,
-              ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-              undefined,
-              nodeToReplace.typeParameters,
-              nodeToReplace.parameters,
-              nodeToReplace.type,
-              generatorFunction.body
-            ) as ts.Expression].concat(pipeArgs)
-          )
-          changeTracker.replaceNode(
-            sourceFile,
-            nodeToReplace,
-            AST.tryPreserveDeclarationSemantics(ts)(nodeToReplace, effectFnCallWithGenerator)
-          )
-        })
+            changeTracker.replaceNode(
+              sourceFile,
+              nodeToReplace,
+              yield* AST.tryPreserveDeclarationSemantics(nodeToReplace, effectFnCallWithGenerator)
+            )
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
       })
     })
 })

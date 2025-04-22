@@ -16,7 +16,7 @@ export const toggleReturnTypeAnnotation = createRefactor({
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
       const maybeNode = pipe(
-        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
         ReadonlyArray.filter((node) =>
           ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) ||
           ts.isArrowFunction(node) || ts.isMethodDeclaration(node)
@@ -31,10 +31,10 @@ export const toggleReturnTypeAnnotation = createRefactor({
         return ({
           kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",
           description: "Toggle return type annotation",
-          apply: Nano.gen(function*() {
-            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-            AST.removeReturnTypeAnnotation(ts, changeTracker)(sourceFile, node)
-          })
+          apply: pipe(
+            AST.removeReturnTypeAnnotation(sourceFile, node),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+          )
         })
       }
 
@@ -52,15 +52,15 @@ export const toggleReturnTypeAnnotation = createRefactor({
       return ({
         kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",
         description: "Toggle return type annotation",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-          AST.addReturnTypeAnnotation(ts, changeTracker)(
+        apply: pipe(
+          AST.addReturnTypeAnnotation(
             sourceFile,
             node,
-            AST.simplifyTypeNode(ts)(returnTypeNode)
-          )
-        })
+            yield* AST.simplifyTypeNode(returnTypeNode)
+          ),
+          Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
       })
     })
 })

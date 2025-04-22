@@ -1,9 +1,8 @@
 import * as ReadonlyArray from "effect/Array"
-import * as Option from "effect/Option"
+import { pipe } from "effect/Function"
 import type ts from "typescript"
 import type { ApplicableDiagnosticDefinition } from "../definition.js"
 import { createDiagnostic } from "../definition.js"
-import { deterministicTypeOrder } from "../utils/AST.js"
 import * as Nano from "../utils/Nano.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
@@ -15,9 +14,35 @@ export const missingEffectContext = createDiagnostic({
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
+
+      function checkForMissingContextTypes(
+        node: ts.Node,
+        expectedType: ts.Type,
+        valueNode: ts.Node,
+        realType: ts.Type
+      ) {
+        return Nano.gen(function*() {
+          // the expected type is an effect
+          const expectedEffect = yield* (TypeParser.effectType(
+            expectedType,
+            node
+          ))
+          // the real type is an effect
+          const realEffect = yield* (TypeParser.effectType(
+            realType,
+            valueNode
+          ))
+          // get the missing types
+          return yield* TypeCheckerApi.getMissingTypeEntriesInTargetType(
+            realEffect.R,
+            expectedEffect.R
+          )
+        })
+      }
 
       const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
-      const sortTypes = ReadonlyArray.sort(deterministicTypeOrder(ts, typeChecker))
+      const sortTypes = ReadonlyArray.sort(typeOrder)
 
       const nodeToVisit: Array<ts.Node> = []
       const appendNodeToVisit = (node: ts.Node) => {
@@ -32,22 +57,14 @@ export const missingEffectContext = createDiagnostic({
 
         const entries = yield* TypeCheckerApi.expectedAndRealType(node)
         for (const [node, expectedType, valueNode, realType] of entries) {
-          // the expected type is an effect
-          const expectedEffect = TypeParser.effectType(ts, typeChecker)(
-            expectedType,
-            node
-          )
-          if (Option.isNone(expectedEffect)) continue
-          // the real type is an effect
-          const realEffect = TypeParser.effectType(ts, typeChecker)(
-            realType,
-            valueNode
-          )
-          if (Option.isNone(realEffect)) continue
-          // get the missing context types
-          const missingContext = yield* TypeCheckerApi.getMissingTypeEntriesInTargetType(
-            realEffect.value.R,
-            expectedEffect.value.R
+          const missingContext = yield* pipe(
+            checkForMissingContextTypes(
+              node,
+              expectedType,
+              valueNode,
+              realType
+            ),
+            Nano.orElse(() => Nano.succeed([]))
           )
           if (missingContext.length > 0) {
             effectDiagnostics.push(

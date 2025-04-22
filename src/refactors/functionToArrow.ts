@@ -15,7 +15,7 @@ export const functionToArrow = createRefactor({
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
       const maybeNode = pipe(
-        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
         ReadonlyArray.filter((_) => ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_)),
         ReadonlyArray.filter((_) => !!_.body),
         ReadonlyArray.filter((_) => !!_.name && AST.isNodeInRange(textRange)(_.name)),
@@ -28,41 +28,44 @@ export const functionToArrow = createRefactor({
       return ({
         kind: "refactor.rewrite.effect.functionToArrow",
         description: "Convert to arrow",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+        apply: pipe(
+          Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-          const body = node.body!
-          let newBody: ts.ConciseBody = ts.factory.createBlock(body.statements)
-          if (body.statements.length === 1) {
-            const statement = body.statements[0]
-            if (statement && ts.isReturnStatement(statement) && statement.expression) {
-              newBody = statement.expression!
+            const body = node.body!
+            let newBody: ts.ConciseBody = ts.factory.createBlock(body.statements)
+            if (body.statements.length === 1) {
+              const statement = body.statements[0]
+              if (statement && ts.isReturnStatement(statement) && statement.expression) {
+                newBody = statement.expression!
+              }
             }
-          }
 
-          let arrowFlags = ts.getCombinedModifierFlags(node)
-          arrowFlags &= ~ts.ModifierFlags.Export
-          arrowFlags &= ~ts.ModifierFlags.Default
-          const arrowModifiers = ts.factory.createModifiersFromModifierFlags(arrowFlags)
+            let arrowFlags = ts.getCombinedModifierFlags(node)
+            arrowFlags &= ~ts.ModifierFlags.Export
+            arrowFlags &= ~ts.ModifierFlags.Default
+            const arrowModifiers = ts.factory.createModifiersFromModifierFlags(arrowFlags)
 
-          const arrowFunction = ts.factory.createArrowFunction(
-            arrowModifiers,
-            node.typeParameters,
-            node.parameters,
-            undefined,
-            ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-            newBody
-          )
+            const arrowFunction = ts.factory.createArrowFunction(
+              arrowModifiers,
+              node.typeParameters,
+              node.parameters,
+              undefined,
+              ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+              newBody
+            )
 
-          const newDeclaration: ts.Node = AST.tryPreserveDeclarationSemantics(ts)(
-            node,
-            arrowFunction
-          )
-          changeTracker.replaceNode(sourceFile, node, newDeclaration, {
-            leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
-            trailingTriviaOption: ts.textChanges.TrailingTriviaOption.Exclude
-          })
-        })
+            const newDeclaration: ts.Node = yield* AST.tryPreserveDeclarationSemantics(
+              node,
+              arrowFunction
+            )
+            changeTracker.replaceNode(sourceFile, node, newDeclaration, {
+              leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
+              trailingTriviaOption: ts.textChanges.TrailingTriviaOption.Exclude
+            })
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
       })
     })
 })

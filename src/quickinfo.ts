@@ -4,8 +4,10 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as AST from "./utils/AST.js"
+import * as Nano from "./utils/Nano.js"
+import * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
 import * as TypeParser from "./utils/TypeParser.js"
-import type { TypeScriptApi } from "./utils/TypeScriptApi.js"
+import * as TypeScriptApi from "./utils/TypeScriptApi.js"
 
 const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) =>
   fa.kind === fb.kind && fa.text === fb.text
@@ -26,63 +28,70 @@ export function dedupeJsDocTags(quickInfo: ts.QuickInfo): ts.QuickInfo {
   return quickInfo
 }
 
-function formatTypeForQuickInfo(
-  ts: TypeScriptApi,
-  typeChecker: ts.TypeChecker
-) {
-  return (channelType: ts.Type, channelName: string) => {
+function formatTypeForQuickInfo(channelType: ts.Type, channelName: string) {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+
     const stringRepresentation = typeChecker.typeToString(
       channelType,
       undefined,
       ts.TypeFormatFlags.NoTruncation
     )
     return `type ${channelName} = ${stringRepresentation}`
-  }
+  })
 }
 
-export function prependEffectTypeArguments(ts: TypeScriptApi, program: ts.Program) {
-  return (sourceFileName: string, position: number, quickInfo: ts.QuickInfo): ts.QuickInfo => {
-    const sourceFile = program.getSourceFile(sourceFileName)
-    if (!sourceFile) return quickInfo
+export function prependEffectTypeArguments(
+  sourceFile: ts.SourceFile,
+  position: number,
+  quickInfo: ts.QuickInfo
+) {
+  return pipe(
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-    const hasTruncationHappened =
-      ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
-    if (!hasTruncationHappened) return quickInfo
+      const hasTruncationHappened =
+        ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
+      if (!hasTruncationHappened) return quickInfo
 
-    const typeChecker = program.getTypeChecker()
+      const maybeNode = pipe(
+        yield* AST.getAncestorNodesInRange(sourceFile, AST.toTextRange(position)),
+        ReadonlyArray.head
+      )
+      if (Option.isNone(maybeNode)) return quickInfo
+      const effectType = yield* TypeParser.effectType(
+        typeChecker.getTypeAtLocation(maybeNode.value),
+        maybeNode.value
+      )
 
-    const effectTypeArgsDocumentation = pipe(
-      AST.getAncestorNodesInRange(ts)(sourceFile, AST.toTextRange(position)),
-      ReadonlyArray.head,
-      Option.flatMap((_) =>
-        TypeParser.effectType(ts, typeChecker)(typeChecker.getTypeAtLocation(_), _)
-      ),
-      Option.map((_) => [{
+      const effectTypeArgsDocumentation: Array<ts.SymbolDisplayPart> = [{
         kind: "text",
         text: (
           "```ts\n" +
           "/* Effect Type Parameters */\n" +
-          formatTypeForQuickInfo(ts, typeChecker)(_.A, "Success") +
+          (yield* formatTypeForQuickInfo(effectType.A, "Success")) +
           "\n" +
-          formatTypeForQuickInfo(ts, typeChecker)(_.E, "Failure") +
+          (yield* formatTypeForQuickInfo(effectType.E, "Failure")) +
           "\n" +
-          formatTypeForQuickInfo(ts, typeChecker)(_.R, "Requirements") +
+          (yield* formatTypeForQuickInfo(effectType.R, "Requirements")) +
           "\n```\n"
         )
-      }]),
-      Option.getOrElse(() => [] as Array<ts.SymbolDisplayPart>)
-    )
+      }]
 
-    if (quickInfo.documentation) {
+      if (quickInfo.documentation) {
+        return {
+          ...quickInfo,
+          documentation: effectTypeArgsDocumentation.concat(quickInfo.documentation)
+        }
+      }
+
       return {
         ...quickInfo,
-        documentation: effectTypeArgsDocumentation.concat(quickInfo.documentation)
+        documentation: effectTypeArgsDocumentation
       }
-    }
-
-    return {
-      ...quickInfo,
-      documentation: effectTypeArgsDocumentation
-    }
-  }
+    }),
+    Nano.orElse(() => Nano.succeed(quickInfo))
+  )
 }

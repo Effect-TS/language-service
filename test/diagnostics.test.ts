@@ -33,9 +33,9 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
     // check and assert the refactor is executable
     const canApply = pipe(
       diagnostic.apply(sourceFile),
-      Nano.provide(TypeScriptApi.TypeScriptApi, ts),
-      Nano.provide(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-      Nano.provide(PluginOptions, {
+      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+      Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+      Nano.provideService(PluginOptions, {
         diagnostics: true,
         quickinfo: false
       }),

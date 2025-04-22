@@ -1,10 +1,10 @@
 import * as ReadonlyArray from "effect/Array"
+import * as Data from "effect/Data"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as Order from "effect/Order"
 import type ts from "typescript"
-import * as TypeParser from "../utils/TypeParser.js"
-import type { TypeScriptApi } from "./TypeScriptApi.js"
+import * as Nano from "./Nano.js"
+import * as TypeScriptApi from "./TypeScriptApi.js"
 
 /**
  * Collects the given node and all its ancestor nodes that fully contain the specified TextRange.
@@ -19,16 +19,18 @@ import type { TypeScriptApi } from "./TypeScriptApi.js"
 function collectSelfAndAncestorNodesInRange(
   node: ts.Node,
   textRange: ts.TextRange
-): Array<ts.Node> {
-  let result = ReadonlyArray.empty<ts.Node>()
-  let parent = node
-  while (parent) {
-    if (parent.end >= textRange.end) {
-      result = pipe(result, ReadonlyArray.append(parent))
+): Nano.Nano<Array<ts.Node>> {
+  return Nano.sync(() => {
+    let result = ReadonlyArray.empty<ts.Node>()
+    let parent = node
+    while (parent) {
+      if (parent.end >= textRange.end) {
+        result = pipe(result, ReadonlyArray.append(parent))
+      }
+      parent = parent.parent
     }
-    parent = parent.parent
-  }
-  return result
+    return result
+  })
 }
 
 /**
@@ -43,14 +45,20 @@ function collectSelfAndAncestorNodesInRange(
  *          an array of nodes containing the range.
  */
 export function getAncestorNodesInRange(
-  ts: TypeScriptApi
-) {
-  return ((sourceFile: ts.SourceFile, textRange: ts.TextRange) => {
+  sourceFile: ts.SourceFile,
+  textRange: ts.TextRange
+): Nano.Nano<Array<ts.Node>, never, TypeScriptApi.TypeScriptApi> {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
     if (!precedingToken) return ReadonlyArray.empty<ts.Node>()
-    return collectSelfAndAncestorNodesInRange(precedingToken, textRange)
+    return yield* collectSelfAndAncestorNodesInRange(precedingToken, textRange)
   })
 }
+
+export class NodeNotFoundError
+  extends Data.TaggedError("@effect/language-service/NodeNotFoundError")<{}>
+{}
 
 /**
  * Finds the deepest AST node at the specified position within the given SourceFile.
@@ -65,18 +73,22 @@ export function getAncestorNodesInRange(
  *          - `Option.none` if no node is found at the specified position.
  */
 function findNodeAtPosition(
-  ts: TypeScriptApi,
   sourceFile: ts.SourceFile,
   position: number
-): Option.Option<ts.Node> {
-  function find(node: ts.Node): ts.Node | undefined {
-    if (position >= node.getStart() && position < node.getEnd()) {
-      // If the position is within this node, keep traversing its children
-      return ts.forEachChild(node, find) || node
+): Nano.Nano<ts.Node, NodeNotFoundError, TypeScriptApi.TypeScriptApi> {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    function find(node: ts.Node): ts.Node | undefined {
+      if (position >= node.getStart() && position < node.getEnd()) {
+        // If the position is within this node, keep traversing its children
+        return ts.forEachChild(node, find) || node
+      }
+      return undefined
     }
-    return undefined
-  }
-  return Option.fromNullable(find(sourceFile))
+    const result = find(sourceFile)
+    if (!result) return yield* Nano.fail(new NodeNotFoundError())
+    return result
+  })
 }
 
 /**
@@ -93,57 +105,14 @@ function findNodeAtPosition(
  *          at the given position and that fully contain the specified range.
  */
 export function collectDescendantsAndAncestorsInRange(
-  ts: TypeScriptApi,
   sourceFile: ts.SourceFile,
   textRange: ts.TextRange
 ) {
-  const nodeAtPosition = findNodeAtPosition(ts, sourceFile, textRange.pos)
-  if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
-  return collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
-}
-
-/**
- * Extracts the `Effect` from an `Effect.gen` generator function with a single return statement.
- *
- * This function analyzes the provided node to determine if it represents an `Effect.gen` call.
- * If the generator function body contains exactly one `return` statement, and that statement
- * yields an `Effect`, the function extracts and returns the inner `Effect`.
- *
- * @param typeChecker - The TypeScript type checker, used to analyze the types of nodes.
- * @param node - The AST node to analyze.
- * @returns An `Option`:
- *          - `Option.some<ts.Node>` containing the inner `Effect` if the node is an `Effect.gen`
- *            with a single return statement yielding an `Effect`.
- *          - `Option.none` if the node does not match the criteria.
- */
-export function getSingleReturnEffectFromEffectGen(
-  ts: TypeScriptApi,
-  typeChecker: ts.TypeChecker,
-  node: ts.Node
-): Option.Option<ts.Node> {
-  // is the node an effect gen-like?
-  const effectGenLike = TypeParser.effectGen(ts, typeChecker)(node)
-
-  if (Option.isSome(effectGenLike)) {
-    // if the node is an effect gen-like, we need to check if its body is just a single return statement
-    const body = effectGenLike.value.body
-    if (
-      body.statements.length === 1 &&
-      ts.isReturnStatement(body.statements[0]) &&
-      body.statements[0].expression &&
-      ts.isYieldExpression(body.statements[0].expression) &&
-      body.statements[0].expression.expression
-    ) {
-      // get the type of the node
-      const nodeToCheck = body.statements[0].expression.expression
-      const type = typeChecker.getTypeAtLocation(nodeToCheck)
-      const maybeEffect = TypeParser.effectType(ts, typeChecker)(type, nodeToCheck)
-      if (Option.isSome(maybeEffect)) {
-        return Option.some(nodeToCheck)
-      }
-    }
-  }
-  return Option.none()
+  return Nano.gen(function*() {
+    const nodeAtPosition = yield* Nano.option(findNodeAtPosition(sourceFile, textRange.pos))
+    if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
+    return yield* collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
+  })
 }
 
 /**
@@ -160,13 +129,13 @@ export function isNodeInRange(textRange: ts.TextRange) {
 }
 
 export function transformAsyncAwaitToEffectGen(
-  ts: TypeScriptApi
+  node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+  effectModuleName: string,
+  onAwait: (expression: ts.Expression) => ts.Expression
 ) {
-  return (
-    node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
-    effectModuleName: string,
-    onAwait: (expression: ts.Expression) => ts.Expression
-  ) => {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
     function visitor(_: ts.Node): ts.Node {
       if (ts.isAwaitExpression(_)) {
         const expression = ts.visitEachChild(_.expression, visitor, ts.nullTransformationContext)
@@ -238,22 +207,22 @@ export function transformAsyncAwaitToEffectGen(
       undefined,
       newBody
     )
-  }
+  })
 }
 
 export function addReturnTypeAnnotation(
-  ts: TypeScriptApi,
-  changes: ts.textChanges.ChangeTracker
+  sourceFile: ts.SourceFile,
+  declaration:
+    | ts.FunctionDeclaration
+    | ts.FunctionExpression
+    | ts.ArrowFunction
+    | ts.MethodDeclaration,
+  typeNode: ts.TypeNode
 ) {
-  return (
-    sourceFile: ts.SourceFile,
-    declaration:
-      | ts.FunctionDeclaration
-      | ts.FunctionExpression
-      | ts.ArrowFunction
-      | ts.MethodDeclaration,
-    typeNode: ts.TypeNode
-  ) => {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const changes = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
     const closeParen = ts.findChildOfKind(declaration, ts.SyntaxKind.CloseParenToken, sourceFile)
     const needParens = ts.isArrowFunction(declaration) && closeParen === undefined
     const endNode = needParens ? declaration.parameters[0] : closeParen
@@ -272,33 +241,40 @@ export function addReturnTypeAnnotation(
       }
       changes.insertNodeAt(sourceFile, endNode.end, typeNode, { prefix: ": " })
     }
-  }
+  })
 }
 
 export function removeReturnTypeAnnotation(
-  ts: TypeScriptApi,
-  changes: ts.textChanges.ChangeTracker
+  sourceFile: ts.SourceFile,
+  declaration:
+    | ts.FunctionDeclaration
+    | ts.FunctionExpression
+    | ts.ArrowFunction
+    | ts.MethodDeclaration
 ) {
-  return (
-    sourceFile: ts.SourceFile,
-    declaration:
-      | ts.FunctionDeclaration
-      | ts.FunctionExpression
-      | ts.ArrowFunction
-      | ts.MethodDeclaration
-  ) => {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const changes = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
     const closeParen = ts.findChildOfKind(declaration, ts.SyntaxKind.CloseParenToken, sourceFile)
     const needParens = ts.isArrowFunction(declaration) && closeParen === undefined
     const endNode = needParens ? declaration.parameters[0] : closeParen
     if (endNode && declaration.type) {
       changes.deleteRange(sourceFile, { pos: endNode.end, end: declaration.type.end })
     }
-  }
+  })
 }
 
-export function findImportedModuleIdentifier(ts: TypeScriptApi) {
-  return (test: (node: ts.Node) => boolean) =>
-  (sourceFile: ts.SourceFile): Option.Option<ts.Identifier> => {
+export class ImportModuleIdentifierNotFoundError
+  extends Data.TaggedError("@effect/language-service/ImportModuleIdentifierNotFoundError")<{}>
+{}
+
+export function findImportedModuleIdentifier<E = never, R = never>(
+  sourceFile: ts.SourceFile,
+  test: (node: ts.Node) => Nano.Nano<boolean, E, R>
+) {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     for (const statement of sourceFile.statements) {
       if (!ts.isImportDeclaration(statement)) continue
       const importClause = statement.importClause
@@ -306,25 +282,24 @@ export function findImportedModuleIdentifier(ts: TypeScriptApi) {
       const namedBindings = importClause.namedBindings
       if (!namedBindings) continue
       if (ts.isNamespaceImport(namedBindings)) {
-        if (test(namedBindings.name)) return Option.some(namedBindings.name)
+        if (yield* test(namedBindings.name)) return (namedBindings.name)
       } else if (ts.isNamedImports(namedBindings)) {
         for (const importSpecifier of namedBindings.elements) {
-          if (test(importSpecifier.name)) return Option.some(importSpecifier.name)
+          if (yield* test(importSpecifier.name)) return (importSpecifier.name)
         }
       }
     }
-    return Option.none()
-  }
+    return yield* Nano.fail(new ImportModuleIdentifierNotFoundError())
+  })
 }
 
-export function simplifyTypeNode(
-  ts: TypeScriptApi
-) {
+export function simplifyTypeNode(typeNode: ts.TypeNode) {
   function collectCallable(
+    ts: TypeScriptApi.TypeScriptApi,
     typeNode: ts.TypeNode
   ): Option.Option<Array<ts.CallSignatureDeclaration>> {
     // (() => 1) -> skip to inner node
-    if (ts.isParenthesizedTypeNode(typeNode)) return collectCallable(typeNode.type)
+    if (ts.isParenthesizedTypeNode(typeNode)) return collectCallable(ts, typeNode.type)
     // () => 1 -> convert to call signature
     if (ts.isFunctionTypeNode(typeNode)) {
       return Option.some([
@@ -340,7 +315,7 @@ export function simplifyTypeNode(
     }
     // ... & ... -> if both are callable, return merge of both
     if (ts.isIntersectionTypeNode(typeNode)) {
-      const members = typeNode.types.map(collectCallable)
+      const members = typeNode.types.map((node) => collectCallable(ts, node))
       if (members.every(Option.isSome)) {
         return Option.some(members.map((_) => Option.isSome(_) ? _.value : []).flat())
       }
@@ -349,59 +324,20 @@ export function simplifyTypeNode(
     return Option.none()
   }
 
-  return (typeNode: ts.TypeNode) => {
-    const callSignatures = collectCallable(typeNode)
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const callSignatures = collectCallable(ts, typeNode)
     if (Option.isSome(callSignatures) && callSignatures.value.length > 1) {
       return ts.factory.createTypeLiteralNode(callSignatures.value)
     }
     return typeNode
-  }
-}
-
-export function isPipeCall(ts: TypeScriptApi) {
-  return (node: ts.Node): node is ts.CallExpression => {
-    if (!ts.isCallExpression(node)) return false
-    const expression = node.expression
-    if (!ts.isIdentifier(expression)) return false
-    if (expression.text !== "pipe") return false
-    return true
-  }
-}
-
-export function asDataFirstExpression(ts: TypeScriptApi, checker: ts.TypeChecker) {
-  return (node: ts.Node, self: ts.Expression): Option.Option<ts.CallExpression> => {
-    if (!ts.isCallExpression(node)) return Option.none()
-    const signature = checker.getResolvedSignature(node)
-    if (!signature) return Option.none()
-    const callSignatures = checker.getTypeAtLocation(node.expression).getCallSignatures()
-    for (let i = 0; i < callSignatures.length; i++) {
-      const callSignature = callSignatures[i]
-      if (callSignature.parameters.length === node.arguments.length + 1) {
-        return Option.some(
-          ts.factory.createCallExpression(
-            node.expression,
-            [],
-            [self].concat(node.arguments)
-          )
-        )
-      }
-    }
-    return Option.none()
-  }
-}
-
-export function deterministicTypeOrder(ts: TypeScriptApi, typeChecker: ts.TypeChecker) {
-  return Order.make((a: ts.Type, b: ts.Type) => {
-    const aName = typeChecker.typeToString(a)
-    const bName = typeChecker.typeToString(b)
-    if (aName < bName) return -1
-    if (aName > bName) return 1
-    return 0
   })
 }
 
-export function tryPreserveDeclarationSemantics(ts: TypeScriptApi) {
-  return (nodeToReplace: ts.Node, node: ts.Node) => {
+export function tryPreserveDeclarationSemantics(nodeToReplace: ts.Node, node: ts.Node) {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
     // new node should be an expression!
     if (!ts.isExpression(node)) return node
     // ok, we need to replace. is that a method or a function?
@@ -431,5 +367,5 @@ export function tryPreserveDeclarationSemantics(ts: TypeScriptApi) {
     }
     // I don't know what else to do!
     return node
-  }
+  })
 }

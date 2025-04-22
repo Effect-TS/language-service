@@ -1,10 +1,9 @@
-import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
 import * as Nano from "../utils/Nano.js"
-import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 /**
@@ -41,33 +40,31 @@ export const removeUnnecessaryEffectGen = createRefactor({
   description: "Remove unnecessary Effect.gen",
   apply: (sourceFile, textRange) =>
     Nano.gen(function*() {
-      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-
-      const maybeNode = pipe(
-        AST.collectDescendantsAndAncestorsInRange(ts, sourceFile, textRange),
-        ReadonlyArray.findFirst((node) =>
-          Option.gen(function*() {
-            const returnedYieldedEffect = yield* AST.getSingleReturnEffectFromEffectGen(
-              ts,
-              typeChecker,
-              node
-            )
-            return { nodeToReplace: node, returnedYieldedEffect }
-          })
+      for (
+        const nodeToReplace of yield* AST.collectDescendantsAndAncestorsInRange(
+          sourceFile,
+          textRange
         )
-      )
+      ) {
+        const maybeNode = yield* pipe(
+          TypeParser.effectGen(nodeToReplace),
+          Nano.flatMap(({ body }) => TypeParser.returnYieldEffectBlock(body)),
+          Nano.option
+        )
 
-      if (Option.isNone(maybeNode)) return yield* Nano.fail(new RefactorNotApplicableError())
-      const { nodeToReplace, returnedYieldedEffect } = maybeNode.value
+        if (Option.isNone(maybeNode)) continue
+        const returnedYieldedEffect = maybeNode.value
 
-      return ({
-        kind: "refactor.rewrite.effect.removeUnnecessaryEffectGen",
-        description: "Remove unnecessary Effect.gen",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          changeTracker.replaceNode(sourceFile, nodeToReplace, returnedYieldedEffect)
+        return ({
+          kind: "refactor.rewrite.effect.removeUnnecessaryEffectGen",
+          description: "Remove unnecessary Effect.gen",
+          apply: Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+            changeTracker.replaceNode(sourceFile, nodeToReplace, returnedYieldedEffect)
+          })
         })
-      })
+      }
+
+      return yield* Nano.fail(new RefactorNotApplicableError())
     })
 })
