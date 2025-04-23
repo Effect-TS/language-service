@@ -31,7 +31,7 @@ function testDiagnosticOnExample(diagnostic: LSP.DiagnosticDefinition, fileName:
 
     // check and assert the refactor is executable
     const canApply = pipe(
-      diagnostic.apply(sourceFile),
+      LSP.getSemanticDiagnostics([diagnostic], sourceFile),
       Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
       Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
       Nano.provideService(LSP.PluginOptions, {
@@ -47,15 +47,20 @@ function testDiagnosticOnExample(diagnostic: LSP.DiagnosticDefinition, fileName:
     }
 
     // sort by start position
-    canApply.right.sort((a, b) => a.node.getStart(sourceFile) - b.node.getStart(sourceFile))
+    canApply.right.sort((a, b) => (a.start || 0) - (b.start || 0))
 
     // create human readable messages
     const humanMessages = canApply.right.map((error) => {
-      const start = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getStart(sourceFile))
-      const end = ts.getLineAndCharacterOfPosition(sourceFile, error.node.getEnd())
+      const startPos = error.start || 0
+      const start = ts.getLineAndCharacterOfPosition(sourceFile, startPos)
+      const endPos = startPos + (error.length || 0)
+      const end = ts.getLineAndCharacterOfPosition(
+        sourceFile,
+        endPos
+      )
       const errorSourceCode = sourceText.substring(
-        error.node.getStart(sourceFile),
-        error.node.getEnd()
+        startPos,
+        endPos
       )
 
       return errorSourceCode + "\n" +

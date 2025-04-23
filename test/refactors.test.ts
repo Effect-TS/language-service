@@ -104,7 +104,7 @@ function testRefactorOnExample(refactor: LSP.RefactorDefinition, fileName: strin
 
       // check and assert the refactor is executable
       const canApply = pipe(
-        refactor.apply(sourceFile, textRange),
+        LSP.getApplicableRefactors([refactor], sourceFile, textRange),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
         Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
@@ -112,6 +112,18 @@ function testRefactorOnExample(refactor: LSP.RefactorDefinition, fileName: strin
       )
 
       if (Either.isLeft(canApply)) {
+        expect(sourceText).toMatchSnapshot()
+        return
+      }
+      const applicableRefactor = pipe(
+        LSP.getEditsForRefactor([refactor], sourceFile, textRange, refactor.name),
+        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+        Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
+        Nano.run
+      )
+
+      if (Either.isLeft(applicableRefactor)) {
         expect(sourceText).toMatchSnapshot()
         return
       }
@@ -129,7 +141,7 @@ function testRefactorOnExample(refactor: LSP.RefactorDefinition, fileName: strin
         },
         (changeTracker) =>
           pipe(
-            canApply.right.apply,
+            applicableRefactor.right.apply,
             Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
             Nano.run
           )

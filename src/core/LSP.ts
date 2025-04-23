@@ -1,4 +1,5 @@
 import * as Data from "effect/Data"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import type * as TypeScriptApi from "../utils/TypeScriptApi.js"
@@ -58,3 +59,78 @@ export interface PluginOptions {
 }
 
 export const PluginOptions = Nano.Tag<PluginOptions>("PluginOptions")
+
+export class SourceFileNotFoundError extends Data.TaggedError("SourceFileNotFoundError")<{
+  fileName: string
+}> {}
+
+export function getSemanticDiagnostics(
+  diagnostics: Array<DiagnosticDefinition>,
+  sourceFile: ts.SourceFile
+) {
+  return Nano.gen(function*() {
+    const effectDiagnostics: Array<ts.Diagnostic> = []
+    for (const diagnostic of diagnostics) {
+      const result = yield* Nano.option(diagnostic.apply(sourceFile))
+      if (Option.isSome(result)) {
+        effectDiagnostics.push(...result.value.map((_) => ({
+          file: sourceFile,
+          start: _.node.getStart(sourceFile),
+          length: _.node.getEnd() - _.node.getStart(sourceFile),
+          messageText: _.messageText,
+          category: _.category,
+          code: diagnostic.code,
+          source: "effect"
+        })))
+      }
+    }
+    return effectDiagnostics
+  })
+}
+
+export function getApplicableRefactors(
+  refactors: Array<RefactorDefinition>,
+  sourceFile: ts.SourceFile,
+  positionOrRange: number | ts.TextRange
+) {
+  return Nano.gen(function*() {
+    const textRange = typeof positionOrRange === "number"
+      ? { pos: positionOrRange, end: positionOrRange }
+      : positionOrRange
+    const effectRefactors: Array<ts.ApplicableRefactorInfo> = []
+    for (const refactor of refactors) {
+      const result = yield* Nano.option(refactor.apply(sourceFile, textRange))
+      if (Option.isSome(result)) {
+        effectRefactors.push({
+          name: refactor.name,
+          description: refactor.description,
+          actions: [{
+            name: refactor.name,
+            description: result.value.description,
+            kind: result.value.kind
+          }]
+        })
+      }
+    }
+    return effectRefactors
+  })
+}
+
+export function getEditsForRefactor(
+  refactors: Array<RefactorDefinition>,
+  sourceFile: ts.SourceFile,
+  positionOrRange: number | ts.TextRange,
+  refactorName: string
+) {
+  return Nano.gen(function*() {
+    const refactor = refactors.find((refactor) => refactor.name === refactorName)
+    if (!refactor) {
+      return yield* Nano.fail(new RefactorNotApplicableError())
+    }
+    const textRange = typeof positionOrRange === "number"
+      ? { pos: positionOrRange, end: positionOrRange }
+      : positionOrRange
+
+    return yield* refactor.apply(sourceFile, textRange)
+  })
+}
