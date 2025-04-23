@@ -1,21 +1,20 @@
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
+import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import type { ApplicableDiagnosticDefinition } from "../definition.js"
-import { createDiagnostic } from "../definition.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const missingStarInYieldEffectGen = createDiagnostic({
+export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   code: 4,
   apply: (sourceFile) =>
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-      const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+      const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
       const brokenGenerators = new Set<ts.Node>()
       const brokenYields = new Set<ts.Node>()
 

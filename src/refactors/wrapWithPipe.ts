@@ -1,14 +1,14 @@
+import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const wrapWithPipe = createRefactor({
+export const wrapWithPipe = LSP.createRefactor({
   name: "effect/wrapWithPipe",
   description: "Wrap with pipe",
   apply: (sourceFile, textRange) =>
     Nano.gen(function*() {
       if (textRange.end - textRange.pos === 0) {
-        return yield* Nano.fail(new RefactorNotApplicableError())
+        return yield* Nano.fail(new LSP.RefactorNotApplicableError())
       }
 
       return ({

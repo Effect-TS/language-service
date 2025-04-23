@@ -1,5 +1,5 @@
+import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
-import { PluginOptions, type RefactorDefinition } from "@effect/language-service/definition"
 import { refactors } from "@effect/language-service/refactors"
 import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
 import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
@@ -52,7 +52,7 @@ function applyEdits(
 
 const getExamplesRefactorsDir = () => path.join(__dirname, "..", "examples", "refactors")
 
-function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
+function testRefactorOnExample(refactor: LSP.RefactorDefinition, fileName: string) {
   const sourceWithMarker = fs.readFileSync(path.join(getExamplesRefactorsDir(), fileName))
     .toString("utf8")
   const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
@@ -107,7 +107,7 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
         refactor.apply(sourceFile, textRange),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-        Nano.provideService(PluginOptions, { diagnostics: false, quickinfo: false }),
+        Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
         Nano.run
       )
 
@@ -140,7 +140,7 @@ function testRefactorOnExample(refactor: RefactorDefinition, fileName: string) {
   }
 }
 
-function testFiles(refactor: RefactorDefinition, fileNames: Array<string>) {
+function testFiles(refactor: LSP.RefactorDefinition, fileNames: Array<string>) {
   for (const fileName of fileNames) {
     describe(fileName, () => {
       testRefactorOnExample(refactor, fileName)

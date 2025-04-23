@@ -3,8 +3,8 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
+import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
-import { PluginOptions } from "./definition.js"
 import { diagnostics } from "./diagnostics.js"
 import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
@@ -19,7 +19,7 @@ const init = (
 ) => {
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
-    const pluginOptions: PluginOptions = {
+    const pluginOptions: LSP.PluginOptions = {
       diagnostics:
         info.config && "diagnostics" in info.config && typeof info.config.diagnostics === "boolean"
           ? info.config.diagnostics
@@ -66,7 +66,7 @@ const init = (
             }),
             Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(PluginOptions, pluginOptions),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
             Nano.run,
             Either.getOrElse(() => applicableDiagnostics)
           )
@@ -106,7 +106,7 @@ const init = (
             }),
             Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(PluginOptions, pluginOptions),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
             Nano.run,
             Either.getOrElse(() => applicableRefactors)
           )
@@ -160,7 +160,7 @@ const init = (
               }),
               Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
               Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-              Nano.provideService(PluginOptions, pluginOptions),
+              Nano.provideService(LSP.PluginOptions, pluginOptions),
               Nano.run
             )
             if (Either.isRight(result)) {

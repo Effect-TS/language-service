@@ -1,14 +1,13 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import type ts from "typescript"
+import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import type { ApplicableDiagnosticDefinition } from "../definition.js"
-import { createDiagnostic } from "../definition.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const missingEffectContext = createDiagnostic({
+export const missingEffectContext = LSP.createDiagnostic({
   code: 1,
   apply: (sourceFile) =>
     Nano.gen(function*() {
@@ -41,7 +40,7 @@ export const missingEffectContext = createDiagnostic({
         })
       }
 
-      const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+      const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
       const sortTypes = ReadonlyArray.sort(typeOrder)
 
       const nodeToVisit: Array<ts.Node> = []

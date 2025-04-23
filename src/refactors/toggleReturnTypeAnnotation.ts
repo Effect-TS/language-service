@@ -1,13 +1,13 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const toggleReturnTypeAnnotation = createRefactor({
+export const toggleReturnTypeAnnotation = LSP.createRefactor({
   name: "effect/toggleReturnTypeAnnotation",
   description: "Toggle return type annotation",
   apply: (sourceFile, textRange) =>
@@ -24,7 +24,7 @@ export const toggleReturnTypeAnnotation = createRefactor({
         ReadonlyArray.head
       )
 
-      if (Option.isNone(maybeNode)) return yield* Nano.fail(new RefactorNotApplicableError())
+      if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
       const node = maybeNode.value
 
       if (node.type) {
@@ -39,7 +39,7 @@ export const toggleReturnTypeAnnotation = createRefactor({
       }
 
       const returnType = yield* Nano.option(TypeCheckerApi.getInferredReturnType(node))
-      if (Option.isNone(returnType)) return yield* Nano.fail(new RefactorNotApplicableError())
+      if (Option.isNone(returnType)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
       const returnTypeNode = typeChecker.typeToTypeNode(
         returnType.value,
@@ -47,7 +47,7 @@ export const toggleReturnTypeAnnotation = createRefactor({
         ts.NodeBuilderFlags.NoTruncation
       )
 
-      if (!returnTypeNode) return yield* Nano.fail(new RefactorNotApplicableError())
+      if (!returnTypeNode) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
       return ({
         kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",

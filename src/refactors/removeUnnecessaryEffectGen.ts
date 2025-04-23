@@ -1,7 +1,7 @@
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
 import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
@@ -35,7 +35,7 @@ import * as TypeScriptApi from "../utils/TypeScriptApi.js"
  * @returns A refactor function that takes a `SourceFile` and a `TextRange`, analyzes the AST,
  *          and applies the refactor if applicable.
  */
-export const removeUnnecessaryEffectGen = createRefactor({
+export const removeUnnecessaryEffectGen = LSP.createRefactor({
   name: "effect/removeUnnecessaryEffectGen",
   description: "Remove unnecessary Effect.gen",
   apply: (sourceFile, textRange) =>
@@ -65,6 +65,6 @@ export const removeUnnecessaryEffectGen = createRefactor({
         })
       }
 
-      return yield* Nano.fail(new RefactorNotApplicableError())
+      return yield* Nano.fail(new LSP.RefactorNotApplicableError())
     })
 })

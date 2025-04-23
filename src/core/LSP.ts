@@ -1,8 +1,8 @@
 import * as Data from "effect/Data"
 import type ts from "typescript"
-import * as Nano from "./core/Nano.js"
-import type * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
-import type * as TypeScriptApi from "./utils/TypeScriptApi.js"
+import type * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import type * as TypeScriptApi from "../utils/TypeScriptApi.js"
+import * as Nano from "./Nano.js"
 
 export class RefactorNotApplicableError
   extends Data.TaggedError("RefactorNotApplicableError")<{}>

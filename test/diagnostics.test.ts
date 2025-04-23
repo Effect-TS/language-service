@@ -1,6 +1,5 @@
+import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
-import type { DiagnosticDefinition } from "@effect/language-service/definition"
-import { PluginOptions } from "@effect/language-service/definition"
 import { diagnostics } from "@effect/language-service/diagnostics"
 import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
 import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
@@ -14,7 +13,7 @@ import { createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.j
 
 const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
 
-function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: string) {
+function testDiagnosticOnExample(diagnostic: LSP.DiagnosticDefinition, fileName: string) {
   const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
     .toString("utf8")
   it(fileName, () => {
@@ -35,7 +34,7 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
       diagnostic.apply(sourceFile),
       Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
       Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-      Nano.provideService(PluginOptions, {
+      Nano.provideService(LSP.PluginOptions, {
         diagnostics: true,
         quickinfo: false
       }),
@@ -68,7 +67,7 @@ function testDiagnosticOnExample(diagnostic: DiagnosticDefinition, fileName: str
   })
 }
 
-function testFiles(diagnostic: DiagnosticDefinition, fileNames: Array<string>) {
+function testFiles(diagnostic: LSP.DiagnosticDefinition, fileNames: Array<string>) {
   for (const fileName of fileNames) {
     describe(fileName, () => {
       testDiagnosticOnExample(diagnostic, fileName)

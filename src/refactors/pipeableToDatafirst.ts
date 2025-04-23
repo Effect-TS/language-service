@@ -2,13 +2,13 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
+import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import { createRefactor, RefactorNotApplicableError } from "../definition.js"
 import * as AST from "../utils/AST.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const pipeableToDatafirst = createRefactor({
+export const pipeableToDatafirst = LSP.createRefactor({
   name: "effect/pipeableToDatafirst",
   description: "Rewrite to datafirst",
   apply: (sourceFile, textRange) =>
@@ -88,7 +88,7 @@ export const pipeableToDatafirst = createRefactor({
         ReadonlyArray.head
       )
 
-      if (Option.isNone(maybeNode)) return yield* Nano.fail(new RefactorNotApplicableError())
+      if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
       const [node, newNode] = maybeNode.value
 
       return ({
