@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.8.0
+
+### Minor Changes
+
+- [#93](https://github.com/Effect-TS/language-service/pull/93) [`92bbee1`](https://github.com/Effect-TS/language-service/commit/92bbee18204dc84f730af7eb7f27f5828fed1f77) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Reorganize internals, tests and add failure-recovery paths
+
+### Patch Changes
+
+- [#96](https://github.com/Effect-TS/language-service/pull/96) [`dba85b6`](https://github.com/Effect-TS/language-service/commit/dba85b60d070ec64c90282bb0b28fb3cda41be23) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add refactor to remove unnecessary Effect.gen definitions
+
 ## 0.7.1
 
 ### Patch Changes
