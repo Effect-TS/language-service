@@ -63,4 +63,4 @@ Few options can be provided alongside the initialization of the Language Service
 - Function calls to pipe: Transform a set of function calls to a pipe() call.
 - Pipe to datafirst: Transform a pipe() call into a series of datafirst function calls (where available).
 - Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.
-- Remove unnecessary `Effect.gen` calls by simplifying generator functions that only wrap a single `yield*` statement returning an `Effect`. This refactor replaces the `Effect.gen` wrapper with the inner `Effect` directly, making the code more concise and readable.
+- Remove unnecessary `Effect.gen` definitions that contains a single `yield` statement.
