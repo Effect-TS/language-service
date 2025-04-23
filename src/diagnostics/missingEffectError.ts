@@ -1,5 +1,6 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -73,7 +74,8 @@ export const missingEffectError = LSP.createDiagnostic({
                 category: ts.DiagnosticCategory.Error,
                 messageText: `Missing '${
                   sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
-                }' in the expected Effect errors.`
+                }' in the expected Effect errors.`,
+                fix: Option.none()
               }
             )
           }

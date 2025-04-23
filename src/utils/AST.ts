@@ -271,7 +271,11 @@ export class ImportModuleIdentifierNotFoundError
 
 export function findImportedModuleIdentifier<E = never, R = never>(
   sourceFile: ts.SourceFile,
-  test: (node: ts.Node) => Nano.Nano<boolean, E, R>
+  test: (
+    node: ts.Node,
+    fromModule: ts.Expression,
+    importProperty: Option.Option<ts.ModuleExportName>
+  ) => Nano.Nano<boolean, E, R>
 ) {
   return Nano.gen(function*() {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
@@ -282,14 +286,51 @@ export function findImportedModuleIdentifier<E = never, R = never>(
       const namedBindings = importClause.namedBindings
       if (!namedBindings) continue
       if (ts.isNamespaceImport(namedBindings)) {
-        if (yield* test(namedBindings.name)) return (namedBindings.name)
+        if (yield* test(namedBindings.name, statement.moduleSpecifier, Option.none())) {
+          return (namedBindings.name)
+        }
       } else if (ts.isNamedImports(namedBindings)) {
         for (const importSpecifier of namedBindings.elements) {
-          if (yield* test(importSpecifier.name)) return (importSpecifier.name)
+          const importProperty = Option.fromNullable(importSpecifier.propertyName).pipe(
+            Option.orElse(() => Option.some(importSpecifier.name))
+          )
+          if (yield* test(importSpecifier.name, statement.moduleSpecifier, importProperty)) {
+            return (importSpecifier.name)
+          }
         }
       }
     }
     return yield* Nano.fail(new ImportModuleIdentifierNotFoundError())
+  })
+}
+
+export function findImportedModuleIdentifierByPackageAndNameOrBarrel(
+  sourceFile: ts.SourceFile,
+  packageName: string,
+  moduleName: string
+) {
+  return findImportedModuleIdentifier(sourceFile, (_, fromModule, importProperty) => {
+    return Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      // import * as Module from "package/module"
+      if (
+        Option.isNone(importProperty) && ts.isStringLiteral(fromModule) &&
+        fromModule.text === packageName + "/" + moduleName
+      ) {
+        return true
+      }
+      // import { Module } from "package"
+      // or
+      // import { Module as M } from "package"
+      if (
+        Option.isSome(importProperty) && ts.isIdentifier(importProperty.value) &&
+        importProperty.value.text === moduleName && ts.isStringLiteral(fromModule) &&
+        fromModule.text === packageName
+      ) {
+        return true
+      }
+      return false
+    })
   })
 }
 

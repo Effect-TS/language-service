@@ -9,46 +9,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { createServicesWithMockedVFS } from "./utils/mocks.js"
-
-/**
- * Loop through text changes, and update start and end positions while running
- */
-function forEachTextChange(
-  changes: ReadonlyArray<ts.TextChange>,
-  cb: (change: ts.TextChange) => void
-): void {
-  changes = JSON.parse(JSON.stringify(changes))
-  for (let i = 0; i < changes.length; i++) {
-    const change = changes[i]!
-    cb(change)
-    const changeDelta = change.newText.length - change.span.length
-    for (let j = i + 1; j < changes.length; j++) {
-      if (changes[j]!.span.start >= change.span.start) {
-        changes[j]!.span.start += changeDelta
-      }
-    }
-  }
-}
-
-function applyEdits(
-  edits: ReadonlyArray<ts.FileTextChanges>,
-  fileName: string,
-  sourceText: string
-): string {
-  for (const fileTextChange of edits) {
-    if (fileTextChange.fileName === fileName) {
-      forEachTextChange(fileTextChange.textChanges, (edit) => {
-        const content = sourceText
-        const prefix = content.substring(0, edit.span.start)
-        const middle = edit.newText
-        const suffix = content.substring(edit.span.start + edit.span.length)
-        sourceText = prefix + middle + suffix
-      })
-    }
-  }
-  return sourceText
-}
+import { applyEdits, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesRefactorsDir = () => path.join(__dirname, "..", "examples", "refactors")
 

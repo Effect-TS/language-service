@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Diagnostic floatingEffect > floatingEffect.ts 1`] = `
+exports[`Diagnostic floatingEffect > floatingEffect.ts > diagnostic output 1`] = `
 "Effect.succeed("floating")
 5:0 - 5:26 | 1 | Effect must be yielded or assigned to a variable.
 
@@ -11,7 +11,7 @@ Effect.never
 11:4 - 11:16 | 1 | Effect must be yielded or assigned to a variable."
 `;
 
-exports[`Diagnostic missingEffectContext > missingEffectContext_callExpression.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_callExpression.ts > diagnostic output 1`] = `
 "effectWithServices
 22:7 - 22:25 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
@@ -19,12 +19,12 @@ effectWithServices
 29:20 - 29:38 | 1 | Missing 'ServiceC' in the expected Effect context."
 `;
 
-exports[`Diagnostic missingEffectContext > missingEffectContext_lazy.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_lazy.ts > diagnostic output 1`] = `
 "return Effect.onExit(evaluate(), () => Effect.void)
 20:2 - 20:53 | 1 | Missing 'ServiceA' in the expected Effect context."
 `;
 
-exports[`Diagnostic missingEffectContext > missingEffectContext_plainAssignment.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_plainAssignment.ts > diagnostic output 1`] = `
 "missingAllServices
 21:13 - 21:31 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
@@ -41,7 +41,7 @@ effectWithServices
 38:10 - 38:28 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context."
 `;
 
-exports[`Diagnostic missingEffectContext > missingEffectContext_returnSignature.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_returnSignature.ts > diagnostic output 1`] = `
 "return effectWithServices
 19:4 - 19:29 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
@@ -52,7 +52,7 @@ effectWithServices
 26:105 - 26:123 | 1 | Missing 'ServiceC' in the expected Effect context."
 `;
 
-exports[`Diagnostic missingEffectError > missingEffectError_callExpression.ts 1`] = `
+exports[`Diagnostic missingEffectError > missingEffectError_callExpression.ts > diagnostic output 1`] = `
 "effectWithErrors
 23:7 - 23:23 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
@@ -60,7 +60,7 @@ effectWithErrors
 30:20 - 30:36 | 1 | Missing 'ErrorC' in the expected Effect errors."
 `;
 
-exports[`Diagnostic missingEffectError > missingEffectError_plainAssignment.ts 1`] = `
+exports[`Diagnostic missingEffectError > missingEffectError_plainAssignment.ts > diagnostic output 1`] = `
 "missingAllErrors
 21:13 - 21:29 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
@@ -77,7 +77,7 @@ effectWithErrors
 38:10 - 38:26 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors."
 `;
 
-exports[`Diagnostic missingEffectError > missingEffectError_returnSignature.ts 1`] = `
+exports[`Diagnostic missingEffectError > missingEffectError_returnSignature.ts > diagnostic output 1`] = `
 "return effectWithErrors
 20:4 - 20:27 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
@@ -88,7 +88,7 @@ effectWithErrors
 27:94 - 27:110 | 1 | Missing 'ErrorC' in the expected Effect errors."
 `;
 
-exports[`Diagnostic missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts 1`] = `
+exports[`Diagnostic missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > diagnostic output 1`] = `
 "function
 8:38 - 8:46 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
@@ -129,7 +129,352 @@ yield Effect.never
 42:4 - 42:22 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;
 
-exports[`Diagnostic unnecessaryEffectGen > unnecessaryEffectGen.ts 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 189 - 212 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 300 - 323 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 328 - 351 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield* Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 479 - 502 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield* Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 708 - 726 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield* Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 829 - 847 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield* Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 937 - 955 1`] = `
+"import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield* Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes unnecessaryEffectGen > unnecessaryEffectGen.ts > code fix output for range 291 - 356 1`] = `
+"import * as Effect from "effect/Effect"
+
+export const shouldNotRant = Effect.gen(function* () {
+    yield* Effect.succeed(true)
+    return yield* Effect.succeed(42)
+})
+
+export const shouldNotRaiseForNonEffect = Effect.gen(function* () {
+    return 42
+})
+
+export const shouldRaiseForSingle = Effect.succeed(42)
+"
+`;
+
+exports[`Diagnostic unnecessaryEffectGen > unnecessaryEffectGen.ts > diagnostic output 1`] = `
 "Effect.gen(function* () {
     return yield* Effect.succeed(42)
 })
