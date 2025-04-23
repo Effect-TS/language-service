@@ -14,7 +14,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
       const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
-      const brokenGenerators = new Set<ts.Node>()
+      const unnecessaryGenerators = new Map<ts.Node, ts.Node>()
 
       const nodeToVisit: Array<ts.Node> = []
       const appendNodeToVisit = (node: ts.Node) => {
@@ -34,17 +34,27 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
         )
 
         if (Option.isSome(maybeUnnecessaryGen)) {
-          brokenGenerators.add(node)
+          unnecessaryGenerators.set(node, maybeUnnecessaryGen.value)
         }
       }
 
       // emit diagnostics
-      brokenGenerators.forEach((node) =>
+      unnecessaryGenerators.forEach((body, node) =>
         effectDiagnostics.push({
           node,
           category: ts.DiagnosticCategory.Suggestion,
           messageText:
-            `This Effect.gen is useless here because it only contains a single return statement.`
+            `This Effect.gen is useless here because it only contains a single return statement.`,
+          fix: Option.some({
+            fixName: "unnecessaryEffectGen_fix",
+            description: "Remove the Effect.gen, and keep the body",
+            apply: Nano.gen(function*() {
+              const textChanges = yield* Nano.service(
+                TypeScriptApi.ChangeTracker
+              )
+              textChanges.replaceNode(sourceFile, node, body)
+            })
+          })
         })
       )
 

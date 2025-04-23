@@ -9,7 +9,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { createServicesWithMockedVFS } from "./utils/mocks.js"
+import { applyEdits, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
 
@@ -64,7 +64,79 @@ function testDiagnosticOnExample(
     Either.getOrElse(() => "// no diagnostics")
   )
 
-  expect(output).toMatchSnapshot()
+  expect(output).toMatchSnapshot("diagnostic output")
+}
+
+function testDiagnosticQuickfixesOnExample(
+  diagnostic: LSP.DiagnosticDefinition,
+  fileName: string,
+  sourceText: string
+) {
+  // create the language service with mocked services over a VFS
+  const { languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
+    fileName,
+    sourceText
+  )
+
+  // attempt to run the diagnostic and get the output
+  pipe(
+    LSP.getSemanticDiagnostics([diagnostic], sourceFile),
+    Nano.flatMap((outputDiagnostics) =>
+      Nano.gen(function*() {
+        // sort by start position
+        outputDiagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
+
+        // loop through
+        for (const applicableDiagnostic of outputDiagnostics) {
+          const startPos = applicableDiagnostic.start || 0
+          const endPos = startPos + (applicableDiagnostic.length || 0)
+
+          for (
+            const codeFix of yield* LSP.getCodeFixesAtPosition(
+              [diagnostic],
+              sourceFile,
+              startPos,
+              endPos,
+              [applicableDiagnostic.code]
+            )
+          ) {
+            const formatContext = ts.formatting.getFormatContext(
+              ts.getDefaultFormatCodeSettings("\n"),
+              { getNewLine: () => "\n" }
+            )
+            const edits = ts.textChanges.ChangeTracker.with(
+              {
+                formatContext,
+                host: languageServiceHost,
+                preferences: {}
+              },
+              (changeTracker) =>
+                pipe(
+                  codeFix.apply,
+                  Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                  Nano.run
+                )
+            )
+            expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot(
+              "code fix output for range " + startPos + " - " + endPos
+            )
+          }
+        }
+        // create human readable messages
+        return outputDiagnostics.map((error) =>
+          diagnosticToLogFormat(sourceFile, sourceText, error)
+        )
+          .join("\n\n")
+      })
+    ),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+    Nano.provideService(LSP.PluginOptions, {
+      diagnostics: true,
+      quickinfo: false
+    }),
+    Nano.run
+  )
 }
 
 function testAllDagnostics() {
@@ -86,6 +158,18 @@ function testAllDagnostics() {
         it(
           fileName,
           () => testDiagnosticOnExample(diagnostic, fileName, sourceText)
+        )
+      }
+    })
+    describe("Diagnostic quickfixes " + diagnosticName, () => {
+      // for each example file
+      for (const fileName of exampleFiles) {
+        const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
+          .toString("utf8")
+
+        it(
+          fileName,
+          () => testDiagnosticQuickfixesOnExample(diagnostic, fileName, sourceText)
         )
       }
     })

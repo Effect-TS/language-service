@@ -17,7 +17,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
 
       const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
       const brokenGenerators = new Set<ts.Node>()
-      const brokenYields = new Set<ts.Node>()
+      const brokenYields = new Set<ts.YieldExpression>()
 
       const nodeToVisit: Array<[node: ts.Node, functionStarNode: ts.Node | undefined]> = []
       const appendNodeToVisit = (functionStarNode: ts.Node | undefined) => (node: ts.Node) => {
@@ -71,17 +71,38 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
         effectDiagnostics.push({
           node,
           category: ts.DiagnosticCategory.Error,
-          messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`
+          messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`,
+          fix: Option.none()
         })
       )
-      brokenYields.forEach((node) =>
+      brokenYields.forEach((node) => {
+        const fix = node.expression ?
+          Option.some({
+            fixName: "missingStarInYieldEffectGen_fix",
+            description: "Replace yield with yield*",
+            apply: Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+              changeTracker.replaceNode(
+                sourceFile,
+                node,
+                ts.factory.createYieldExpression(
+                  ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+                  node.expression!
+                )
+              )
+            })
+          }) :
+          Option.none()
+
         effectDiagnostics.push({
           node,
           category: ts.DiagnosticCategory.Error,
           messageText:
-            `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`
+            `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
+          fix
         })
-      )
+      })
 
       return effectDiagnostics
     })

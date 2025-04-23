@@ -29,9 +29,104 @@ const init = (
 
     // create the proxy
     const proxy: ts.LanguageService = Object.create(null)
-    for (const k of Object.keys(info.languageService) as Array<keyof ts.LanguageService>) {
+    for (const k of Object.keys(languageService) as Array<keyof ts.LanguageService>) {
       // @ts-expect-error
       proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
+    }
+
+    const diagnosticsErrorCodes = diagnostics.map((diagnostic) => diagnostic.code)
+
+    // this is nothing more than an hack. Seems like vscode and other editors do not
+    // support new error codes in diagnostics. Because they somehow rely on looking into
+    // typescript.codefixes object. SO ONLY OPTION here is to register fake codefix.
+    // by hooking into the codefixes object and registering a fake codefix.
+
+    try {
+      ;(modules.typescript as any).codefix.registerCodeFix({
+        errorCodes: diagnosticsErrorCodes,
+        getCodeActions: () => undefined
+      })
+      // eslint-disable-next-line no-empty
+    } catch (_) {}
+
+    proxy.getSupportedCodeFixes = (...args) =>
+      languageService.getSupportedCodeFixes(...args).concat(
+        diagnosticsErrorCodes.map((_) => "" + _)
+      )
+
+    proxy.getCodeFixesAtPosition = (
+      fileName,
+      start,
+      end,
+      errorCodes,
+      formatOptions,
+      preferences,
+      ...args
+    ) => {
+      const applicableCodeFixes = languageService.getCodeFixesAtPosition(
+        fileName,
+        start,
+        end,
+        errorCodes,
+        formatOptions,
+        preferences,
+        ...args
+      )
+
+      const program = languageService.getProgram()
+      if (program) {
+        const sourceFile = program.getSourceFile(fileName)
+        if (sourceFile) {
+          return pipe(
+            Nano.gen(function*() {
+              const effectCodeFixes: Array<ts.CodeFixAction> = []
+              const applicableFixes = yield* LSP.getCodeFixesAtPosition(
+                diagnostics,
+                sourceFile,
+                start,
+                end,
+                errorCodes
+              )
+
+              const formatContext = modules.typescript.formatting.getFormatContext(
+                formatOptions,
+                info.languageServiceHost
+              )
+
+              for (const applicableFix of applicableFixes) {
+                const changes = modules.typescript.textChanges.ChangeTracker.with(
+                  {
+                    formatContext,
+                    host: info.languageServiceHost,
+                    preferences: preferences || {}
+                  },
+                  (changeTracker) =>
+                    pipe(
+                      applicableFix.apply,
+                      Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                      Nano.run
+                    )
+                )
+                effectCodeFixes.push({
+                  fixName: applicableFix.fixName,
+                  description: applicableFix.description,
+                  changes
+                })
+              }
+
+              return effectCodeFixes
+            }),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
+            Nano.run,
+            Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
+            Either.getOrElse(() => applicableCodeFixes)
+          )
+        }
+      }
+
+      return applicableCodeFixes
     }
 
     proxy.getSemanticDiagnostics = (fileName, ...args) => {

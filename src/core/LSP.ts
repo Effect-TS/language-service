@@ -1,4 +1,6 @@
+import * as ReadonlyArray from "effect/Array"
 import * as Data from "effect/Data"
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
@@ -48,6 +50,13 @@ export interface ApplicableDiagnosticDefinition {
   node: ts.Node
   category: ts.DiagnosticCategory
   messageText: string
+  fix: Option.Option<ApplicableDiagnosticDefinitionFix>
+}
+
+export interface ApplicableDiagnosticDefinitionFix {
+  fixName: string
+  description: string
+  apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
 export function createDiagnostic(definition: DiagnosticDefinition) {
@@ -86,6 +95,35 @@ export function getSemanticDiagnostics(
       }
     }
     return effectDiagnostics
+  })
+}
+
+export function getCodeFixesAtPosition(
+  diagnostics: Array<DiagnosticDefinition>,
+  sourceFile: ts.SourceFile,
+  start: number,
+  end: number,
+  errorCodes: ReadonlyArray<number>
+) {
+  return Nano.gen(function*() {
+    const runnableDiagnostics = diagnostics.filter((_) => errorCodes.indexOf(_.code) > -1)
+    const applicableFixes: Array<ApplicableDiagnosticDefinitionFix> = []
+    for (const diagnostic of runnableDiagnostics) {
+      const result = yield* Nano.option(diagnostic.apply(sourceFile))
+      if (Option.isSome(result)) {
+        applicableFixes.push(
+          ...pipe(
+            result.value,
+            ReadonlyArray.filter((_) =>
+              _.node.getStart(sourceFile) === start && _.node.getEnd() === end
+            ),
+            ReadonlyArray.map((_) => _.fix),
+            ReadonlyArray.getSomes
+          )
+        )
+      }
+    }
+    return applicableFixes
   })
 }
 
