@@ -8,6 +8,7 @@ import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const missingEffectError = LSP.createDiagnostic({
+  name: "effect/missingEffectError",
   code: 1,
   apply: (sourceFile) =>
     Nano.gen(function*() {

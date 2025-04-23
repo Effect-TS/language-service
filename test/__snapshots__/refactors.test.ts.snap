@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`asyncAwaitToGen.ts > asyncAwaitToGen.ts at 4:28 1`] = `
+exports[`Refactor asyncAwaitToGen > asyncAwaitToGen.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
 import * as T from "effect/Effect"
 
@@ -12,7 +12,7 @@ export function refactorMe(arg: string) {
 "
 `;
 
-exports[`asyncAwaitToGen_anonymous.ts > asyncAwaitToGen_anonymous.ts at 4:44 1`] = `
+exports[`Refactor asyncAwaitToGen > asyncAwaitToGen_anonymous.ts at 4:44 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:44
 import * as Effect from "effect/Effect"
 
@@ -38,7 +38,7 @@ const asyncArrowFunctionExpression = async () => {
 "
 `;
 
-exports[`asyncAwaitToGen_anonymous.ts > asyncAwaitToGen_anonymous.ts at 13:41 1`] = `
+exports[`Refactor asyncAwaitToGen > asyncAwaitToGen_anonymous.ts at 13:41 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 13:41
 import * as Effect from "effect/Effect"
 
@@ -62,7 +62,7 @@ const asyncArrowFunctionExpression = () => Effect.gen(function*() {
 "
 `;
 
-exports[`asyncAwaitToGen_namedImport.ts > asyncAwaitToGen_namedImport.ts at 4:28 1`] = `
+exports[`Refactor asyncAwaitToGen > asyncAwaitToGen_namedImport.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
 import { Effect as T } from "effect"
 
@@ -74,7 +74,7 @@ export function refactorMe(arg: string) {
 "
 `;
 
-exports[`asyncAwaitToGen_reExport.ts > asyncAwaitToGen_reExport.ts at 4:28 1`] = `
+exports[`Refactor asyncAwaitToGen > asyncAwaitToGen_reExport.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGen at position 4:28
 import { Eff } from "@/utils/reExport.js"
 
@@ -86,7 +86,7 @@ export function refactorMe(arg: string) {
 "
 `;
 
-exports[`asyncAwaitToGenTryPromise.ts > asyncAwaitToGenTryPromise.ts at 4:28 1`] = `
+exports[`Refactor asyncAwaitToGenTryPromise > asyncAwaitToGenTryPromise.ts at 4:28 1`] = `
 "// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:28
 import * as Effect from "effect/Effect"
 
@@ -101,7 +101,7 @@ export function refactorMe(arg: string) {
 "
 `;
 
-exports[`asyncAwaitToGenTryPromise_anonymous.ts > asyncAwaitToGenTryPromise_anonymous.ts at 4:44 1`] = `
+exports[`Refactor asyncAwaitToGenTryPromise > asyncAwaitToGenTryPromise_anonymous.ts at 4:44 1`] = `
 "// Result of running refactor effect/asyncAwaitToGenTryPromise at position 4:44
 import * as Effect from "effect/Effect"
 
@@ -127,7 +127,7 @@ const asyncArrowFunctionExpression = async () => {
 "
 `;
 
-exports[`asyncAwaitToGenTryPromise_anonymous.ts > asyncAwaitToGenTryPromise_anonymous.ts at 13:41 1`] = `
+exports[`Refactor asyncAwaitToGenTryPromise > asyncAwaitToGenTryPromise_anonymous.ts at 13:41 1`] = `
 "// Result of running refactor effect/asyncAwaitToGenTryPromise at position 13:41
 import * as Effect from "effect/Effect"
 
@@ -151,7 +151,7 @@ const asyncArrowFunctionExpression = () => Effect.gen(function*() {
 "
 `;
 
-exports[`effectGenToFn.ts > effectGenToFn.ts at 4:36 1`] = `
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 4:36 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 4:36
 import * as Eff from "effect/Effect"
 
@@ -185,7 +185,7 @@ export const sampleReturnsConciseBody = <A extends number, B extends number>(arg
 "
 `;
 
-exports[`effectGenToFn.ts > effectGenToFn.ts at 10:67 1`] = `
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 10:67 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 10:67
 import * as Eff from "effect/Effect"
 
@@ -217,7 +217,7 @@ export const sampleReturnsConciseBody = <A extends number, B extends number>(arg
 "
 `;
 
-exports[`effectGenToFn.ts > effectGenToFn.ts at 19:16 1`] = `
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 19:16 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 19:16
 import * as Eff from "effect/Effect"
 
@@ -249,7 +249,7 @@ export const sampleReturnsConciseBody = <A extends number, B extends number>(arg
 "
 `;
 
-exports[`effectGenToFn.ts > effectGenToFn.ts at 26:104 1`] = `
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 26:104 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 26:104
 import * as Eff from "effect/Effect"
 
@@ -283,7 +283,7 @@ export const sampleReturnsConciseBody = Eff.fn(function* <A extends number, B ex
 "
 `;
 
-exports[`effectGenToFn_classMethod.ts > effectGenToFn_classMethod.ts at 6:17 1`] = `
+exports[`Refactor effectGenToFn > effectGenToFn_classMethod.ts at 6:17 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 6:17
 import * as Eff from "effect/Effect"
 
@@ -297,7 +297,7 @@ class Test {
 "
 `;
 
-exports[`functionToArrow.ts > functionToArrow.ts at 5:20 1`] = `
+exports[`Refactor functionToArrow > functionToArrow.ts at 5:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 5:20
 /**
  * Docs
@@ -323,7 +323,7 @@ class Sample {
 "
 `;
 
-exports[`functionToArrow.ts > functionToArrow.ts at 12:20 1`] = `
+exports[`Refactor functionToArrow > functionToArrow.ts at 12:20 1`] = `
 "// Result of running refactor effect/functionToArrow at position 12:20
 /**
  * Docs
@@ -351,7 +351,7 @@ class Sample {
 "
 `;
 
-exports[`functionToArrow.ts > functionToArrow.ts at 21:5 1`] = `
+exports[`Refactor functionToArrow > functionToArrow.ts at 21:5 1`] = `
 "// Result of running refactor effect/functionToArrow at position 21:5
 /**
  * Docs
@@ -377,7 +377,7 @@ class Sample {
 "
 `;
 
-exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 5:16 1`] = `
+exports[`Refactor pipeableToDatafirst > pipeableToDatafirst.ts at 5:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 5:16
 import * as T from "effect/Effect"
 import { pipe } from "effect/Function"
@@ -402,7 +402,7 @@ const test3 = pipe(
 "
 `;
 
-exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 14:16 1`] = `
+exports[`Refactor pipeableToDatafirst > pipeableToDatafirst.ts at 14:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 14:16
 import * as T from "effect/Effect"
 import { pipe } from "effect/Function"
@@ -428,7 +428,7 @@ const test3 = pipe(
 "
 `;
 
-exports[`pipeableToDatafirst.ts > pipeableToDatafirst.ts at 20:16 1`] = `
+exports[`Refactor pipeableToDatafirst > pipeableToDatafirst.ts at 20:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 20:16
 import * as T from "effect/Effect"
 import { pipe } from "effect/Function"
@@ -454,7 +454,7 @@ const test3 = pipe(T.flatMap(T.succeed("Hello"), (_) => T.log(_)), noDataFirst("
 "
 `;
 
-exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 4:22 1`] = `
+exports[`Refactor removeUnnecessaryEffectGen > removeUnnecessaryEffectGen.ts at 4:22 1`] = `
 "// Result of running refactor effect/removeUnnecessaryEffectGen at position 4:22
 import * as Effect from "effect/Effect"
 
@@ -478,7 +478,7 @@ export const test3 = Effect.succeed(42).pipe(
 "
 `;
 
-exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 8:1 1`] = `
+exports[`Refactor removeUnnecessaryEffectGen > removeUnnecessaryEffectGen.ts at 8:1 1`] = `
 "// Result of running refactor effect/removeUnnecessaryEffectGen at position 8:1
 import * as Effect from "effect/Effect"
 
@@ -502,7 +502,7 @@ export const test3 = Effect.succeed(42).pipe(
 "
 `;
 
-exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 12:22 1`] = `
+exports[`Refactor removeUnnecessaryEffectGen > removeUnnecessaryEffectGen.ts at 12:22 1`] = `
 "// Result of running refactor effect/removeUnnecessaryEffectGen at position 12:22
 import * as Effect from "effect/Effect"
 
@@ -526,7 +526,7 @@ export const test3 = Effect.succeed(42).pipe(
 "
 `;
 
-exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 13:19 1`] = `
+exports[`Refactor removeUnnecessaryEffectGen > removeUnnecessaryEffectGen.ts at 13:19 1`] = `
 "// Result of running refactor effect/removeUnnecessaryEffectGen at position 13:19
 import * as Effect from "effect/Effect"
 
@@ -550,7 +550,7 @@ export const test3 = Effect.succeed(42).pipe(
 "
 `;
 
-exports[`removeUnnecessaryEffectGen.ts > removeUnnecessaryEffectGen.ts at 19:27 1`] = `
+exports[`Refactor removeUnnecessaryEffectGen > removeUnnecessaryEffectGen.ts at 19:27 1`] = `
 "// Result of running refactor effect/removeUnnecessaryEffectGen at position 19:27
 import * as Effect from "effect/Effect"
 
@@ -574,7 +574,7 @@ export const test3 = Effect.succeed(42).pipe(
 "
 `;
 
-exports[`toggleLazyConst.ts > toggleLazyConst.ts at 3:10 1`] = `
+exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 3:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 3:10
 
 const test1 = () => 1
@@ -587,7 +587,7 @@ const test3 = () => {
 "
 `;
 
-exports[`toggleLazyConst.ts > toggleLazyConst.ts at 5:10 1`] = `
+exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 5:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 5:10
 
 const test1 = 1
@@ -600,7 +600,7 @@ const test3 = () => {
 "
 `;
 
-exports[`toggleLazyConst.ts > toggleLazyConst.ts at 7:10 1`] = `
+exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 7:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 7:10
 
 const test1 = 1
@@ -613,7 +613,7 @@ const test3 = () => {
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 4:32 1`] = `
+exports[`Refactor toggleReturnTypeAnnotation > toggleReturnTypeAnnotation.ts at 4:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 4:32
 import * as T from "effect/Effect"
 
@@ -635,7 +635,7 @@ function removeAnnotationWithSpace(): number {
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 6:32 1`] = `
+exports[`Refactor toggleReturnTypeAnnotation > toggleReturnTypeAnnotation.ts at 6:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 6:32
 import * as T from "effect/Effect"
 
@@ -657,7 +657,7 @@ function removeAnnotationWithSpace(): number {
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 8:32 1`] = `
+exports[`Refactor toggleReturnTypeAnnotation > toggleReturnTypeAnnotation.ts at 8:32 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 8:32
 import * as T from "effect/Effect"
 
@@ -679,7 +679,7 @@ function removeAnnotationWithSpace(): number {
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 12:18 1`] = `
+exports[`Refactor toggleReturnTypeAnnotation > toggleReturnTypeAnnotation.ts at 12:18 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 12:18
 import * as T from "effect/Effect"
 
@@ -701,7 +701,7 @@ function removeAnnotationWithSpace(): number {
 "
 `;
 
-exports[`toggleReturnTypeAnnotation.ts > toggleReturnTypeAnnotation.ts at 16:18 1`] = `
+exports[`Refactor toggleReturnTypeAnnotation > toggleReturnTypeAnnotation.ts at 16:18 1`] = `
 "// Result of running refactor effect/toggleReturnTypeAnnotation at position 16:18
 import * as T from "effect/Effect"
 
@@ -723,7 +723,7 @@ function removeAnnotationWithSpace() {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 4:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 4:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 4:16
 import * as T from "effect/Effect"
 
@@ -772,7 +772,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 5:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 5:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 5:16
 import * as T from "effect/Effect"
 
@@ -821,7 +821,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 8:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 8:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 8:16
 import * as T from "effect/Effect"
 
@@ -870,7 +870,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 11:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 11:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 11:16
 import * as T from "effect/Effect"
 
@@ -919,7 +919,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 12:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 12:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 12:16
 import * as T from "effect/Effect"
 
@@ -968,7 +968,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 14:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 14:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 14:16
 import * as T from "effect/Effect"
 
@@ -1017,7 +1017,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 15:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 15:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 15:16
 import * as T from "effect/Effect"
 
@@ -1066,7 +1066,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 20:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 20:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 20:16
 import * as T from "effect/Effect"
 
@@ -1118,7 +1118,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 24:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 24:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 24:16
 import * as T from "effect/Effect"
 
@@ -1170,7 +1170,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 38:16 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 38:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 38:16
 import * as T from "effect/Effect"
 
@@ -1224,7 +1224,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 41:15 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 41:15 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 41:15
 import * as T from "effect/Effect"
 
@@ -1273,7 +1273,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 42:15 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 42:15 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 42:15
 import * as T from "effect/Effect"
 
@@ -1322,7 +1322,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 43:9 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 43:9 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 43:9
 import * as T from "effect/Effect"
 
@@ -1371,7 +1371,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation.ts > toggleTypeAnnotation.ts at 44:9 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 44:9 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 44:9
 import * as T from "effect/Effect"
 
@@ -1420,7 +1420,7 @@ class Test {
 "
 `;
 
-exports[`toggleTypeAnnotation_schema.ts > toggleTypeAnnotation_schema.ts at 11:15 1`] = `
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation_schema.ts at 11:15 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 11:15
 import * as Schema from "effect/Schema"
 import * as ParseResult from "effect/ParseResult"
@@ -1436,14 +1436,14 @@ class Person extends Schema.TaggedClass<Person>("Person")("Person", {
 "
 `;
 
-exports[`wrapWithPipe.ts > wrapWithPipe.ts at 2:13-2:26 1`] = `
+exports[`Refactor wrapWithPipe > wrapWithPipe.ts at 2:13-2:26 1`] = `
 "// Result of running refactor effect/wrapWithPipe at position 2:13-2:26
 const txt = pipe("Hello World")
 const txt2 = "Hello"
 "
 `;
 
-exports[`wrapWithPipe.ts > wrapWithPipe.ts at 3:14-3:21 1`] = `
+exports[`Refactor wrapWithPipe > wrapWithPipe.ts at 3:14-3:21 1`] = `
 "// Result of running refactor effect/wrapWithPipe at position 3:14-3:21
 const txt = "Hello World"
 const txt2 = pipe("Hello")

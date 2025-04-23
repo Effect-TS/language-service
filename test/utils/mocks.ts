@@ -45,3 +45,21 @@ export function createMockLanguageServiceHost(
     }
   }
 }
+
+export function createServicesWithMockedVFS(
+  fileName: string,
+  sourceText: string
+) {
+  const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
+  const languageService = ts.createLanguageService(
+    languageServiceHost,
+    undefined,
+    ts.LanguageServiceMode.Semantic
+  )
+  const program = languageService.getProgram()
+  if (!program) throw new Error("No typescript program!")
+  const sourceFile = program.getSourceFile(fileName)
+  if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
+
+  return { languageService, program, sourceFile, languageServiceHost }
+}

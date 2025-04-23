@@ -4,10 +4,10 @@ import { missingEffectError } from "./diagnostics/missingEffectError.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 
-export const diagnostics = {
+export const diagnostics = [
   missingEffectContext,
   missingEffectError,
   floatingEffect,
   missingStarInYieldEffectGen,
   unnecessaryEffectGen
-}
+]

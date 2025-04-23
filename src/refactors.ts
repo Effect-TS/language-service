@@ -9,7 +9,7 @@ import { toggleReturnTypeAnnotation } from "./refactors/toggleReturnTypeAnnotati
 import { toggleTypeAnnotation } from "./refactors/toggleTypeAnnotation.js"
 import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
 
-export const refactors = {
+export const refactors = [
   asyncAwaitToGen,
   asyncAwaitToGenTryPromise,
   functionToArrow,
@@ -20,4 +20,4 @@ export const refactors = {
   toggleTypeAnnotation,
   wrapWithPipe,
   effectGenToFn
-}
+]

@@ -33,6 +33,7 @@ export function createRefactor(definition: RefactorDefinition) {
 }
 
 export interface DiagnosticDefinition {
+  name: string
   code: number
   apply: (
     sourceFile: ts.SourceFile

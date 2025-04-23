@@ -9,86 +9,87 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.js"
+import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
 
-function testDiagnosticOnExample(diagnostic: LSP.DiagnosticDefinition, fileName: string) {
-  const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
-    .toString("utf8")
-  it(fileName, () => {
-    // create the language service
-    const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
-    const languageService = ts.createLanguageService(
-      languageServiceHost,
-      undefined,
-      ts.LanguageServiceMode.Semantic
-    )
-    const program = languageService.getProgram()
-    if (!program) throw new Error("No typescript program!")
-    const sourceFile = program.getSourceFile(fileName)
-    if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
+function diagnosticToLogFormat(
+  sourceFile: ts.SourceFile,
+  sourceText: string,
+  error: ts.Diagnostic
+): string {
+  const startPos = error.start || 0
+  const start = ts.getLineAndCharacterOfPosition(sourceFile, startPos)
+  const endPos = startPos + (error.length || 0)
+  const end = ts.getLineAndCharacterOfPosition(
+    sourceFile,
+    endPos
+  )
+  const errorSourceCode = sourceText.substring(
+    startPos,
+    endPos
+  )
 
-    // check and assert the refactor is executable
-    const canApply = pipe(
-      LSP.getSemanticDiagnostics([diagnostic], sourceFile),
-      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-      Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-      Nano.provideService(LSP.PluginOptions, {
-        diagnostics: true,
-        quickinfo: false
-      }),
-      Nano.run
-    )
-
-    if (Either.isLeft(canApply)) {
-      expect("// no diagnostics").toMatchSnapshot()
-      return
-    }
-
-    // sort by start position
-    canApply.right.sort((a, b) => (a.start || 0) - (b.start || 0))
-
-    // create human readable messages
-    const humanMessages = canApply.right.map((error) => {
-      const startPos = error.start || 0
-      const start = ts.getLineAndCharacterOfPosition(sourceFile, startPos)
-      const endPos = startPos + (error.length || 0)
-      const end = ts.getLineAndCharacterOfPosition(
-        sourceFile,
-        endPos
-      )
-      const errorSourceCode = sourceText.substring(
-        startPos,
-        endPos
-      )
-
-      return errorSourceCode + "\n" +
-        `${start.line + 1}:${start.character} - ${
-          end.line + 1
-        }:${end.character} | ${error.messageText}`
-    }).join("\n\n")
-    expect(humanMessages).toMatchSnapshot()
-  })
+  return errorSourceCode + "\n" +
+    `${start.line + 1}:${start.character} - ${
+      end.line + 1
+    }:${end.character} | ${error.category} | ${error.messageText}`
 }
 
-function testFiles(diagnostic: LSP.DiagnosticDefinition, fileNames: Array<string>) {
-  for (const fileName of fileNames) {
-    describe(fileName, () => {
-      testDiagnosticOnExample(diagnostic, fileName)
+function testDiagnosticOnExample(
+  diagnostic: LSP.DiagnosticDefinition,
+  fileName: string,
+  sourceText: string
+) {
+  // create the language service with mocked services over a VFS
+  const { program, sourceFile } = createServicesWithMockedVFS(fileName, sourceText)
+
+  // attempt to run the diagnostic and get the output
+  const output = pipe(
+    LSP.getSemanticDiagnostics([diagnostic], sourceFile),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+    Nano.provideService(LSP.PluginOptions, {
+      diagnostics: true,
+      quickinfo: false
+    }),
+    Nano.map((outputDiagnostics) => {
+      // sort by start position
+      outputDiagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
+      // create human readable messages
+      return outputDiagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
+        .join("\n\n")
+    }),
+    Nano.run,
+    Either.getOrElse(() => "// no diagnostics")
+  )
+
+  expect(output).toMatchSnapshot()
+}
+
+function testAllDagnostics() {
+  // read all filenames
+  const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir())
+  // for each diagnostic definition
+  for (const diagnostic of diagnostics) {
+    const diagnosticName = diagnostic.name.substring("effect/".length)
+    // all files that start with the diagnostic name and end with .ts
+    const exampleFiles = allExampleFiles.filter((fileName) =>
+      fileName === diagnosticName + ".ts" ||
+      fileName.startsWith(diagnosticName + "_") && fileName.endsWith(".ts")
+    )
+    describe("Diagnostic " + diagnosticName, () => {
+      // for each example file
+      for (const fileName of exampleFiles) {
+        const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
+          .toString("utf8")
+        it(
+          fileName,
+          () => testDiagnosticOnExample(diagnostic, fileName, sourceText)
+        )
+      }
     })
   }
 }
 
-function getExampleFileNames(diagnosticName: string): Array<string> {
-  return fs.readdirSync(getExamplesDiagnosticsDir())
-    .filter((fileName) =>
-      fileName === diagnosticName + ".ts" ||
-      fileName.startsWith(diagnosticName + "_") && fileName.endsWith(".ts")
-    )
-}
-
-Object.keys(diagnostics).map((diagnosticName) =>
-  // @ts-expect-error
-  testFiles(diagnostics[diagnosticName], getExampleFileNames(diagnosticName))
-)
+testAllDagnostics()

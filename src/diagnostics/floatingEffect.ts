@@ -8,6 +8,7 @@ import * as TypeParser from "../utils/TypeParser.js"
 import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const floatingEffect = LSP.createDiagnostic({
+  name: "effect/floatingEffect",
   code: 3,
   apply: (sourceFile) =>
     Nano.gen(function*() {

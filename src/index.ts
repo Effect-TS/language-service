@@ -43,7 +43,7 @@ const init = (
 
         if (sourceFile) {
           return pipe(
-            LSP.getSemanticDiagnostics(Object.values(diagnostics), sourceFile),
+            LSP.getSemanticDiagnostics(diagnostics, sourceFile),
             Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
             Nano.provideService(LSP.PluginOptions, pluginOptions),
@@ -66,7 +66,7 @@ const init = (
         const sourceFile = program.getSourceFile(fileName)
         if (sourceFile) {
           return pipe(
-            LSP.getApplicableRefactors(Object.values(refactors), sourceFile, positionOrRange),
+            LSP.getApplicableRefactors(refactors, sourceFile, positionOrRange),
             Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
             Nano.provideService(LSP.PluginOptions, pluginOptions),
@@ -95,7 +95,7 @@ const init = (
           const result = pipe(
             Nano.gen(function*() {
               const applicableRefactor = yield* LSP.getEditsForRefactor(
-                Object.values(refactors),
+                refactors,
                 sourceFile,
                 positionOrRange,
                 refactorName

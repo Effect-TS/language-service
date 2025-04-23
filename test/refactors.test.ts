@@ -9,7 +9,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { createMockLanguageServiceHost } from "./utils/MockLanguageServiceHost.js"
+import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
 /**
  * Loop through text changes, and update start and end positions while running
@@ -52,123 +52,126 @@ function applyEdits(
 
 const getExamplesRefactorsDir = () => path.join(__dirname, "..", "examples", "refactors")
 
-function testRefactorOnExample(refactor: LSP.RefactorDefinition, fileName: string) {
-  const sourceWithMarker = fs.readFileSync(path.join(getExamplesRefactorsDir(), fileName))
-    .toString("utf8")
-  const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
-  for (const [textRangeString] of firstLine.matchAll(/([0-9]+:[0-9]+(-[0-9]+:[0-9]+)*)/gm)) {
-    it(fileName + " at " + textRangeString, () => {
-      // create the language service
-      const sourceText = "// Result of running refactor " + refactor.name +
-        " at position " + textRangeString + sourceWithMarker.substring(firstLine.length)
-      const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
-      const languageService = ts.createLanguageService(
-        languageServiceHost,
-        undefined,
-        ts.LanguageServiceMode.Semantic
-      )
-      const program = languageService.getProgram()
-      if (!program) throw new Error("No typescript program!")
-      const sourceFile = program.getSourceFile(fileName)
-      if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
+function testRefactorOnExample(
+  refactor: LSP.RefactorDefinition,
+  fileName: string,
+  sourceText: string,
+  textRangeString: string
+) {
+  const { languageService, languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
+    fileName,
+    sourceText
+  )
 
-      // gets the position to test
-      let startPos = 0
-      let endPos = 0
-      let i = 0
-      for (const lineAndCol of textRangeString.split("-")) {
-        const [line, character] = lineAndCol.split(":")
-        const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
-        if (i === 0) startPos = pos
-        if (i === 1) endPos = pos
-        i += 1
+  // gets the position to test
+  let startPos = 0
+  let endPos = 0
+  let i = 0
+  for (const lineAndCol of textRangeString.split("-")) {
+    const [line, character] = lineAndCol.split(":")
+    const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
+    if (i === 0) startPos = pos
+    if (i === 1) endPos = pos
+    i += 1
+  }
+  if (endPos < startPos) endPos = startPos
+  const textRange = { pos: startPos, end: endPos }
+
+  // ensure there are no errors in TS file
+  const diagnostics = languageService.getCompilerOptionsDiagnostics()
+    .concat(languageService.getSyntacticDiagnostics(fileName))
+    .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
+      if (diagnostic.file) {
+        const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(
+          diagnostic.start!
+        )
+        return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
+      } else {
+        return `  Error: ${message}`
       }
-      if (endPos < startPos) endPos = startPos
-      const textRange = { pos: startPos, end: endPos }
+    })
+  expect(diagnostics).toEqual([])
 
-      // ensure there are no errors in TS file
-      const diagnostics = languageService.getCompilerOptionsDiagnostics()
-        .concat(languageService.getSyntacticDiagnostics(fileName))
-        .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
-          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
-          if (diagnostic.file) {
-            const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(
-              diagnostic.start!
-            )
-            return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
-          } else {
-            return `  Error: ${message}`
-          }
-        })
-      expect(diagnostics).toEqual([])
+  // check and assert the refactor is executable
+  const canApply = pipe(
+    LSP.getApplicableRefactors([refactor], sourceFile, textRange),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+    Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
+    Nano.run
+  )
 
-      // check and assert the refactor is executable
-      const canApply = pipe(
-        LSP.getApplicableRefactors([refactor], sourceFile, textRange),
-        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-        Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-        Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
+  if (Either.isLeft(canApply)) {
+    expect(sourceText).toMatchSnapshot()
+    return
+  }
+
+  // then get the actual edits to run it
+  const applicableRefactor = pipe(
+    LSP.getEditsForRefactor([refactor], sourceFile, textRange, refactor.name),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+    Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
+    Nano.run
+  )
+
+  if (Either.isLeft(applicableRefactor)) {
+    expect(sourceText).toMatchSnapshot()
+    return
+  }
+
+  // run the refactor and ensure it matches the snapshot
+  const formatContext = ts.formatting.getFormatContext(
+    ts.getDefaultFormatCodeSettings("\n"),
+    { getNewLine: () => "\n" }
+  )
+  const edits = ts.textChanges.ChangeTracker.with(
+    {
+      formatContext,
+      host: languageServiceHost,
+      preferences: {}
+    },
+    (changeTracker) =>
+      pipe(
+        applicableRefactor.right.apply,
+        Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
         Nano.run
       )
+  )
 
-      if (Either.isLeft(canApply)) {
-        expect(sourceText).toMatchSnapshot()
-        return
-      }
-      const applicableRefactor = pipe(
-        LSP.getEditsForRefactor([refactor], sourceFile, textRange, refactor.name),
-        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-        Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-        Nano.provideService(LSP.PluginOptions, { diagnostics: false, quickinfo: false }),
-        Nano.run
-      )
-
-      if (Either.isLeft(applicableRefactor)) {
-        expect(sourceText).toMatchSnapshot()
-        return
-      }
-
-      // run the refactor and ensure it matches the snapshot
-      const formatContext = ts.formatting.getFormatContext(
-        ts.getDefaultFormatCodeSettings("\n"),
-        { getNewLine: () => "\n" }
-      )
-      const edits = ts.textChanges.ChangeTracker.with(
-        {
-          formatContext,
-          host: languageServiceHost,
-          preferences: {}
-        },
-        (changeTracker) =>
-          pipe(
-            applicableRefactor.right.apply,
-            Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-            Nano.run
-          )
-      )
-
-      expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()
-    })
-  }
+  expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()
 }
 
-function testFiles(refactor: LSP.RefactorDefinition, fileNames: Array<string>) {
-  for (const fileName of fileNames) {
-    describe(fileName, () => {
-      testRefactorOnExample(refactor, fileName)
-    })
-  }
-}
-
-function getExampleFileNames(refactorName: string): Array<string> {
-  return fs.readdirSync(getExamplesRefactorsDir())
-    .filter((fileName) =>
+function testAllRefactors() {
+  // read all filenames
+  const allExampleFiles = fs.readdirSync(getExamplesRefactorsDir())
+  // for each diagnostic definition
+  for (const refactor of refactors) {
+    const refactorName = refactor.name.substring("effect/".length)
+    // all files that start with the diagnostic name and end with .ts
+    const exampleFiles = allExampleFiles.filter((fileName) =>
       fileName === refactorName + ".ts" ||
       fileName.startsWith(refactorName + "_") && fileName.endsWith(".ts")
     )
+    describe("Refactor " + refactorName, () => {
+      // for each example file
+      for (const fileName of exampleFiles) {
+        // first we extract from the first comment line all the positions where the refactor has to be tested
+        const sourceWithMarker = fs.readFileSync(path.join(getExamplesRefactorsDir(), fileName))
+          .toString("utf8")
+        const firstLine = (sourceWithMarker.split("\n")[0] || "").trim()
+        for (const [textRangeString] of firstLine.matchAll(/([0-9]+:[0-9]+(-[0-9]+:[0-9]+)*)/gm)) {
+          it(fileName + " at " + textRangeString, () => {
+            // create the language service
+            const sourceText = "// Result of running refactor " + refactor.name +
+              " at position " + textRangeString + sourceWithMarker.substring(firstLine.length)
+            testRefactorOnExample(refactor, fileName, sourceText, textRangeString)
+          })
+        }
+      }
+    })
+  }
 }
 
-Object.keys(refactors).map((refactorName) =>
-  // @ts-expect-error
-  testFiles(refactors[refactorName], getExampleFileNames(refactorName))
-)
+testAllRefactors()
