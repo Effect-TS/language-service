@@ -1,137 +1,137 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`floatingEffect.ts > floatingEffect.ts 1`] = `
+exports[`Diagnostic floatingEffect > floatingEffect.ts 1`] = `
 "Effect.succeed("floating")
-5:0 - 5:26 | Effect must be yielded or assigned to a variable.
+5:0 - 5:26 | 1 | Effect must be yielded or assigned to a variable.
 
 Effect.never
-7:0 - 7:12 | Effect must be yielded or assigned to a variable.
+7:0 - 7:12 | 1 | Effect must be yielded or assigned to a variable.
 
 Effect.never
-11:4 - 11:16 | Effect must be yielded or assigned to a variable."
+11:4 - 11:16 | 1 | Effect must be yielded or assigned to a variable."
 `;
 
-exports[`missingEffectContext_callExpression.ts > missingEffectContext_callExpression.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_callExpression.ts 1`] = `
 "effectWithServices
-22:7 - 22:25 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+22:7 - 22:25 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
-29:20 - 29:38 | Missing 'ServiceC' in the expected Effect context."
+29:20 - 29:38 | 1 | Missing 'ServiceC' in the expected Effect context."
 `;
 
-exports[`missingEffectContext_lazy.ts > missingEffectContext_lazy.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_lazy.ts 1`] = `
 "return Effect.onExit(evaluate(), () => Effect.void)
-20:2 - 20:53 | Missing 'ServiceA' in the expected Effect context."
+20:2 - 20:53 | 1 | Missing 'ServiceA' in the expected Effect context."
 `;
 
-exports[`missingEffectContext_plainAssignment.ts > missingEffectContext_plainAssignment.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_plainAssignment.ts 1`] = `
 "missingAllServices
-21:13 - 21:31 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+21:13 - 21:31 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 missingServiceC
-24:13 - 24:28 | Missing 'ServiceC' in the expected Effect context.
+24:13 - 24:28 | 1 | Missing 'ServiceC' in the expected Effect context.
 
 missingServiceCWithSubtyping
-29:13 - 29:41 | Missing 'ServiceC' in the expected Effect context.
+29:13 - 29:41 | 1 | Missing 'ServiceC' in the expected Effect context.
 
 missingServiceA
-33:10 - 33:25 | Missing 'A' in the expected Effect context.
+33:10 - 33:25 | 1 | Missing 'A' in the expected Effect context.
 
 effectWithServices
-38:10 - 38:28 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context."
+38:10 - 38:28 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context."
 `;
 
-exports[`missingEffectContext_returnSignature.ts > missingEffectContext_returnSignature.ts 1`] = `
+exports[`Diagnostic missingEffectContext > missingEffectContext_returnSignature.ts 1`] = `
 "return effectWithServices
-19:4 - 19:29 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+19:4 - 19:29 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
-23:62 - 23:80 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+23:62 - 23:80 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
-26:105 - 26:123 | Missing 'ServiceC' in the expected Effect context."
+26:105 - 26:123 | 1 | Missing 'ServiceC' in the expected Effect context."
 `;
 
-exports[`missingEffectError_callExpression.ts > missingEffectError_callExpression.ts 1`] = `
+exports[`Diagnostic missingEffectError > missingEffectError_callExpression.ts 1`] = `
 "effectWithErrors
-23:7 - 23:23 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+23:7 - 23:23 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
-30:20 - 30:36 | Missing 'ErrorC' in the expected Effect errors."
+30:20 - 30:36 | 1 | Missing 'ErrorC' in the expected Effect errors."
 `;
 
-exports[`missingEffectError_plainAssignment.ts > missingEffectError_plainAssignment.ts 1`] = `
+exports[`Diagnostic missingEffectError > missingEffectError_plainAssignment.ts 1`] = `
 "missingAllErrors
-21:13 - 21:29 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+21:13 - 21:29 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 missingErrorC
-24:13 - 24:26 | Missing 'ErrorC' in the expected Effect errors.
+24:13 - 24:26 | 1 | Missing 'ErrorC' in the expected Effect errors.
 
 missingErrorCWithSubtyping
-29:13 - 29:39 | Missing 'ErrorC' in the expected Effect errors.
+29:13 - 29:39 | 1 | Missing 'ErrorC' in the expected Effect errors.
 
 missingErrorA
-33:10 - 33:23 | Missing 'A' in the expected Effect errors.
+33:10 - 33:23 | 1 | Missing 'A' in the expected Effect errors.
 
 effectWithErrors
-38:10 - 38:26 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors."
+38:10 - 38:26 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors."
 `;
 
-exports[`missingEffectError_returnSignature.ts > missingEffectError_returnSignature.ts 1`] = `
+exports[`Diagnostic missingEffectError > missingEffectError_returnSignature.ts 1`] = `
 "return effectWithErrors
-20:4 - 20:27 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+20:4 - 20:27 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
-24:62 - 24:78 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+24:62 - 24:78 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
-27:94 - 27:110 | Missing 'ErrorC' in the expected Effect errors."
+27:94 - 27:110 | 1 | Missing 'ErrorC' in the expected Effect errors."
 `;
 
-exports[`missingStarInYieldEffectGen.ts > missingStarInYieldEffectGen.ts 1`] = `
+exports[`Diagnostic missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts 1`] = `
 "function
-8:38 - 8:46 | Seems like you used yield instead of yield* inside this Effect.gen.
+8:38 - 8:46 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.succeed(1)
-9:4 - 9:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+9:4 - 9:27 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
 
 function
-13:46 - 13:54 | Seems like you used yield instead of yield* inside this Effect.gen.
+13:46 - 13:54 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.succeed(1)
-14:4 - 14:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+14:4 - 14:27 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
 
 yield Effect.succeed(2)
-15:4 - 15:27 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+15:4 - 15:27 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
 
 function
-20:22 - 20:30 | Seems like you used yield instead of yield* inside this Effect.gen.
+20:22 - 20:30 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.succeed(1)
-21:8 - 21:31 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+21:8 - 21:31 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
 
 function
-31:32 - 31:40 | Seems like you used yield instead of yield* inside this Effect.gen.
+31:32 - 31:40 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.never
-32:4 - 32:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+32:4 - 32:22 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
 
 function
-36:61 - 36:69 | Seems like you used yield instead of yield* inside this Effect.gen.
+36:61 - 36:69 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.never
-37:4 - 37:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+37:4 - 37:22 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
 
 function
-41:48 - 41:56 | Seems like you used yield instead of yield* inside this Effect.gen.
+41:48 - 41:56 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
 
 yield Effect.never
-42:4 - 42:22 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
+42:4 - 42:22 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;
 
-exports[`unnecessaryEffectGen.ts > unnecessaryEffectGen.ts 1`] = `
+exports[`Diagnostic unnecessaryEffectGen > unnecessaryEffectGen.ts 1`] = `
 "Effect.gen(function* () {
     return yield* Effect.succeed(42)
 })
-12:36 - 14:2 | This Effect.gen is useless here because it only contains a single return statement."
+12:36 - 14:2 | 2 | This Effect.gen is useless here because it only contains a single return statement."
 `;

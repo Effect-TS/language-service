@@ -1,19 +1,25 @@
-import * as Option from "effect/Option"
-import { createRefactor } from "../definition.js"
+import * as LSP from "../core/LSP.js"
+import * as Nano from "../core/Nano.js"
+import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const wrapWithPipe = createRefactor({
+export const wrapWithPipe = LSP.createRefactor({
   name: "effect/wrapWithPipe",
   description: "Wrap with pipe",
-  apply: () => (sourceFile, textRange) => {
-    if (textRange.end - textRange.pos === 0) return Option.none()
-
-    return Option.some({
-      kind: "refactor.rewrite.effect.wrapWithPipe",
-      description: `Wrap with pipe(...)`,
-      apply: (changeTracker) => {
-        changeTracker.insertText(sourceFile, textRange.pos, "pipe(")
-        changeTracker.insertText(sourceFile, textRange.end, ")")
+  apply: (sourceFile, textRange) =>
+    Nano.gen(function*() {
+      if (textRange.end - textRange.pos === 0) {
+        return yield* Nano.fail(new LSP.RefactorNotApplicableError())
       }
+
+      return ({
+        kind: "refactor.rewrite.effect.wrapWithPipe",
+        description: `Wrap with pipe(...)`,
+        apply: Nano.gen(function*() {
+          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+          changeTracker.insertText(sourceFile, textRange.pos, "pipe(")
+          changeTracker.insertText(sourceFile, textRange.end, ")")
+        })
+      })
     })
-  }
 })

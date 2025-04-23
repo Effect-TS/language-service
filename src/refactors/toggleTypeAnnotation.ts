@@ -1,27 +1,39 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import { createRefactor } from "../definition.js"
+import * as LSP from "../core/LSP.js"
+import * as Nano from "../core/Nano.js"
 import * as AST from "../utils/AST.js"
+import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const toggleTypeAnnotation = createRefactor({
+export const toggleTypeAnnotation = LSP.createRefactor({
   name: "effect/toggleTypeAnnotation",
   description: "Toggle type annotation",
-  apply: (ts, program) => (sourceFile, textRange) =>
-    pipe(
-      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
-      ReadonlyArray.filter((node) =>
-        ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)
-      ),
-      ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
-      ReadonlyArray.filter((node) => !!node.initializer),
-      ReadonlyArray.head,
-      Option.map(
-        (node) => ({
-          kind: "refactor.rewrite.effect.toggleTypeAnnotation",
-          description: "Toggle type annotation",
-          apply: (changeTracker) => {
-            const typeChecker = program.getTypeChecker()
+  apply: (sourceFile, textRange) =>
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+
+      const maybeNode = pipe(
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+        ReadonlyArray.filter((node) =>
+          ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)
+        ),
+        ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
+        ReadonlyArray.filter((node) => !!node.initializer),
+        ReadonlyArray.head
+      )
+
+      if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
+      const node = maybeNode.value
+
+      return ({
+        kind: "refactor.rewrite.effect.toggleTypeAnnotation",
+        description: "Toggle type annotation",
+        apply: pipe(
+          Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
             if (node.type) {
               changeTracker.deleteRange(sourceFile, { pos: node.name.end, end: node.type.end })
@@ -48,14 +60,15 @@ export const toggleTypeAnnotation = createRefactor({
               changeTracker.insertNodeAt(
                 sourceFile,
                 node.name.end,
-                AST.simplifyTypeNode(ts)(initializerTypeNode),
+                yield* AST.simplifyTypeNode(initializerTypeNode),
                 {
                   prefix: ": "
                 }
               )
             }
-          }
-        })
-      )
-    )
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
+      })
+    })
 })

@@ -2,20 +2,23 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import { createRefactor } from "../definition.js"
+import * as LSP from "../core/LSP.js"
+import * as Nano from "../core/Nano.js"
 import * as AST from "../utils/AST.js"
 import * as TypeParser from "../utils/TypeParser.js"
+import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const effectGenToFn = createRefactor({
+export const effectGenToFn = LSP.createRefactor({
   name: "effect/effectGenToFn",
   description: "Convert to Effect.fn",
-  apply: (ts, program) => (sourceFile, textRange) =>
-    pipe(
-      AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
-      ReadonlyArray.findFirst((node) =>
-        Option.gen(function*() {
+  apply: (sourceFile, textRange) =>
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+      function parseEffectGenNode(node: ts.Node) {
+        return Nano.gen(function*() {
           // check if the node is a Effect.gen(...)
-          const effectGen = yield* TypeParser.effectGen(ts, program.getTypeChecker())(node)
+          const effectGen = yield* TypeParser.effectGen(node)
           // if parent is a Effect.gen(...).pipe(...) we then move the pipe tot the new Effect.fn
           let pipeArgs = ts.factory.createNodeArray<ts.Expression>([])
           let nodeToReplace = node.parent
@@ -48,16 +51,27 @@ export const effectGenToFn = createRefactor({
             // exit
             break
           }
-
-          // nothing, exit
-          return yield* Option.none()
+          return yield* Nano.fail(new LSP.RefactorNotApplicableError())
         })
-      ),
-      Option.map(
-        ({ effectModule, generatorFunction, nodeToReplace, pipeArgs }) => ({
-          kind: "refactor.rewrite.effect.effectGenToFn",
-          description: "Convert to Effect.fn",
-          apply: (changeTracker) => {
+      }
+
+      const maybeNode = yield* pipe(
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+        ReadonlyArray.map(parseEffectGenNode),
+        Nano.firstSuccessOf,
+        Nano.option
+      )
+
+      if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
+      const { effectModule, generatorFunction, nodeToReplace, pipeArgs } = maybeNode.value
+
+      return ({
+        kind: "refactor.rewrite.effect.effectGenToFn",
+        description: "Convert to Effect.fn",
+        apply: pipe(
+          Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
             // if we have a name in the function declaration,
             // we call Effect.fn with the name
             const effectFn = nodeToReplace.name && ts.isIdentifier(nodeToReplace.name) ?
@@ -90,10 +104,11 @@ export const effectGenToFn = createRefactor({
             changeTracker.replaceNode(
               sourceFile,
               nodeToReplace,
-              AST.tryPreserveDeclarationSemantics(ts)(nodeToReplace, effectFnCallWithGenerator)
+              yield* AST.tryPreserveDeclarationSemantics(nodeToReplace, effectFnCallWithGenerator)
             )
-          }
-        })
-      )
-    )
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
+      })
+    })
 })

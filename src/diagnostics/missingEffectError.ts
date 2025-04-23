@@ -1,59 +1,85 @@
 import * as ReadonlyArray from "effect/Array"
-import * as Option from "effect/Option"
+import { pipe } from "effect/Function"
 import type ts from "typescript"
-import type { ApplicableDiagnosticDefinition } from "../definition.js"
-import { createDiagnostic } from "../definition.js"
-import { deterministicTypeOrder } from "../utils/AST.js"
+import * as LSP from "../core/LSP.js"
+import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
+import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const missingEffectError = createDiagnostic({
-  code: 2,
-  apply: (ts, program) => (sourceFile) => {
-    const typeChecker = program.getTypeChecker()
-    const effectDiagnostics: Array<ApplicableDiagnosticDefinition> = []
-    const sortTypes = ReadonlyArray.sort(deterministicTypeOrder(ts, typeChecker))
+export const missingEffectError = LSP.createDiagnostic({
+  name: "effect/missingEffectError",
+  code: 1,
+  apply: (sourceFile) =>
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
-    const visit = (node: ts.Node) => {
-      const entries = TypeCheckerApi.expectedAndRealType(ts, typeChecker)(node)
-      for (const [node, expectedType, valueNode, realType] of entries) {
-        // the expected type is an effect
-        const expectedEffect = TypeParser.effectType(ts, typeChecker)(
-          expectedType,
-          node
-        )
-        if (Option.isNone(expectedEffect)) continue
-        // the real type is an effect
-        const realEffect = TypeParser.effectType(ts, typeChecker)(
-          realType,
-          valueNode
-        )
-        if (Option.isNone(realEffect)) continue
-        // get the missing error types
-        const missingErrorTypes = TypeCheckerApi.getMissingTypeEntriesInTargetType(
-          ts,
-          typeChecker
-        )(
-          realEffect.value.E,
-          expectedEffect.value.E
-        )
-
-        if (missingErrorTypes.length > 0) {
-          effectDiagnostics.push(
-            {
-              node,
-              category: ts.DiagnosticCategory.Error,
-              messageText: `Missing '${
-                sortTypes(missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
-              }' in the expected Effect errors.`
-            }
+      function checkForMissingErrorTypes(
+        node: ts.Node,
+        expectedType: ts.Type,
+        valueNode: ts.Node,
+        realType: ts.Type
+      ) {
+        return Nano.gen(function*() {
+          // the expected type is an effect
+          const expectedEffect = yield* (TypeParser.effectType(
+            expectedType,
+            node
+          ))
+          // the real type is an effect
+          const realEffect = yield* (TypeParser.effectType(
+            realType,
+            valueNode
+          ))
+          // get the missing types
+          return yield* TypeCheckerApi.getMissingTypeEntriesInTargetType(
+            realEffect.E,
+            expectedEffect.E
           )
+        })
+      }
+
+      const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
+      const sortTypes = ReadonlyArray.sort(typeOrder)
+
+      const nodeToVisit: Array<ts.Node> = []
+      const appendNodeToVisit = (node: ts.Node) => {
+        nodeToVisit.push(node)
+        return undefined
+      }
+      ts.forEachChild(sourceFile, appendNodeToVisit)
+
+      while (nodeToVisit.length > 0) {
+        const node = nodeToVisit.shift()!
+        ts.forEachChild(node, appendNodeToVisit)
+
+        const entries = yield* TypeCheckerApi.expectedAndRealType(node)
+        for (const [node, expectedType, valueNode, realType] of entries) {
+          const missingContext = yield* pipe(
+            checkForMissingErrorTypes(
+              node,
+              expectedType,
+              valueNode,
+              realType
+            ),
+            Nano.orElse(() => Nano.succeed([]))
+          )
+          if (missingContext.length > 0) {
+            effectDiagnostics.push(
+              {
+                node,
+                category: ts.DiagnosticCategory.Error,
+                messageText: `Missing '${
+                  sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
+                }' in the expected Effect errors.`
+              }
+            )
+          }
         }
       }
-      ts.forEachChild(node, visit)
-    }
-    ts.forEachChild(sourceFile, visit)
 
-    return effectDiagnostics
-  }
+      return effectDiagnostics
+    })
 })

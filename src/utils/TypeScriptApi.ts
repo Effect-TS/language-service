@@ -1,4 +1,5 @@
 import type ts from "typescript"
+import * as Nano from "../core/Nano.js"
 
 declare module "typescript" {
   const nullTransformationContext: ts.TransformationContext
@@ -17,9 +18,9 @@ declare module "typescript" {
   }
 
   export type TextChangesContext = any
-  export type ChangeNodeOptions = any
 
   export namespace textChanges {
+    export interface ChangeNodeOptions extends ConfigurableStartEnd, InsertNodeOptions {}
     export enum LeadingTriviaOption {
       /** Exclude all leading trivia (use getStart()) */
       Exclude = 0,
@@ -86,7 +87,7 @@ declare module "typescript" {
         sourceFile: ts.SourceFile,
         oldNode: ts.Node,
         newNode: ts.Node,
-        options?: ts.ChangeNodeOptions
+        options?: ts.textChanges.ChangeNodeOptions
       ): void
       insertNodeAt(
         sourceFile: ts.SourceFile,
@@ -141,4 +142,9 @@ declare module "typescript" {
   ): Array<ts.SymbolDisplayPart>
 }
 
-export type TypeScriptApi = typeof ts
+type _TypeScriptApi = typeof ts
+export interface TypeScriptApi extends _TypeScriptApi {}
+
+export const TypeScriptApi = Nano.Tag<TypeScriptApi>("TypeScriptApi")
+
+export const ChangeTracker = Nano.Tag<ts.textChanges.ChangeTracker>("ChangeTracker")

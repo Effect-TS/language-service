@@ -2,32 +2,36 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import { createRefactor } from "../definition.js"
+import * as LSP from "../core/LSP.js"
+import * as Nano from "../core/Nano.js"
 import * as AST from "../utils/AST.js"
+import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
-export const functionToArrow = createRefactor({
+export const functionToArrow = LSP.createRefactor({
   name: "effect/functionToArrow",
   description: "Convert to arrow",
-  apply: (ts) => (sourceFile, textRange) =>
-    pipe(
-      pipe(
-        AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
-        ReadonlyArray.filter(ts.isFunctionDeclaration)
-      ),
-      ReadonlyArray.appendAll(
-        pipe(
-          AST.getAncestorNodesInRange(ts)(sourceFile, textRange),
-          ReadonlyArray.filter(ts.isMethodDeclaration)
-        )
-      ),
-      ReadonlyArray.filter((node) => !!node.body),
-      ReadonlyArray.filter((node) => !!node.name && AST.isNodeInRange(textRange)(node.name)),
-      ReadonlyArray.head,
-      Option.map(
-        (node) => ({
-          kind: "refactor.rewrite.effect.functionToArrow",
-          description: "Convert to arrow",
-          apply: (changeTracker) => {
+  apply: (sourceFile, textRange) =>
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+      const maybeNode = pipe(
+        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+        ReadonlyArray.filter((_) => ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_)),
+        ReadonlyArray.filter((_) => !!_.body),
+        ReadonlyArray.filter((_) => !!_.name && AST.isNodeInRange(textRange)(_.name)),
+        ReadonlyArray.head
+      )
+
+      if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
+      const node = maybeNode.value
+
+      return ({
+        kind: "refactor.rewrite.effect.functionToArrow",
+        description: "Convert to arrow",
+        apply: pipe(
+          Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
             const body = node.body!
             let newBody: ts.ConciseBody = ts.factory.createBlock(body.statements)
             if (body.statements.length === 1) {
@@ -51,38 +55,17 @@ export const functionToArrow = createRefactor({
               newBody
             )
 
-            let constFlags = ts.getCombinedModifierFlags(node)
-            constFlags &= ~arrowFlags
-            const constModifiers = ts.factory.createModifiersFromModifierFlags(constFlags)
-
-            let newDeclaration: ts.Node = node
-            if (ts.isMethodDeclaration(node)) {
-              newDeclaration = ts.factory.createPropertyDeclaration(
-                constModifiers,
-                node.name!,
-                undefined,
-                undefined,
-                arrowFunction
-              )
-            } else if (ts.isFunctionDeclaration(node)) {
-              newDeclaration = ts.factory.createVariableStatement(
-                constModifiers,
-                ts.factory.createVariableDeclarationList(
-                  [
-                    ts.factory.createVariableDeclaration(
-                      node.name!,
-                      undefined,
-                      undefined,
-                      arrowFunction
-                    )
-                  ],
-                  ts.NodeFlags.Const
-                )
-              )
-            }
-            changeTracker.replaceNode(sourceFile, node, newDeclaration)
-          }
-        })
-      )
-    )
+            const newDeclaration: ts.Node = yield* AST.tryPreserveDeclarationSemantics(
+              node,
+              arrowFunction
+            )
+            changeTracker.replaceNode(sourceFile, node, newDeclaration, {
+              leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
+              trailingTriviaOption: ts.textChanges.TrailingTriviaOption.Exclude
+            })
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
+      })
+    })
 })

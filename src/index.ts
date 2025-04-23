@@ -1,25 +1,22 @@
-/**
- * @since 1.0.0
- */
+import { Either } from "effect"
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
-import type { PluginOptions } from "./definition.js"
+import * as LSP from "./core/LSP.js"
+import * as Nano from "./core/Nano.js"
 import { diagnostics } from "./diagnostics.js"
 import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
-import * as AST from "./utils/AST.js"
+import * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
+import * as TypeScriptApi from "./utils/TypeScriptApi.js"
 
 const init = (
   modules: {
     typescript: typeof ts
   }
 ) => {
-  const ts = modules.typescript
-
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
-    const pluginOptions: PluginOptions = {
+    const pluginOptions: LSP.PluginOptions = {
       diagnostics:
         info.config && "diagnostics" in info.config && typeof info.config.diagnostics === "boolean"
           ? info.config.diagnostics
@@ -42,37 +39,19 @@ const init = (
       const program = languageService.getProgram()
 
       if (pluginOptions.diagnostics && program) {
-        const effectDiagnostics: Array<ts.Diagnostic> = pipe(
-          Option.fromNullable(program.getSourceFile(fileName)),
-          Option.map((sourceFile) =>
-            pipe(
-              Object.values(diagnostics).map((diagnostic) =>
-                pipe(
-                  diagnostic.apply(modules.typescript, program, pluginOptions)(
-                    sourceFile,
-                    applicableDiagnostics
-                  ).map((_) => ({
-                    file: sourceFile,
-                    start: _.node.getStart(sourceFile),
-                    length: _.node.getEnd() - _.node.getStart(sourceFile),
-                    messageText: _.messageText,
-                    category: _.category,
-                    code: diagnostic.code,
-                    source: "effect"
-                  }))
-                )
-              ),
-              (_) =>
-                _.reduce(
-                  (arr, maybeRefactor) => arr.concat(maybeRefactor),
-                  [] as Array<ts.Diagnostic>
-                )
-            )
-          ),
-          Option.getOrElse(() => [])
-        )
+        const sourceFile = program.getSourceFile(fileName)
 
-        return effectDiagnostics.concat(applicableDiagnostics)
+        if (sourceFile) {
+          return pipe(
+            LSP.getSemanticDiagnostics(diagnostics, sourceFile),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
+            Nano.run,
+            Either.map((effectDiagnostics) => effectDiagnostics.concat(applicableDiagnostics)),
+            Either.getOrElse(() => applicableDiagnostics)
+          )
+        }
       }
 
       return applicableDiagnostics
@@ -84,44 +63,18 @@ const init = (
       const program = languageService.getProgram()
 
       if (program) {
-        const textRange = AST.toTextRange(positionOrRange)
-        const effectRefactors: Array<ts.ApplicableRefactorInfo> = pipe(
-          Option.fromNullable(program.getSourceFile(fileName)),
-          Option.map((sourceFile) =>
-            pipe(
-              Object.values(refactors).map((refactor) =>
-                pipe(
-                  refactor.apply(modules.typescript, program, pluginOptions)(
-                    sourceFile,
-                    textRange
-                  ),
-                  Option.map((_) => ({
-                    name: refactor.name,
-                    description: refactor.description,
-                    actions: [{
-                      name: refactor.name,
-                      description: _.description,
-                      kind: _.kind
-                    }]
-                  }))
-                )
-              ),
-              (_) =>
-                _.reduce(
-                  (arr, maybeRefactor) =>
-                    arr.concat(Option.isSome(maybeRefactor) ? [maybeRefactor.value] : []),
-                  [] as Array<ts.ApplicableRefactorInfo>
-                )
-            )
-          ),
-          Option.getOrElse(() => [])
-        )
-
-        info.project.projectService.logger.info(
-          "[@effect/language-service] possible refactors are " + JSON.stringify(effectRefactors)
-        )
-
-        return applicableRefactors.concat(effectRefactors)
+        const sourceFile = program.getSourceFile(fileName)
+        if (sourceFile) {
+          return pipe(
+            LSP.getApplicableRefactors(refactors, sourceFile, positionOrRange),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
+            Nano.run,
+            Either.map((effectRefactors) => applicableRefactors.concat(effectRefactors)),
+            Either.getOrElse(() => applicableRefactors)
+          )
+        }
       }
       return applicableRefactors
     }
@@ -137,42 +90,44 @@ const init = (
     ) => {
       const program = languageService.getProgram()
       if (program) {
-        for (const refactor of Object.values(refactors)) {
-          if (refactor.name === refactorName) {
-            const textRange = AST.toTextRange(positionOrRange)
-            const possibleRefactor = pipe(
-              Option.fromNullable(program.getSourceFile(fileName)),
-              Option.flatMap((sourceFile) =>
-                refactor.apply(modules.typescript, program, pluginOptions)(
-                  sourceFile,
-                  textRange
-                )
+        const sourceFile = program.getSourceFile(fileName)
+        if (sourceFile) {
+          const result = pipe(
+            Nano.gen(function*() {
+              const applicableRefactor = yield* LSP.getEditsForRefactor(
+                refactors,
+                sourceFile,
+                positionOrRange,
+                refactorName
               )
-            )
 
-            if (Option.isNone(possibleRefactor)) {
-              info.project.projectService.logger.info(
-                "[@effect/language-service] requested refactor " + refactorName +
-                  " is not applicable"
+              const formatContext = modules.typescript.formatting.getFormatContext(
+                formatOptions,
+                info.languageServiceHost
               )
-              return { edits: [] }
-            }
+              const edits = modules.typescript.textChanges.ChangeTracker.with(
+                {
+                  formatContext,
+                  host: info.languageServiceHost,
+                  preferences: preferences || {}
+                },
+                (changeTracker) =>
+                  pipe(
+                    applicableRefactor.apply,
+                    Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                    Nano.run
+                  )
+              )
 
-            const formatContext = ts.formatting.getFormatContext(
-              formatOptions,
-              info.languageServiceHost
-            )
-            const edits = ts.textChanges.ChangeTracker.with(
-              {
-                formatContext,
-                host: info.languageServiceHost,
-                preferences: preferences || {}
-              },
-              (changeTracker) => possibleRefactor.value.apply(changeTracker)
-            )
+              return { edits } as ts.RefactorEditInfo
+            }),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
+            Nano.run
+          )
 
-            return { edits }
-          }
+          if (Either.isRight(result)) return result.right
         }
       }
 
@@ -195,7 +150,20 @@ const init = (
 
         const program = languageService.getProgram()
         if (program) {
-          return prependEffectTypeArguments(ts, program)(fileName, position, dedupedTagsQuickInfo)
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              prependEffectTypeArguments(
+                sourceFile,
+                position,
+                dedupedTagsQuickInfo
+              ),
+              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.run,
+              Either.getOrElse(() => dedupedTagsQuickInfo)
+            )
+          }
         }
 
         return dedupedTagsQuickInfo
