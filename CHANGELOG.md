@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.8.1
+
+### Patch Changes
+
+- [#97](https://github.com/Effect-TS/language-service/pull/97) [`bbdf5e0`](https://github.com/Effect-TS/language-service/commit/bbdf5e02f11032ac4c41680064c0c903f1c5f271) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for codefixes in custom diagnostics
+
 ## 0.8.0
 
 ### Minor Changes
