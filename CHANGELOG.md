@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.9.1
+
+### Patch Changes
+
+- [#103](https://github.com/Effect-TS/language-service/pull/103) [`3810a5a`](https://github.com/Effect-TS/language-service/commit/3810a5ad1e9494c87824b06da4f378e68c6f9ec0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add README to shipped dist
+
 ## 0.9.0
 
 ### Minor Changes
