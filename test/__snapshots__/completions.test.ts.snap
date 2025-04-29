@@ -1,0 +1,131 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "Context.Tag("MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 8,
+      "start": 151,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotToken.ts at 4:22 1`] = `
+[
+  {
+    "insertText": "S.Class<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedError<Test>("Test")("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedClass<Test>("Test")("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedRequest<Test>("Test")("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedRequest<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.ts at 4:25 1`] = `
+[
+  {
+    "insertText": "S.Class<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedError<Test>("Test")("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedClass<Test>("Test")("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedRequest<Test>("Test")("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedRequest<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
+[
+  {
+    "insertText": "Effect.Service<MyService>()("MyService", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>",
+    "replacementSpan": {
+      "length": 7,
+      "start": 148,
+    },
+    "sortText": "11",
+  },
+]
+`;

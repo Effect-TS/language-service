@@ -95,9 +95,7 @@ export interface CompletionDefinition {
 export interface CompletionEntryDefinition {
   name: string
   kind: ts.ScriptElementKind
-  sortText: string
   insertText: string
-  filterText: string
   isSnippet: true
   replacementSpan: ts.TextSpan
 }
@@ -217,7 +215,7 @@ export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(
   for (const completion of completions) {
     const result = yield* completion.apply(sourceFile, position, options, formatCodeSettings)
     effectCompletions.push(
-      ...result.map((_) => ({ ..._ }) satisfies ts.CompletionEntry)
+      ...result.map((_) => ({ sortText: "11", ..._ }) satisfies ts.CompletionEntry)
     )
   }
   return effectCompletions
