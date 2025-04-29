@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.9.0
+
+### Minor Changes
+
+- [#100](https://github.com/Effect-TS/language-service/pull/100) [`4ca4fa2`](https://github.com/Effect-TS/language-service/commit/4ca4fa2fbd4bcf7bffdc671972f18e3377e8f8e2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Optimize hot paths and introduce internal caching for expensive APIs
+
+- [#102](https://github.com/Effect-TS/language-service/pull/102) [`31f72ea`](https://github.com/Effect-TS/language-service/commit/31f72ea6cd5885adcc6e94a813d910c7b9c1013e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for smart completions for effect classes with "Self"
+
 ## 0.8.1
 
 ### Patch Changes
