@@ -55,6 +55,9 @@ Few options can be provided alongside the initialization of the Language Service
 - Detect wrong usage of yield inside Effect.gen
 - Detect unnecessary usages of Effect.gen
 
+### Completions
+- Autocomplete 'Self' in Effect.Service, Context.Tag, Schema.TaggedClass, Schema.TaggedRequest and family
+
 ### Refactors
 
 - Transform an async function definition, into an Effect by using Effect.gen.
