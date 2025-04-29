@@ -42,7 +42,7 @@ describe("nano", () => {
       Nano.run
     )
     expect(result).toEqual(
-      Either.left(new Nano.NanoDefectException({ value: "error" }))
+      Either.left(new Nano.NanoDefectException({ message: "error" }))
     )
   })
 })
