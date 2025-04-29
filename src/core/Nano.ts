@@ -1,14 +1,33 @@
 import * as ReadonlyArray from "effect/Array"
 import * as Data from "effect/Data"
 import * as Either from "effect/Either"
-import { dual, pipe } from "effect/Function"
+import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
 import * as Gen from "effect/Utils"
 
-export class NanoInterruptedException extends Data.TaggedError("NanoInterruptedException")<{}> {}
+interface NanoInternalSuccess<A> {
+  _tag: "Right"
+  right: A
+}
+
+interface NanoInternalFailure<E> {
+  _tag: "Left"
+  left: E
+}
+
+interface NanoInternalDefect {
+  _tag: "Defect"
+  defect: unknown
+}
+
+type NanoInternalResult<A, E> =
+  | NanoInternalSuccess<A>
+  | NanoInternalFailure<E>
+  | NanoInternalDefect
+
 export class NanoDefectException
-  extends Data.TaggedError("NanoDefectException")<{ value: unknown }>
+  extends Data.TaggedError("NanoDefectException")<{ message: unknown }>
 {}
 
 export class NanoTag<R> {
@@ -55,6 +74,10 @@ export interface NanoIterator<T extends Nano<any, any, any>> {
   next(...args: ReadonlyArray<any>): IteratorResult<Gen.YieldWrap<T>, T["~nano.success"]>
 }
 
+export interface NanoTypeLambda extends TypeLambda {
+  readonly type: Nano<this["Target"], this["Out1"], this["Out2"]>
+}
+
 /**
  * Nano is a Effect-like interface to run things.
  * It is not intended to be used by users in production.
@@ -65,7 +88,7 @@ export interface NanoIterator<T extends Nano<any, any, any>> {
  * Thrown exceptions are catched and converted into defects,
  * so worst case scenario, you will get only standard typescript lsp.
  */
-export class Nano<out A, out E = never, out R = never> {
+export class Nano<out A = never, out E = never, out R = never> {
   declare readonly "~nano.success": A
   declare readonly "~nano.error": E
   declare readonly "~nano.requirements": R
@@ -73,7 +96,7 @@ export class Nano<out A, out E = never, out R = never> {
   constructor(
     public readonly run: (
       ctx: NanoContext<unknown>
-    ) => Either.Either<Either.Either<A, E>, NanoInterruptedException | NanoDefectException>
+    ) => NanoInternalResult<A, E>
   ) {}
 
   [Symbol.iterator](): NanoIterator<Nano<A, E, R>> {
@@ -81,19 +104,25 @@ export class Nano<out A, out E = never, out R = never> {
   }
 }
 
-export const run = <A, E>(fa: Nano<A, E, never>) =>
-  pipe(
-    Either.try({
-      try: () => fa.run(contextEmpty),
-      catch: (error) => (new NanoDefectException({ value: error }))
-    }),
-    Either.flatMap((_) => _),
-    Either.flatMap((_) => _)
-  )
+export const run = <A, E>(fa: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
+  try {
+    const result = fa.run(contextEmpty)
+    switch (result._tag) {
+      case "Left":
+        return Either.left(result.left)
+      case "Defect":
+        return Either.left(new NanoDefectException({ message: result.defect }))
+      case "Right":
+        return Either.right(result.right)
+    }
+  } catch (e) {
+    return Either.left(new NanoDefectException({ message: e }))
+  }
+}
 
-export const succeed = <A>(value: A) => new Nano(() => (Either.right(Either.right(value))))
-export const fail = <E>(value: E) => new Nano(() => Either.right(Either.left(value)))
-export const sync = <A>(value: () => A) => new Nano(() => Either.right(Either.right(value())))
+export const succeed = <A>(value: A) => new Nano(() => ({ _tag: "Right", right: value }))
+export const fail = <E>(value: E) => new Nano(() => ({ _tag: "Left", left: value }))
+export const sync = <A>(value: () => A) => new Nano(() => ({ _tag: "Right", right: value() }))
 export const flatMap: {
   <A, B, E2, R2>(f: (a: A) => Nano<B, E2, R2>): <E, R>(fa: Nano<A, E, R>) => Nano<B, E | E2, R | R2>
   <A, E, R, B, E2, R2>(fa: Nano<A, E, R>, f: (a: A) => Nano<B, E2, R2>): Nano<B, E | E2, R | R2>
@@ -103,9 +132,8 @@ export const flatMap: {
 ) =>
   new Nano<B, E | E2, R | R2>((ctx) => {
     const result = fa.run(ctx)
-    if (Either.isLeft(result)) return result
-    if (Either.isLeft(result.right)) return result
-    return f(result.right.right).run(ctx) as any
+    if (result._tag !== "Right") return result
+    return f(result.right).run(ctx) as any
   }))
 
 export const map: {
@@ -117,9 +145,8 @@ export const map: {
 ) =>
   new Nano<B, E, R>((ctx) => {
     const result = fa.run(ctx)
-    if (Either.isLeft(result)) return result as any
-    if (Either.isLeft(result.right)) return result
-    return Either.right(Either.right(f(result.right.right) as B))
+    if (result._tag !== "Right") return result as any
+    return ({ _tag: "Right", right: f(result.right) }) as any
   }))
 
 export const orElse = <B, E2, R2>(
@@ -128,8 +155,7 @@ export const orElse = <B, E2, R2>(
 <A, E, R>(fa: Nano<A, E, R>) =>
   new Nano<A | B, E2, R | R2>((ctx) => {
     const result = fa.run(ctx)
-    if (Either.isLeft(result)) return result
-    if (Either.isLeft(result.right)) return f().run(ctx) as any
+    if (result._tag === "Left") return f().run(ctx) as any
     return result
   })
 
@@ -141,9 +167,8 @@ export const firstSuccessOf = <A extends Array<Nano<any, any, any>>>(
 export const service = <I extends NanoTag<any>>(tag: I) =>
   new Nano<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
     contextGet(ctx, tag).pipe(Option.match({
-      onNone: () =>
-        Either.left(new NanoDefectException({ value: `Cannot find service ${tag.key}` })),
-      onSome: (value) => Either.right(Either.right(value))
+      onNone: () => ({ _tag: "Defect", defect: `Cannot find service ${tag.key}` }),
+      onSome: (value) => ({ _tag: "Right", right: value })
     }))
   )
 
@@ -155,10 +180,6 @@ export const provideService = <I extends NanoTag<any>>(
   new Nano<A, E, Exclude<R, I["~nano.requirements"]>>((ctx) => {
     return fa.run(contextAdd(ctx, tag, value))
   })
-
-export interface NanoTypeLambda extends TypeLambda {
-  readonly type: Nano<this["Target"], this["Out1"], this["Out2"]>
-}
 
 export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
   ...args: [body: () => Generator<Eff, AEff, never>]
@@ -178,28 +199,57 @@ export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
       const current = Gen.isGenKind(state.value)
         ? state.value.value
         : Gen.yieldWrapGet(state.value)
-      const result: Either.Either<any, any> = current.run(ctx)
-      if (Either.isLeft(result)) {
+      const result: NanoInternalResult<any, any> = current.run(ctx)
+      if (result._tag !== "Right") {
         return result
       }
-      const inner: Either.Either<any, any> = result.right
-      if (Either.isLeft(inner)) {
-        return result
-      }
-      state = iterator.next(inner.right as never)
+      state = iterator.next(result.right as never)
     }
-    return Either.right(Either.right(state.value)) as any
+    return ({ _tag: "Right", right: state.value }) as NanoInternalResult<any, any>
   })
+
+export const fn =
+  (_: string) =>
+  <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff, Args extends Array<any>>(
+    body: (...args: Args) => Generator<Eff, AEff, never>
+  ) =>
+  (...args: Args) => (
+    new Nano<
+      AEff,
+      [Eff] extends [never] ? never
+        : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
+        : never,
+      [Eff] extends [never] ? never
+        : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer _E, infer R>>] ? R
+        : never
+    >((ctx) => {
+      const iterator = body(...args)
+      let state: IteratorResult<any> = iterator.next()
+      while (!state.done) {
+        const current = Gen.isGenKind(state.value)
+          ? state.value.value
+          : Gen.yieldWrapGet(state.value)
+        const result: NanoInternalResult<any, any> = current.run(ctx)
+        if (result._tag !== "Right") {
+          return result
+        }
+        state = iterator.next(result.right as never)
+      }
+      return ({ _tag: "Right", right: state.value }) as NanoInternalResult<any, any>
+    })
+  )
 
 export const option = <A, E, R>(fa: Nano<A, E, R>) =>
   new Nano<Option.Option<A>, never, R>((ctx) => {
-    return Either.match(fa.run(ctx), {
-      onLeft: (cause) => Either.left(cause),
-      onRight: Either.match({
-        onLeft: () => Either.right(Either.right(Option.none())),
-        onRight: (value) => Either.right(Either.right(Option.some(value)))
-      })
-    })
+    const result = fa.run(ctx)
+    switch (result._tag) {
+      case "Right":
+        return { _tag: "Right", right: Option.some(result.right) }
+      case "Left":
+        return { _tag: "Right", right: Option.none() }
+      case "Defect":
+        return result
+    }
   })
 
 export const all = <A extends Array<Nano<any, any, any>>>(
@@ -213,3 +263,31 @@ export const all = <A extends Array<Nano<any, any, any>>>(
     }
     return results
   })
+
+const timings: Record<string, number> = {}
+const timingsCount: Record<string, number> = {}
+export const timed = (timingName: string) => <A, E, R>(fa: Nano<A, E, R>) =>
+  new Nano<A, E, R>((ctx) => {
+    const start = performance.now()
+    const result = fa.run(ctx)
+    const end = performance.now()
+    const duration = end - start
+    timings[timingName] = (timings[timingName] || 0) + duration
+    timingsCount[timingName] = (timingsCount[timingName] || 0) + 1
+    return result
+  })
+
+export const getTimings = () => {
+  const result: Array<[name: string, avg: number, hits: number, total: number]> = []
+  for (const key in timings) {
+    result.push([key, timings[key] / (timingsCount[key] || 1), timingsCount[key], timings[key]])
+  }
+  result.sort((a, b) => b[3] - a[3])
+  const lines: Array<string> = []
+  for (const [name, avg, hits, total] of result) {
+    lines.push(
+      `${name.padEnd(75)} tot ${total.toFixed(2)}ms avg ${avg.toFixed(2)}ms ${hits} hits`
+    )
+  }
+  return lines
+}

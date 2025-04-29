@@ -1,6 +1,7 @@
 import { Either } from "effect"
 import { pipe } from "effect/Function"
 import type ts from "typescript"
+import { completions } from "./completions.js"
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
 import { diagnostics } from "./diagnostics.js"
@@ -24,6 +25,10 @@ const init = (
       quickinfo:
         info.config && "quickinfo" in info.config && typeof info.config.quickinfo === "boolean"
           ? info.config.quickinfo
+          : true,
+      completions:
+        info.config && "completions" in info.config && typeof info.config.completions === "boolean"
+          ? info.config.completions
           : true
     }
 
@@ -116,8 +121,12 @@ const init = (
 
               return effectCodeFixes
             }),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(
+              TypeCheckerApi.TypeCheckerApiCache,
+              TypeCheckerApi.makeTypeCheckerApiCache()
+            ),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(LSP.PluginOptions, pluginOptions),
             Nano.run,
             Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
@@ -139,8 +148,12 @@ const init = (
         if (sourceFile) {
           return pipe(
             LSP.getSemanticDiagnostics(diagnostics, sourceFile),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(
+              TypeCheckerApi.TypeCheckerApiCache,
+              TypeCheckerApi.makeTypeCheckerApiCache()
+            ),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(LSP.PluginOptions, pluginOptions),
             Nano.run,
             Either.map((effectDiagnostics) => effectDiagnostics.concat(applicableDiagnostics)),
@@ -162,8 +175,12 @@ const init = (
         if (sourceFile) {
           return pipe(
             LSP.getApplicableRefactors(refactors, sourceFile, positionOrRange),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(
+              TypeCheckerApi.TypeCheckerApiCache,
+              TypeCheckerApi.makeTypeCheckerApiCache()
+            ),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(LSP.PluginOptions, pluginOptions),
             Nano.run,
             Either.map((effectRefactors) => applicableRefactors.concat(effectRefactors)),
@@ -200,6 +217,7 @@ const init = (
                 formatOptions,
                 info.languageServiceHost
               )
+
               const edits = modules.typescript.textChanges.ChangeTracker.with(
                 {
                   formatContext,
@@ -216,8 +234,12 @@ const init = (
 
               return { edits } as ts.RefactorEditInfo
             }),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(
+              TypeCheckerApi.TypeCheckerApiCache,
+              TypeCheckerApi.makeTypeCheckerApiCache()
+            ),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
             Nano.provideService(LSP.PluginOptions, pluginOptions),
             Nano.run
           )
@@ -253,8 +275,9 @@ const init = (
                 position,
                 dedupedTagsQuickInfo
               ),
-              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
               Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+              Nano.provideService(LSP.PluginOptions, pluginOptions),
               Nano.run,
               Either.getOrElse(() => dedupedTagsQuickInfo)
             )
@@ -265,6 +288,59 @@ const init = (
       }
 
       return quickInfo
+    }
+
+    proxy.getCompletionsAtPosition = (fileName, position, options, formattingSettings, ...args) => {
+      const applicableCompletions = languageService.getCompletionsAtPosition(
+        fileName,
+        position,
+        options,
+        formattingSettings,
+        ...args
+      )
+
+      if (pluginOptions.completions) {
+        const program = languageService.getProgram()
+        if (program) {
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              LSP.getCompletionsAtPosition(
+                completions,
+                sourceFile,
+                position,
+                options,
+                formattingSettings
+              ),
+              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.provideService(
+                TypeCheckerApi.TypeCheckerApiCache,
+                TypeCheckerApi.makeTypeCheckerApiCache()
+              ),
+              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+              Nano.provideService(LSP.PluginOptions, pluginOptions),
+              Nano.run,
+              Either.map((effectCompletions) => (applicableCompletions
+                ? {
+                  ...applicableCompletions,
+                  entries: effectCompletions.concat(applicableCompletions.entries)
+                }
+                : (effectCompletions.length > 0 ?
+                  ({
+                    entries: effectCompletions,
+                    isGlobalCompletion: false,
+                    isMemberCompletion: false,
+                    isNewIdentifierLocation: false
+                  }) satisfies ts.CompletionInfo :
+                  undefined))
+              ),
+              Either.getOrElse(() => applicableCompletions)
+            )
+          }
+        }
+      }
+
+      return applicableCompletions
     }
 
     return proxy

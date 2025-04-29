@@ -20,7 +20,10 @@ export interface RefactorDefinition {
   ) => Nano.Nano<
     ApplicableRefactorDefinition,
     RefactorNotApplicableError,
-    TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | PluginOptions
+    | TypeScriptApi.TypeScriptApi
+    | TypeCheckerApi.TypeCheckerApi
+    | PluginOptions
+    | TypeCheckerApi.TypeCheckerApiCache
   >
 }
 
@@ -30,7 +33,7 @@ export interface ApplicableRefactorDefinition {
   apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
-export function createRefactor(definition: RefactorDefinition) {
+export function createRefactor(definition: RefactorDefinition): RefactorDefinition {
   return definition
 }
 
@@ -42,7 +45,10 @@ export interface DiagnosticDefinition {
   ) => Nano.Nano<
     Array<ApplicableDiagnosticDefinition>,
     never,
-    TypeCheckerApi.TypeCheckerApi | PluginOptions | TypeScriptApi.TypeScriptApi
+    | TypeCheckerApi.TypeCheckerApi
+    | PluginOptions
+    | TypeScriptApi.TypeScriptApi
+    | TypeCheckerApi.TypeCheckerApiCache
   >
 }
 
@@ -59,13 +65,45 @@ export interface ApplicableDiagnosticDefinitionFix {
   apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
-export function createDiagnostic(definition: DiagnosticDefinition) {
+export function createDiagnostic(definition: DiagnosticDefinition): DiagnosticDefinition {
   return definition
 }
 
 export interface PluginOptions {
   diagnostics: boolean
   quickinfo: boolean
+  completions: boolean
+}
+
+export interface CompletionDefinition {
+  name: string
+  apply: (
+    sourceFile: ts.SourceFile,
+    position: number,
+    options: ts.GetCompletionsAtPositionOptions | undefined,
+    formatCodeSettings: ts.FormatCodeSettings | undefined
+  ) => Nano.Nano<
+    Array<CompletionEntryDefinition>,
+    never,
+    | TypeCheckerApi.TypeCheckerApi
+    | PluginOptions
+    | TypeScriptApi.TypeScriptApi
+    | TypeCheckerApi.TypeCheckerApiCache
+  >
+}
+
+export interface CompletionEntryDefinition {
+  name: string
+  kind: ts.ScriptElementKind
+  sortText: string
+  insertText: string
+  filterText: string
+  isSnippet: true
+  replacementSpan: ts.TextSpan
+}
+
+export function createCompletion(definition: CompletionDefinition): CompletionDefinition {
+  return definition
 }
 
 export const PluginOptions = Nano.Tag<PluginOptions>("PluginOptions")
@@ -74,102 +112,113 @@ export class SourceFileNotFoundError extends Data.TaggedError("SourceFileNotFoun
   fileName: string
 }> {}
 
-export function getSemanticDiagnostics(
+export const getSemanticDiagnostics = Nano.fn("LSP.getSemanticDiagnostics")(function*(
   diagnostics: Array<DiagnosticDefinition>,
   sourceFile: ts.SourceFile
 ) {
-  return Nano.gen(function*() {
-    const effectDiagnostics: Array<ts.Diagnostic> = []
-    for (const diagnostic of diagnostics) {
-      const result = yield* Nano.option(diagnostic.apply(sourceFile))
-      if (Option.isSome(result)) {
-        effectDiagnostics.push(...result.value.map((_) => ({
-          file: sourceFile,
-          start: _.node.getStart(sourceFile),
-          length: _.node.getEnd() - _.node.getStart(sourceFile),
-          messageText: _.messageText,
-          category: _.category,
-          code: diagnostic.code,
-          source: "effect"
-        })))
-      }
+  const effectDiagnostics: Array<ts.Diagnostic> = []
+  for (const diagnostic of diagnostics) {
+    const result = yield* (
+      Nano.option(diagnostic.apply(sourceFile))
+    )
+    if (Option.isSome(result)) {
+      effectDiagnostics.push(...result.value.map((_) => ({
+        file: sourceFile,
+        start: _.node.getStart(sourceFile),
+        length: _.node.getEnd() - _.node.getStart(sourceFile),
+        messageText: _.messageText,
+        category: _.category,
+        code: diagnostic.code,
+        source: "effect"
+      })))
     }
-    return effectDiagnostics
-  })
-}
+  }
+  return effectDiagnostics
+})
 
-export function getCodeFixesAtPosition(
+export const getCodeFixesAtPosition = Nano.fn("LSP.getCodeFixesAtPosition")(function*(
   diagnostics: Array<DiagnosticDefinition>,
   sourceFile: ts.SourceFile,
   start: number,
   end: number,
   errorCodes: ReadonlyArray<number>
 ) {
-  return Nano.gen(function*() {
-    const runnableDiagnostics = diagnostics.filter((_) => errorCodes.indexOf(_.code) > -1)
-    const applicableFixes: Array<ApplicableDiagnosticDefinitionFix> = []
-    for (const diagnostic of runnableDiagnostics) {
-      const result = yield* Nano.option(diagnostic.apply(sourceFile))
-      if (Option.isSome(result)) {
-        applicableFixes.push(
-          ...pipe(
-            result.value,
-            ReadonlyArray.filter((_) =>
-              _.node.getStart(sourceFile) === start && _.node.getEnd() === end
-            ),
-            ReadonlyArray.map((_) => _.fix),
-            ReadonlyArray.getSomes
-          )
+  const runnableDiagnostics = diagnostics.filter((_) => errorCodes.indexOf(_.code) > -1)
+  const applicableFixes: Array<ApplicableDiagnosticDefinitionFix> = []
+  for (const diagnostic of runnableDiagnostics) {
+    const result = yield* Nano.option(diagnostic.apply(sourceFile))
+    if (Option.isSome(result)) {
+      applicableFixes.push(
+        ...pipe(
+          result.value,
+          ReadonlyArray.filter((_) =>
+            _.node.getStart(sourceFile) === start && _.node.getEnd() === end
+          ),
+          ReadonlyArray.map((_) => _.fix),
+          ReadonlyArray.getSomes
         )
-      }
+      )
     }
-    return applicableFixes
-  })
-}
+  }
+  return applicableFixes
+})
 
-export function getApplicableRefactors(
+export const getApplicableRefactors = Nano.fn("LSP.getApplicableRefactors")(function*(
   refactors: Array<RefactorDefinition>,
   sourceFile: ts.SourceFile,
   positionOrRange: number | ts.TextRange
 ) {
-  return Nano.gen(function*() {
-    const textRange = typeof positionOrRange === "number"
-      ? { pos: positionOrRange, end: positionOrRange }
-      : positionOrRange
-    const effectRefactors: Array<ts.ApplicableRefactorInfo> = []
-    for (const refactor of refactors) {
-      const result = yield* Nano.option(refactor.apply(sourceFile, textRange))
-      if (Option.isSome(result)) {
-        effectRefactors.push({
+  const textRange = typeof positionOrRange === "number"
+    ? { pos: positionOrRange, end: positionOrRange }
+    : positionOrRange
+  const effectRefactors: Array<ts.ApplicableRefactorInfo> = []
+  for (const refactor of refactors) {
+    const result = yield* Nano.option(refactor.apply(sourceFile, textRange))
+    if (Option.isSome(result)) {
+      effectRefactors.push({
+        name: refactor.name,
+        description: refactor.description,
+        actions: [{
           name: refactor.name,
-          description: refactor.description,
-          actions: [{
-            name: refactor.name,
-            description: result.value.description,
-            kind: result.value.kind
-          }]
-        })
-      }
+          description: result.value.description,
+          kind: result.value.kind
+        }]
+      })
     }
-    return effectRefactors
-  })
-}
+  }
+  return effectRefactors
+})
 
-export function getEditsForRefactor(
+export const getEditsForRefactor = Nano.fn("LSP.getEditsForRefactor")(function*(
   refactors: Array<RefactorDefinition>,
   sourceFile: ts.SourceFile,
   positionOrRange: number | ts.TextRange,
   refactorName: string
 ) {
-  return Nano.gen(function*() {
-    const refactor = refactors.find((refactor) => refactor.name === refactorName)
-    if (!refactor) {
-      return yield* Nano.fail(new RefactorNotApplicableError())
-    }
-    const textRange = typeof positionOrRange === "number"
-      ? { pos: positionOrRange, end: positionOrRange }
-      : positionOrRange
+  const refactor = refactors.find((refactor) => refactor.name === refactorName)
+  if (!refactor) {
+    return yield* Nano.fail(new RefactorNotApplicableError())
+  }
+  const textRange = typeof positionOrRange === "number"
+    ? { pos: positionOrRange, end: positionOrRange }
+    : positionOrRange
 
-    return yield* refactor.apply(sourceFile, textRange)
-  })
-}
+  return yield* refactor.apply(sourceFile, textRange)
+})
+
+export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(function*(
+  completions: Array<CompletionDefinition>,
+  sourceFile: ts.SourceFile,
+  position: number,
+  options: ts.GetCompletionsAtPositionOptions | undefined,
+  formatCodeSettings: ts.FormatCodeSettings | undefined
+) {
+  const effectCompletions: Array<ts.CompletionEntry> = []
+  for (const completion of completions) {
+    const result = yield* completion.apply(sourceFile, position, options, formatCodeSettings)
+    effectCompletions.push(
+      ...result.map((_) => ({ ..._ }) satisfies ts.CompletionEntry)
+    )
+  }
+  return effectCompletions
+})

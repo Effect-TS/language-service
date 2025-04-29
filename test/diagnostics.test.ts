@@ -49,9 +49,14 @@ function testDiagnosticOnExample(
     LSP.getSemanticDiagnostics([diagnostic], sourceFile),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+    Nano.provideService(
+      TypeCheckerApi.TypeCheckerApiCache,
+      TypeCheckerApi.makeTypeCheckerApiCache()
+    ),
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: true,
-      quickinfo: false
+      quickinfo: false,
+      completions: false
     }),
     Nano.map((outputDiagnostics) => {
       // sort by start position
@@ -131,9 +136,14 @@ function testDiagnosticQuickfixesOnExample(
     ),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+    Nano.provideService(
+      TypeCheckerApi.TypeCheckerApiCache,
+      TypeCheckerApi.makeTypeCheckerApiCache()
+    ),
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: true,
-      quickinfo: false
+      quickinfo: false,
+      completions: false
     }),
     Nano.run
   )
