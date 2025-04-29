@@ -12,6 +12,16 @@ export default defineConfig({
     const program = Effect.gen(function*(_) {
       const fs = yield* _(FileSystem.FileSystem)
       const path = yield* _(Path.Path)
+
+      // copy over readme.md
+      const readme = yield* _(fs.readFileString("README.md"))
+      yield* _(fs.writeFileString(path.join("dist", "README.md"), readme))
+
+      // copy over license
+      const license = yield* _(fs.readFileString("LICENSE"))
+      yield* _(fs.writeFileString(path.join("dist", "LICENSE"), license))
+
+      // generate package.json
       const json = yield* _(fs.readFileString("package.json"), Effect.map(JSON.parse))
       const pkg = {
         name: json.name,
