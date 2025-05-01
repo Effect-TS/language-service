@@ -41,10 +41,7 @@ export const removeUnnecessaryEffectGen = LSP.createRefactor({
   apply: (sourceFile, textRange) =>
     Nano.gen(function*() {
       for (
-        const nodeToReplace of yield* AST.collectDescendantsAndAncestorsInRange(
-          sourceFile,
-          textRange
-        )
+        const nodeToReplace of yield* AST.getAncestorNodesInRange(sourceFile, textRange)
       ) {
         const maybeNode = yield* pipe(
           TypeParser.effectGen(nodeToReplace),

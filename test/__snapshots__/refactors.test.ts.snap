@@ -151,6 +151,40 @@ const asyncArrowFunctionExpression = () => Effect.gen(function*() {
 "
 `;
 
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 4:30 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 4:30
+import * as Eff from "effect/Effect"
+
+export const program = Eff.fn(function*() {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+})
+
+export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* () {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}).pipe(
+    Eff.map((a) => a + 1)
+)
+
+export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
+  return Eff.gen(function* () {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+  })
+}
+
+export const sampleReturnsConciseBody = <A extends number, B extends number>(arg1: A, arg2: B) => Eff.gen(function* () {
+  const a = yield* Eff.succeed(arg1)
+  const b = yield* Eff.succeed(arg2)
+  return a + b
+})
+"
+`;
+
 exports[`Refactor effectGenToFn > effectGenToFn.ts at 4:36 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 4:36
 import * as Eff from "effect/Effect"
@@ -168,6 +202,38 @@ export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* ()
 }).pipe(
     Eff.map((a) => a + 1)
 )
+
+export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
+  return Eff.gen(function* () {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+  })
+}
+
+export const sampleReturnsConciseBody = <A extends number, B extends number>(arg1: A, arg2: B) => Eff.gen(function* () {
+  const a = yield* Eff.succeed(arg1)
+  const b = yield* Eff.succeed(arg2)
+  return a + b
+})
+"
+`;
+
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 10:61 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 10:61
+import * as Eff from "effect/Effect"
+
+export const program = () => Eff.gen(function* () {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+  })
+
+export const programWithPipes = Eff.fn(function*(fa: number, fb: number) {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}, Eff.map((a) => a + 1))
 
 export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
   return Eff.gen(function* () {
@@ -217,6 +283,38 @@ export const sampleReturnsConciseBody = <A extends number, B extends number>(arg
 "
 `;
 
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 19:10 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 19:10
+import * as Eff from "effect/Effect"
+
+export const program = () => Eff.gen(function* () {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+  })
+
+export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* () {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}).pipe(
+    Eff.map((a) => a + 1)
+)
+
+export const sampleReturns = Eff.fn("sampleReturns")(function* <A extends number, B extends number>(arg1: A, arg2: B) {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+})
+
+export const sampleReturnsConciseBody = <A extends number, B extends number>(arg1: A, arg2: B) => Eff.gen(function* () {
+  const a = yield* Eff.succeed(arg1)
+  const b = yield* Eff.succeed(arg2)
+  return a + b
+})
+"
+`;
+
 exports[`Refactor effectGenToFn > effectGenToFn.ts at 19:16 1`] = `
 "// Result of running refactor effect/effectGenToFn at position 19:16
 import * as Eff from "effect/Effect"
@@ -245,6 +343,40 @@ export const sampleReturnsConciseBody = <A extends number, B extends number>(arg
   const a = yield* Eff.succeed(arg1)
   const b = yield* Eff.succeed(arg2)
   return a + b
+})
+"
+`;
+
+exports[`Refactor effectGenToFn > effectGenToFn.ts at 26:99 1`] = `
+"// Result of running refactor effect/effectGenToFn at position 26:99
+import * as Eff from "effect/Effect"
+
+export const program = () => Eff.gen(function* () {
+    const a = yield* Eff.succeed(1)
+    const b = yield* Eff.succeed(2)
+    return a + b
+  })
+
+export const programWithPipes = (fa: number, fb: number) => Eff.gen(function* () {
+    const a = yield* Eff.succeed(fa)
+    const b = yield* Eff.succeed(fb)
+    return a + b
+}).pipe(
+    Eff.map((a) => a + 1)
+)
+
+export function sampleReturns<A extends number, B extends number>(arg1: A, arg2: B) {
+  return Eff.gen(function* () {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
+  })
+}
+
+export const sampleReturnsConciseBody = Eff.fn(function* <A extends number, B extends number>(arg1: A, arg2: B) {
+    const a = yield* Eff.succeed(arg1)
+    const b = yield* Eff.succeed(arg2)
+    return a + b
 })
 "
 `;
@@ -574,6 +706,19 @@ export const test3 = Effect.succeed(42).pipe(
 "
 `;
 
+exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 3:7 1`] = `
+"// Result of running refactor effect/toggleLazyConst at position 3:7
+
+const test1 = () => 1
+
+const test2 = () => 1
+
+const test3 = () => {
+    console.log("Hello")
+}
+"
+`;
+
 exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 3:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 3:10
 
@@ -587,12 +732,38 @@ const test3 = () => {
 "
 `;
 
+exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 5:7 1`] = `
+"// Result of running refactor effect/toggleLazyConst at position 5:7
+
+const test1 = 1
+
+const test2 = 1
+
+const test3 = () => {
+    console.log("Hello")
+}
+"
+`;
+
 exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 5:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 5:10
 
 const test1 = 1
 
 const test2 = 1
+
+const test3 = () => {
+    console.log("Hello")
+}
+"
+`;
+
+exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 7:7 1`] = `
+"// Result of running refactor effect/toggleLazyConst at position 7:7
+
+const test1 = 1
+
+const test2 = () => 1
 
 const test3 = () => {
     console.log("Hello")
@@ -723,12 +894,110 @@ function removeAnnotationWithSpace() {
 "
 `;
 
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 4:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 4:14
+import * as T from "effect/Effect"
+
+export const test1: <A>(value: A) => T.Effect<A> = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 4:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 4:16
 import * as T from "effect/Effect"
 
 export const test1: <A>(value: A) => T.Effect<A> = T.succeed
 export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 5:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 5:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2: T.Effect<never, string, never> = T.fail("LOL")
 
 const predefined = 42
 export const test3 = predefined
@@ -821,6 +1090,55 @@ class Test {
 "
 `;
 
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 8:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 8:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3: 42 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 8:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 8:16
 import * as T from "effect/Effect"
@@ -833,6 +1151,55 @@ export const test3: 42 = predefined
 
 const callable = () => 42
 export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 11:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 11:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4: () => number = callable
 export const test5 = T.die
 
 const removeAnnotation:number=42
@@ -919,6 +1286,55 @@ class Test {
 "
 `;
 
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 12:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 12:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5: (defect: unknown) => T.Effect<never> = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 12:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 12:16
 import * as T from "effect/Effect"
@@ -934,6 +1350,104 @@ export const test4 = callable
 export const test5: (defect: unknown) => T.Effect<never> = T.die
 
 const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 14:7 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 14:7
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 14:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 14:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation=42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -1017,6 +1531,55 @@ class Test {
 "
 `;
 
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 15:7 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 15:7
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 15:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 15:16
 import * as T from "effect/Effect"
@@ -1038,6 +1601,58 @@ declare function withOverloads(a: 1): boolean
 declare function withOverloads(a: 2): string
 
 export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 20:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 20:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6: {
+    (a: 1): boolean;
+    (a: 2): string
+} = withOverloads
 
 declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 
@@ -1118,6 +1733,58 @@ class Test {
 "
 `;
 
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 24:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 24:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7: {
+    (a: 1): boolean;
+    (a: 2): string
+} = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 24:16 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 24:16
 import * as T from "effect/Effect"
@@ -1160,6 +1827,60 @@ declare const intersection2: {
 declare function intersect<A, B>(a: A, b: B): A & B
 
 export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 38:14 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 38:14
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8: {
+    (a: 1): boolean;
+    (b: 2): string;
+    (a: 3): number;
+    (b: 4): bigint
+} = intersect(intersection1, intersection2)
 
 class Test {
     static liveAdd = "hello"
@@ -1273,6 +1994,55 @@ class Test {
 "
 `;
 
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 42:12 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 42:12
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove = "hello"
+    propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 42:15 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 42:15
 import * as T from "effect/Effect"
@@ -1317,6 +2087,55 @@ class Test {
     static liveAdd = "hello"
     static liveRemove = "hello"
     propAdd = "hello"
+    propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 43:5 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 43:5
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd: "hello" = "hello"
     propRemove: string = "hello"    
 }
 "
@@ -1367,6 +2186,55 @@ class Test {
     static liveRemove: string = "hello"
     propAdd: "hello" = "hello"
     propRemove: string = "hello"    
+}
+"
+`;
+
+exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 44:5 1`] = `
+"// Result of running refactor effect/toggleTypeAnnotation at position 44:5
+import * as T from "effect/Effect"
+
+export const test1 = T.succeed
+export const test2 = T.fail("LOL")
+
+const predefined = 42
+export const test3 = predefined
+
+const callable = () => 42
+export const test4 = callable
+export const test5 = T.die
+
+const removeAnnotation:number=42
+const removeAnnotationWithSpace: number = 42
+
+declare function withOverloads(a: 1): boolean
+declare function withOverloads(a: 2): string
+
+export const test6 = withOverloads
+
+declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
+
+export const test7 = functIntersection
+
+declare const intersection1: {
+    (a: 1): boolean
+    (b: 2): string
+}
+
+declare const intersection2: {
+    (a: 3): number
+    (b: 4): bigint
+}
+
+declare function intersect<A, B>(a: A, b: B): A & B
+
+export const test8 = intersect(intersection1, intersection2)
+
+class Test {
+    static liveAdd = "hello"
+    static liveRemove: string = "hello"
+    propAdd = "hello"
+    propRemove = "hello"    
 }
 "
 `;

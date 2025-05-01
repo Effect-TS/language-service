@@ -14,7 +14,7 @@ import * as TypeScriptApi from "./TypeScriptApi.js"
  *
  * @param node - The starting AST node.
  * @param textRange - The range of text to use for filtering nodes.
- * @returns An array of nodes, including the starting node and its ancestors, that fully contain the specified range.
+ * @returns An array of `ts.Node` objects that fully contain the specified range.
  */
 function collectSelfAndAncestorNodesInRange(
   node: ts.Node,
@@ -40,18 +40,17 @@ function collectSelfAndAncestorNodesInRange(
  * This function starts from the closest token at the given position
  * and traverses up the AST, collecting nodes that encompass the range.
  *
- * @param ts - The TypeScript API.
- * @returns A function that takes a SourceFile and a TextRange, and returns
- *          an array of nodes containing the range.
+ * @param sourceFile - The TypeScript SourceFile to search within.
+ * @param textRange - The range of text to use for filtering nodes.
+ * @returns An array of `ts.Node` containing the range.
  */
 export const getAncestorNodesInRange = Nano.fn("AST.getAncestorNodesInRange")(function*(
   sourceFile: ts.SourceFile,
   textRange: ts.TextRange
 ) {
-  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-  const precedingToken = ts.findPrecedingToken(textRange.pos, sourceFile)
-  if (!precedingToken) return ReadonlyArray.empty<ts.Node>()
-  return yield* collectSelfAndAncestorNodesInRange(precedingToken, textRange)
+  const nodeAtPosition = yield* Nano.option(findNodeAtPosition(sourceFile, textRange.pos))
+  if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
+  return yield* collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
 })
 
 export class NodeNotFoundError
@@ -66,15 +65,15 @@ export class NodeNotFoundError
  *
  * @param sourceFile - The TypeScript SourceFile to search within.
  * @param position - The position in the file to locate the node for.
- * @returns An `Option`:
- *          - `Option.some<ts.Node>` if a node is found at the specified position.
- *          - `Option.none` if no node is found at the specified position.
+ * @returns The deepest `ts.Node` found at the specified position.
+ *          If no node is found, it fails with a `NodeNotFoundError`.
  */
 const findNodeAtPosition = Nano.fn("AST.findNodeAtPosition")(function*(
   sourceFile: ts.SourceFile,
   position: number
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
   function find(node: ts.Node): ts.Node | undefined {
     if (position >= node.getStart() && position < node.getEnd()) {
       // If the position is within this node, keep traversing its children
@@ -82,33 +81,11 @@ const findNodeAtPosition = Nano.fn("AST.findNodeAtPosition")(function*(
     }
     return undefined
   }
+
   const result = find(sourceFile)
   if (!result) return yield* Nano.fail(new NodeNotFoundError())
-  return result
-})
 
-/**
- * Collects the node at the given position, its descendants, and all its ancestor nodes
- * that fully contain the specified TextRange.
- *
- * This function starts by locating the node at the given position within the AST,
- * traverses down to include its descendants, and then traverses up to include its ancestors,
- * collecting all nodes that encompass the specified range.
- *
- * @param sourceFile - The TypeScript SourceFile to search within.
- * @param textRange - The range of text to use for filtering nodes.
- * @returns An array of nodes that are either descendants or ancestors of the node
- *          at the given position and that fully contain the specified range.
- */
-export const collectDescendantsAndAncestorsInRange = Nano.fn(
-  "AST.collectDescendantsAndAncestorsInRange"
-)(function*(
-  sourceFile: ts.SourceFile,
-  textRange: ts.TextRange
-) {
-  const nodeAtPosition = yield* Nano.option(findNodeAtPosition(sourceFile, textRange.pos))
-  if (Option.isNone(nodeAtPosition)) return ReadonlyArray.empty<ts.Node>()
-  return yield* collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
+  return result
 })
 
 /**
