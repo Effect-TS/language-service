@@ -8,7 +8,7 @@ import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const toggleLazyConst = LSP.createRefactor({
   name: "effect/toggleLazyConst",
-  description: "Toggle type annotation",
+  description: "Toggle lazy const",
   apply: (sourceFile, textRange) =>
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
