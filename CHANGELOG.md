@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.9.2
+
+### Patch Changes
+
+- [#109](https://github.com/Effect-TS/language-service/pull/109) [`c325568`](https://github.com/Effect-TS/language-service/commit/c325568fb6a0e6faf8524759ffe3f7ff4f21dee7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for completions for Data.TaggedClass and Data.TaggedError
+
+- [#106](https://github.com/Effect-TS/language-service/pull/106) [`63cc227`](https://github.com/Effect-TS/language-service/commit/63cc2279cf0d822d2242566c7276f60d4d5bb18b) Thanks [@wmaurer](https://github.com/wmaurer)! - Fixed a bug where certain refactors were not available when the cursor was position at the start of a node
+
 ## 0.9.1
 
 ### Patch Changes
