@@ -758,19 +758,6 @@ const test3 = () => {
 "
 `;
 
-exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 7:7 1`] = `
-"// Result of running refactor effect/toggleLazyConst at position 7:7
-
-const test1 = 1
-
-const test2 = () => 1
-
-const test3 = () => {
-    console.log("Hello")
-}
-"
-`;
-
 exports[`Refactor toggleLazyConst > toggleLazyConst.ts at 7:10 1`] = `
 "// Result of running refactor effect/toggleLazyConst at position 7:10
 
@@ -1386,55 +1373,6 @@ class Test {
 
 exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 14:7 1`] = `
 "// Result of running refactor effect/toggleTypeAnnotation at position 14:7
-import * as T from "effect/Effect"
-
-export const test1 = T.succeed
-export const test2 = T.fail("LOL")
-
-const predefined = 42
-export const test3 = predefined
-
-const callable = () => 42
-export const test4 = callable
-export const test5 = T.die
-
-const removeAnnotation=42
-const removeAnnotationWithSpace: number = 42
-
-declare function withOverloads(a: 1): boolean
-declare function withOverloads(a: 2): string
-
-export const test6 = withOverloads
-
-declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
-
-export const test7 = functIntersection
-
-declare const intersection1: {
-    (a: 1): boolean
-    (b: 2): string
-}
-
-declare const intersection2: {
-    (a: 3): number
-    (b: 4): bigint
-}
-
-declare function intersect<A, B>(a: A, b: B): A & B
-
-export const test8 = intersect(intersection1, intersection2)
-
-class Test {
-    static liveAdd = "hello"
-    static liveRemove: string = "hello"
-    propAdd = "hello"
-    propRemove: string = "hello"    
-}
-"
-`;
-
-exports[`Refactor toggleTypeAnnotation > toggleTypeAnnotation.ts at 14:14 1`] = `
-"// Result of running refactor effect/toggleTypeAnnotation at position 14:14
 import * as T from "effect/Effect"
 
 export const test1 = T.succeed

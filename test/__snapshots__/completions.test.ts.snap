@@ -16,6 +16,33 @@ exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] =
 ]
 `;
 
+exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Data.TaggedError("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError("MyError")",
+    "replacementSpan": {
+      "length": 5,
+      "start": 140,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "Data.TaggedClass("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass("MyError")",
+    "replacementSpan": {
+      "length": 5,
+      "start": 140,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotToken.ts at 4:22 1`] = `
 [
   {
