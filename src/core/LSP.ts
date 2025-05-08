@@ -1,5 +1,4 @@
 import * as ReadonlyArray from "effect/Array"
-import * as Data from "effect/Data"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
@@ -7,9 +6,9 @@ import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as Nano from "./Nano.js"
 
-export class RefactorNotApplicableError
-  extends Data.TaggedError("RefactorNotApplicableError")<{}>
-{}
+export class RefactorNotApplicableError {
+  readonly _tag = "@effect/language-service/RefactorNotApplicableError"
+}
 
 export interface RefactorDefinition {
   name: string
@@ -114,9 +113,12 @@ export function createCompletion(definition: CompletionDefinition): CompletionDe
 
 export const PluginOptions = Nano.Tag<PluginOptions>("PluginOptions")
 
-export class SourceFileNotFoundError extends Data.TaggedError("SourceFileNotFoundError")<{
-  fileName: string
-}> {}
+export class SourceFileNotFoundError {
+  readonly _tag = "@effect/language-service/SourceFileNotFoundError"
+  constructor(
+    readonly fileName: string
+  ) {}
+}
 
 export const getSemanticDiagnosticsWithCodeFixes = Nano.fn("LSP.getSemanticDiagnostics")(function*(
   rules: Array<DiagnosticDefinition>,

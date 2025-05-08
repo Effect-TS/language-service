@@ -118,6 +118,8 @@ function testDiagnosticQuickfixesOnExample(
               codeFix.end
           )
         }
+
+        return codeFixes.map((_) => _.fixName + " from " + _.start + " to " + _.end).join("\n")
       })
     ),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
@@ -132,7 +134,12 @@ function testDiagnosticQuickfixesOnExample(
       completions: false
     }),
     Nano.run,
-    (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
+    (result) => {
+      expect(Either.isRight(result), "should run with no error").toEqual(true)
+      expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchSnapshot(
+        "available codefixes list"
+      )
+    }
   )
 }
 

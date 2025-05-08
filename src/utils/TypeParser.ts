@@ -1,22 +1,25 @@
-import * as Data from "effect/Data"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
-export class TypeParserIssue extends Data.TaggedError("@effect/language-service/TypeParserIssue")<{
-  type?: ts.Type | undefined
-  node?: ts.Node | undefined
-  message: string
-}> {}
+export class TypeParserIssue {
+  readonly _tag = "@effect/language-service/TypeParserIssue"
+  constructor(
+    readonly type: ts.Type | undefined,
+    readonly node: ts.Node | undefined,
+    readonly message: string
+  ) {
+  }
+}
 
 function typeParserIssue(
   message: string,
   type?: ts.Type | undefined,
   node?: ts.Node | undefined
 ): Nano.Nano<never, TypeParserIssue, never> {
-  return Nano.fail(new TypeParserIssue({ type, message, node }))
+  return Nano.fail(new TypeParserIssue(type, node, message))
 }
 
 export function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
