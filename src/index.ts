@@ -32,20 +32,12 @@ const init = (
           : true
     }
 
-    // create the proxy
-    const proxy: ts.LanguageService = Object.create(null)
-    for (const k of Object.keys(languageService) as Array<keyof ts.LanguageService>) {
-      // @ts-expect-error
-      proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
-    }
-
-    const diagnosticsErrorCodes = diagnostics.map((diagnostic) => diagnostic.code)
-
     // this is nothing more than an hack. Seems like vscode and other editors do not
     // support new error codes in diagnostics. Because they somehow rely on looking into
     // typescript.codefixes object. SO ONLY OPTION here is to register fake codefix.
     // by hooking into the codefixes object and registering a fake codefix.
 
+    const diagnosticsErrorCodes = diagnostics.map((diagnostic) => diagnostic.code)
     try {
       ;(modules.typescript as any).codefix.registerCodeFix({
         errorCodes: diagnosticsErrorCodes,
@@ -53,6 +45,48 @@ const init = (
       })
       // eslint-disable-next-line no-empty
     } catch (_) {}
+
+    // create the proxy
+    const proxy: ts.LanguageService = Object.create(null)
+    for (const k of Object.keys(languageService) as Array<keyof ts.LanguageService>) {
+      // @ts-expect-error
+      proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
+    }
+
+    const effectCodeFixesForFile = new Map<
+      string,
+      Array<LSP.ApplicableDiagnosticDefinitionFixWithPositionAndCode>
+    >()
+    proxy.getSemanticDiagnostics = (fileName, ...args) => {
+      const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
+      const program = languageService.getProgram()
+
+      if (pluginOptions.diagnostics && program) {
+        effectCodeFixesForFile.delete(fileName)
+        const sourceFile = program.getSourceFile(fileName)
+
+        if (sourceFile) {
+          return pipe(
+            LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(
+              TypeCheckerApi.TypeCheckerApiCache,
+              TypeCheckerApi.makeTypeCheckerApiCache()
+            ),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+            Nano.provideService(LSP.PluginOptions, pluginOptions),
+            Nano.run,
+            Either.map(({ codeFixes, diagnostics }) => {
+              effectCodeFixesForFile.set(fileName, codeFixes)
+              return diagnostics.concat(applicableDiagnostics)
+            }),
+            Either.getOrElse(() => applicableDiagnostics)
+          )
+        }
+      }
+
+      return applicableDiagnostics
+    }
 
     proxy.getSupportedCodeFixes = (...args) =>
       languageService.getSupportedCodeFixes(...args).concat(
@@ -78,91 +112,45 @@ const init = (
         ...args
       )
 
-      const program = languageService.getProgram()
-      if (program) {
-        const sourceFile = program.getSourceFile(fileName)
-        if (sourceFile) {
-          return pipe(
-            Nano.gen(function*() {
-              const effectCodeFixes: Array<ts.CodeFixAction> = []
-              const applicableFixes = yield* LSP.getCodeFixesAtPosition(
-                diagnostics,
-                sourceFile,
-                start,
-                end,
-                errorCodes
-              )
+      return pipe(
+        Nano.sync(() => {
+          const effectCodeFixes: Array<ts.CodeFixAction> = []
+          const applicableFixes = (effectCodeFixesForFile.get(fileName) || []).filter((_) =>
+            _.start === start && _.end === end && errorCodes.indexOf(_.code) > -1
+          )
 
-              const formatContext = modules.typescript.formatting.getFormatContext(
-                formatOptions,
-                info.languageServiceHost
-              )
+          const formatContext = modules.typescript.formatting.getFormatContext(
+            formatOptions,
+            info.languageServiceHost
+          )
 
-              for (const applicableFix of applicableFixes) {
-                const changes = modules.typescript.textChanges.ChangeTracker.with(
-                  {
-                    formatContext,
-                    host: info.languageServiceHost,
-                    preferences: preferences || {}
-                  },
-                  (changeTracker) =>
-                    pipe(
-                      applicableFix.apply,
-                      Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-                      Nano.run
-                    )
+          for (const applicableFix of applicableFixes) {
+            const changes = modules.typescript.textChanges.ChangeTracker.with(
+              {
+                formatContext,
+                host: info.languageServiceHost,
+                preferences: preferences || {}
+              },
+              (changeTracker) =>
+                pipe(
+                  applicableFix.apply,
+                  Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                  Nano.run
                 )
-                effectCodeFixes.push({
-                  fixName: applicableFix.fixName,
-                  description: applicableFix.description,
-                  changes
-                })
-              }
+            )
+            effectCodeFixes.push({
+              fixName: applicableFix.fixName,
+              description: applicableFix.description,
+              changes
+            })
+          }
 
-              return effectCodeFixes
-            }),
-            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(
-              TypeCheckerApi.TypeCheckerApiCache,
-              TypeCheckerApi.makeTypeCheckerApiCache()
-            ),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provideService(LSP.PluginOptions, pluginOptions),
-            Nano.run,
-            Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
-            Either.getOrElse(() => applicableCodeFixes)
-          )
-        }
-      }
-
-      return applicableCodeFixes
-    }
-
-    proxy.getSemanticDiagnostics = (fileName, ...args) => {
-      const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
-      const program = languageService.getProgram()
-
-      if (pluginOptions.diagnostics && program) {
-        const sourceFile = program.getSourceFile(fileName)
-
-        if (sourceFile) {
-          return pipe(
-            LSP.getSemanticDiagnostics(diagnostics, sourceFile),
-            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(
-              TypeCheckerApi.TypeCheckerApiCache,
-              TypeCheckerApi.makeTypeCheckerApiCache()
-            ),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provideService(LSP.PluginOptions, pluginOptions),
-            Nano.run,
-            Either.map((effectDiagnostics) => effectDiagnostics.concat(applicableDiagnostics)),
-            Either.getOrElse(() => applicableDiagnostics)
-          )
-        }
-      }
-
-      return applicableDiagnostics
+          return effectCodeFixes
+        }),
+        Nano.run,
+        Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
+        Either.getOrElse(() => applicableCodeFixes)
+      )
     }
 
     proxy.getApplicableRefactors = (...args) => {
