@@ -1,10 +1,10 @@
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as AST from "../utils/AST.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
-import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 /**
  * Refactor to remove unnecessary `Effect.gen` calls.

@@ -1,6 +1,6 @@
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeScriptApi from "../utils/TypeScriptApi.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const wrapWithPipe = LSP.createRefactor({
   name: "effect/wrapWithPipe",

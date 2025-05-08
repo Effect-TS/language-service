@@ -3,11 +3,11 @@ import * as Eq from "effect/Equivalence"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
+import * as AST from "./core/AST.js"
 import * as Nano from "./core/Nano.js"
-import * as AST from "./utils/AST.js"
-import * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
+import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
+import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import * as TypeParser from "./utils/TypeParser.js"
-import * as TypeScriptApi from "./utils/TypeScriptApi.js"
 
 const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) =>
   fa.kind === fb.kind && fa.text === fb.text

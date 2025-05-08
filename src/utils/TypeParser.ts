@@ -2,8 +2,8 @@ import * as Data from "effect/Data"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "./TypeCheckerApi.js"
-import * as TypeScriptApi from "./TypeScriptApi.js"
+import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export class TypeParserIssue extends Data.TaggedError("@effect/language-service/TypeParserIssue")<{
   type?: ts.Type | undefined

@@ -11,6 +11,17 @@ Effect.never
 11:4 - 11:16 | 1 | Effect must be yielded or assigned to a variable."
 `;
 
+exports[`Diagnostic floatingEffect > floatingEffect_disabled.ts > diagnostic output 1`] = `
+"Effect.succeed(1)
+4:0 - 4:17 | 0 | Effect must be yielded or assigned to a variable.
+
+Effect.succeed(1)
+12:0 - 12:17 | 1 | Effect must be yielded or assigned to a variable.
+
+Effect.succeed(1)
+16:0 - 16:17 | 2 | Effect must be yielded or assigned to a variable."
+`;
+
 exports[`Diagnostic missingEffectContext > missingEffectContext_callExpression.ts > diagnostic output 1`] = `
 "effectWithServices
 22:7 - 22:25 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
@@ -129,7 +140,1578 @@ yield Effect.never
 42:4 - 42:22 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 189 - 212 1`] = `
+exports[`Diagnostic quickfixes floatingEffect > floatingEffect.ts > code fix effect/floatingEffect_skipFile  output for range 76 - 102 1`] = `
+"/** @effect-diagnostics effect/floatingEffect:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.succeed(1)
+
+Effect.succeed("floating")
+
+Effect.never
+
+Effect.runPromise(Effect.gen(function*(){
+    const thisIsFine = Effect.succeed(1)
+    Effect.never
+}))
+
+Effect.runPromise(Effect.gen(function*(){
+    yield* Effect.succeed(1).pipe(Effect.fork)
+    // ^- This is fine, returns a fiber runtime
+}))
+
+export function constructorFunction(this: { boot: Effect.Effect<void>}){
+    this.boot = Effect.void
+    // ^- This is fine, its another way to perform an assignment
+}
+
+const main = Effect.gen(function*(){
+    yield* Effect.exit(Effect.void)
+    // ^- This is fine, returns an exit
+})
+"
+`;
+
+exports[`Diagnostic quickfixes floatingEffect > floatingEffect.ts > code fix effect/floatingEffect_skipFile  output for range 104 - 116 1`] = `
+"/** @effect-diagnostics effect/floatingEffect:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.succeed(1)
+
+Effect.succeed("floating")
+
+Effect.never
+
+Effect.runPromise(Effect.gen(function*(){
+    const thisIsFine = Effect.succeed(1)
+    Effect.never
+}))
+
+Effect.runPromise(Effect.gen(function*(){
+    yield* Effect.succeed(1).pipe(Effect.fork)
+    // ^- This is fine, returns a fiber runtime
+}))
+
+export function constructorFunction(this: { boot: Effect.Effect<void>}){
+    this.boot = Effect.void
+    // ^- This is fine, its another way to perform an assignment
+}
+
+const main = Effect.gen(function*(){
+    yield* Effect.exit(Effect.void)
+    // ^- This is fine, returns an exit
+})
+"
+`;
+
+exports[`Diagnostic quickfixes floatingEffect > floatingEffect.ts > code fix effect/floatingEffect_skipFile  output for range 205 - 217 1`] = `
+"/** @effect-diagnostics effect/floatingEffect:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.succeed(1)
+
+Effect.succeed("floating")
+
+Effect.never
+
+Effect.runPromise(Effect.gen(function*(){
+    const thisIsFine = Effect.succeed(1)
+    Effect.never
+}))
+
+Effect.runPromise(Effect.gen(function*(){
+    yield* Effect.succeed(1).pipe(Effect.fork)
+    // ^- This is fine, returns a fiber runtime
+}))
+
+export function constructorFunction(this: { boot: Effect.Effect<void>}){
+    this.boot = Effect.void
+    // ^- This is fine, its another way to perform an assignment
+}
+
+const main = Effect.gen(function*(){
+    yield* Effect.exit(Effect.void)
+    // ^- This is fine, returns an exit
+})
+"
+`;
+
+exports[`Diagnostic quickfixes floatingEffect > floatingEffect_disabled.ts > code fix effect/floatingEffect_skipFile  output for range 98 - 115 1`] = `
+"/** @effect-diagnostics effect/floatingEffect:skip-file */
+/** @effect-diagnostics effect/floatingEffect:warning */
+import * as Effect from "effect/Effect"
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:off */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:error */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:suggestion */
+
+Effect.succeed(1)
+
+"
+`;
+
+exports[`Diagnostic quickfixes floatingEffect > floatingEffect_disabled.ts > code fix effect/floatingEffect_skipFile  output for range 246 - 263 1`] = `
+"/** @effect-diagnostics effect/floatingEffect:skip-file */
+/** @effect-diagnostics effect/floatingEffect:warning */
+import * as Effect from "effect/Effect"
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:off */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:error */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:suggestion */
+
+Effect.succeed(1)
+
+"
+`;
+
+exports[`Diagnostic quickfixes floatingEffect > floatingEffect_disabled.ts > code fix effect/floatingEffect_skipFile  output for range 326 - 343 1`] = `
+"/** @effect-diagnostics effect/floatingEffect:skip-file */
+/** @effect-diagnostics effect/floatingEffect:warning */
+import * as Effect from "effect/Effect"
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:off */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:error */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics effect/floatingEffect:suggestion */
+
+Effect.succeed(1)
+
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_callExpression.ts > code fix effect/missingEffectContext_skipFile  output for range 507 - 525 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceB>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceB>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+function testFn(effect: Effect.Effect<number>){
+    return effect
+}
+
+// @ts-expect-error
+testFn(effectWithServices)
+
+function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | ServiceB>){
+    return effect
+}
+
+// @ts-expect-error
+testFnWithServiceAB(effectWithServices)
+
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_callExpression.ts > code fix effect/missingEffectContext_skipFile  output for range 678 - 696 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceB>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceB>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+function testFn(effect: Effect.Effect<number>){
+    return effect
+}
+
+// @ts-expect-error
+testFn(effectWithServices)
+
+function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | ServiceB>){
+    return effect
+}
+
+// @ts-expect-error
+testFnWithServiceAB(effectWithServices)
+
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_lazy.ts > code fix effect/missingEffectContext_skipFile  output for range 779 - 830 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+export const useSpan: {
+    <A, E, R>(evaluate: () => Effect.Effect<A, E, R>): Effect.Effect<A, E, R>
+  } = <A, E, R>(...args: [evaluate: () => Effect.Effect<A, E, R>]  ): Effect.Effect<A, E, R> => {
+    const evaluate: () => Effect.Effect<A, E, R> = args[args.length - 1]
+    return Effect.onExit(evaluate(), () => Effect.void)
+  }
+
+  
+export const useSpan_invalid: {
+  <A, E, R>(evaluate: () => Effect.Effect<A, E, R>): Effect.Effect<A, E, R>
+} = <A, E, R>(...args: [evaluate: () => Effect.Effect<A, E, R>]  ): Effect.Effect<A, E, R> => {
+  const evaluate: () => Effect.Effect<A, E, R | ServiceA> = args[args.length - 1]
+  // @ts-expect-error
+  return Effect.onExit(evaluate(), () => Effect.void)
+}
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_plainAssignment.ts > code fix effect/missingEffectContext_skipFile  output for range 551 - 569 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Context from "effect/Context"
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllServices: Effect.Effect<number> = effectWithServices
+
+// @ts-expect-error
+export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | ServiceB> {}
+
+// @ts-expect-error
+export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
+
+export function missingServiceWithGenericType<A>(service: A){
+    // @ts-expect-error
+    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
+    return missingServiceA
+}
+
+// @ts-expect-error
+const _ = effectWithServices satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_plainAssignment.ts > code fix effect/missingEffectContext_skipFile  output for range 648 - 663 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Context from "effect/Context"
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllServices: Effect.Effect<number> = effectWithServices
+
+// @ts-expect-error
+export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | ServiceB> {}
+
+// @ts-expect-error
+export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
+
+export function missingServiceWithGenericType<A>(service: A){
+    // @ts-expect-error
+    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
+    return missingServiceA
+}
+
+// @ts-expect-error
+const _ = effectWithServices satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_plainAssignment.ts > code fix effect/missingEffectContext_skipFile  output for range 863 - 891 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Context from "effect/Context"
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllServices: Effect.Effect<number> = effectWithServices
+
+// @ts-expect-error
+export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | ServiceB> {}
+
+// @ts-expect-error
+export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
+
+export function missingServiceWithGenericType<A>(service: A){
+    // @ts-expect-error
+    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
+    return missingServiceA
+}
+
+// @ts-expect-error
+const _ = effectWithServices satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_plainAssignment.ts > code fix effect/missingEffectContext_skipFile  output for range 1035 - 1050 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Context from "effect/Context"
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllServices: Effect.Effect<number> = effectWithServices
+
+// @ts-expect-error
+export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | ServiceB> {}
+
+// @ts-expect-error
+export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
+
+export function missingServiceWithGenericType<A>(service: A){
+    // @ts-expect-error
+    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
+    return missingServiceA
+}
+
+// @ts-expect-error
+const _ = effectWithServices satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_plainAssignment.ts > code fix effect/missingEffectContext_skipFile  output for range 1168 - 1186 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Context from "effect/Context"
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllServices: Effect.Effect<number> = effectWithServices
+
+// @ts-expect-error
+export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | ServiceB> {}
+
+// @ts-expect-error
+export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
+
+export function missingServiceWithGenericType<A>(service: A){
+    // @ts-expect-error
+    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
+    return missingServiceA
+}
+
+// @ts-expect-error
+const _ = effectWithServices satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_returnSignature.ts > code fix effect/missingEffectContext_skipFile  output for range 489 - 514 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export function testFn(): Effect.Effect<number> {
+    // @ts-expect-error
+    return effectWithServices
+}
+ 
+// @ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
+
+// @ts-expect-error
+export const conciseBodyMissingServiceC: () => Effect.Effect<number, never, ServiceA | ServiceB> = () => effectWithServices
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_returnSignature.ts > code fix effect/missingEffectContext_skipFile  output for range 601 - 619 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export function testFn(): Effect.Effect<number> {
+    // @ts-expect-error
+    return effectWithServices
+}
+ 
+// @ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
+
+// @ts-expect-error
+export const conciseBodyMissingServiceC: () => Effect.Effect<number, never, ServiceA | ServiceB> = () => effectWithServices
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_returnSignature.ts > code fix effect/missingEffectContext_skipFile  output for range 746 - 764 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2}
+}){}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+    succeed: { a: 3}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+
+export function testFn(): Effect.Effect<number> {
+    // @ts-expect-error
+    return effectWithServices
+}
+ 
+// @ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
+
+// @ts-expect-error
+export const conciseBodyMissingServiceC: () => Effect.Effect<number, never, ServiceA | ServiceB> = () => effectWithServices
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_callExpression.ts > code fix effect/missingEffectError_skipFile  output for range 401 - 417 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+function testFn(effect: Effect.Effect<number>){
+    return effect
+}
+
+// @ts-expect-error
+testFn(effectWithErrors)
+
+function testFnWithServiceAB(effect: Effect.Effect<number, ErrorA | ErrorB>){
+    return effect
+}
+
+// @ts-expect-error
+testFnWithServiceAB(effectWithErrors)
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_callExpression.ts > code fix effect/missingEffectError_skipFile  output for range 559 - 575 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+function testFn(effect: Effect.Effect<number>){
+    return effect
+}
+
+// @ts-expect-error
+testFn(effectWithErrors)
+
+function testFnWithServiceAB(effect: Effect.Effect<number, ErrorA | ErrorB>){
+    return effect
+}
+
+// @ts-expect-error
+testFnWithServiceAB(effectWithErrors)
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_plainAssignment.ts > code fix effect/missingEffectError_skipFile  output for range 403 - 419 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllErrors: Effect.Effect<number> = effectWithErrors
+
+// @ts-expect-error
+export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, ErrorA | ErrorB> {}
+
+// @ts-expect-error
+export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErrors
+
+export function missingErrorWithGenericType<A>(error: A){
+    // @ts-expect-error
+    const missingErrorA: Effect.Effect<never> = Effect.fail(error)
+    return missingErrorA
+}
+
+// @ts-expect-error
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_plainAssignment.ts > code fix effect/missingEffectError_skipFile  output for range 496 - 509 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllErrors: Effect.Effect<number> = effectWithErrors
+
+// @ts-expect-error
+export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, ErrorA | ErrorB> {}
+
+// @ts-expect-error
+export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErrors
+
+export function missingErrorWithGenericType<A>(error: A){
+    // @ts-expect-error
+    const missingErrorA: Effect.Effect<never> = Effect.fail(error)
+    return missingErrorA
+}
+
+// @ts-expect-error
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_plainAssignment.ts > code fix effect/missingEffectError_skipFile  output for range 685 - 711 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllErrors: Effect.Effect<number> = effectWithErrors
+
+// @ts-expect-error
+export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, ErrorA | ErrorB> {}
+
+// @ts-expect-error
+export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErrors
+
+export function missingErrorWithGenericType<A>(error: A){
+    // @ts-expect-error
+    const missingErrorA: Effect.Effect<never> = Effect.fail(error)
+    return missingErrorA
+}
+
+// @ts-expect-error
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_plainAssignment.ts > code fix effect/missingEffectError_skipFile  output for range 849 - 862 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllErrors: Effect.Effect<number> = effectWithErrors
+
+// @ts-expect-error
+export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, ErrorA | ErrorB> {}
+
+// @ts-expect-error
+export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErrors
+
+export function missingErrorWithGenericType<A>(error: A){
+    // @ts-expect-error
+    const missingErrorA: Effect.Effect<never> = Effect.fail(error)
+    return missingErrorA
+}
+
+// @ts-expect-error
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_plainAssignment.ts > code fix effect/missingEffectError_skipFile  output for range 964 - 980 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export const noError: Effect.Effect<number> = Effect.succeed(1)
+
+// @ts-expect-error
+export const missingAllErrors: Effect.Effect<number> = effectWithErrors
+
+// @ts-expect-error
+export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
+
+export interface EffectSubtyping<A> extends Effect.Effect<A, ErrorA | ErrorB> {}
+
+// @ts-expect-error
+export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErrors
+
+export function missingErrorWithGenericType<A>(error: A){
+    // @ts-expect-error
+    const missingErrorA: Effect.Effect<never> = Effect.fail(error)
+    return missingErrorA
+}
+
+// @ts-expect-error
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_returnSignature.ts > code fix effect/missingEffectError_skipFile  output for range 383 - 406 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export function testFn(): Effect.Effect<number> {
+    // @ts-expect-error
+    return effectWithErrors
+}
+ 
+// @ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
+
+// @ts-expect-error
+export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_returnSignature.ts > code fix effect/missingEffectError_skipFile  output for range 493 - 509 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export function testFn(): Effect.Effect<number> {
+    // @ts-expect-error
+    return effectWithErrors
+}
+ 
+// @ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
+
+// @ts-expect-error
+export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectError > missingEffectError_returnSignature.ts > code fix effect/missingEffectError_skipFile  output for range 625 - 641 1`] = `
+"/** @effect-diagnostics effect/missingEffectError:skip-file */
+import * as Effect from "effect/Effect"
+import * as Data from "effect/Data"
+
+class ErrorA extends Data.Error<{
+    a: 1
+}>{}
+
+class ErrorB extends Data.Error<{
+    a: 2
+}>{}
+
+class ErrorC extends Data.Error<{
+    a: 3
+}>{}
+
+declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
+
+export function testFn(): Effect.Effect<number> {
+    // @ts-expect-error
+    return effectWithErrors
+}
+ 
+// @ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
+
+// @ts-expect-error
+export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 172 - 180 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 189 - 212 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 283 - 291 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 300 - 323 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 328 - 351 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 458 - 466 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 479 - 502 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 691 - 699 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 708 - 726 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 812 - 820 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 829 - 847 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 920 - 928 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix effect/missingStarInYieldEffectGen_skipFile  output for range 937 - 955 1`] = `
+"/** @effect-diagnostics effect/missingStarInYieldEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+const noError = Effect.gen(function*(){
+    yield* Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+})
+
+// @ts-expect-error
+const missingStarInMultipleYield = Effect.gen(function*(){
+    yield Effect.succeed(1)
+    yield Effect.succeed(2)
+})
+
+const missingStarInInnerYield = Effect.gen(function*(){
+    // @ts-expect-error
+    yield* Effect.gen(function*(){
+        yield Effect.succeed(1)
+    })
+})
+
+export function* effectInsideStandardGenerator(){
+    yield Effect.never
+    // ^- this is fine, not inside an effect gen
+}
+
+// @ts-expect-error
+const effectFnUsage = Effect.fn(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
+    yield Effect.never
+})
+
+// @ts-expect-error
+const untracedEffectFnUsage = Effect.fnUntraced(function*(){
+    yield Effect.never
+})
+"
+`;
+
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 189 - 212 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -176,7 +1758,7 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 300 - 323 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 300 - 323 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -223,7 +1805,7 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 328 - 351 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 328 - 351 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -270,7 +1852,7 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 479 - 502 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 479 - 502 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -317,7 +1899,7 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 708 - 726 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 708 - 726 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -364,7 +1946,7 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 829 - 847 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 829 - 847 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -411,7 +1993,7 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix output for range 937 - 955 1`] = `
+exports[`Diagnostic quickfixes missingStarInYieldEffectGen > missingStarInYieldEffectGen.ts > code fix missingStarInYieldEffectGen_fix  output for range 937 - 955 1`] = `
 "import * as Effect from "effect/Effect"
 
 const noError = Effect.gen(function*(){
@@ -458,7 +2040,26 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 "
 `;
 
-exports[`Diagnostic quickfixes unnecessaryEffectGen > unnecessaryEffectGen.ts > code fix output for range 291 - 356 1`] = `
+exports[`Diagnostic quickfixes unnecessaryEffectGen > unnecessaryEffectGen.ts > code fix effect/unnecessaryEffectGen_skipFile  output for range 291 - 356 1`] = `
+"/** @effect-diagnostics effect/unnecessaryEffectGen:skip-file */
+import * as Effect from "effect/Effect"
+
+export const shouldNotRant = Effect.gen(function* () {
+    yield* Effect.succeed(true)
+    return yield* Effect.succeed(42)
+})
+
+export const shouldNotRaiseForNonEffect = Effect.gen(function* () {
+    return 42
+})
+
+export const shouldRaiseForSingle = Effect.gen(function* () {
+    return yield* Effect.succeed(42)
+})
+"
+`;
+
+exports[`Diagnostic quickfixes unnecessaryEffectGen > unnecessaryEffectGen.ts > code fix unnecessaryEffectGen_fix  output for range 291 - 356 1`] = `
 "import * as Effect from "effect/Effect"
 
 export const shouldNotRant = Effect.gen(function* () {
