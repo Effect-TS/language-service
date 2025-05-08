@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.10.1
+
+### Patch Changes
+
+- [#112](https://github.com/Effect-TS/language-service/pull/112) [`1c16ecc`](https://github.com/Effect-TS/language-service/commit/1c16ecc3988ec3a37d8a56b1e6c926b267516c9a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Perf: solve codefixes and diagnostics in a single pass and cache between them
+
 ## 0.10.0
 
 ### Minor Changes
