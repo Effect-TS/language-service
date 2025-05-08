@@ -4,7 +4,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
-import * as TypeScriptApi from "./TypeScriptApi.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 /**
  * Collects the given node and all its ancestor nodes that fully contain the specified TextRange.
@@ -87,6 +87,41 @@ const findNodeAtPosition = Nano.fn("AST.findNodeAtPosition")(function*(
 
   return result
 })
+
+export const getCommentAtPosition = Nano.fn("TypeScriptApi.getCommentAtPosition")(function*(
+  sourceFile: ts.SourceFile,
+  pos: number
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const token = yield* findNodeAtPosition(sourceFile, pos)
+
+  if (
+    token === undefined || token.kind === ts.SyntaxKind.JsxText ||
+    pos >= token.end - (ts.tokenToString(token.kind) || "").length
+  ) {
+    return yield* Nano.fail(new NodeNotFoundError())
+  }
+  const startPos = token.pos === 0 ? (ts.getShebang(sourceFile.text) || "").length : token.pos
+
+  if (startPos === 0) return yield* Nano.fail(new NodeNotFoundError())
+
+  const result = ts.forEachTrailingCommentRange(sourceFile.text, startPos, isCommentInRange, pos) ||
+    ts.forEachLeadingCommentRange(sourceFile.text, startPos, isCommentInRange, pos)
+
+  if (!result) return yield* Nano.fail(new NodeNotFoundError())
+
+  return result
+})
+
+function isCommentInRange(
+  pos: number,
+  end: number,
+  kind: ts.CommentKind,
+  _nl: boolean,
+  at: number
+): ts.CommentRange | undefined {
+  return at >= pos && at < end ? { pos, end, kind } : undefined
+}
 
 /**
  * Ensures value is a text range

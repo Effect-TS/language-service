@@ -1,8 +1,8 @@
 import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
+import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
+import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import { diagnostics } from "@effect/language-service/diagnostics"
-import * as TypeCheckerApi from "@effect/language-service/utils/TypeCheckerApi"
-import * as TypeScriptApi from "@effect/language-service/utils/TypeScriptApi"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as fs from "fs"
@@ -123,7 +123,7 @@ function testDiagnosticQuickfixesOnExample(
                 )
             )
             expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot(
-              "code fix output for range " + startPos + " - " + endPos
+              "code fix " + codeFix.fixName + "  output for range " + startPos + " - " + endPos
             )
           }
         }

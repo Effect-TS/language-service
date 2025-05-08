@@ -3,8 +3,8 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
-import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const unnecessaryEffectGen = LSP.createDiagnostic({
   name: "effect/unnecessaryEffectGen",
@@ -44,7 +44,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
         category: ts.DiagnosticCategory.Suggestion,
         messageText:
           `This Effect.gen is useless here because it only contains a single return statement.`,
-        fix: Option.some({
+        fixes: [{
           fixName: "unnecessaryEffectGen_fix",
           description: "Remove the Effect.gen, and keep the body",
           apply: Nano.gen(function*() {
@@ -53,7 +53,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
             )
             textChanges.replaceNode(sourceFile, node, body)
           })
-        })
+        }]
       })
     )
 

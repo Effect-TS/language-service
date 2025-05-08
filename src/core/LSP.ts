@@ -3,8 +3,8 @@ import * as Data from "effect/Data"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import type * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
-import type * as TypeScriptApi from "../utils/TypeScriptApi.js"
+import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as Nano from "./Nano.js"
 
 export class RefactorNotApplicableError
@@ -56,7 +56,7 @@ export interface ApplicableDiagnosticDefinition {
   node: ts.Node
   category: ts.DiagnosticCategory
   messageText: string
-  fix: Option.Option<ApplicableDiagnosticDefinitionFix>
+  fixes: Array<ApplicableDiagnosticDefinitionFix>
 }
 
 export interface ApplicableDiagnosticDefinitionFix {
@@ -115,20 +115,26 @@ export const getSemanticDiagnostics = Nano.fn("LSP.getSemanticDiagnostics")(func
   sourceFile: ts.SourceFile
 ) {
   const effectDiagnostics: Array<ts.Diagnostic> = []
+  const executor = yield* createDiagnosticExecutor(sourceFile)
   for (const diagnostic of diagnostics) {
     const result = yield* (
-      Nano.option(diagnostic.apply(sourceFile))
+      Nano.option(executor.execute(diagnostic))
     )
     if (Option.isSome(result)) {
-      effectDiagnostics.push(...result.value.map((_) => ({
-        file: sourceFile,
-        start: _.node.getStart(sourceFile),
-        length: _.node.getEnd() - _.node.getStart(sourceFile),
-        messageText: _.messageText,
-        category: _.category,
-        code: diagnostic.code,
-        source: "effect"
-      })))
+      effectDiagnostics.push(
+        ...pipe(
+          result.value,
+          ReadonlyArray.map((_) => ({
+            file: sourceFile,
+            start: _.node.getStart(sourceFile),
+            length: _.node.getEnd() - _.node.getStart(sourceFile),
+            messageText: _.messageText,
+            category: _.category,
+            code: diagnostic.code,
+            source: "effect"
+          }))
+        )
+      )
     }
   }
   return effectDiagnostics
@@ -143,8 +149,9 @@ export const getCodeFixesAtPosition = Nano.fn("LSP.getCodeFixesAtPosition")(func
 ) {
   const runnableDiagnostics = diagnostics.filter((_) => errorCodes.indexOf(_.code) > -1)
   const applicableFixes: Array<ApplicableDiagnosticDefinitionFix> = []
+  const executor = yield* createDiagnosticExecutor(sourceFile)
   for (const diagnostic of runnableDiagnostics) {
-    const result = yield* Nano.option(diagnostic.apply(sourceFile))
+    const result = yield* Nano.option(executor.execute(diagnostic))
     if (Option.isSome(result)) {
       applicableFixes.push(
         ...pipe(
@@ -152,8 +159,8 @@ export const getCodeFixesAtPosition = Nano.fn("LSP.getCodeFixesAtPosition")(func
           ReadonlyArray.filter((_) =>
             _.node.getStart(sourceFile) === start && _.node.getEnd() === end
           ),
-          ReadonlyArray.map((_) => _.fix),
-          ReadonlyArray.getSomes
+          ReadonlyArray.map((_) => _.fixes),
+          ReadonlyArray.flatten
         )
       )
     }
@@ -220,3 +227,104 @@ export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(
   }
   return effectCompletions
 })
+
+const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")(
+  function*(sourceFile: ts.SourceFile) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+    const ruleOverrides: Record<
+      string,
+      Array<{ start: number; end: number; level: string }>
+    > = {}
+    const skippedRules: Array<string> = []
+
+    const regex =
+      /@effect-diagnostics((?:\s[a-zA-Z0-9/]+:(?:off|warning|error|message|suggestion|skip-file))+)?/gm
+    let match: RegExpExecArray | null
+    while ((match = regex.exec(sourceFile.text)) !== null) {
+      const rulesCaptureGroup = match[1]
+
+      if (rulesCaptureGroup) {
+        const trimmedRuleString = rulesCaptureGroup.trim()
+        if (trimmedRuleString) {
+          const individualRules = trimmedRuleString.split(/\s+/)
+          for (const rulePair of individualRules) {
+            const [ruleName, ruleLevel] = rulePair.toLowerCase().split(":")
+            if (ruleName && ruleLevel) {
+              if (ruleLevel === "skip-file") skippedRules.push(ruleName)
+              ruleOverrides[ruleName] = ruleOverrides[ruleName] || []
+              const newLength = ruleOverrides[ruleName].push({
+                start: match.index,
+                end: Number.MAX_SAFE_INTEGER,
+                level: ruleLevel
+              })
+              if (newLength > 1) ruleOverrides[ruleName][newLength - 2].end = match.index
+            }
+          }
+        }
+      }
+    }
+
+    const levelToDiagnosticCategory: Record<string, ts.DiagnosticCategory> = {
+      error: ts.DiagnosticCategory.Error,
+      warning: ts.DiagnosticCategory.Warning,
+      message: ts.DiagnosticCategory.Message,
+      suggestion: ts.DiagnosticCategory.Suggestion
+    }
+
+    const execute = Nano.fn("LSP.ruleExecutor")(function*(
+      rule: DiagnosticDefinition
+    ) {
+      const ruleNameLowered = rule.name.toLowerCase()
+      // if file is skipped entirely, do not process the rule
+      if (skippedRules.indexOf(ruleNameLowered) > -1) return []
+      // run the executor
+      let modifiedDiagnostics = yield* rule.apply(sourceFile)
+      // apply overrides
+      for (const override of (ruleOverrides[ruleNameLowered] || [])) {
+        if (override.level === "off") {
+          // remove from output those in range
+          modifiedDiagnostics = modifiedDiagnostics.filter((_) =>
+            !(_.node.getStart(sourceFile) >= override.start && _.node.getEnd() <= override.end)
+          )
+        } else {
+          // change severity
+          for (
+            const message of modifiedDiagnostics.filter((_) =>
+              _.node.getStart(sourceFile) >= override.start && _.node.getEnd() <= override.end
+            )
+          ) {
+            message.category = override.level in levelToDiagnosticCategory
+              ? levelToDiagnosticCategory[override.level]
+              : message.category
+          }
+        }
+      }
+
+      // append a rule fix to disable this check for the entire file
+      const fixByDisableEntireFile: ApplicableDiagnosticDefinitionFix = {
+        fixName: rule.name + "_skipFile",
+        description: "Disable " + rule.name + " for this file",
+        apply: Nano.flatMap(
+          Nano.service(TypeScriptApi.ChangeTracker),
+          (changeTracker) =>
+            Nano.sync(() =>
+              changeTracker.insertText(
+                sourceFile,
+                0,
+                `/** @effect-diagnostics ${rule.name}:skip-file */` + "\n"
+              )
+            )
+        )
+      }
+      const rulesWithDisableFix = modifiedDiagnostics.map((diagnostic) => ({
+        ...diagnostic,
+        fixes: diagnostic.fixes.concat([fixByDisableEntireFile])
+      }))
+
+      return rulesWithDisableFix
+    })
+
+    return { execute }
+  }
+)

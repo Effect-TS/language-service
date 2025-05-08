@@ -4,11 +4,11 @@ import type ts from "typescript"
 import { completions } from "./completions.js"
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
+import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
+import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import { diagnostics } from "./diagnostics.js"
 import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
-import * as TypeCheckerApi from "./utils/TypeCheckerApi.js"
-import * as TypeScriptApi from "./utils/TypeScriptApi.js"
 
 const init = (
   modules: {

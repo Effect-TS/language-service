@@ -3,9 +3,9 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
-import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   name: "effect/missingStarInYieldEffectGen",
@@ -71,12 +71,12 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
         node,
         category: ts.DiagnosticCategory.Error,
         messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`,
-        fix: Option.none()
+        fixes: []
       })
     )
     brokenYields.forEach((node) => {
       const fix = node.expression ?
-        Option.some({
+        [{
           fixName: "missingStarInYieldEffectGen_fix",
           description: "Replace yield with yield*",
           apply: Nano.gen(function*() {
@@ -91,15 +91,15 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
               )
             )
           })
-        }) :
-        Option.none()
+        }] :
+        []
 
       effectDiagnostics.push({
         node,
         category: ts.DiagnosticCategory.Error,
         messageText:
           `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
-        fix
+        fixes: fix
       })
     })
 

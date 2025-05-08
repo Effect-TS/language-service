@@ -1,8 +1,8 @@
 import * as Option from "effect/Option"
+import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
-import * as AST from "../utils/AST"
-import * as TypeScriptApi from "../utils/TypeScriptApi"
+import * as TypeScriptApi from "../core/TypeScriptApi"
 
 export const effectSchemaSelfInClasses = LSP.createCompletion({
   name: "effect/effectSchemaSelfInClasses",

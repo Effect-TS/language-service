@@ -1,12 +1,11 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../utils/TypeCheckerApi.js"
+import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
-import * as TypeScriptApi from "../utils/TypeScriptApi.js"
 
 export const missingEffectContext = LSP.createDiagnostic({
   name: "effect/missingEffectContext",
@@ -63,7 +62,7 @@ export const missingEffectContext = LSP.createDiagnostic({
             messageText: `Missing '${
               sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
             }' in the expected Effect context.`,
-            fix: Option.none()
+            fixes: []
           }
         )
       }
