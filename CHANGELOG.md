@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.10.2
+
+### Patch Changes
+
+- [#114](https://github.com/Effect-TS/language-service/pull/114) [`4e5f345`](https://github.com/Effect-TS/language-service/commit/4e5f34538affbcadf3bb7b583b2286bd62563a53) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Perf improvements and shrinked build
+
 ## 0.10.1
 
 ### Patch Changes
