@@ -156,24 +156,7 @@ export const transformAsyncAwaitToEffectGen = Nano.fn("AST.transformAsyncAwaitTo
     }
     const generatorBody = visitor(node.body!)
 
-    const generator = ts.factory.createFunctionExpression(
-      undefined,
-      ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-      undefined,
-      [],
-      [],
-      undefined,
-      generatorBody as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
-    )
-
-    const effectGenCallExp = ts.factory.createCallExpression(
-      ts.factory.createPropertyAccessExpression(
-        ts.factory.createIdentifier(effectModuleName),
-        "gen"
-      ),
-      undefined,
-      [generator as any]
-    )
+    const effectGenCallExp = yield* createEffectGenCallExpression(effectModuleName, generatorBody)
 
     let currentFlags = ts.getCombinedModifierFlags(node)
     currentFlags &= ~ts.ModifierFlags.Async
@@ -481,3 +464,53 @@ export const parseDataForExtendsClassCompletion = Nano.fn(
     { accessedObject, classDeclaration, className: classDeclaration.name, replacementSpan } as const
   )
 })
+
+const createEffectGenCallExpression = Nano.fn("AST.createEffectGenCallExpression")(function*(
+  effectModuleIdentifierName: string,
+  node: ts.Node
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const generator = ts.factory.createFunctionExpression(
+    undefined,
+    ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+    undefined,
+    [],
+    [],
+    undefined,
+    node as any // NOTE(mattia): intended, to use same routine for both ConciseBody and Body
+  )
+
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier(effectModuleIdentifierName),
+      "gen"
+    ),
+    undefined,
+    [generator]
+  )
+})
+
+export const createEffectGenCallExpressionWithBlock = Nano.fn(
+  "AST.createEffectGenCallExpressionWithBlock"
+)(function*(
+  effectModuleIdentifierName: string,
+  statement: ts.Statement | Array<ts.Statement>
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  return yield* createEffectGenCallExpression(
+    effectModuleIdentifierName,
+    ts.factory.createBlock(Array.isArray(statement) ? statement : [statement], false)
+  )
+})
+
+export const createReturnYieldStarStatement = Nano.fn("AST.createReturnYieldStarStatement")(
+  function*(expr: ts.Expression) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    return ts.factory.createReturnStatement(
+      ts.factory.createYieldExpression(
+        ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+        expr
+      )
+    )
+  }
+)
