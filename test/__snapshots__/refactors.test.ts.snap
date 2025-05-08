@@ -2242,6 +2242,142 @@ class Person extends Schema.TaggedClass<Person>("Person")("Person", {
 "
 `;
 
+exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 5:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 5:22
+import * as Effect from "effect/Effect"
+import { pipe } from "effect"
+
+export const test1 = Effect.gen(function*() { return yield* Effect.succeed(42) })
+
+export const test3 = test1
+
+export const test2 = Effect.succeed(42).pipe(
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+
+export const test4 = pipe(
+    Effect.succeed(42),
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+"
+`;
+
+exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 7:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 7:22
+import * as Effect from "effect/Effect"
+import { pipe } from "effect"
+
+export const test1 = Effect.succeed(42)
+
+export const test3 = Effect.gen(function*() { return yield* test1 })
+
+export const test2 = Effect.succeed(42).pipe(
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+
+export const test4 = pipe(
+    Effect.succeed(42),
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+"
+`;
+
+exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 9:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 9:22
+import * as Effect from "effect/Effect"
+import { pipe } from "effect"
+
+export const test1 = Effect.succeed(42)
+
+export const test3 = test1
+
+export const test2 = Effect.gen(function*() { return yield* Effect.succeed(42) }).pipe(
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+
+export const test4 = pipe(
+    Effect.succeed(42),
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+"
+`;
+
+exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 9:22-12:1 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 9:22-12:1
+import * as Effect from "effect/Effect"
+import { pipe } from "effect"
+
+export const test1 = Effect.succeed(42)
+
+export const test3 = test1
+
+export const test2 = Effect.gen(function*() {
+    return yield* Effect.succeed(42).pipe(
+        Effect.map((n) => n + 1),
+        Effect.map((n) => n - 1)
+    )
+})
+
+export const test4 = pipe(
+    Effect.succeed(42),
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+"
+`;
+
+exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 14:22 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 14:22
+import * as Effect from "effect/Effect"
+import { pipe } from "effect"
+
+export const test1 = Effect.succeed(42)
+
+export const test3 = test1
+
+export const test2 = Effect.succeed(42).pipe(
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+
+export const test4 = Effect.gen(function*() {
+    return yield* pipe(
+        Effect.succeed(42),
+        Effect.map((n) => n + 1),
+        Effect.map((n) => n - 1)
+    )
+})
+"
+`;
+
+exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 15:5 1`] = `
+"// Result of running refactor effect/wrapWithEffectGen at position 15:5
+import * as Effect from "effect/Effect"
+import { pipe } from "effect"
+
+export const test1 = Effect.succeed(42)
+
+export const test3 = test1
+
+export const test2 = Effect.succeed(42).pipe(
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+
+export const test4 = pipe(
+    Effect.gen(function*() { return yield* Effect.succeed(42) }),
+    Effect.map((n) => n + 1),
+    Effect.map((n) => n - 1),
+)
+"
+`;
+
 exports[`Refactor wrapWithPipe > wrapWithPipe.ts at 2:13-2:26 1`] = `
 "// Result of running refactor effect/wrapWithPipe at position 2:13-2:26
 const txt = pipe("Hello World")

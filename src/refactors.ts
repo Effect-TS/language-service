@@ -7,6 +7,7 @@ import { removeUnnecessaryEffectGen } from "./refactors/removeUnnecessaryEffectG
 import { toggleLazyConst } from "./refactors/toggleLazyConst.js"
 import { toggleReturnTypeAnnotation } from "./refactors/toggleReturnTypeAnnotation.js"
 import { toggleTypeAnnotation } from "./refactors/toggleTypeAnnotation.js"
+import { wrapWithEffectGen } from "./refactors/wrapWithEffectGen.js"
 import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
 
 export const refactors = [
@@ -18,6 +19,7 @@ export const refactors = [
   toggleLazyConst,
   toggleReturnTypeAnnotation,
   toggleTypeAnnotation,
+  wrapWithEffectGen,
   wrapWithPipe,
   effectGenToFn
 ]
