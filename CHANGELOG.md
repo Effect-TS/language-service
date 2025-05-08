@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.11.0
+
+### Minor Changes
+
+- [#116](https://github.com/Effect-TS/language-service/pull/116) [`397b4b9`](https://github.com/Effect-TS/language-service/commit/397b4b9a87784576e12add739f77bc5783c4dcc3) Thanks [@wmaurer](https://github.com/wmaurer)! - Add refactor to wrap an `Effect` expression with `Effect.gen`.
+
 ## 0.10.2
 
 ### Patch Changes
