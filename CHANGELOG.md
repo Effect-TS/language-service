@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.10.0
+
+### Minor Changes
+
+- [#110](https://github.com/Effect-TS/language-service/pull/110) [`71f84ed`](https://github.com/Effect-TS/language-service/commit/71f84eda227b9af04e287f3e2a5457cc956e441d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow to customize diagnostic severity by using a comment line
+
 ## 0.9.2
 
 ### Patch Changes
