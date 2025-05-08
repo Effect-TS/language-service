@@ -1,5 +1,4 @@
 import * as ReadonlyArray from "effect/Array"
-import * as Data from "effect/Data"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
@@ -53,9 +52,9 @@ export const getAncestorNodesInRange = Nano.fn("AST.getAncestorNodesInRange")(fu
   return yield* collectSelfAndAncestorNodesInRange(nodeAtPosition.value, textRange)
 })
 
-export class NodeNotFoundError
-  extends Data.TaggedError("@effect/language-service/NodeNotFoundError")<{}>
-{}
+export class NodeNotFoundError {
+  readonly _tag = "@effect/language-service/NodeNotFoundError"
+}
 
 /**
  * Finds the deepest AST node at the specified position within the given SourceFile.
@@ -269,9 +268,9 @@ export const removeReturnTypeAnnotation = Nano.fn("AST.removeReturnTypeAnnotatio
   }
 })
 
-export class ImportModuleIdentifierNotFoundError
-  extends Data.TaggedError("@effect/language-service/ImportModuleIdentifierNotFoundError")<{}>
-{}
+export class ImportModuleIdentifierNotFoundError {
+  readonly _tag = "@effect/language-service/ImportModuleIdentifierNotFoundError"
+}
 
 export const findImportedModuleIdentifier = Nano.fn("AST.findImportedModuleIdentifier")(
   function*<E = never, R = never>(

@@ -1,4 +1,3 @@
-import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
@@ -26,21 +25,36 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      const maybeUnnecessaryGen = yield* pipe(
-        TypeParser.effectGen(node),
-        Nano.flatMap(({ body }) => TypeParser.returnYieldEffectBlock(body)),
-        Nano.option
+      const maybeUnnecessaryYield = yield* Nano.option(
+        TypeParser.returnYieldEffectBlock(node)
       )
 
-      if (Option.isSome(maybeUnnecessaryGen)) {
-        unnecessaryGenerators.set(node, maybeUnnecessaryGen.value)
+      if (Option.isSome(maybeUnnecessaryYield)) {
+        // go up until we meet the causing generator
+        const functionStarNode = ts.findAncestor(
+          node,
+          (_) =>
+            (ts.isFunctionExpression(_) || ts.isMethodDeclaration(_)) &&
+            _.asteriskToken !== undefined
+        )
+
+        // .gen should always be the parent ideally
+        if (functionStarNode && functionStarNode.parent) {
+          const effectGenNode = functionStarNode.parent
+          const maybeUnnecessaryGen = yield* Nano.option(
+            TypeParser.effectGen(effectGenNode)
+          )
+          if (Option.isSome(maybeUnnecessaryGen)) {
+            unnecessaryGenerators.set(maybeUnnecessaryGen.value.node, maybeUnnecessaryYield.value)
+          }
+        }
       }
     }
 
     // emit diagnostics
-    unnecessaryGenerators.forEach((body, node) =>
+    unnecessaryGenerators.forEach((yieldedResult, effectGenCall) =>
       effectDiagnostics.push({
-        node,
+        node: effectGenCall,
         category: ts.DiagnosticCategory.Suggestion,
         messageText:
           `This Effect.gen is useless here because it only contains a single return statement.`,
@@ -51,7 +65,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
             const textChanges = yield* Nano.service(
               TypeScriptApi.ChangeTracker
             )
-            textChanges.replaceNode(sourceFile, node, body)
+            textChanges.replaceNode(sourceFile, effectGenCall, yieldedResult)
           })
         }]
       })

@@ -1,4 +1,3 @@
-import * as Data from "effect/Data"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
 import type ts from "typescript"
@@ -60,11 +59,12 @@ type ConvertibleDeclaration =
   | ts.ArrowFunction
   | ts.MethodDeclaration
 
-class CannotFindAncestorConvertibleDeclarationError
-  extends Data.TaggedError("CannotFindAncestorConvertibleDeclarationError")<{
-    node: ts.Node
-  }>
-{}
+class CannotFindAncestorConvertibleDeclarationError {
+  readonly _tag = "@effect/language-service/CannotFindAncestorConvertibleDeclarationError"
+  constructor(
+    readonly node: ts.Node
+  ) {}
+}
 
 const getAncestorConvertibleDeclaration = Nano.fn(
   "TypeCheckerApi.getAncestorConvertibleDeclaration"
@@ -82,18 +82,22 @@ const getAncestorConvertibleDeclaration = Nano.fn(
     }
     current = current.parent
   }
-  return yield* Nano.fail(new CannotFindAncestorConvertibleDeclarationError({ node }))
+  return yield* Nano.fail(new CannotFindAncestorConvertibleDeclarationError(node))
 })
 
-class CannotInferReturnTypeFromEmptyBody
-  extends Data.TaggedError("CannotInferReturnTypeFromEmptyBody")<{
-    declaration: ConvertibleDeclaration
-  }>
-{}
+class CannotInferReturnTypeFromEmptyBody {
+  readonly _tag = "@effect/language-service/CannotInferReturnTypeFromEmptyBody"
+  constructor(
+    readonly declaration: ConvertibleDeclaration
+  ) {}
+}
 
-class CannotInferReturnType extends Data.TaggedError("CannotInferReturnType")<{
-  declaration: ConvertibleDeclaration
-}> {}
+class CannotInferReturnType {
+  readonly _tag = "@effect/language-service/CannotInferReturnType"
+  constructor(
+    readonly declaration: ConvertibleDeclaration
+  ) {}
+}
 
 export const getInferredReturnType = Nano.fn("TypeCheckerApi.getInferredReturnType")(function*(
   declaration: ConvertibleDeclaration
@@ -102,7 +106,7 @@ export const getInferredReturnType = Nano.fn("TypeCheckerApi.getInferredReturnTy
 
   if (!declaration.body) {
     return yield* Nano.fail(
-      new CannotInferReturnTypeFromEmptyBody({ declaration })
+      new CannotInferReturnTypeFromEmptyBody(declaration)
     )
   }
 
@@ -130,7 +134,7 @@ export const getInferredReturnType = Nano.fn("TypeCheckerApi.getInferredReturnTy
 
   if (!returnType) {
     return yield* Nano.fail(
-      new CannotInferReturnType({ declaration })
+      new CannotInferReturnType(declaration)
     )
   }
 

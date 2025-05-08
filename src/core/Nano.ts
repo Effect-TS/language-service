@@ -1,5 +1,4 @@
 import * as ReadonlyArray from "effect/Array"
-import * as Data from "effect/Data"
 import * as Either from "effect/Either"
 import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
@@ -26,9 +25,12 @@ type NanoInternalResult<A, E> =
   | NanoInternalFailure<E>
   | NanoInternalDefect
 
-export class NanoDefectException
-  extends Data.TaggedError("NanoDefectException")<{ message: unknown }>
-{}
+export class NanoDefectException {
+  readonly _tag = "@effect/language-service/NanoDefectException"
+  constructor(
+    readonly message: unknown
+  ) {}
+}
 
 export class NanoTag<R> {
   declare "~nano.requirements": R
@@ -111,12 +113,12 @@ export const run = <A, E>(fa: Nano<A, E, never>): Either.Either<A, E | NanoDefec
       case "Left":
         return Either.left(result.left)
       case "Defect":
-        return Either.left(new NanoDefectException({ message: result.defect }))
+        return Either.left(new NanoDefectException(result.defect))
       case "Right":
         return Either.right(result.right)
     }
   } catch (e) {
-    return Either.left(new NanoDefectException({ message: e }))
+    return Either.left(new NanoDefectException(e))
   }
 }
 
