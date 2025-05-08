@@ -65,6 +65,14 @@ export interface ApplicableDiagnosticDefinitionFix {
   apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
+export interface ApplicableDiagnosticDefinitionFixWithPositionAndCode
+  extends ApplicableDiagnosticDefinitionFix
+{
+  code: number
+  start: number
+  end: number
+}
+
 export function createDiagnostic(definition: DiagnosticDefinition): DiagnosticDefinition {
   return definition
 }
@@ -110,15 +118,16 @@ export class SourceFileNotFoundError extends Data.TaggedError("SourceFileNotFoun
   fileName: string
 }> {}
 
-export const getSemanticDiagnostics = Nano.fn("LSP.getSemanticDiagnostics")(function*(
-  diagnostics: Array<DiagnosticDefinition>,
+export const getSemanticDiagnosticsWithCodeFixes = Nano.fn("LSP.getSemanticDiagnostics")(function*(
+  rules: Array<DiagnosticDefinition>,
   sourceFile: ts.SourceFile
 ) {
   const effectDiagnostics: Array<ts.Diagnostic> = []
+  const effectCodeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
   const executor = yield* createDiagnosticExecutor(sourceFile)
-  for (const diagnostic of diagnostics) {
+  for (const rule of rules) {
     const result = yield* (
-      Nano.option(executor.execute(diagnostic))
+      Nano.option(executor.execute(rule))
     )
     if (Option.isSome(result)) {
       effectDiagnostics.push(
@@ -130,42 +139,35 @@ export const getSemanticDiagnostics = Nano.fn("LSP.getSemanticDiagnostics")(func
             length: _.node.getEnd() - _.node.getStart(sourceFile),
             messageText: _.messageText,
             category: _.category,
-            code: diagnostic.code,
+            code: rule.code,
             source: "effect"
           }))
         )
       )
-    }
-  }
-  return effectDiagnostics
-})
-
-export const getCodeFixesAtPosition = Nano.fn("LSP.getCodeFixesAtPosition")(function*(
-  diagnostics: Array<DiagnosticDefinition>,
-  sourceFile: ts.SourceFile,
-  start: number,
-  end: number,
-  errorCodes: ReadonlyArray<number>
-) {
-  const runnableDiagnostics = diagnostics.filter((_) => errorCodes.indexOf(_.code) > -1)
-  const applicableFixes: Array<ApplicableDiagnosticDefinitionFix> = []
-  const executor = yield* createDiagnosticExecutor(sourceFile)
-  for (const diagnostic of runnableDiagnostics) {
-    const result = yield* Nano.option(executor.execute(diagnostic))
-    if (Option.isSome(result)) {
-      applicableFixes.push(
+      effectCodeFixes.push(
         ...pipe(
           result.value,
-          ReadonlyArray.filter((_) =>
-            _.node.getStart(sourceFile) === start && _.node.getEnd() === end
+          ReadonlyArray.map((_) =>
+            ReadonlyArray.map(
+              _.fixes,
+              (fix) => ({
+                ...fix,
+                code: rule.code,
+                start: _.node.getStart(sourceFile),
+                end: _.node.getEnd()
+              })
+            )
           ),
-          ReadonlyArray.map((_) => _.fixes),
           ReadonlyArray.flatten
         )
       )
     }
   }
-  return applicableFixes
+
+  return ({
+    diagnostics: effectDiagnostics,
+    codeFixes: effectCodeFixes
+  })
 })
 
 export const getApplicableRefactors = Nano.fn("LSP.getApplicableRefactors")(function*(

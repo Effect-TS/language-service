@@ -46,7 +46,7 @@ function testDiagnosticOnExample(
 
   // attempt to run the diagnostic and get the output
   const output = pipe(
-    LSP.getSemanticDiagnostics([diagnostic], sourceFile),
+    LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(
@@ -58,11 +58,11 @@ function testDiagnosticOnExample(
       quickinfo: false,
       completions: false
     }),
-    Nano.map((outputDiagnostics) => {
+    Nano.map(({ diagnostics }) => {
       // sort by start position
-      outputDiagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
+      diagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
       // create human readable messages
-      return outputDiagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
+      return diagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
         .join("\n\n")
     }),
     Nano.run,
@@ -85,53 +85,39 @@ function testDiagnosticQuickfixesOnExample(
 
   // attempt to run the diagnostic and get the output
   pipe(
-    LSP.getSemanticDiagnostics([diagnostic], sourceFile),
-    Nano.flatMap((outputDiagnostics) =>
-      Nano.gen(function*() {
+    LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
+    Nano.flatMap(({ codeFixes, diagnostics }) =>
+      Nano.sync(() => {
         // sort by start position
-        outputDiagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
+        diagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
 
         // loop through
-        for (const applicableDiagnostic of outputDiagnostics) {
-          const startPos = applicableDiagnostic.start || 0
-          const endPos = startPos + (applicableDiagnostic.length || 0)
-
-          for (
-            const codeFix of yield* LSP.getCodeFixesAtPosition(
-              [diagnostic],
-              sourceFile,
-              startPos,
-              endPos,
-              [applicableDiagnostic.code]
-            )
-          ) {
-            const formatContext = ts.formatting.getFormatContext(
-              ts.getDefaultFormatCodeSettings("\n"),
-              { getNewLine: () => "\n" }
-            )
-            const edits = ts.textChanges.ChangeTracker.with(
-              {
-                formatContext,
-                host: languageServiceHost,
-                preferences: {}
-              },
-              (changeTracker) =>
-                pipe(
-                  codeFix.apply,
-                  Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-                  Nano.run
-                )
-            )
-            expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot(
-              "code fix " + codeFix.fixName + "  output for range " + startPos + " - " + endPos
-            )
-          }
+        for (
+          const codeFix of codeFixes
+        ) {
+          const formatContext = ts.formatting.getFormatContext(
+            ts.getDefaultFormatCodeSettings("\n"),
+            { getNewLine: () => "\n" }
+          )
+          const edits = ts.textChanges.ChangeTracker.with(
+            {
+              formatContext,
+              host: languageServiceHost,
+              preferences: {}
+            },
+            (changeTracker) =>
+              pipe(
+                codeFix.apply,
+                Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                Nano.run,
+                (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
+              )
+          )
+          expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot(
+            "code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
+              codeFix.end
+          )
         }
-        // create human readable messages
-        return outputDiagnostics.map((error) =>
-          diagnosticToLogFormat(sourceFile, sourceText, error)
-        )
-          .join("\n\n")
       })
     ),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
@@ -145,7 +131,8 @@ function testDiagnosticQuickfixesOnExample(
       quickinfo: false,
       completions: false
     }),
-    Nano.run
+    Nano.run,
+    (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
   )
 }
 
