@@ -4,8 +4,8 @@ This package implements a TypeScript language service plugin that allows additio
 
 ## Installation
 
-1) `npm install @effect/language-service --save-dev` in your project
-2) inside your tsconfig.json, you should add the plugin configuration as follows:
+1. `npm install @effect/language-service --save-dev` in your project
+2. inside your tsconfig.json, you should add the plugin configuration as follows:
 
 ```json
 {
@@ -18,10 +18,11 @@ This package implements a TypeScript language service plugin that allows additio
   }
 }
 ```
-3) Ensure that you set your editor to use your workspace TypeScript version. 
-  
-    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version".
-    - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
+
+3. Ensure that you set your editor to use your workspace TypeScript version.
+
+   - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version".
+   - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
@@ -36,7 +37,8 @@ Few options can be provided alongside the initialization of the Language Service
       {
         "name": "@effect/language-service",
         "diagnostics": true, // controls Effect diagnostics (on by default)
-        "quickinfo": true // controls quickinfo over Effect (on by default)
+        "quickinfo": true, // controls quickinfo over Effect (on by default)
+        "completions": true // controls Effect completions (on by default)
       }
     ]
   }
@@ -46,6 +48,7 @@ Few options can be provided alongside the initialization of the Language Service
 ## Provided functionalities
 
 ### Quickinfo
+
 - Show the extended type of the current Effect
 
 ### Diagnostics
@@ -56,6 +59,7 @@ Few options can be provided alongside the initialization of the Language Service
 - Detect unnecessary usages of Effect.gen
 
 ### Completions
+
 - Autocomplete 'Self' in Effect.Service, Context.Tag, Schema.TaggedClass, Schema.TaggedRequest and family
 
 ### Refactors
@@ -67,3 +71,15 @@ Few options can be provided alongside the initialization of the Language Service
 - Pipe to datafirst: Transform a pipe() call into a series of datafirst function calls (where available).
 - Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.
 - Remove unnecessary `Effect.gen` definitions that contains a single `yield` statement.
+
+## Configuring diagnostics
+
+You can either disable or change the severity of specific diagnostics by using comments in your code.
+
+```ts
+// @effect-diagnostics effect/floatingEffect:off
+Effect.succeed(1); // This will not be reported as a floating effect
+
+// @effect-diagnostics effect/floatingEffect:error
+Effect.succeed(1); // This will be reported as a floating effect
+```
