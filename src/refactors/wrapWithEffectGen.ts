@@ -12,12 +12,12 @@ import * as TypeParser from "../utils/TypeParser.js"
 export const wrapWithEffectGen = LSP.createRefactor({
   name: "effect/wrapWithEffectGen",
   description: "Wrap with Effect.gen",
-  apply: (sourceFile, textRange) =>
-    Nano.gen(function*() {
-      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+  apply: Nano.fn("wrapWithEffectGen.apply")(function*(sourceFile, textRange) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-      const findEffectToWrap = Nano.fn("findEffectToWrap")(function*(node: ts.Node) {
+    const findEffectToWrap = Nano.fn("wrapWithEffectGen.apply.findEffectToWrap")(
+      function*(node: ts.Node) {
         if (!ts.isExpression(node)) return yield* Nano.fail("is not an expression")
 
         const parent = node.parent
@@ -29,33 +29,38 @@ export const wrapWithEffectGen = LSP.createRefactor({
         yield* TypeParser.effectType(type, node)
 
         return node
-      })
-
-      const maybeNode = yield* pipe(
-        yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-        ReadonlyArray.map(findEffectToWrap),
-        Nano.firstSuccessOf,
-        Nano.option
-      )
-      if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
-
-      const node = maybeNode.value
-      if (!ts.isExpression(node)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
-
-      const effectGen = yield* AST.createEffectGenCallExpressionWithBlock(
-        yield* getEffectModuleIdentifierName(sourceFile),
-        yield* AST.createReturnYieldStarStatement(node)
-      )
-
-      return {
-        kind: "refactor.rewrite.effect.wrapWithEffectGen",
-        description: `Wrap with Effect.gen`,
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          changeTracker.replaceNode(sourceFile, node, effectGen)
-        })
       }
-    })
+    )
+
+    const maybeNode = yield* pipe(
+      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+      ReadonlyArray.map(findEffectToWrap),
+      Nano.firstSuccessOf,
+      Nano.option
+    )
+    if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
+
+    return {
+      kind: "refactor.rewrite.effect.wrapWithEffectGen",
+      description: `Wrap with Effect.gen`,
+      apply: pipe(
+        Nano.gen(function*() {
+          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+          const effectGen = yield* pipe(
+            AST.createEffectGenCallExpressionWithBlock(
+              yield* getEffectModuleIdentifierName(sourceFile),
+              yield* AST.createReturnYieldStarStatement(maybeNode.value)
+            )
+          )
+
+          changeTracker.replaceNode(sourceFile, maybeNode.value, effectGen)
+        }),
+        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker)
+      )
+    }
+  })
 })
 
 export const getEffectModuleIdentifierName = Nano.fn("getEffectModuleIdentifierName")(

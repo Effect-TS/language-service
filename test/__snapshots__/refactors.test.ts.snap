@@ -509,6 +509,17 @@ class Sample {
 "
 `;
 
+exports[`Refactor makeSchemaOpaque > makeSchemaOpaque.ts at 4:17 1`] = `
+"// Result of running refactor effect/makeSchemaOpaque at position 4:17
+import * as Schema from "effect/Schema"
+
+export const MyStruct = Schema.Struct({
+    id: Schema.Number,
+    name: Schema.String
+})
+"
+`;
+
 exports[`Refactor pipeableToDatafirst > pipeableToDatafirst.ts at 5:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 5:16
 import * as T from "effect/Effect"
