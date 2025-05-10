@@ -37,9 +37,9 @@ export const makeSchemaOpaque = LSP.createRefactor({
         }
 
         const type = typeChecker.getTypeAtLocation(initializer)
-        yield* TypeParser.effectSchemaType(type, initializer)
+        const types = yield* TypeParser.effectSchemaType(type, initializer)
 
-        return { identifier, variableStatement, variableDeclarationList }
+        return { identifier, variableStatement, variableDeclarationList, types }
       }
     )
 
@@ -51,36 +51,149 @@ export const makeSchemaOpaque = LSP.createRefactor({
     )
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
-    const { identifier, variableDeclarationList, variableStatement } = maybeNode.value
+    const { identifier, types, variableDeclarationList, variableStatement } = maybeNode.value
 
     return {
       kind: "refactor.rewrite.effect.makeSchemaOpaque",
       description: `Make Schema opaque`,
-      apply: Nano.gen(function*() {
-        const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+      apply: pipe(
+        Nano.gen(function*() {
+          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+          const effectSchemaName = Option.match(
+            yield* Nano.option(
+              AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+                sourceFile,
+                "effect",
+                "Schema"
+              )
+            ),
+            {
+              onNone: () => "Schema",
+              onSome: (_) => _.text
+            }
+          )
+          const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
 
-        const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
-        // change current name
-        changeTracker.replaceNode(
-          sourceFile,
-          identifier,
-          newIdentifier
-        )
-        // insert new declaration
-        const newDeclaration = ts.factory.createVariableStatement(
-          variableStatement.modifiers,
-          ts.factory.createVariableDeclarationList(
-            [ts.factory.createVariableDeclaration(
+          // opaque type
+          const opaqueInferred = ts.factory.createExpressionWithTypeArguments(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier(effectSchemaName),
+                ts.factory.createIdentifier("Schema")
+              ),
+              ts.factory.createIdentifier("Type")
+            ),
+            [ts.factory.createTypeQueryNode(
+              ts.factory.createIdentifier(newIdentifier.text)
+            )]
+          )
+          const opaqueType = types.A.isUnion() ?
+            ts.factory.createTypeAliasDeclaration(
+              variableStatement.modifiers,
+              identifier.text,
+              [],
+              opaqueInferred
+            ) :
+            ts.factory.createInterfaceDeclaration(
+              variableStatement.modifiers,
               identifier.text,
               undefined,
-              undefined,
-              identifier
-            )],
-            variableDeclarationList.flags
+              [ts.factory.createHeritageClause(
+                ts.SyntaxKind.ExtendsKeyword,
+                [opaqueInferred]
+              )],
+              []
+            )
+          // encoded type
+          const encodedInferred = ts.factory.createExpressionWithTypeArguments(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier(effectSchemaName),
+                ts.factory.createIdentifier("Schema")
+              ),
+              ts.factory.createIdentifier("Encoded")
+            ),
+            [ts.factory.createTypeQueryNode(
+              ts.factory.createIdentifier(newIdentifier.text)
+            )]
           )
-        )
-        changeTracker.insertNodeAfter(sourceFile, variableStatement, newDeclaration)
-      })
+          const encodedType = types.I.isUnion() ?
+            ts.factory.createTypeAliasDeclaration(
+              variableStatement.modifiers,
+              identifier.text + "Encoded",
+              [],
+              encodedInferred
+            ) :
+            ts.factory.createInterfaceDeclaration(
+              variableStatement.modifiers,
+              identifier.text + "Encoded",
+              undefined,
+              [ts.factory.createHeritageClause(
+                ts.SyntaxKind.ExtendsKeyword,
+                [encodedInferred]
+              )],
+              []
+            )
+
+          // context
+          const contextInferred = ts.factory.createExpressionWithTypeArguments(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier(effectSchemaName),
+                ts.factory.createIdentifier("Schema")
+              ),
+              ts.factory.createIdentifier("Context")
+            ),
+            [ts.factory.createTypeQueryNode(
+              ts.factory.createIdentifier(newIdentifier.text)
+            )]
+          )
+          const contextType = ts.factory.createTypeAliasDeclaration(
+            variableStatement.modifiers,
+            identifier.text + "Context",
+            [],
+            contextInferred
+          )
+
+          changeTracker.replaceNode(
+            sourceFile,
+            identifier,
+            newIdentifier
+          )
+          changeTracker.insertNodeAfter(sourceFile, variableStatement, opaqueType)
+          changeTracker.insertNodeAfter(sourceFile, variableStatement, encodedType)
+          changeTracker.insertNodeAfter(sourceFile, variableStatement, contextType)
+
+          // insert new declaration
+          const newSchemaType = ts.factory.createTypeReferenceNode(
+            ts.factory.createQualifiedName(
+              ts.factory.createIdentifier(effectSchemaName),
+              ts.factory.createIdentifier("Schema")
+            ),
+            [
+              ts.factory.createTypeReferenceNode(opaqueType.name),
+              ts.factory.createTypeReferenceNode(encodedType.name),
+              ts.factory.createTypeReferenceNode(contextType.name)
+            ]
+          )
+          const newConstDeclaration = ts.factory.createVariableStatement(
+            variableStatement.modifiers,
+            ts.factory.createVariableDeclarationList(
+              [ts.factory.createVariableDeclaration(
+                identifier.text,
+                undefined,
+                newSchemaType,
+                ts.factory.createIdentifier(newIdentifier.text)
+              )],
+              variableDeclarationList.flags
+            )
+          )
+
+          changeTracker.insertNodeAfter(sourceFile, variableStatement, newConstDeclaration)
+          changeTracker.insertText(sourceFile, variableStatement.end, "\n")
+        }),
+        Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+      )
     }
   })
 })
