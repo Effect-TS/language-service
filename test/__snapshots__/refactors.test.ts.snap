@@ -509,6 +509,70 @@ class Sample {
 "
 `;
 
+exports[`Refactor makeSchemaOpaque > makeSchemaOpaque.ts at 4:17 1`] = `
+"// Result of running refactor effect/makeSchemaOpaque at position 4:17
+import * as Schema from "effect/Schema"
+
+export const MyStruct_ = Schema.Struct({
+    id: Schema.Number,
+    name: Schema.String
+})
+
+export interface MyStruct extends Schema.Schema.Type<typeof MyStruct_> { }
+export interface MyStructEncoded extends Schema.Schema.Encoded<typeof MyStruct_> { }
+export type MyStructContext = Schema.Schema.Context<typeof MyStruct_>
+export const MyStruct: Schema.Schema<MyStruct, MyStructEncoded, MyStructContext> = MyStruct_
+"
+`;
+
+exports[`Refactor makeSchemaOpaque > makeSchemaOpaque_shortImport.ts at 4:17 1`] = `
+"// Result of running refactor effect/makeSchemaOpaque at position 4:17
+import { Schema } from "effect"
+
+export const MyStruct_ = Schema.Struct({
+    id: Schema.Number,
+    name: Schema.String
+})
+
+export interface MyStruct extends Schema.Schema.Type<typeof MyStruct_> { }
+export interface MyStructEncoded extends Schema.Schema.Encoded<typeof MyStruct_> { }
+export type MyStructContext = Schema.Schema.Context<typeof MyStruct_>
+export const MyStruct: Schema.Schema<MyStruct, MyStructEncoded, MyStructContext> = MyStruct_
+"
+`;
+
+exports[`Refactor makeSchemaOpaque > makeSchemaOpaque_shortImportAlias.ts at 4:17 1`] = `
+"// Result of running refactor effect/makeSchemaOpaque at position 4:17
+import { Schema as S } from "effect"
+
+export const MyStruct_ = S.Struct({
+    id: S.Number,
+    name: S.String
+})
+
+export interface MyStruct extends S.Schema.Type<typeof MyStruct_> { }
+export interface MyStructEncoded extends S.Schema.Encoded<typeof MyStruct_> { }
+export type MyStructContext = S.Schema.Context<typeof MyStruct_>
+export const MyStruct: S.Schema<MyStruct, MyStructEncoded, MyStructContext> = MyStruct_
+"
+`;
+
+exports[`Refactor makeSchemaOpaque > makeSchemaOpaque_union.ts at 4:17 1`] = `
+"// Result of running refactor effect/makeSchemaOpaque at position 4:17
+import * as Schema from "effect/Schema"
+
+export const MyUnion_ = Schema.Union(
+    Schema.Literal("A"),
+    Schema.Literal("B")
+)
+
+export type MyUnion = Schema.Schema.Type<typeof MyUnion_>
+export type MyUnionEncoded = Schema.Schema.Encoded<typeof MyUnion_>
+export type MyUnionContext = Schema.Schema.Context<typeof MyUnion_>
+export const MyUnion: Schema.Schema<MyUnion, MyUnionEncoded, MyUnionContext> = MyUnion_
+"
+`;
+
 exports[`Refactor pipeableToDatafirst > pipeableToDatafirst.ts at 5:16 1`] = `
 "// Result of running refactor effect/pipeableToDatafirst at position 5:16
 import * as T from "effect/Effect"

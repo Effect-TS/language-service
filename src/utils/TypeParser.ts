@@ -32,6 +32,16 @@ export function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypePar
   return Nano.succeed(signatures[0].getReturnType())
 }
 
+export function invariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
+  const signatures = type.getCallSignatures()
+  // Invariant<A> has only 1 type signature
+  if (signatures.length !== 1) {
+    return typeParserIssue("Invariant type has no call signature", type)
+  }
+  // get the return type
+  return Nano.succeed(signatures[0].getReturnType())
+}
+
 export const pipeableType = Nano.fn("TypeParser.pipeableType")(function*(
   type: ts.Type,
   atLocation: ts.Node
@@ -64,6 +74,21 @@ export const varianceStructCovariantType = Nano.fn("TypeParser.varianceStructCov
     }
     const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
     return yield* covariantTypeArgument(propertyType)
+  }
+)
+export const varianceStructInvariantType = Nano.fn("TypeParser.varianceStructInvariantType")(
+  function*<A extends string>(
+    type: ts.Type,
+    atLocation: ts.Node,
+    propertyName: A
+  ) {
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
+    if (!propertySymbol) {
+      return yield* typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
+    }
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    return yield* invariantTypeArgument(propertyType)
   }
 )
 
@@ -340,4 +365,48 @@ export const returnYieldEffectBlock = Nano.fn("TypeParser.returnYieldEffectBlock
     undefined,
     body
   )
+})
+
+export const effectSchemaVarianceStruct = Nano.fn("TypeParser.effectSchemaVarianceStruct")(
+  function*(
+    type: ts.Type,
+    atLocation: ts.Node
+  ) {
+    return ({
+      A: yield* varianceStructInvariantType(type, atLocation, "_A"),
+      I: yield* varianceStructInvariantType(type, atLocation, "_I"),
+      R: yield* varianceStructCovariantType(type, atLocation, "_R")
+    })
+  }
+)
+
+export const effectSchemaType = Nano.fn("TypeParser.effectSchemaType")(function*(
+  type: ts.Type,
+  atLocation: ts.Node
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+  // should be pipeable
+  yield* pipeableType(type, atLocation)
+  // should have an 'ast' property
+  const ast = typeChecker.getPropertyOfType(type, "ast")
+  if (!ast) return yield* typeParserIssue("Has no 'ast' property", type, atLocation)
+  // get the properties to check (exclude non-property and optional properties)
+  const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+    _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+  )
+  // try to put typeid first (heuristic to optimize hot path)
+  propertiesSymbols.sort((a, b) => b.name.indexOf("TypeId") - a.name.indexOf("TypeId"))
+  // has a property symbol which is an effect variance struct
+  for (const propertySymbol of propertiesSymbols) {
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    const varianceArgs = yield* Nano.option(effectSchemaVarianceStruct(
+      propertyType,
+      atLocation
+    ))
+    if (Option.isSome(varianceArgs)) {
+      return varianceArgs.value
+    }
+  }
+  return yield* typeParserIssue("Type has no schema variance struct", type, atLocation)
 })
