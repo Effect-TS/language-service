@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.12.0
+
+### Minor Changes
+
+- [#118](https://github.com/Effect-TS/language-service/pull/118) [`8d2cb57`](https://github.com/Effect-TS/language-service/commit/8d2cb57d948f8671dd6beec567e20c88c1c60721) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add refator to make a schema opaque
+
 ## 0.11.0
 
 ### Minor Changes
