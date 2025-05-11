@@ -3,6 +3,7 @@ import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise
 import { effectGenToFn } from "./refactors/effectGenToFn.js"
 import { functionToArrow } from "./refactors/functionToArrow.js"
 import { makeSchemaOpaque } from "./refactors/makeSchemaOpaque.js"
+import { makeSchemaOpaqueWithNs } from "./refactors/makeSchemaOpaqueWithNs.js"
 import { pipeableToDatafirst } from "./refactors/pipeableToDatafirst.js"
 import { removeUnnecessaryEffectGen } from "./refactors/removeUnnecessaryEffectGen.js"
 import { toggleLazyConst } from "./refactors/toggleLazyConst.js"
@@ -16,6 +17,7 @@ export const refactors = [
   asyncAwaitToGenTryPromise,
   functionToArrow,
   makeSchemaOpaque,
+  makeSchemaOpaqueWithNs,
   pipeableToDatafirst,
   removeUnnecessaryEffectGen,
   toggleLazyConst,
