@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.12.1
+
+### Patch Changes
+
+- [#120](https://github.com/Effect-TS/language-service/pull/120) [`bbade6b`](https://github.com/Effect-TS/language-service/commit/bbade6b9f803c26c3be851e1c793b1b85fdec6f8) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add refactor to make schema opaque using namespaces
+
 ## 0.12.0
 
 ### Minor Changes
