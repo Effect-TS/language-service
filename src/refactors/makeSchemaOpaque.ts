@@ -1,7 +1,7 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import type ts from "typescript"
+import ts from "typescript"
 import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -9,10 +9,10 @@ import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
-export const makeSchemaOpaque = LSP.createRefactor({
-  name: "effect/makeSchemaOpaque",
-  description: "Make Schema opaque",
-  apply: Nano.fn("makeSchemaOpaque.apply")(function*(sourceFile, textRange) {
+export const _findSchemaVariableDeclaration = Nano.fn(
+  "makeSchemaOpaque._findSchemaVariableDeclaration"
+)(
+  function*(sourceFile: ts.SourceFile, textRange: ts.TextRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
@@ -43,12 +43,115 @@ export const makeSchemaOpaque = LSP.createRefactor({
       }
     )
 
-    const maybeNode = yield* pipe(
+    return yield* pipe(
       yield* AST.getAncestorNodesInRange(sourceFile, textRange),
       ReadonlyArray.map(findSchema),
       Nano.firstSuccessOf,
       Nano.option
     )
+  }
+)
+
+export function _createOpaqueTypes(
+  effectSchemaName: string,
+  inferFromName: string,
+  typeA: ts.Type,
+  opaqueTypeName: string,
+  typeE: ts.Type,
+  opaqueEncodedName: string,
+  opaqueContextName: string
+) {
+  // opaque type
+  const opaqueInferred = ts.factory.createExpressionWithTypeArguments(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier(effectSchemaName),
+        ts.factory.createIdentifier("Schema")
+      ),
+      ts.factory.createIdentifier("Type")
+    ),
+    [ts.factory.createTypeQueryNode(
+      ts.factory.createIdentifier(inferFromName)
+    )]
+  )
+  const opaqueType = typeA.isUnion() ?
+    ts.factory.createTypeAliasDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      opaqueTypeName,
+      [],
+      opaqueInferred
+    ) :
+    ts.factory.createInterfaceDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      opaqueTypeName,
+      undefined,
+      [ts.factory.createHeritageClause(
+        ts.SyntaxKind.ExtendsKeyword,
+        [opaqueInferred]
+      )],
+      []
+    )
+  // encoded type
+  const encodedInferred = ts.factory.createExpressionWithTypeArguments(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier(effectSchemaName),
+        ts.factory.createIdentifier("Schema")
+      ),
+      ts.factory.createIdentifier("Encoded")
+    ),
+    [ts.factory.createTypeQueryNode(
+      ts.factory.createIdentifier(inferFromName)
+    )]
+  )
+  const encodedType = typeE.isUnion() ?
+    ts.factory.createTypeAliasDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      opaqueEncodedName,
+      [],
+      encodedInferred
+    ) :
+    ts.factory.createInterfaceDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      opaqueEncodedName,
+      undefined,
+      [ts.factory.createHeritageClause(
+        ts.SyntaxKind.ExtendsKeyword,
+        [encodedInferred]
+      )],
+      []
+    )
+
+  // context
+  const contextInferred = ts.factory.createExpressionWithTypeArguments(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier(effectSchemaName),
+        ts.factory.createIdentifier("Schema")
+      ),
+      ts.factory.createIdentifier("Context")
+    ),
+    [ts.factory.createTypeQueryNode(
+      ts.factory.createIdentifier(inferFromName)
+    )]
+  )
+  const contextType = ts.factory.createTypeAliasDeclaration(
+    [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    opaqueContextName,
+    [],
+    contextInferred
+  )
+
+  return { contextType, encodedType, opaqueType }
+}
+
+export const makeSchemaOpaque = LSP.createRefactor({
+  name: "effect/makeSchemaOpaque",
+  description: "Make Schema opaque",
+  apply: Nano.fn("makeSchemaOpaque.apply")(function*(sourceFile, textRange) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+    const maybeNode = yield* _findSchemaVariableDeclaration(sourceFile, textRange)
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
     const { identifier, types, variableDeclarationList, variableStatement } = maybeNode.value
@@ -73,86 +176,14 @@ export const makeSchemaOpaque = LSP.createRefactor({
             }
           )
           const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
-
-          // opaque type
-          const opaqueInferred = ts.factory.createExpressionWithTypeArguments(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier(effectSchemaName),
-                ts.factory.createIdentifier("Schema")
-              ),
-              ts.factory.createIdentifier("Type")
-            ),
-            [ts.factory.createTypeQueryNode(
-              ts.factory.createIdentifier(newIdentifier.text)
-            )]
-          )
-          const opaqueType = types.A.isUnion() ?
-            ts.factory.createTypeAliasDeclaration(
-              variableStatement.modifiers,
-              identifier.text,
-              [],
-              opaqueInferred
-            ) :
-            ts.factory.createInterfaceDeclaration(
-              variableStatement.modifiers,
-              identifier.text,
-              undefined,
-              [ts.factory.createHeritageClause(
-                ts.SyntaxKind.ExtendsKeyword,
-                [opaqueInferred]
-              )],
-              []
-            )
-          // encoded type
-          const encodedInferred = ts.factory.createExpressionWithTypeArguments(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier(effectSchemaName),
-                ts.factory.createIdentifier("Schema")
-              ),
-              ts.factory.createIdentifier("Encoded")
-            ),
-            [ts.factory.createTypeQueryNode(
-              ts.factory.createIdentifier(newIdentifier.text)
-            )]
-          )
-          const encodedType = types.I.isUnion() ?
-            ts.factory.createTypeAliasDeclaration(
-              variableStatement.modifiers,
-              identifier.text + "Encoded",
-              [],
-              encodedInferred
-            ) :
-            ts.factory.createInterfaceDeclaration(
-              variableStatement.modifiers,
-              identifier.text + "Encoded",
-              undefined,
-              [ts.factory.createHeritageClause(
-                ts.SyntaxKind.ExtendsKeyword,
-                [encodedInferred]
-              )],
-              []
-            )
-
-          // context
-          const contextInferred = ts.factory.createExpressionWithTypeArguments(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier(effectSchemaName),
-                ts.factory.createIdentifier("Schema")
-              ),
-              ts.factory.createIdentifier("Context")
-            ),
-            [ts.factory.createTypeQueryNode(
-              ts.factory.createIdentifier(newIdentifier.text)
-            )]
-          )
-          const contextType = ts.factory.createTypeAliasDeclaration(
-            variableStatement.modifiers,
-            identifier.text + "Context",
-            [],
-            contextInferred
+          const { contextType, encodedType, opaqueType } = _createOpaqueTypes(
+            effectSchemaName,
+            newIdentifier.text,
+            types.A,
+            identifier.text,
+            types.I,
+            identifier.text + "Encoded",
+            identifier.text + "Context"
           )
 
           changeTracker.replaceNode(
