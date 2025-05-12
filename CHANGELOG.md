@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.13.0
+
+### Minor Changes
+
+- [#125](https://github.com/Effect-TS/language-service/pull/125) [`8fdf421`](https://github.com/Effect-TS/language-service/commit/8fdf421d74a6fd1571b3949e88bee0ccf7a5d932) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add a check for multiple effect versions in the same project
+
+### Patch Changes
+
+- [#127](https://github.com/Effect-TS/language-service/pull/127) [`731e72a`](https://github.com/Effect-TS/language-service/commit/731e72a3526fe3efed31de3a34cf7a56155a50d0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Skip some nodes while evaluating expected types
+
 ## 0.12.2
 
 ### Patch Changes
