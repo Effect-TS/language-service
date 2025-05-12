@@ -37,7 +37,8 @@
     "circular": "madge --extensions ts --circular --no-color --no-spinner --warning src",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "code-debug": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/"
+    "code-debug": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/",
+    "perf": "tsx test/perf.ts"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
@@ -67,6 +68,7 @@
     "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "vite": "^5.4.14",
-    "vitest": "^1.6.1"
+    "vitest": "^1.6.1",
+    "tsx": "^4.19.4"
   }
 }
