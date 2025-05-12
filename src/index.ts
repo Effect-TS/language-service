@@ -17,24 +17,7 @@ const init = (
 ) => {
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
-    const pluginOptions: LSP.PluginOptions = {
-      diagnostics:
-        info.config && "diagnostics" in info.config && typeof info.config.diagnostics === "boolean"
-          ? info.config.diagnostics
-          : true,
-      quickinfo:
-        info.config && "quickinfo" in info.config && typeof info.config.quickinfo === "boolean"
-          ? info.config.quickinfo
-          : true,
-      completions:
-        info.config && "completions" in info.config && typeof info.config.completions === "boolean"
-          ? info.config.completions
-          : true,
-      multipleEffectCheck: info.config && "multipleEffectCheck" in info.config &&
-          typeof info.config.multipleEffectCheck === "boolean"
-        ? info.config.multipleEffectCheck
-        : true
-    }
+    const pluginOptions: LSP.PluginOptions = LSP.parsePluginOptions(info.config)
 
     // this is nothing more than an hack. Seems like vscode and other editors do not
     // support new error codes in diagnostics. Because they somehow rely on looking into

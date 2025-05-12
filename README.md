@@ -26,6 +26,38 @@ This package implements a TypeScript language service plugin that allows additio
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
+## Enable diagnostics at compile time
+
+TypeScript LSP are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
+
+HOWEVER, if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
+Your `tsconfig.json` should look like this:
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "transform": "@effect/language-service/transform" // enables diagnostics at compile time when using ts-patch
+      }
+    ]
+  }
+}
+```
+
+Running `tspc` in your project will now also run the plugin and give you the diagnostics at compile time.
+
+```ts
+$ npm tspc
+index.ts:3:1 - error TS3: Effect must be yielded or assigned to a variable.
+
+3 Effect.succeed(1)
+  ~~~~~~~~~~~~~~~~~
+
+Found 1 error in index.ts:3 
+```
+
 ## Options
 
 Few options can be provided alongside the initialization of the Language Service Plugin.
