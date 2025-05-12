@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.14.0
+
+### Minor Changes
+
+- [#128](https://github.com/Effect-TS/language-service/pull/128) [`73307e0`](https://github.com/Effect-TS/language-service/commit/73307e0e4e2525a02ec8b5a28b185642fd098cab) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Support ts-patch transformer to emit diagnostics at compile time
+
 ## 0.13.0
 
 ### Minor Changes
