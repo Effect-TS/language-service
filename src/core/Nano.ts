@@ -105,18 +105,23 @@ export class Nano<out A = never, out E = never, out R = never> {
     return new Gen.SingleShotGen(new Gen.YieldWrap(this)) as any
   }
 }
+export const unsafeRun = <A, E>(
+  fa: Nano<A, E, never>
+): Either.Either<A, E | NanoDefectException> => {
+  const result = fa.run(contextEmpty)
+  switch (result._tag) {
+    case "Left":
+      return Either.left(result.left)
+    case "Defect":
+      return Either.left(new NanoDefectException(result.defect))
+    case "Right":
+      return Either.right(result.right)
+  }
+}
 
 export const run = <A, E>(fa: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
   try {
-    const result = fa.run(contextEmpty)
-    switch (result._tag) {
-      case "Left":
-        return Either.left(result.left)
-      case "Defect":
-        return Either.left(new NanoDefectException(result.defect))
-      case "Right":
-        return Either.right(result.right)
-    }
+    return unsafeRun(fa)
   } catch (e) {
     return Either.left(new NanoDefectException(e))
   }

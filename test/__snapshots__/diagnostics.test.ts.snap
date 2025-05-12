@@ -2155,9 +2155,13 @@ export const shouldRaiseForSingle = Effect.succeed(42)
 "
 `;
 
+exports[`Diagnostic quickfixes unnecessaryEffectGen > unnecessaryEffectGen_ifBlock.ts > available codefixes list 1`] = `""`;
+
 exports[`Diagnostic unnecessaryEffectGen > unnecessaryEffectGen.ts > diagnostic output 1`] = `
 "Effect.gen(function* () {
     return yield* Effect.succeed(42)
 })
-12:36 - 14:2 | 2 | This Effect.gen is useless here because it only contains a single return statement."
+12:36 - 14:2 | 2 | This Effect.gen contains a single return statement."
 `;
+
+exports[`Diagnostic unnecessaryEffectGen > unnecessaryEffectGen_ifBlock.ts > diagnostic output 1`] = `""`;

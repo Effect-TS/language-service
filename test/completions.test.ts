@@ -51,7 +51,7 @@ function testCompletionOnExample(
       quickinfo: false,
       completions: false
     }),
-    Nano.run
+    Nano.unsafeRun
   )
 
   if (Either.isLeft(maybeEntries)) {

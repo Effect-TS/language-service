@@ -65,7 +65,7 @@ function testDiagnosticOnExample(
       return diagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
         .join("\n\n")
     }),
-    Nano.run,
+    Nano.unsafeRun,
     Either.getOrElse(() => "// no diagnostics")
   )
 
@@ -109,7 +109,7 @@ function testDiagnosticQuickfixesOnExample(
               pipe(
                 codeFix.apply,
                 Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-                Nano.run,
+                Nano.unsafeRun,
                 (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
               )
           )
@@ -133,9 +133,9 @@ function testDiagnosticQuickfixesOnExample(
       quickinfo: false,
       completions: false
     }),
-    Nano.run,
+    Nano.unsafeRun,
     (result) => {
-      expect(Either.isRight(result), "should run with no error").toEqual(true)
+      expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
       expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchSnapshot(
         "available codefixes list"
       )

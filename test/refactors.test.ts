@@ -68,7 +68,7 @@ function testRefactorOnExample(
       quickinfo: false,
       completions: false
     }),
-    Nano.run
+    Nano.unsafeRun
   )
 
   if (Either.isLeft(canApply)) {
@@ -90,7 +90,7 @@ function testRefactorOnExample(
       quickinfo: false,
       completions: false
     }),
-    Nano.run
+    Nano.unsafeRun
   )
 
   if (Either.isLeft(applicableRefactor)) {
@@ -113,7 +113,7 @@ function testRefactorOnExample(
       pipe(
         applicableRefactor.right.apply,
         Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-        Nano.run
+        Nano.unsafeRun
       )
   )
 
