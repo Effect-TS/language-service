@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.12.2
+
+### Patch Changes
+
+- [#122](https://github.com/Effect-TS/language-service/pull/122) [`b261a4b`](https://github.com/Effect-TS/language-service/commit/b261a4bbb54b375c7a648249831798622547947e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix single line if blocks mismatched as unnecessary gen
+
 ## 0.12.1
 
 ### Patch Changes
