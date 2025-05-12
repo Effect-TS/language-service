@@ -1,3 +1,4 @@
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
@@ -25,28 +26,15 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      const maybeUnnecessaryYield = yield* Nano.option(
-        TypeParser.returnYieldEffectBlock(node)
+      const maybeNode = yield* pipe(
+        TypeParser.effectGen(node),
+        Nano.flatMap(({ body }) => TypeParser.returnYieldEffectBlock(body)),
+        Nano.option
       )
 
-      if (Option.isSome(maybeUnnecessaryYield)) {
-        // go up until we meet the causing generator
-        const functionStarNode = ts.findAncestor(
-          node,
-          (_) =>
-            (ts.isFunctionExpression(_) || ts.isMethodDeclaration(_)) &&
-            _.asteriskToken !== undefined
-        )
-
-        // .gen should always be the parent ideally
-        if (functionStarNode && functionStarNode.parent) {
-          const effectGenNode = functionStarNode.parent
-          const maybeUnnecessaryGen = yield* Nano.option(
-            TypeParser.effectGen(effectGenNode)
-          )
-          if (Option.isSome(maybeUnnecessaryGen)) {
-            unnecessaryGenerators.set(maybeUnnecessaryGen.value.node, maybeUnnecessaryYield.value)
-          }
+      if (Option.isSome(maybeNode)) {
+        if (Option.isSome(maybeNode)) {
+          unnecessaryGenerators.set(node, maybeNode.value)
         }
       }
     }
@@ -56,8 +44,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       effectDiagnostics.push({
         node: effectGenCall,
         category: ts.DiagnosticCategory.Suggestion,
-        messageText:
-          `This Effect.gen is useless here because it only contains a single return statement.`,
+        messageText: `This Effect.gen contains a single return statement.`,
         fixes: [{
           fixName: "unnecessaryEffectGen_fix",
           description: "Remove the Effect.gen, and keep the body",
