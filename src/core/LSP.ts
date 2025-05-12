@@ -84,6 +84,24 @@ export interface PluginOptions {
   multipleEffectCheck: boolean
 }
 
+export function parsePluginOptions(config: any) {
+  return {
+    diagnostics: config && "diagnostics" in config && typeof config.diagnostics === "boolean"
+      ? config.diagnostics
+      : true,
+    quickinfo: config && "quickinfo" in config && typeof config.quickinfo === "boolean"
+      ? config.quickinfo
+      : true,
+    completions: config && "completions" in config && typeof config.completions === "boolean"
+      ? config.completions
+      : true,
+    multipleEffectCheck: config && "multipleEffectCheck" in config &&
+        typeof config.multipleEffectCheck === "boolean"
+      ? config.multipleEffectCheck
+      : true
+  }
+}
+
 export interface CompletionDefinition {
   name: string
   apply: (
