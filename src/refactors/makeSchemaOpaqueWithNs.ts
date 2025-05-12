@@ -37,7 +37,7 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
             }
           )
           const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
-          const { contextType, encodedType, opaqueType } = _createOpaqueTypes(
+          const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,
             newIdentifier.text,
             types.A,

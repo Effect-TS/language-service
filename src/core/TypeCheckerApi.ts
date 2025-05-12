@@ -159,23 +159,24 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
   const result: Array<ExpectedAndRealType> = []
 
-  const nodeToVisit: Array<ts.Node> = []
+  const nodeToVisit: Array<ts.Node> = [sourceFile]
   const appendNodeToVisit = (node: ts.Node) => {
     nodeToVisit.push(node)
     return undefined
   }
-  ts.forEachChild(sourceFile, appendNodeToVisit)
 
   while (nodeToVisit.length > 0) {
     const node = nodeToVisit.shift()!
-    ts.forEachChild(node, appendNodeToVisit)
 
     if (ts.isVariableDeclaration(node) && node.initializer) {
+      // const a: Effect<...> = node
       const expectedType = typeChecker.getTypeAtLocation(node.name)
       const realType = typeChecker.getTypeAtLocation(node.initializer)
       result.push([node.name, expectedType, node.initializer, realType])
+      appendNodeToVisit(node.initializer)
       continue
     } else if (ts.isCallExpression(node)) {
+      // fn(a)
       const resolvedSignature = typeChecker.getResolvedSignature(node)
       if (resolvedSignature) {
         resolvedSignature.getParameters().map((parameter, index) => {
@@ -188,12 +189,14 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
             realType
           ])
         })
+        ts.forEachChild(node, appendNodeToVisit)
         continue
       }
     } else if (
       ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
       ts.isNoSubstitutionTemplateLiteral(node)
     ) {
+      // { key: node } as { key: Effect<...> }
       const parent = node.parent
       if (ts.isObjectLiteralElement(parent)) {
         if (ts.isObjectLiteralExpression(parent.parent) && parent.name === node) {
@@ -204,6 +207,7 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
               const expectedType = typeChecker.getTypeOfSymbolAtLocation(symbol, node)
               const realType = typeChecker.getTypeAtLocation(node)
               result.push([node, expectedType, node, realType])
+              ts.forEachChild(node, appendNodeToVisit)
               continue
             }
           }
@@ -212,34 +216,45 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
     } else if (
       ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
     ) {
+      // var a: Effect<...> = node
       const expectedType = typeChecker.getTypeAtLocation(node.left)
       const realType = typeChecker.getTypeAtLocation(node.right)
       result.push([node.left, expectedType, node.right, realType])
+      appendNodeToVisit(node.right)
       continue
     } else if (ts.isReturnStatement(node) && node.expression) {
+      // function(): Effect<...> { return a }
       const parentDeclaration = yield* Nano.option(getAncestorConvertibleDeclaration(node))
       if (Option.isSome(parentDeclaration)) {
         const expectedType = yield* Nano.option(getInferredReturnType(parentDeclaration.value))
         const realType = typeChecker.getTypeAtLocation(node.expression)
         if (Option.isSome(expectedType)) {
           result.push([node, expectedType.value, node, realType])
+          ts.forEachChild(node, appendNodeToVisit)
           continue
         }
       }
     } else if (ts.isArrowFunction(node) && ts.isExpression(node.body)) {
+      // (): Effect<...> => node
       const body = node.body
       const expectedType = typeChecker.getContextualType(body)
       const realType = typeChecker.getTypeAtLocation(body)
       if (expectedType) {
         result.push([body, expectedType, body, realType])
+        appendNodeToVisit(body)
         continue
       }
     } else if (ts.isSatisfiesExpression(node)) {
+      // node as Effect<....>
       const expectedType = typeChecker.getTypeAtLocation(node.type)
       const realType = typeChecker.getTypeAtLocation(node.expression)
       result.push([node.expression as ts.Node, expectedType, node.expression, realType])
+      appendNodeToVisit(node.expression)
       continue
     }
+
+    // no previous case has been hit, continue with childs
+    ts.forEachChild(node, appendNodeToVisit)
   }
   cache.expectedAndRealType.set(sourceFile, result)
   return result

@@ -1,7 +1,7 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import ts from "typescript"
+import type ts from "typescript"
 import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -52,7 +52,7 @@ export const _findSchemaVariableDeclaration = Nano.fn(
   }
 )
 
-export function _createOpaqueTypes(
+export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
   effectSchemaName: string,
   inferFromName: string,
   typeA: ts.Type,
@@ -61,6 +61,7 @@ export function _createOpaqueTypes(
   opaqueEncodedName: string,
   opaqueContextName: string
 ) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
   // opaque type
   const opaqueInferred = ts.factory.createExpressionWithTypeArguments(
     ts.factory.createPropertyAccessExpression(
@@ -143,7 +144,7 @@ export function _createOpaqueTypes(
   )
 
   return { contextType, encodedType, opaqueType }
-}
+})
 
 export const makeSchemaOpaque = LSP.createRefactor({
   name: "effect/makeSchemaOpaque",
@@ -176,7 +177,7 @@ export const makeSchemaOpaque = LSP.createRefactor({
             }
           )
           const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
-          const { contextType, encodedType, opaqueType } = _createOpaqueTypes(
+          const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,
             newIdentifier.text,
             types.A,
