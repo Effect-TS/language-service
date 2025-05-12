@@ -58,6 +58,7 @@ function testRefactorOnExample(
   const canApply = pipe(
     LSP.getApplicableRefactors([refactor], sourceFile, textRange),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(
       TypeCheckerApi.TypeCheckerApiCache,
@@ -66,7 +67,8 @@ function testRefactorOnExample(
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: false,
       quickinfo: false,
-      completions: false
+      completions: false,
+      multipleEffectCheck: false
     }),
     Nano.unsafeRun
   )
@@ -80,6 +82,7 @@ function testRefactorOnExample(
   const applicableRefactor = pipe(
     LSP.getEditsForRefactor([refactor], sourceFile, textRange, refactor.name),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(
       TypeCheckerApi.TypeCheckerApiCache,
@@ -88,7 +91,8 @@ function testRefactorOnExample(
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: false,
       quickinfo: false,
-      completions: false
+      completions: false,
+      multipleEffectCheck: false
     }),
     Nano.unsafeRun
   )

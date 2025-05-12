@@ -48,6 +48,7 @@ export interface DiagnosticDefinition {
     | PluginOptions
     | TypeScriptApi.TypeScriptApi
     | TypeCheckerApi.TypeCheckerApiCache
+    | TypeScriptApi.TypeScriptProgram
   >
 }
 
@@ -80,6 +81,7 @@ export interface PluginOptions {
   diagnostics: boolean
   quickinfo: boolean
   completions: boolean
+  multipleEffectCheck: boolean
 }
 
 export interface CompletionDefinition {
@@ -96,6 +98,7 @@ export interface CompletionDefinition {
     | PluginOptions
     | TypeScriptApi.TypeScriptApi
     | TypeCheckerApi.TypeCheckerApiCache
+    | TypeScriptApi.TypeScriptProgram
   >
 }
 

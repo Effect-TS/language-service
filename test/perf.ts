@@ -24,7 +24,7 @@ function testAllDagnostics() {
     }
   )
   // run a couple of times
-  const totalSamples = 10000
+  const totalSamples = 1000
   let totalTime = 0
   for (let i = 0; i < totalSamples; i++) {
     for (const example of allExampleFiles) {
@@ -32,6 +32,7 @@ function testAllDagnostics() {
       pipe(
         LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, example.sourceFile),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provideService(TypeScriptApi.TypeScriptProgram, example.program),
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, example.program.getTypeChecker()),
         Nano.provideService(
           TypeCheckerApi.TypeCheckerApiCache,
@@ -40,7 +41,8 @@ function testAllDagnostics() {
         Nano.provideService(LSP.PluginOptions, {
           diagnostics: true,
           quickinfo: false,
-          completions: false
+          completions: false,
+          multipleEffectCheck: true
         }),
         Nano.unsafeRun,
         Either.getOrElse(() => "// no diagnostics")
