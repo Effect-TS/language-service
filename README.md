@@ -46,10 +46,12 @@ Your `tsconfig.json` should look like this:
 }
 ```
 
+To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
+
 Running `tspc` in your project will now also run the plugin and give you the diagnostics at compile time.
 
 ```ts
-$ npm tspc
+$ npx tspc
 index.ts:3:1 - error TS3: Effect must be yielded or assigned to a variable.
 
 3 Effect.succeed(1)
