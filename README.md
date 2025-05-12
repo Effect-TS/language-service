@@ -36,9 +36,10 @@ Few options can be provided alongside the initialization of the Language Service
     "plugins": [
       {
         "name": "@effect/language-service",
-        "diagnostics": true, // controls Effect diagnostics (on by default)
-        "quickinfo": true, // controls quickinfo over Effect (on by default)
-        "completions": true // controls Effect completions (on by default)
+        "diagnostics": true, // controls Effect diagnostics
+        "quickinfo": true, // controls quickinfo over Effect
+        "completions": true, // controls Effect completions
+        "multipleEffectCheck": true // controls if multiple versions of Effect are referenced
       }
     ]
   }
@@ -54,9 +55,10 @@ Few options can be provided alongside the initialization of the Language Service
 ### Diagnostics
 
 - Better error readability when you're missing errors or service types in your Effect definitions
-- Detect floating Effects that are not yielded or run
-- Detect wrong usage of yield inside Effect.gen
-- Detect unnecessary usages of Effect.gen
+- Floating Effects that are not yielded or run
+- Wrong usage of yield inside Effect.gen
+- Unnecessary usages of Effect.gen
+- Multiple versions of Effect in your project
 
 ### Completions
 

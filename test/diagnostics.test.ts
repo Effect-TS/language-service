@@ -48,6 +48,7 @@ function testDiagnosticOnExample(
   const output = pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(
       TypeCheckerApi.TypeCheckerApiCache,
@@ -56,7 +57,8 @@ function testDiagnosticOnExample(
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: true,
       quickinfo: false,
-      completions: false
+      completions: false,
+      multipleEffectCheck: true
     }),
     Nano.map(({ diagnostics }) => {
       // sort by start position
@@ -123,6 +125,7 @@ function testDiagnosticQuickfixesOnExample(
       })
     ),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(
       TypeCheckerApi.TypeCheckerApiCache,
@@ -131,7 +134,8 @@ function testDiagnosticQuickfixesOnExample(
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: true,
       quickinfo: false,
-      completions: false
+      completions: false,
+      multipleEffectCheck: true
     }),
     Nano.unsafeRun,
     (result) => {

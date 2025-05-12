@@ -40,6 +40,7 @@ function testCompletionOnExample(
       undefined,
       ts.getDefaultFormatCodeSettings("\n")
     ),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(
@@ -49,7 +50,8 @@ function testCompletionOnExample(
     Nano.provideService(LSP.PluginOptions, {
       diagnostics: false,
       quickinfo: false,
-      completions: false
+      completions: false,
+      multipleEffectCheck: false
     }),
     Nano.unsafeRun
   )

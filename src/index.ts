@@ -29,7 +29,11 @@ const init = (
       completions:
         info.config && "completions" in info.config && typeof info.config.completions === "boolean"
           ? info.config.completions
-          : true
+          : true,
+      multipleEffectCheck: info.config && "multipleEffectCheck" in info.config &&
+          typeof info.config.multipleEffectCheck === "boolean"
+        ? info.config.multipleEffectCheck
+        : true
     }
 
     // this is nothing more than an hack. Seems like vscode and other editors do not
@@ -68,6 +72,7 @@ const init = (
         if (sourceFile) {
           return pipe(
             LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
+            Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
             Nano.provideService(
               TypeCheckerApi.TypeCheckerApiCache,
@@ -263,6 +268,7 @@ const init = (
                 position,
                 dedupedTagsQuickInfo
               ),
+              Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
               Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
               Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
               Nano.provideService(LSP.PluginOptions, pluginOptions),
@@ -300,6 +306,7 @@ const init = (
                 options,
                 formattingSettings
               ),
+              Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
               Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
               Nano.provideService(
                 TypeCheckerApi.TypeCheckerApiCache,

@@ -144,7 +144,10 @@ declare module "typescript" {
 
 type _TypeScriptApi = typeof ts
 export interface TypeScriptApi extends _TypeScriptApi {}
-
 export const TypeScriptApi = Nano.Tag<TypeScriptApi>("TypeScriptApi")
+
+type _TypeScriptProgram = ts.Program
+export interface TypeScriptProgram extends _TypeScriptProgram {}
+export const TypeScriptProgram = Nano.Tag<TypeScriptProgram>("TypeScriptProgram")
 
 export const ChangeTracker = Nano.Tag<ts.textChanges.ChangeTracker>("ChangeTracker")

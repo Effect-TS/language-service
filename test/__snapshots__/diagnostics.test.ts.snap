@@ -140,6 +140,8 @@ yield Effect.never
 42:4 - 42:22 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield."
 `;
 
+exports[`Diagnostic multipleEffectVersions > multipleEffectVersions.ts > diagnostic output 1`] = `""`;
+
 exports[`Diagnostic quickfixes floatingEffect > floatingEffect.ts > available codefixes list 1`] = `
 "effect/floatingEffect_skipFile from 76 to 102
 effect/floatingEffect_skipFile from 104 to 116
@@ -2114,6 +2116,8 @@ const untracedEffectFnUsage = Effect.fnUntraced(function*(){
 })
 "
 `;
+
+exports[`Diagnostic quickfixes multipleEffectVersions > multipleEffectVersions.ts > available codefixes list 1`] = `""`;
 
 exports[`Diagnostic quickfixes unnecessaryEffectGen > unnecessaryEffectGen.ts > available codefixes list 1`] = `
 "unnecessaryEffectGen_fix from 291 to 356
