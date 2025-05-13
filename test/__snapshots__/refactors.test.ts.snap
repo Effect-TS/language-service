@@ -2324,6 +2324,99 @@ class Person extends Schema.TaggedClass<Person>("Person")("Person", {
 "
 `;
 
+exports[`Refactor typeToEffectSchema > typeToEffectSchema.ts at 4:21 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 4:21
+import * as Schema from "effect/Schema"
+export const MyStruct = Schema.Struct({
+    id: Schema.Number,
+    name: Schema.String,
+    enabled: Schema.Boolean,
+    pets: Schema.Array(Schema.String),
+    surname: Schema.optional(Schema.String),
+    birthday: Schema.Date,
+    petsArray: Schema.Array(Schema.String),
+    nullableProp: Schema.Null,
+    undefinedProp: Schema.Undefined,
+    bigintProp: Schema.BigInt,
+    trueProp: Schema.Literal(true),
+    falseProp: Schema.Literal(false),
+    literalProp: Schema.Literal("hello"),
+    numericLiteralProp: Schema.Literal(42),
+    unionProp: Schema.Union(Schema.String, Schema.Boolean),
+    inlineStruct: Schema.Struct({
+        a: Schema.String,
+        b: Schema.Number
+    }),
+    otherReference: MyUnion,
+    otherWithArguments:  /* MyType<string, boolean> */,
+    // single line comment
+    prop: Schema.String,
+    /**
+     * Multiline comment
+     */
+    prop2: Schema.String
+})
+
+
+export interface MyStruct {
+    id: number
+    name: string
+    enabled: boolean
+    pets: string[]
+    surname?: string
+    birthday: Date
+    petsArray: Array<string>
+    nullableProp: null
+    undefinedProp: undefined
+    bigintProp: bigint
+    trueProp: true
+    falseProp: false
+    literalProp: "hello"
+    numericLiteralProp: 42
+    unionProp: string | boolean
+    inlineStruct: {a: string, b: number}
+    otherReference: MyUnion
+    otherWithArguments: MyType<string, boolean>
+    // single line comment
+    prop: string
+    /**
+     * Multiline comment
+     */
+    prop2: string
+}
+
+type MyUnion = "A" | "B"
+interface MyType<A, B>{
+    _A: A
+    _B: B
+}
+"
+`;
+
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_indexSignature.ts at 4:21 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 4:21
+import * as Schema from "effect/Schema"
+export const MyStruct = Schema.Struct({
+    prop: Schema.Literal(42)
+}, { key: Schema.Number, value: Schema.String })
+
+
+export interface MyStruct {
+    prop: 42
+    [key: number]: string
+}
+"
+`;
+
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_noGenerics.ts at 3:22 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 3:22
+
+export interface MyType<A>{
+    _A: A
+}
+"
+`;
+
 exports[`Refactor wrapWithEffectGen > wrapWithEffectGen.ts at 5:22 1`] = `
 "// Result of running refactor effect/wrapWithEffectGen at position 5:22
 import * as Effect from "effect/Effect"
