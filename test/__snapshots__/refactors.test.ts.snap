@@ -2465,6 +2465,32 @@ export interface MyStruct {
 "
 `;
 
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_literal.ts at 4:15 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 4:15
+import * as Schema from "effect/Schema"
+
+export const Test = Schema.Literal("a", "b", "c", true, 42)
+
+export type Test = "a" | "b" | "c" | true | 42
+
+export type NoLiteralOptimization = {a: boolean} | "a"
+"
+`;
+
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_literal.ts at 6:15 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 6:15
+import * as Schema from "effect/Schema"
+
+export type Test = "a" | "b" | "c" | true | 42
+
+export const NoLiteralOptimization = Schema.Union(Schema.Struct({
+    a: Schema.Boolean
+}), Schema.Literal("a"))
+
+export type NoLiteralOptimization = {a: boolean} | "a"
+"
+`;
+
 exports[`Refactor typeToEffectSchema > typeToEffectSchema_noGenerics.ts at 3:22 1`] = `
 "// Result of running refactor effect/typeToEffectSchema at position 3:22
 
