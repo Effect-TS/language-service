@@ -106,6 +106,7 @@ export const makeSchemaGenContext = Nano.fn("SchemaGen.makeSchemaGenContext")(fu
           case "Date":
           case "Pick":
           case "Omit":
+          case "Record":
             return Option.some(name.text)
           case "ReadonlyArray":
           case "Array":
@@ -234,6 +235,21 @@ export const processNode = (
       const members = yield* Nano.all(...node.types.map((_) => processNode(_)))
       return createApiCall("Union", members)
     }
+    // {a: 1} & {b: 2} & {c: 3}
+    if (ts.isIntersectionTypeNode(node)) {
+      const [firstSchema, ...otherSchemas] = yield* Nano.all(
+        ...node.types.map((_) => processNode(_))
+      )
+      if (otherSchemas.length === 0) return firstSchema
+      return ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          firstSchema,
+          "pipe"
+        ),
+        [],
+        otherSchemas.map((_) => createApiCall("extend", [_]))
+      )
+    }
     // string[]
     if (ts.isArrayTypeNode(node)) {
       const typeSchema = yield* processNode(node.elementType)
@@ -263,6 +279,20 @@ export const processNode = (
               ...(node.typeArguments ? node.typeArguments.map(processNode) : [])
             )
             return createApiCall(parsedName.value, elements)
+          }
+          case "Record": {
+            const elements = yield* Nano.all(
+              ...(node.typeArguments ? node.typeArguments.map(processNode) : [])
+            )
+            if (elements.length >= 2) {
+              return createApiCall(parsedName.value, [
+                ts.factory.createObjectLiteralExpression([
+                  ts.factory.createPropertyAssignment("key", elements[0]),
+                  ts.factory.createPropertyAssignment("value", elements[1])
+                ])
+              ])
+            }
+            return createUnsupportedNodeComment(ts, sourceFile, node)
           }
           case "Either": {
             const elements = yield* Nano.all(

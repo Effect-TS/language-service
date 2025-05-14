@@ -2347,6 +2347,12 @@ export const MyStruct = Schema.Struct({
     literalProp: Schema.Literal("hello"),
     numericLiteralProp: Schema.Literal(42),
     unionProp: Schema.Union(Schema.String, Schema.Boolean),
+    intersectionProp: Schema.Struct({
+        a: Schema.String
+    }).pipe(Schema.extend(Schema.Struct({
+        b: Schema.Number
+    }))),
+    recordProp: Schema.Record({ key: Schema.String, value: Schema.Number }),
     inlineStruct: Schema.Struct({
         a: Schema.String,
         b: Schema.Number
@@ -2380,6 +2386,8 @@ export interface MyStruct {
     literalProp: "hello"
     numericLiteralProp: 42
     unionProp: string | boolean
+    intersectionProp: {a: string} & {b: number}
+    recordProp: Record<string, number>
     inlineStruct: {a: string, b: number}
     otherReference: MyUnion
     otherWithArguments: MyType<string, boolean>
