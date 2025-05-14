@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.15.0
+
+### Minor Changes
+
+- [#133](https://github.com/Effect-TS/language-service/pull/133) [`5990d51`](https://github.com/Effect-TS/language-service/commit/5990d51c3c141947f9ef6c5c6f6865ffa5847408) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add type to schema refactor
+
 ## 0.14.0
 
 ### Minor Changes
