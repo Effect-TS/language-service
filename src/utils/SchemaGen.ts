@@ -144,23 +144,37 @@ const typeEntityNameToNode: (
 
 const parseAllLiterals: (
   node: ts.TypeNode
-) => Nano.Nano<Array<ts.StringLiteral>, ts.TypeNode, SchemaGenContext> = Nano.fn(
-  "SchemaGen.parseAllLiterals"
-)(
-  function*(node: ts.TypeNode) {
-    const { ts } = yield* Nano.service(SchemaGenContext)
-    if (ts.isLiteralTypeNode(node) && node.literal.kind === ts.SyntaxKind.StringLiteral) {
-      return [ts.factory.createStringLiteral(node.literal.text)]
+) => Nano.Nano<
+  Array<ts.StringLiteral | ts.NumericLiteral | ts.NullLiteral | ts.TrueLiteral | ts.FalseLiteral>,
+  ts.TypeNode,
+  SchemaGenContext
+> = Nano
+  .fn(
+    "SchemaGen.parseAllLiterals"
+  )(
+    function*(node: ts.TypeNode) {
+      const { ts } = yield* Nano.service(SchemaGenContext)
+      if (ts.isLiteralTypeNode(node)) {
+        switch (node.literal.kind) {
+          case ts.SyntaxKind.StringLiteral:
+            return [ts.factory.createStringLiteral(node.literal.text)]
+          case ts.SyntaxKind.NumericLiteral:
+            return [ts.factory.createNumericLiteral(node.literal.text)]
+          case ts.SyntaxKind.TrueKeyword:
+            return [ts.factory.createTrue()]
+          case ts.SyntaxKind.FalseKeyword:
+            return [ts.factory.createFalse()]
+        }
+      }
+      if (ts.isUnionTypeNode(node)) {
+        return Array.flatten(yield* Nano.all(...node.types.map((_) => parseAllLiterals(_))))
+      }
+      if (ts.isParenthesizedTypeNode(node)) {
+        return yield* parseAllLiterals(node.type)
+      }
+      return yield* Nano.fail(node)
     }
-    if (ts.isUnionTypeNode(node)) {
-      return Array.flatten(yield* Nano.all(...node.types.map((_) => parseAllLiterals(_))))
-    }
-    if (ts.isParenthesizedTypeNode(node)) {
-      return yield* parseAllLiterals(node.type)
-    }
-    return yield* Nano.fail(node)
-  }
-)
+  )
 
 const createUnsupportedNodeComment = (
   ts: TypeScriptApi.TypeScriptApi,
@@ -211,27 +225,18 @@ export const processNode = (
       case ts.SyntaxKind.BigIntKeyword:
         return createApiPropertyAccess("BigInt")
     }
-    // true | false | null
+    // null and other literals
     if (ts.isLiteralTypeNode(node)) {
-      switch (node.literal.kind) {
-        case ts.SyntaxKind.NullKeyword:
-          return (createApiPropertyAccess("Null"))
-        case ts.SyntaxKind.TrueKeyword:
-          return (createApiCall("Literal", [ts.factory.createTrue()]))
-        case ts.SyntaxKind.FalseKeyword:
-          return (createApiCall("Literal", [ts.factory.createFalse()]))
-        case ts.SyntaxKind.StringLiteral:
-          return (
-            createApiCall("Literal", [ts.factory.createStringLiteral(node.literal.text)])
-          )
-        case ts.SyntaxKind.NumericLiteral:
-          return (
-            createApiCall("Literal", [ts.factory.createNumericLiteral(node.literal.text)])
-          )
-      }
+      if (node.literal.kind === ts.SyntaxKind.NullKeyword) return createApiPropertyAccess("Null")
+      const literalMembers = yield* Nano.option(parseAllLiterals(node))
+      if (Option.isSome(literalMembers)) return createApiCall("Literal", literalMembers.value)
     }
     // A | B
     if (ts.isUnionTypeNode(node)) {
+      // "a" | "b" can be optimized into a single Schema.Literal("a", "b")
+      const allLiterals = yield* Nano.option(parseAllLiterals(node))
+      if (Option.isSome(allLiterals)) return createApiCall("Literal", allLiterals.value)
+      // regular union
       const members = yield* Nano.all(...node.types.map((_) => processNode(_)))
       return createApiCall("Union", members)
     }
