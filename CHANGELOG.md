@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.15.1
+
+### Patch Changes
+
+- [#135](https://github.com/Effect-TS/language-service/pull/135) [`cb14330`](https://github.com/Effect-TS/language-service/commit/cb143307ef00da7ccdcc75487e157dccd3625fb7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add missing record and intersection into type to schema refactor
+
+- [#137](https://github.com/Effect-TS/language-service/pull/137) [`3a29ddb`](https://github.com/Effect-TS/language-service/commit/3a29ddbe5fded7e085e4e17caf296b263a2603bc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Use a single Schema.Literal call in unions of literals
+
 ## 0.15.0
 
 ### Minor Changes
