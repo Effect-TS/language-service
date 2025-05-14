@@ -7,17 +7,17 @@ import * as Gen from "effect/Utils"
 
 interface NanoInternalSuccess<A> {
   _tag: "Right"
-  right: A
+  value: A
 }
 
 interface NanoInternalFailure<E> {
   _tag: "Left"
-  left: E
+  value: E
 }
 
 interface NanoInternalDefect {
   _tag: "Defect"
-  defect: unknown
+  value: unknown
 }
 
 type NanoInternalResult<A, E> =
@@ -90,32 +90,45 @@ export interface NanoTypeLambda extends TypeLambda {
  * Thrown exceptions are catched and converted into defects,
  * so worst case scenario, you will get only standard typescript lsp.
  */
-export class Nano<out A = never, out E = never, out R = never> {
-  declare readonly "~nano.success": A
-  declare readonly "~nano.error": E
-  declare readonly "~nano.requirements": R
+export interface Nano<out A = never, out E = never, out R = never> {
+  readonly "~nano.success": A
+  readonly "~nano.error": E
+  readonly "~nano.requirements": R
+  [Symbol.iterator](): NanoIterator<Nano<A, E, R>>
+  run: (
+    ctx: NanoContext<unknown>
+  ) => NanoInternalResult<A, E>
+}
 
-  constructor(
-    public readonly run: (
-      ctx: NanoContext<unknown>
-    ) => NanoInternalResult<A, E>
-  ) {}
+const Proto = {
+  run: () => {},
 
-  [Symbol.iterator](): NanoIterator<Nano<A, E, R>> {
-    return new Gen.SingleShotGen(new Gen.YieldWrap(this)) as any
+  [Symbol.iterator]() {
+    return new Gen.SingleShotGen(new Gen.YieldWrap(this))
   }
 }
+
+function make<A, E, R>(
+  run: (
+    ctx: NanoContext<unknown>
+  ) => NanoInternalResult<A, E>
+): Nano<A, E, R> {
+  const result = Object.create(Proto)
+  result.run = run
+  return result
+}
+
 export const unsafeRun = <A, E>(
   fa: Nano<A, E, never>
 ): Either.Either<A, E | NanoDefectException> => {
   const result = fa.run(contextEmpty)
   switch (result._tag) {
     case "Left":
-      return Either.left(result.left)
+      return Either.left(result.value)
     case "Defect":
-      return Either.left(new NanoDefectException(result.defect))
+      return Either.left(new NanoDefectException(result.value))
     case "Right":
-      return Either.right(result.right)
+      return Either.right(result.value)
   }
 }
 
@@ -127,9 +140,10 @@ export const run = <A, E>(fa: Nano<A, E, never>): Either.Either<A, E | NanoDefec
   }
 }
 
-export const succeed = <A>(value: A) => new Nano(() => ({ _tag: "Right", right: value }))
-export const fail = <E>(value: E) => new Nano(() => ({ _tag: "Left", left: value }))
-export const sync = <A>(value: () => A) => new Nano(() => ({ _tag: "Right", right: value() }))
+export const succeed = <A>(value: A) => make<A, never, never>(() => ({ _tag: "Right", value }))
+export const fail = <E>(value: E) => make<never, E, never>(() => ({ _tag: "Left", value }))
+export const sync = <A>(value: () => A) =>
+  make<A, never, never>(() => ({ _tag: "Right", value: value() }))
 export const flatMap: {
   <A, B, E2, R2>(f: (a: A) => Nano<B, E2, R2>): <E, R>(fa: Nano<A, E, R>) => Nano<B, E | E2, R | R2>
   <A, E, R, B, E2, R2>(fa: Nano<A, E, R>, f: (a: A) => Nano<B, E2, R2>): Nano<B, E | E2, R | R2>
@@ -137,10 +151,10 @@ export const flatMap: {
   fa: Nano<A, E, R>,
   f: (a: A) => Nano<B, E2, R2>
 ) =>
-  new Nano<B, E | E2, R | R2>((ctx) => {
+  make<B, E | E2, R | R2>((ctx) => {
     const result = fa.run(ctx)
     if (result._tag !== "Right") return result
-    return f(result.right).run(ctx) as any
+    return f(result.value).run(ctx)
   }))
 
 export const map: {
@@ -150,32 +164,32 @@ export const map: {
   fa: Nano<A, E, R>,
   f: (a: A) => B
 ) =>
-  new Nano<B, E, R>((ctx) => {
+  make<B, E, R>((ctx) => {
     const result = fa.run(ctx)
-    if (result._tag !== "Right") return result as any
-    return ({ _tag: "Right", right: f(result.right) }) as any
+    if (result._tag !== "Right") return result
+    return ({ _tag: "Right", value: f(result.value) })
   }))
 
 export const orElse = <E, B, E2, R2>(
   f: (e: E) => Nano<B, E2, R2>
 ) =>
 <A, R>(fa: Nano<A, E, R>) =>
-  new Nano<A | B, E2, R | R2>((ctx) => {
+  make<A | B, E2, R | R2>((ctx) => {
     const result = fa.run(ctx)
-    if (result._tag === "Left") return f(result.left).run(ctx) as any
+    if (result._tag === "Left") return f(result.value).run(ctx)
     return result
   })
 
 export const firstSuccessOf = <A extends Array<Nano<any, any, any>>>(
   arr: A
 ): Nano<A[number]["~nano.success"], A[number]["~nano.error"], A[number]["~nano.requirements"]> =>
-  ReadonlyArray.reduce(arr.slice(1), arr[0], (arr, fa) => orElse(() => fa)(arr)) as any
+  ReadonlyArray.reduce(arr.slice(1), arr[0], (arr, fa) => orElse(() => fa)(arr))
 
 export const service = <I extends NanoTag<any>>(tag: I) =>
-  new Nano<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
+  make<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
     contextGet(ctx, tag).pipe(Option.match({
-      onNone: () => ({ _tag: "Defect", defect: `Cannot find service ${tag.key}` }),
-      onSome: (value) => ({ _tag: "Right", right: value })
+      onNone: () => ({ _tag: "Defect", value: `Cannot find service ${tag.key}` }),
+      onSome: (value) => ({ _tag: "Right", value })
     }))
   )
 
@@ -184,14 +198,14 @@ export const provideService = <I extends NanoTag<any>>(
   value: I["~nano.requirements"]
 ) =>
 <A, E, R>(fa: Nano<A, E, R>) =>
-  new Nano<A, E, Exclude<R, I["~nano.requirements"]>>((ctx) => {
+  make<A, E, Exclude<R, I["~nano.requirements"]>>((ctx) => {
     return fa.run(contextAdd(ctx, tag, value))
   })
 
 export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
   ...args: [body: () => Generator<Eff, AEff, never>]
 ) =>
-  new Nano<
+  make<
     AEff,
     [Eff] extends [never] ? never
       : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
@@ -210,9 +224,9 @@ export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
       if (result._tag !== "Right") {
         return result
       }
-      state = iterator.next(result.right as never)
+      state = iterator.next(result.value as never)
     }
-    return ({ _tag: "Right", right: state.value }) as NanoInternalResult<any, any>
+    return ({ _tag: "Right", value: state.value }) as NanoInternalResult<any, any>
   })
 
 export const fn =
@@ -221,7 +235,7 @@ export const fn =
     body: (...args: Args) => Generator<Eff, AEff, never>
   ) =>
   (...args: Args) => (
-    new Nano<
+    make<
       AEff,
       [Eff] extends [never] ? never
         : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
@@ -240,20 +254,20 @@ export const fn =
         if (result._tag !== "Right") {
           return result
         }
-        state = iterator.next(result.right as never)
+        state = iterator.next(result.value as never)
       }
-      return ({ _tag: "Right", right: state.value }) as NanoInternalResult<any, any>
+      return ({ _tag: "Right", value: state.value }) as NanoInternalResult<any, any>
     })
   )
 
 export const option = <A, E, R>(fa: Nano<A, E, R>) =>
-  new Nano<Option.Option<A>, never, R>((ctx) => {
+  make<Option.Option<A>, never, R>((ctx) => {
     const result = fa.run(ctx)
     switch (result._tag) {
       case "Right":
-        return { _tag: "Right", right: Option.some(result.right) }
+        return { _tag: "Right", value: Option.some(result.value) }
       case "Left":
-        return { _tag: "Right", right: Option.none() }
+        return { _tag: "Right", value: Option.none() }
       case "Defect":
         return result
     }
@@ -278,7 +292,7 @@ export const all = <A extends Array<Nano<any, any, any>>>(
 const timings: Record<string, number> = {}
 const timingsCount: Record<string, number> = {}
 export const timed = (timingName: string) => <A, E, R>(fa: Nano<A, E, R>) =>
-  new Nano<A, E, R>((ctx) => {
+  make<A, E, R>((ctx) => {
     const start = performance.now()
     const result = fa.run(ctx)
     const end = performance.now()
@@ -297,7 +311,9 @@ export const getTimings = () => {
   const lines: Array<string> = []
   for (const [name, avg, hits, total] of result) {
     lines.push(
-      `${name.padEnd(75)} tot ${total.toFixed(2)}ms avg ${avg.toFixed(2)}ms ${hits} hits`
+      `${name.padEnd(75)} tot ${total.toFixed(2).padStart(10)}ms avg ${
+        avg.toFixed(2).padStart(10)
+      }ms ${hits.toString().padStart(10)} hits`
     )
   }
   return lines

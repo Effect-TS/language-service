@@ -52,6 +52,7 @@ function testAllDagnostics() {
     }
   }
   console.log(totalTime + " total " + (totalTime / totalSamples).toFixed(4) + " avg")
+  console.log(Nano.getTimings().join("\n"))
 }
 
 testAllDagnostics()
