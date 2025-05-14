@@ -10,6 +10,7 @@ import { toggleLazyConst } from "./refactors/toggleLazyConst.js"
 import { toggleReturnTypeAnnotation } from "./refactors/toggleReturnTypeAnnotation.js"
 import { toggleTypeAnnotation } from "./refactors/toggleTypeAnnotation.js"
 import { typeToEffectSchema } from "./refactors/typeToEffectSchema.js"
+import { typeToEffectSchemaClass } from "./refactors/typeToEffectSchemaClass.js"
 import { wrapWithEffectGen } from "./refactors/wrapWithEffectGen.js"
 import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
 
@@ -18,6 +19,7 @@ export const refactors = [
   asyncAwaitToGenTryPromise,
   functionToArrow,
   typeToEffectSchema,
+  typeToEffectSchemaClass,
   makeSchemaOpaque,
   makeSchemaOpaqueWithNs,
   pipeableToDatafirst,

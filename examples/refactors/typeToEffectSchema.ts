@@ -2,16 +2,19 @@
 import * as Schema from "effect/Schema"
 
 export interface MyStruct {
-    id: number
-    name: string
-    enabled: boolean
-    pets: string[]
-    surname?: string
-    birthday: Date
-    petsArray: Array<string>
-    nullableProp: null
-    undefinedProp: undefined
+    anyProp: any
     bigintProp: bigint
+    booleanProp: boolean
+    neverProp: never
+    nullProp: null
+    numberProp: number
+    stringProp: string
+    undefinedProp: undefined
+    unknownProp: unknown
+    voidProp: void
+    arrayTypeProp: string[]
+    arrayProp: Array<string>
+    dateProp: Date
     trueProp: true
     falseProp: false
     literalProp: "hello"

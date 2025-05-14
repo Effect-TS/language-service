@@ -2327,17 +2327,21 @@ class Person extends Schema.TaggedClass<Person>("Person")("Person", {
 exports[`Refactor typeToEffectSchema > typeToEffectSchema.ts at 4:21 1`] = `
 "// Result of running refactor effect/typeToEffectSchema at position 4:21
 import * as Schema from "effect/Schema"
+
 export const MyStruct = Schema.Struct({
-    id: Schema.Number,
-    name: Schema.String,
-    enabled: Schema.Boolean,
-    pets: Schema.Array(Schema.String),
-    surname: Schema.optional(Schema.String),
-    birthday: Schema.Date,
-    petsArray: Schema.Array(Schema.String),
-    nullableProp: Schema.Null,
-    undefinedProp: Schema.Undefined,
+    anyProp: Schema.Any,
     bigintProp: Schema.BigInt,
+    booleanProp: Schema.Boolean,
+    neverProp: Schema.Never,
+    nullProp: Schema.Null,
+    numberProp: Schema.Number,
+    stringProp: Schema.String,
+    undefinedProp: Schema.Undefined,
+    unknownProp: Schema.Unknown,
+    voidProp: Schema.Void,
+    arrayTypeProp: Schema.Array(Schema.String),
+    arrayProp: Schema.Array(Schema.String),
+    dateProp: Schema.Date,
     trueProp: Schema.Literal(true),
     falseProp: Schema.Literal(false),
     literalProp: Schema.Literal("hello"),
@@ -2348,7 +2352,7 @@ export const MyStruct = Schema.Struct({
         b: Schema.Number
     }),
     otherReference: MyUnion,
-    otherWithArguments:  /* MyType<string, boolean> */,
+    otherWithArguments:  /* Not supported conversion: MyType<string, boolean> */,
     // single line comment
     prop: Schema.String,
     /**
@@ -2357,18 +2361,20 @@ export const MyStruct = Schema.Struct({
     prop2: Schema.String
 })
 
-
 export interface MyStruct {
-    id: number
-    name: string
-    enabled: boolean
-    pets: string[]
-    surname?: string
-    birthday: Date
-    petsArray: Array<string>
-    nullableProp: null
-    undefinedProp: undefined
+    anyProp: any
     bigintProp: bigint
+    booleanProp: boolean
+    neverProp: never
+    nullProp: null
+    numberProp: number
+    stringProp: string
+    undefinedProp: undefined
+    unknownProp: unknown
+    voidProp: void
+    arrayTypeProp: string[]
+    arrayProp: Array<string>
+    dateProp: Date
     trueProp: true
     falseProp: false
     literalProp: "hello"
@@ -2393,13 +2399,56 @@ interface MyType<A, B>{
 "
 `;
 
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_conditionalType.ts at 3:15 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 3:15
+
+export const Test =  /* Not supported conversion: {a: string} extends Record<string, infer T> ? T : never */;
+
+export type Test = {a: string} extends Record<string, infer T> ? T : never
+"
+`;
+
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_dataTypes.ts at 8:23 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 8:23
+import * as Option from "effect/Option"
+import * as Either from "effect/Either"
+import * as Chunk from "effect/Chunk"
+import * as Duration from "effect/Duration"
+import * as Schema from "effect/Schema"
+
+export const MyStruct = Schema.Struct({
+    optionProp: Schema.Option(Schema.String),
+    eitherProp: Schema.Either({ right: Schema.Number, left: Schema.String }),
+    pickProp: Schema.Struct({
+        a: Schema.String,
+        b: Schema.Boolean
+    }).pipe(Schema.pick("a")),
+    omitProp: Schema.Struct({
+        a: Schema.String,
+        b: Schema.Boolean
+    }).pipe(Schema.omit("b")),
+    chunkProp: Schema.Chunk(Schema.String),
+    durationProp: Schema.Duration
+})
+
+export interface MyStruct {
+    optionProp: Option.Option<string>
+    eitherProp: Either.Either<number, string>
+    pickProp: Pick<{a: string, b: boolean}, "a">
+    omitProp: Omit<{a: string, b: boolean}, "b">
+    chunkProp: Chunk.Chunk<string>
+    durationProp: Duration.Duration
+}
+"
+`;
+
 exports[`Refactor typeToEffectSchema > typeToEffectSchema_indexSignature.ts at 4:21 1`] = `
 "// Result of running refactor effect/typeToEffectSchema at position 4:21
 import * as Schema from "effect/Schema"
+
 export const MyStruct = Schema.Struct({
     prop: Schema.Literal(42)
 }, { key: Schema.Number, value: Schema.String })
-
 
 export interface MyStruct {
     prop: 42
@@ -2413,6 +2462,32 @@ exports[`Refactor typeToEffectSchema > typeToEffectSchema_noGenerics.ts at 3:22 
 
 export interface MyType<A>{
     _A: A
+}
+"
+`;
+
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_typeAlias.ts at 3:15 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 3:15
+
+export const Test = Schema.Struct({
+    a: Schema.String,
+    b: Schema.Boolean
+});
+
+export type Test = { a: string, b: boolean}
+"
+`;
+
+exports[`Refactor typeToEffectSchemaClass > typeToEffectSchemaClass.ts at 4:21 1`] = `
+"// Result of running refactor effect/typeToEffectSchemaClass at position 4:21
+import * as Schema from "effect/Schema"
+
+export class MyStruct extends Schema.Class<MyStruct>("MyStruct")({
+    prop: Schema.String
+}) { }
+
+export interface MyStruct {
+    prop: string
 }
 "
 `;
