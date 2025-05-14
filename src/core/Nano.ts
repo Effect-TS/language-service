@@ -39,7 +39,7 @@ export class NanoTag<R> {
   ) {}
 }
 
-export const Tag = <I>(identifier: string) => new NanoTag<I>(identifier)
+export const Tag = <I = never>(identifier: string) => new NanoTag<I>(identifier)
 
 type NanoContext<R = never> = {
   _R: R
@@ -156,13 +156,13 @@ export const map: {
     return ({ _tag: "Right", right: f(result.right) }) as any
   }))
 
-export const orElse = <B, E2, R2>(
-  f: () => Nano<B, E2, R2>
+export const orElse = <E, B, E2, R2>(
+  f: (e: E) => Nano<B, E2, R2>
 ) =>
-<A, E, R>(fa: Nano<A, E, R>) =>
+<A, R>(fa: Nano<A, E, R>) =>
   new Nano<A | B, E2, R | R2>((ctx) => {
     const result = fa.run(ctx)
-    if (result._tag === "Left") return f().run(ctx) as any
+    if (result._tag === "Left") return f(result.left).run(ctx) as any
     return result
   })
 
@@ -261,7 +261,11 @@ export const option = <A, E, R>(fa: Nano<A, E, R>) =>
 
 export const all = <A extends Array<Nano<any, any, any>>>(
   ...args: A
-): Nano<A[number]["~nano.success"], A[number]["~nano.error"], A[number]["~nano.requirements"]> =>
+): Nano<
+  Array<A[number]["~nano.success"]>,
+  A[number]["~nano.error"],
+  A[number]["~nano.requirements"]
+> =>
   gen(function*() {
     const results: Array<A[number]["~nano.success"]> = []
     for (const arg of args) {
