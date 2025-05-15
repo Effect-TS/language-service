@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.0
+
+### Minor Changes
+
+- [#139](https://github.com/Effect-TS/language-service/pull/139) [`5631a87`](https://github.com/Effect-TS/language-service/commit/5631a871c81e859a418a06a2c3d26a89a9026931) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add quickinfo hover for yield\* statements
+
 ## 0.15.1
 
 ### Patch Changes
