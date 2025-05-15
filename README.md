@@ -23,6 +23,7 @@ This package implements a TypeScript language service plugin that allows additio
 
    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version".
    - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
+   - In NVim with nvim-vtsls you should refer to [how to enable TypeScript plugins in vstls](https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated)
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
