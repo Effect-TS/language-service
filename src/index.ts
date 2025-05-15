@@ -238,7 +238,7 @@ const init = (
     proxy.getQuickInfoAtPosition = (fileName, position, ...args) => {
       const quickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
 
-      if (pluginOptions.quickinfo && quickInfo) {
+      if (pluginOptions.quickinfo) {
         const dedupedTagsQuickInfo = dedupeJsDocTags(quickInfo)
 
         const program = languageService.getProgram()
