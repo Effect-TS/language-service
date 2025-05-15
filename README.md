@@ -26,65 +26,12 @@ This package implements a TypeScript language service plugin that allows additio
 
 And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
 
-## Enable diagnostics at compile time
-
-TypeScript LSP are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
-
-HOWEVER, if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
-Your `tsconfig.json` should look like this:
-
-```json
-{
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "@effect/language-service",
-        "transform": "@effect/language-service/transform" // enables diagnostics at compile time when using ts-patch
-      }
-    ]
-  }
-}
-```
-
-To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
-
-Running `tspc` in your project will now also run the plugin and give you the diagnostics at compile time.
-
-```ts
-$ npx tspc
-index.ts:3:1 - error TS3: Effect must be yielded or assigned to a variable.
-
-3 Effect.succeed(1)
-  ~~~~~~~~~~~~~~~~~
-
-Found 1 error in index.ts:3 
-```
-
-## Options
-
-Few options can be provided alongside the initialization of the Language Service Plugin.
-
-```json
-{
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "@effect/language-service",
-        "diagnostics": true, // controls Effect diagnostics
-        "quickinfo": true, // controls quickinfo over Effect
-        "completions": true, // controls Effect completions
-        "multipleEffectCheck": true // controls if multiple versions of Effect are referenced
-      }
-    ]
-  }
-}
-```
-
 ## Provided functionalities
 
 ### Quickinfo
 
 - Show the extended type of the current Effect
+- Hovering yield\* of Effect.gen will show the Effect type parameters
 
 ### Diagnostics
 
@@ -108,6 +55,61 @@ Few options can be provided alongside the initialization of the Language Service
 - Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.
 - Remove unnecessary `Effect.gen` definitions that contains a single `yield` statement.
 - Wrap an `Effect` expression with `Effect.gen`
+
+## Options
+
+Few options can be provided alongside the initialization of the Language Service Plugin.
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnostics": true, // controls Effect diagnostics (default: true)
+        "quickinfo": true, // controls quickinfo over Effect (default: true)
+        "completions": true, // controls Effect completions (default: true)
+        "multipleEffectCheck": true // controls if multiple versions of Effect are referenced (default: true)
+      }
+    ]
+  }
+}
+```
+
+## Why diagnostics does not appear at compile time?
+
+TypeScript LSP are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
+
+HOWEVER, if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
+Your `tsconfig.json` should look like this:
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "transform": "@effect/language-service/transform" // enables diagnostics at compile time when using ts-patch
+      }
+    ]
+  }
+}
+```
+
+To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
+
+Running `tspc` in your project will now also run the plugin and give you the diagnostics at compile time.
+Effect diagnostics will be shown only after standard TypeScript diagnostics has been satisfied.
+
+```ts
+$ npx tspc
+index.ts:3:1 - error TS3: Effect must be yielded or assigned to a variable.
+
+3 Effect.succeed(1)
+  ~~~~~~~~~~~~~~~~~
+
+Found 1 error in index.ts:3 
+```
 
 ## Configuring diagnostics
 
