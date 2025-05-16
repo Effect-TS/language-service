@@ -1,13 +1,26 @@
-import * as ReadonlyArray from "effect/Array"
 import * as Either from "effect/Either"
 import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
 import * as Gen from "effect/Utils"
 
+const NanoInternalSuccessProto = {
+  _tag: "Right"
+}
+
 interface NanoInternalSuccess<A> {
   _tag: "Right"
   value: A
+}
+
+function makeInternalSuccess<A>(value: A): NanoInternalResult<A, never> {
+  const result = Object.create(NanoInternalSuccessProto)
+  result.value = value
+  return result
+}
+
+const NanoInternalFailureProto = {
+  _tag: "Left"
 }
 
 interface NanoInternalFailure<E> {
@@ -15,9 +28,25 @@ interface NanoInternalFailure<E> {
   value: E
 }
 
+function makeInternalFailure<E>(value: E): NanoInternalResult<never, E> {
+  const result = Object.create(NanoInternalFailureProto)
+  result.value = value
+  return result
+}
+
+const NanoInternalDefectProto = {
+  _tag: "Defect"
+}
+
 interface NanoInternalDefect {
   _tag: "Defect"
   value: unknown
+}
+
+function makeInternalDefect(value: unknown): NanoInternalResult<never, never> {
+  const result = Object.create(NanoInternalDefectProto)
+  result.value = value
+  return result
 }
 
 type NanoInternalResult<A, E> =
@@ -116,10 +145,9 @@ export const run = <A, E>(fa: Nano<A, E, never>): Either.Either<A, E | NanoDefec
   }
 }
 
-export const succeed = <A>(value: A) => make<A, never, never>(() => ({ _tag: "Right", value }))
-export const fail = <E>(value: E) => make<never, E, never>(() => ({ _tag: "Left", value }))
-export const sync = <A>(value: () => A) =>
-  make<A, never, never>(() => ({ _tag: "Right", value: value() }))
+export const succeed = <A>(value: A) => make<A, never, never>(() => makeInternalSuccess(value))
+export const fail = <E>(value: E) => make<never, E, never>(() => makeInternalFailure(value))
+export const sync = <A>(value: () => A) => make<A, never, never>(() => makeInternalSuccess(value()))
 export const flatMap: {
   <A, B, E2, R2>(f: (a: A) => Nano<B, E2, R2>): <E, R>(fa: Nano<A, E, R>) => Nano<B, E | E2, R | R2>
   <A, E, R, B, E2, R2>(fa: Nano<A, E, R>, f: (a: A) => Nano<B, E2, R2>): Nano<B, E | E2, R | R2>
@@ -143,7 +171,7 @@ export const map: {
   make<B, E, R>((ctx) => {
     const result = fa.run(ctx)
     if (result._tag !== "Right") return result
-    return ({ _tag: "Right", value: f(result.value) })
+    return makeInternalSuccess(f(result.value))
   }))
 
 export const orElse = <E, B, E2, R2>(
@@ -159,13 +187,13 @@ export const orElse = <E, B, E2, R2>(
 export const firstSuccessOf = <A extends Array<Nano<any, any, any>>>(
   arr: A
 ): Nano<A[number]["~nano.success"], A[number]["~nano.error"], A[number]["~nano.requirements"]> =>
-  ReadonlyArray.reduce(arr.slice(1), arr[0], (arr, fa) => orElse(() => fa)(arr))
+  arr.slice(1).reduce((arr, fa) => orElse(() => fa)(arr), arr[0])
 
 export const service = <I extends NanoTag<any>>(tag: I) =>
   make<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
     (tag.key in ctx.value)
-      ? ({ _tag: "Right", value: ctx.value[tag.key] })
-      : ({ _tag: "Defect", value: `Cannot find service ${tag.key}` })
+      ? makeInternalSuccess(ctx.value[tag.key])
+      : makeInternalDefect(`Cannot find service ${tag.key}`)
   )
 
 export const provideService = <I extends NanoTag<any>>(
@@ -207,7 +235,7 @@ export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
       }
       state = iterator.next(result.value as never)
     }
-    return ({ _tag: "Right", value: state.value }) as NanoInternalResult<any, any>
+    return makeInternalSuccess(state.value)
   })
 
 export const fn =
@@ -237,7 +265,7 @@ export const fn =
         }
         state = iterator.next(result.value as never)
       }
-      return ({ _tag: "Right", value: state.value }) as NanoInternalResult<any, any>
+      return makeInternalSuccess(state.value)
     })
   )
 
@@ -246,9 +274,9 @@ export const option = <A, E, R>(fa: Nano<A, E, R>) =>
     const result = fa.run(ctx)
     switch (result._tag) {
       case "Right":
-        return { _tag: "Right", value: Option.some(result.value) }
+        return makeInternalSuccess(Option.some(result.value))
       case "Left":
-        return { _tag: "Right", value: Option.none() }
+        return makeInternalSuccess(Option.none())
       case "Defect":
         return result
     }
