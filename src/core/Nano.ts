@@ -47,30 +47,6 @@ type NanoContext<R = never> = {
 }
 
 export const contextEmpty: NanoContext<never> = { value: {} } as any
-export const contextAdd = <R, I extends NanoTag<any>>(
-  context: NanoContext<R>,
-  tag: I,
-  value: I["~nano.requirements"]
-): NanoContext<R | I> => ({
-  ...context,
-  value: {
-    ...context.value,
-    [tag.key]: value
-  }
-})
-export const contextGet = <R, I extends NanoTag<any>>(
-  context: NanoContext<R | I>,
-  tag: I
-): Option.Option<I["~nano.requirements"]> => {
-  if (tag.key in context.value) {
-    return Option.some(context.value[tag.key] as I["~nano.requirements"])
-  }
-  return Option.none()
-}
-export const contextMerge = <R, R2>(
-  old: NanoContext<R>,
-  newContext: NanoContext<R2>
-): NanoContext<R | R2> => ({ ...old, value: { ...old.value, ...newContext.value } })
 
 export interface NanoIterator<T extends Nano<any, any, any>> {
   next(...args: ReadonlyArray<any>): IteratorResult<Gen.YieldWrap<T>, T["~nano.success"]>
@@ -187,10 +163,9 @@ export const firstSuccessOf = <A extends Array<Nano<any, any, any>>>(
 
 export const service = <I extends NanoTag<any>>(tag: I) =>
   make<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
-    contextGet(ctx, tag).pipe(Option.match({
-      onNone: () => ({ _tag: "Defect", value: `Cannot find service ${tag.key}` }),
-      onSome: (value) => ({ _tag: "Right", value })
-    }))
+    (tag.key in ctx.value)
+      ? ({ _tag: "Right", value: ctx.value[tag.key] })
+      : ({ _tag: "Defect", value: `Cannot find service ${tag.key}` })
   )
 
 export const provideService = <I extends NanoTag<any>>(
@@ -199,7 +174,13 @@ export const provideService = <I extends NanoTag<any>>(
 ) =>
 <A, E, R>(fa: Nano<A, E, R>) =>
   make<A, E, Exclude<R, I["~nano.requirements"]>>((ctx) => {
-    return fa.run(contextAdd(ctx, tag, value))
+    return fa.run({
+      ...ctx,
+      value: {
+        ...ctx.value,
+        [tag.key]: value
+      }
+    })
   })
 
 export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
