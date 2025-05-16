@@ -33,9 +33,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       )
 
       if (Option.isSome(maybeNode)) {
-        if (Option.isSome(maybeNode)) {
-          unnecessaryGenerators.set(node, maybeNode.value)
-        }
+        unnecessaryGenerators.set(node, maybeNode.value)
       }
     }
 

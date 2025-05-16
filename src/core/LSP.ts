@@ -141,7 +141,9 @@ export class SourceFileNotFoundError {
   ) {}
 }
 
-export const getSemanticDiagnosticsWithCodeFixes = Nano.fn("LSP.getSemanticDiagnostics")(function*(
+export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
+  "LSP.getSemanticDiagnosticsWithCodeFixes"
+)(function*(
   rules: Array<DiagnosticDefinition>,
   sourceFile: ts.SourceFile
 ) {
