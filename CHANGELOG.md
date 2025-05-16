@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.1
+
+### Patch Changes
+
+- [#142](https://github.com/Effect-TS/language-service/pull/142) [`4922981`](https://github.com/Effect-TS/language-service/commit/4922981d0a4888ced044e89a1a77f2d1c55ed510) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Inline internal Nano ctx to improve perf
+
 ## 0.16.0
 
 ### Minor Changes
