@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.2
+
+### Patch Changes
+
+- [#146](https://github.com/Effect-TS/language-service/pull/146) [`29559b7`](https://github.com/Effect-TS/language-service/commit/29559b7e01c824c5003224492d92c2a3e82ba4ca) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Handle generation of keyof for type to schema refactor
+
 ## 0.16.1
 
 ### Patch Changes
