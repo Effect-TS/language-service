@@ -255,6 +255,14 @@ export const processNode = (
         otherSchemas.map((_) => createApiCall("extend", [_]))
       )
     }
+    // keyof A
+    if (ts.isTypeOperatorNode(node)) {
+      if (node.operator === ts.SyntaxKind.KeyOfKeyword) {
+        return createApiCall("keyof", [yield* processNode(node.type)])
+      } else if (node.operator === ts.SyntaxKind.ReadonlyKeyword) {
+        return yield* processNode(node.type)
+      }
+    }
     // string[]
     if (ts.isArrayTypeNode(node)) {
       const typeSchema = yield* processNode(node.elementType)
