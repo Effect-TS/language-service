@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.3
+
+### Patch Changes
+
+- [#148](https://github.com/Effect-TS/language-service/pull/148) [`af83cbb`](https://github.com/Effect-TS/language-service/commit/af83cbb50d6a756f3594771d2b6b7d417eedf18c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix ts-patch transform error while emitting info diagnostics
+
 ## 0.16.2
 
 ### Patch Changes
