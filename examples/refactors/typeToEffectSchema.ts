@@ -21,6 +21,7 @@ export interface MyStruct {
     numericLiteralProp: 42
     unionProp: string | boolean
     intersectionProp: {a: string} & {b: number}
+    keyofProp: keyof {a: string, b: boolean}
     recordProp: Record<string, number>
     inlineStruct: {a: string, b: number}
     otherReference: MyUnion
