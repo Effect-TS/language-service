@@ -124,8 +124,10 @@ export interface CompletionEntryDefinition {
   name: string
   kind: ts.ScriptElementKind
   insertText: string
+  filterText?: string
   isSnippet: true
   replacementSpan: ts.TextSpan
+  commitCharacters?: Array<string>
 }
 
 export function createCompletion(definition: CompletionDefinition): CompletionDefinition {

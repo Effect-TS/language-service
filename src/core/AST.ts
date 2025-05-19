@@ -398,6 +398,33 @@ export const tryPreserveDeclarationSemantics = Nano.fn("AST.tryPreserveDeclarati
   }
 )
 
+export const findOuterPipeableExpressionAtPosition = Nano.fn(
+  "AST.parseDataForExtendsClassCompletion"
+)(function*(
+  sourceFile: ts.SourceFile,
+  position: number
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+  // first, we find the preceding token
+  const precedingToken = ts.findPrecedingToken(position, sourceFile, undefined, true)
+  if (!precedingToken) return yield* Nano.fail(new NodeNotFoundError())
+
+  // only if previous is dot token or ".pipe" or similar access
+  if (
+    ts.isIdentifier(precedingToken) &&
+    "pipe".startsWith(precedingToken.text.toLowerCase()) &&
+    precedingToken.parent &&
+    ts.isPropertyAccessExpression(precedingToken.parent)
+  ) {
+    return {
+      accessedExpression: precedingToken.parent.expression
+    }
+  }
+
+  return yield* Nano.fail(new NodeNotFoundError())
+})
+
 export const parseDataForExtendsClassCompletion = Nano.fn(
   "AST.parseDataForExtendsClassCompletion"
 )(function*(
