@@ -1,3 +1,4 @@
+import * as Array from "effect/Array"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import type { PluginConfig, TransformerExtras } from "ts-patch"
@@ -28,8 +29,15 @@ export default function(
         Nano.provideService(LSP.PluginOptions, LSP.parsePluginOptions(pluginConfig)),
         Nano.run,
         Either.map((_) => _.diagnostics),
-        Either.getOrElse(() => [])
-      ).map(addDiagnostic)
+        Either.map(
+          Array.filter((_) =>
+            _.category === tsInstance.DiagnosticCategory.Error ||
+            _.category === tsInstance.DiagnosticCategory.Warning
+          )
+        ),
+        Either.getOrElse(() => []),
+        Array.map(addDiagnostic)
+      )
 
       // do not transform source ccde
       return sourceFile
