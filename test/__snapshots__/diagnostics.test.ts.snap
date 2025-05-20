@@ -22,12 +22,22 @@ Effect.succeed(1)
 16:0 - 16:17 | 2 | Effect must be yielded or assigned to a variable."
 `;
 
+exports[`Diagnostic missingEffectContext > missingEffectContext_arrowReturnType.ts > diagnostic output 1`] = `
+"Effect.void.pipe(Effect.andThen(eff))
+18:109 - 18:146 | 1 | Missing 'R' in the expected Effect context."
+`;
+
 exports[`Diagnostic missingEffectContext > missingEffectContext_callExpression.ts > diagnostic output 1`] = `
 "effectWithServices
 22:7 - 22:25 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
 
 effectWithServices
 29:20 - 29:38 | 1 | Missing 'ServiceC' in the expected Effect context."
+`;
+
+exports[`Diagnostic missingEffectContext > missingEffectContext_conciseBody.ts > diagnostic output 1`] = `
+"effectWithServices
+10:62 - 10:80 | 1 | Missing 'ServiceA' in the expected Effect context."
 `;
 
 exports[`Diagnostic missingEffectContext > missingEffectContext_lazy.ts > diagnostic output 1`] = `
@@ -316,6 +326,31 @@ Effect.succeed(1)
 "
 `;
 
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_arrowReturnType.ts > available codefixes list 1`] = `"effect/missingEffectContext_skipFile from 703 to 740"`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_arrowReturnType.ts > code fix effect/missingEffectContext_skipFile  output for range 703 - 740 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+import * as Scope from "effect/Scope"
+
+// should not trigger
+export const test: {
+    <A, E, R>(eff: Effect.Effect<A, E, R>): Effect.Effect<A, E, Exclude<R, Scope.Scope>>
+ } = <A, E, R>(eff: Effect.Effect<A, E, R>) => {
+    return Effect.void.pipe(Effect.andThen(eff), Effect.scoped)
+ }
+
+// same as before
+export const test2: {
+    <A, E, R>(eff: Effect.Effect<A, E, R>): Effect.Effect<A, E, Exclude<R, Scope.Scope>>
+ } = <A, E, R>(eff: Effect.Effect<A, E, R>) => Effect.void.pipe(Effect.andThen(eff), Effect.scoped)
+
+// should error
+// @ts-expect-error
+export const test3 = <A, E, R>(eff: Effect.Effect<A, E, R>): Effect.Effect<A, E, Exclude<R, Scope.Scope>> => Effect.void.pipe(Effect.andThen(eff))
+"
+`;
+
 exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_callExpression.ts > available codefixes list 1`] = `
 "effect/missingEffectContext_skipFile from 507 to 525
 effect/missingEffectContext_skipFile from 678 to 696"
@@ -387,6 +422,24 @@ function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | Ser
 
 // @ts-expect-error
 testFnWithServiceAB(effectWithServices)
+
+"
+`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_conciseBody.ts > available codefixes list 1`] = `"effect/missingEffectContext_skipFile from 287 to 305"`;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_conciseBody.ts > code fix effect/missingEffectContext_skipFile  output for range 287 - 305 1`] = `
+"/** @effect-diagnostics effect/missingEffectContext:skip-file */
+import * as Effect from "effect/Effect"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1}
+}){}
+
+declare const effectWithServices: Effect.Effect<number, never, ServiceA>
+
+//@ts-expect-error
+export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
 
 "
 `;
