@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.4
+
+### Patch Changes
+
+- [#151](https://github.com/Effect-TS/language-service/pull/151) [`242e37b`](https://github.com/Effect-TS/language-service/commit/242e37b471ba377c3e3162d74c3256728a641864) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve arrow function handling for type inference
+
 ## 0.16.3
 
 ### Patch Changes
