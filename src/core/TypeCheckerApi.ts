@@ -189,9 +189,9 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
             realType
           ])
         })
-        ts.forEachChild(node, appendNodeToVisit)
-        continue
       }
+      ts.forEachChild(node, appendNodeToVisit)
+      continue
     } else if (
       ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
       ts.isNoSubstitutionTemplateLiteral(node)
@@ -207,12 +207,12 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
               const expectedType = typeChecker.getTypeOfSymbolAtLocation(symbol, node)
               const realType = typeChecker.getTypeAtLocation(node)
               result.push([node, expectedType, node, realType])
-              ts.forEachChild(node, appendNodeToVisit)
-              continue
             }
           }
         }
       }
+      ts.forEachChild(node, appendNodeToVisit)
+      continue
     } else if (
       ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
     ) {
@@ -230,20 +230,36 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
         const realType = typeChecker.getTypeAtLocation(node.expression)
         if (Option.isSome(expectedType)) {
           result.push([node, expectedType.value, node, realType])
-          ts.forEachChild(node, appendNodeToVisit)
-          continue
         }
       }
-    } else if (ts.isArrowFunction(node) && ts.isExpression(node.body)) {
+      ts.forEachChild(node, appendNodeToVisit)
+      continue
+    } else if (
+      ts.isArrowFunction(node) && (node.typeParameters || []).length === 0 &&
+      ts.isExpression(node.body)
+    ) {
       // (): Effect<...> => node
       const body = node.body
       const expectedType = typeChecker.getContextualType(body)
       const realType = typeChecker.getTypeAtLocation(body)
       if (expectedType) {
         result.push([body, expectedType, body, realType])
-        appendNodeToVisit(body)
-        continue
       }
+      ts.forEachChild(node, appendNodeToVisit)
+      continue
+    } else if (
+      ts.isArrowFunction(node) && (node.typeParameters || []).length > 0 &&
+      ts.isExpression(node.body)
+    ) {
+      // <A>(): Effect<...> => node
+      const body = node.body
+      const expectedType = yield* Nano.option(getInferredReturnType(node))
+      const realType = typeChecker.getTypeAtLocation(body)
+      if (Option.isSome(expectedType)) {
+        result.push([body, expectedType.value, body, realType])
+      }
+      ts.forEachChild(node, appendNodeToVisit)
+      continue
     } else if (ts.isSatisfiesExpression(node)) {
       // node as Effect<....>
       const expectedType = typeChecker.getTypeAtLocation(node.type)
