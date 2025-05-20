@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.5
+
+### Patch Changes
+
+- [#153](https://github.com/Effect-TS/language-service/pull/153) [`20eaf91`](https://github.com/Effect-TS/language-service/commit/20eaf91ecd729742650b205c1b51a114a06f161f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Skip checking effects in type parameters initializers
+
 ## 0.16.4
 
 ### Patch Changes
