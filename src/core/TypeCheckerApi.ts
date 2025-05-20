@@ -245,7 +245,7 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
       if (expectedType) {
         result.push([body, expectedType, body, realType])
       }
-      ts.forEachChild(node, appendNodeToVisit)
+      ts.forEachChild(body, appendNodeToVisit)
       continue
     } else if (
       ts.isArrowFunction(node) && (node.typeParameters || []).length > 0 &&
@@ -258,7 +258,7 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
       if (Option.isSome(expectedType)) {
         result.push([body, expectedType.value, body, realType])
       }
-      ts.forEachChild(node, appendNodeToVisit)
+      ts.forEachChild(body, appendNodeToVisit)
       continue
     } else if (ts.isSatisfiesExpression(node)) {
       // node as Effect<....>

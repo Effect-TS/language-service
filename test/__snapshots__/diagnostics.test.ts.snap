@@ -73,6 +73,8 @@ effectWithServices
 26:105 - 26:123 | 1 | Missing 'ServiceC' in the expected Effect context."
 `;
 
+exports[`Diagnostic missingEffectContext > missingEffectContext_skipArrowDefaults.ts > diagnostic output 1`] = `""`;
+
 exports[`Diagnostic missingEffectError > missingEffectError_callExpression.ts > diagnostic output 1`] = `
 "effectWithErrors
 23:7 - 23:23 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
@@ -793,6 +795,8 @@ export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, never, ServiceA | ServiceB> = () => effectWithServices
 "
 `;
+
+exports[`Diagnostic quickfixes missingEffectContext > missingEffectContext_skipArrowDefaults.ts > available codefixes list 1`] = `""`;
 
 exports[`Diagnostic quickfixes missingEffectError > missingEffectError_callExpression.ts > available codefixes list 1`] = `
 "effect/missingEffectError_skipFile from 401 to 417
