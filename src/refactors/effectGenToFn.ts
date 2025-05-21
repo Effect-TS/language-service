@@ -19,31 +19,59 @@ export const effectGenToFn = LSP.createRefactor({
       const effectGen = yield* TypeParser.effectGen(node)
       // if parent is a Effect.gen(...).pipe(...) we then move the pipe tot the new Effect.fn
       let pipeArgs = ts.factory.createNodeArray<ts.Expression>([])
-      let nodeToReplace = node.parent
-      if (
-        ts.isPropertyAccessExpression(node.parent) && node.parent.name.text === "pipe" &&
-        ts.isCallExpression(node.parent.parent)
-      ) {
-        pipeArgs = node.parent.parent.arguments
-        nodeToReplace = node.parent.parent.parent
-      }
+      let nodeToReplace = node
+
       // then we iterate upwards until we find the function declaration
-      while (nodeToReplace) {
-        // if arrow function, exit
+      while (nodeToReplace.parent) {
+        const parent = nodeToReplace.parent
+        // if parent is arrow, exit
         if (
-          ts.isArrowFunction(nodeToReplace) || ts.isFunctionDeclaration(nodeToReplace) ||
-          ts.isMethodDeclaration(nodeToReplace)
+          ts.isConciseBody(nodeToReplace) && ts.isArrowFunction(parent) &&
+          parent.body === nodeToReplace
         ) {
-          return ({ ...effectGen, pipeArgs, nodeToReplace })
+          return ({ ...effectGen, pipeArgs, nodeToReplace: parent })
         }
-        // concise body go up
-        if (ts.isConciseBody(nodeToReplace) || ts.isReturnStatement(nodeToReplace)) {
-          nodeToReplace = nodeToReplace.parent
-          continue
+        // if parent is a method
+        if (
+          (ts.isFunctionDeclaration(parent) || ts.isMethodDeclaration(parent)) &&
+          parent.body === nodeToReplace
+        ) {
+          return ({ ...effectGen, pipeArgs, nodeToReplace: parent })
         }
         // function body with only one statement, go up
-        if (ts.isBlock(nodeToReplace) && nodeToReplace.statements.length === 1) {
-          nodeToReplace = nodeToReplace.parent
+        if (
+          ts.isBlock(parent) && parent.statements.length === 1 &&
+          parent.statements[0] === nodeToReplace
+        ) {
+          nodeToReplace = parent
+          continue
+        }
+        // parent is a return and this is the expression
+        if (ts.isReturnStatement(parent) && parent.expression === nodeToReplace) {
+          nodeToReplace = parent
+          continue
+        }
+        // if parent is a .pipe, and gen is the subject piped
+        if (
+          ts.isPropertyAccessExpression(parent) &&
+          parent.expression === nodeToReplace &&
+          parent.name.text === "pipe" &&
+          ts.isCallExpression(parent.parent)
+        ) {
+          pipeArgs = ts.factory.createNodeArray(pipeArgs.concat(parent.parent.arguments))
+          nodeToReplace = parent.parent
+          continue
+        }
+        // if parent is a pipe(gen(), ..., ...) and gen is the first subject piped
+        if (
+          ts.isCallExpression(parent) &&
+          ts.isIdentifier(parent.expression) &&
+          parent.expression.text === "pipe" &&
+          parent.arguments.length > 0 &&
+          parent.arguments[0] === nodeToReplace
+        ) {
+          pipeArgs = ts.factory.createNodeArray(pipeArgs.concat(parent.arguments.slice(1)))
+          nodeToReplace = parent
           continue
         }
         // exit
