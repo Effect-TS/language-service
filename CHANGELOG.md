@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.6
+
+### Patch Changes
+
+- [#155](https://github.com/Effect-TS/language-service/pull/155) [`94eb402`](https://github.com/Effect-TS/language-service/commit/94eb4027e687eb43b22c56161bd9909ab43780c9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix handling of nested pipes in effectGenToFn refactor
+
 ## 0.16.5
 
 ### Patch Changes
