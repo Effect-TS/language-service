@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.16.7
+
+### Patch Changes
+
+- [#158](https://github.com/Effect-TS/language-service/pull/158) [`2a46a72`](https://github.com/Effect-TS/language-service/commit/2a46a728d2579b30f8b0f5e069a7e7f1dc0e59e4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - In type to effect schema, follow top level typeof nodes
+
 ## 0.16.6
 
 ### Patch Changes
