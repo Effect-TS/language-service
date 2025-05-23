@@ -4,6 +4,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as AST from "../core/AST"
 import * as Nano from "../core/Nano"
+import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 
 export class TypeParametersNotSupportedError {
@@ -188,14 +189,15 @@ const createUnsupportedNodeComment = (
   )
 
 export const processNode = (
-  node: ts.Node
+  node: ts.Node,
+  isVirtualTypeNode: boolean
 ): Nano.Nano<
   ts.Expression,
   | RequiredExplicitTypesError
   | TypeParametersNotSupportedError
   | OnlyLiteralPropertiesSupportedError
   | IndexSignatureWithMoreThanOneParameterError,
-  TypeScriptApi.TypeScriptApi | SchemaGenContext
+  TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | SchemaGenContext
 > =>
   Nano.gen(function*() {
     const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, ts } =
@@ -237,13 +239,13 @@ export const processNode = (
       const allLiterals = yield* Nano.option(parseAllLiterals(node))
       if (Option.isSome(allLiterals)) return createApiCall("Literal", allLiterals.value)
       // regular union
-      const members = yield* Nano.all(...node.types.map((_) => processNode(_)))
+      const members = yield* Nano.all(...node.types.map((_) => processNode(_, isVirtualTypeNode)))
       return createApiCall("Union", members)
     }
     // {a: 1} & {b: 2} & {c: 3}
     if (ts.isIntersectionTypeNode(node)) {
       const [firstSchema, ...otherSchemas] = yield* Nano.all(
-        ...node.types.map((_) => processNode(_))
+        ...node.types.map((_) => processNode(_, isVirtualTypeNode))
       )
       if (otherSchemas.length === 0) return firstSchema
       return ts.factory.createCallExpression(
@@ -258,24 +260,31 @@ export const processNode = (
     // keyof A
     if (ts.isTypeOperatorNode(node)) {
       if (node.operator === ts.SyntaxKind.KeyOfKeyword) {
-        return createApiCall("keyof", [yield* processNode(node.type)])
+        return createApiCall("keyof", [yield* processNode(node.type, isVirtualTypeNode)])
       } else if (node.operator === ts.SyntaxKind.ReadonlyKeyword) {
-        return yield* processNode(node.type)
+        return yield* processNode(node.type, isVirtualTypeNode)
       }
     }
     // string[]
     if (ts.isArrayTypeNode(node)) {
-      const typeSchema = yield* processNode(node.elementType)
+      const typeSchema = yield* processNode(node.elementType, isVirtualTypeNode)
       return createApiCall("Array", [typeSchema])
     }
     // { a: string, b: boolean }
     if (ts.isTypeLiteralNode(node)) {
-      const { properties, records } = yield* processMembers(node.members)
+      const { properties, records } = yield* processMembers(node.members, isVirtualTypeNode)
 
       return createApiCall(
         "Struct",
         [ts.factory.createObjectLiteralExpression(properties, true)].concat(records)
       )
+    }
+    // typeof A
+    if (ts.isTypeQueryNode(node)) {
+      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const type = typeChecker.getTypeAtLocation(node.exprName)
+      const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+      if (typeNode) return yield* processNode(typeNode, true)
     }
     // type reference
     if (ts.isTypeReferenceNode(node)) {
@@ -289,13 +298,17 @@ export const processNode = (
           case "Chunk":
           case "Array": {
             const elements = yield* Nano.all(
-              ...(node.typeArguments ? node.typeArguments.map(processNode) : [])
+              ...(node.typeArguments
+                ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
+                : [])
             )
             return createApiCall(parsedName.value, elements)
           }
           case "Record": {
             const elements = yield* Nano.all(
-              ...(node.typeArguments ? node.typeArguments.map(processNode) : [])
+              ...(node.typeArguments
+                ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
+                : [])
             )
             if (elements.length >= 2) {
               return createApiCall(parsedName.value, [
@@ -309,7 +322,9 @@ export const processNode = (
           }
           case "Either": {
             const elements = yield* Nano.all(
-              ...(node.typeArguments ? node.typeArguments.map(processNode) : [])
+              ...(node.typeArguments
+                ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
+                : [])
             )
             if (elements.length >= 2) {
               return createApiCall(parsedName.value, [
@@ -327,7 +342,7 @@ export const processNode = (
             if (typeArguments.length !== 2) {
               return createUnsupportedNodeComment(ts, sourceFile, node)
             }
-            const baseType = yield* processNode(typeArguments[0])
+            const baseType = yield* processNode(typeArguments[0], isVirtualTypeNode)
             const stringLiteralArguments = yield* Nano.option(parseAllLiterals(typeArguments[1]))
 
             if (Option.isNone(stringLiteralArguments)) {
@@ -359,7 +374,7 @@ export const processNode = (
 const processMembers = Nano.fn(
   "SchemaGen.processMembers"
 )(
-  function*(members: ts.NodeArray<ts.TypeElement>) {
+  function*(members: ts.NodeArray<ts.TypeElement>, isVirtualTypeNode: boolean) {
     const { createApiCall, ts } = yield* Nano.service(
       SchemaGenContext
     )
@@ -374,7 +389,7 @@ const processMembers = Nano.fn(
         return yield* Nano.fail(new RequiredExplicitTypesError(propertySignature))
       }
       const propertyAssignment = pipe(
-        yield* processNode(propertySignature.type),
+        yield* processNode(propertySignature.type, isVirtualTypeNode),
         propertySignature.questionToken ? (_) => createApiCall("optional", [_]) : identity,
         (_) => ts.factory.createPropertyAssignment(name, _)
       )
@@ -390,8 +405,8 @@ const processMembers = Nano.fn(
       const parameter = indexSignature.parameters[0]
       if (!parameter.type) return yield* Nano.fail(new RequiredExplicitTypesError(parameter))
       const parameterType = parameter.type
-      const key = yield* processNode(parameterType)
-      const value = yield* processNode(indexSignature.type)
+      const key = yield* processNode(parameterType, isVirtualTypeNode)
+      const value = yield* processNode(indexSignature.type, isVirtualTypeNode)
       records.push(
         ts.factory.createObjectLiteralExpression([
           ts.factory.createPropertyAssignment("key", key),
@@ -413,7 +428,7 @@ const processInterfaceDeclaration = Nano.fn("SchemaGen.processInterfaceDeclarati
       SchemaGenContext
     )
 
-    const { properties, records } = yield* processMembers(node.members)
+    const { properties, records } = yield* processMembers(node.members, false)
 
     if (preferClass && records.length === 0) {
       return yield* createExportSchemaClassDeclaration(node.name.text, properties)
@@ -437,13 +452,13 @@ const processTypeAliasDeclaration = Nano.fn("SchemaGen.processInterfaceDeclarati
     }
 
     if (preferClass && ts.isTypeLiteralNode(node.type)) {
-      const { properties, records } = yield* processMembers(node.type.members)
+      const { properties, records } = yield* processMembers(node.type.members, false)
       if (records.length === 0) {
         return yield* createExportSchemaClassDeclaration(node.name.text, properties)
       }
     }
 
-    const effectSchema = yield* processNode(node.type)
+    const effectSchema = yield* processNode(node.type, false)
 
     return yield* createExportVariableDeclaration(node.name.text, effectSchema)
   }
