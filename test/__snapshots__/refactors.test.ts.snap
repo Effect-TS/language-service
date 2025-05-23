@@ -2541,6 +2541,22 @@ export type Test = { a: string, b: boolean}
 "
 `;
 
+exports[`Refactor typeToEffectSchema > typeToEffectSchema_typeOf.ts at 6:21 1`] = `
+"// Result of running refactor effect/typeToEffectSchema at position 6:21
+import * as Schema from "effect/Schema"
+
+const myVar = 'A' as const
+
+export const MyStruct = Schema.Struct({
+    prop: Schema.Literal("A")
+})
+
+export interface MyStruct {
+    prop: typeof myVar
+}
+"
+`;
+
 exports[`Refactor typeToEffectSchemaClass > typeToEffectSchemaClass.ts at 4:21 1`] = `
 "// Result of running refactor effect/typeToEffectSchemaClass at position 4:21
 import * as Schema from "effect/Schema"
