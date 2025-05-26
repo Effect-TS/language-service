@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.17.0
+
+### Minor Changes
+
+- [#160](https://github.com/Effect-TS/language-service/pull/160) [`a1114b4`](https://github.com/Effect-TS/language-service/commit/a1114b47aa9a04ac203a2c5623a5fd6444e1a312) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add .gen(function\*(){}) autocompletion
+
 ## 0.16.7
 
 ### Patch Changes
