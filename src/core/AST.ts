@@ -398,6 +398,59 @@ export const tryPreserveDeclarationSemantics = Nano.fn("AST.tryPreserveDeclarati
   }
 )
 
+export const parseAccessedExpressionForCompletion = Nano.fn(
+  "AST.parseAccessedExpressionForCompletion"
+)(
+  function*(
+    sourceFile: ts.SourceFile,
+    position: number
+  ) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+    // first, we find the preceding token
+    const precedingToken = ts.findPrecedingToken(position, sourceFile, undefined, true)
+    if (!precedingToken) return yield* Nano.fail(new NodeNotFoundError())
+
+    let accessedObject = precedingToken
+    let replacementSpan = ts.createTextSpan(position, 0)
+    let outerNode: ts.Node = precedingToken
+    if (
+      ts.isIdentifier(precedingToken) && precedingToken.parent &&
+      ts.isPropertyAccessExpression(precedingToken.parent)
+    ) {
+      // we are in a "extends Schema.Tag|"
+      replacementSpan = ts.createTextSpan(
+        precedingToken.parent.getStart(sourceFile),
+        precedingToken.end - precedingToken.parent.getStart(sourceFile)
+      )
+      accessedObject = precedingToken.parent.expression
+      outerNode = precedingToken.parent
+    } else if (
+      ts.isToken(precedingToken) && precedingToken.kind === ts.SyntaxKind.DotToken &&
+      ts.isPropertyAccessExpression(precedingToken.parent)
+    ) {
+      // we are in a "extends Schema.|"
+      replacementSpan = ts.createTextSpan(
+        precedingToken.parent.getStart(sourceFile),
+        precedingToken.end - precedingToken.parent.getStart(sourceFile)
+      )
+      accessedObject = precedingToken.parent.expression
+      outerNode = precedingToken.parent
+    } else if (ts.isIdentifier(precedingToken) && precedingToken.parent) {
+      // we are in a "extends Schema|"
+      replacementSpan = ts.createTextSpan(
+        precedingToken.getStart(sourceFile),
+        precedingToken.end - precedingToken.getStart(sourceFile)
+      )
+      accessedObject = precedingToken
+      outerNode = precedingToken
+    } else {
+      return yield* Nano.fail(new NodeNotFoundError())
+    }
+    return { accessedObject, outerNode, replacementSpan }
+  }
+)
+
 export const parseDataForExtendsClassCompletion = Nano.fn(
   "AST.parseDataForExtendsClassCompletion"
 )(function*(
@@ -406,48 +459,10 @@ export const parseDataForExtendsClassCompletion = Nano.fn(
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
-  // first, we find the preceding token
-  const precedingToken = ts.findPrecedingToken(position, sourceFile, undefined, true)
-  if (!precedingToken) return Option.none()
+  const { accessedObject, outerNode, replacementSpan } =
+    yield* parseAccessedExpressionForCompletion(sourceFile, position)
 
-  let accessedObject = precedingToken
-  let replacementSpan = ts.createTextSpan(position, 0)
-  let outerNode: ts.Node = precedingToken
-  if (
-    ts.isIdentifier(precedingToken) && precedingToken.parent &&
-    ts.isPropertyAccessExpression(precedingToken.parent)
-  ) {
-    // we are in a "extends Schema.Tag|"
-    replacementSpan = ts.createTextSpan(
-      precedingToken.parent.getStart(sourceFile),
-      precedingToken.end - precedingToken.parent.getStart(sourceFile)
-    )
-    accessedObject = precedingToken.parent.expression
-    outerNode = precedingToken.parent
-  } else if (
-    ts.isToken(precedingToken) && precedingToken.kind === ts.SyntaxKind.DotToken &&
-    ts.isPropertyAccessExpression(precedingToken.parent)
-  ) {
-    // we are in a "extends Schema.|"
-    replacementSpan = ts.createTextSpan(
-      precedingToken.parent.getStart(sourceFile),
-      precedingToken.end - precedingToken.parent.getStart(sourceFile)
-    )
-    accessedObject = precedingToken.parent.expression
-    outerNode = precedingToken.parent
-  } else if (ts.isIdentifier(precedingToken) && precedingToken.parent) {
-    // we are in a "extends Schema|"
-    replacementSpan = ts.createTextSpan(
-      precedingToken.getStart(sourceFile),
-      precedingToken.end - precedingToken.getStart(sourceFile)
-    )
-    accessedObject = precedingToken
-    outerNode = precedingToken
-  } else {
-    return Option.none()
-  }
-
-  if (!ts.isIdentifier(accessedObject)) return Option.none()
+  if (!ts.isIdentifier(accessedObject)) return yield* Nano.fail(new NodeNotFoundError())
 
   // go up allowed nodes until we find the class declaration
   let classDeclaration: ts.Node = outerNode.parent
@@ -457,12 +472,16 @@ export const parseDataForExtendsClassCompletion = Nano.fn(
     if (!classDeclaration.parent) break
     classDeclaration = classDeclaration.parent
   }
-  if (!ts.isClassDeclaration(classDeclaration)) return Option.none()
-  if (!classDeclaration.name) return Option.none()
+  if (!ts.isClassDeclaration(classDeclaration)) return yield* Nano.fail(new NodeNotFoundError())
 
-  return Option.some(
-    { accessedObject, classDeclaration, className: classDeclaration.name, replacementSpan } as const
-  )
+  if (!classDeclaration.name) return yield* Nano.fail(new NodeNotFoundError())
+
+  return {
+    accessedObject,
+    classDeclaration,
+    className: classDeclaration.name,
+    replacementSpan
+  } as const
 })
 
 const createEffectGenCallExpression = Nano.fn("AST.createEffectGenCallExpression")(function*(

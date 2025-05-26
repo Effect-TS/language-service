@@ -9,7 +9,9 @@ export const contextSelfInClasses = LSP.createCompletion({
   apply: Nano.fn("contextSelfInClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
-    const maybeInfos = yield* AST.parseDataForExtendsClassCompletion(sourceFile, position)
+    const maybeInfos = yield* Nano.option(
+      AST.parseDataForExtendsClassCompletion(sourceFile, position)
+    )
     if (Option.isNone(maybeInfos)) return []
     const { accessedObject, className, replacementSpan } = maybeInfos.value
 
