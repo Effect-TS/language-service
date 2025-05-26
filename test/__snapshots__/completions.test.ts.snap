@@ -156,3 +156,19 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
   },
 ]
 `;
+
+exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
+[
+  {
+    "insertText": " Effect.gen(function*(){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "gen(function*(){})",
+    "replacementSpan": {
+      "length": 0,
+      "start": 136,
+    },
+    "sortText": "11",
+  },
+]
+`;
