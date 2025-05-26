@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.17.1
+
+### Patch Changes
+
+- [#163](https://github.com/Effect-TS/language-service/pull/163) [`5f0ac85`](https://github.com/Effect-TS/language-service/commit/5f0ac855979e1415cc9cfbe8c1540a38bb9605e9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for Effect.fn completions
+
 ## 0.17.0
 
 ### Minor Changes
