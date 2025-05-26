@@ -1,0 +1,62 @@
+import * as Array from "effect/Array"
+import { pipe } from "effect/Function"
+import * as Option from "effect/Option"
+import * as AST from "../core/AST"
+import * as LSP from "../core/LSP"
+import * as Nano from "../core/Nano"
+import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeParser from "../utils/TypeParser"
+
+export const fnFunctionStar = LSP.createCompletion({
+  name: "effect/fnFunctionStar",
+  apply: Nano.fn("fnFunctionStar")(function*(sourceFile, position) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+    const maybeInfos = yield* Nano.option(
+      AST.parseAccessedExpressionForCompletion(sourceFile, position)
+    )
+    if (Option.isNone(maybeInfos)) return []
+    const { accessedObject } = maybeInfos.value
+
+    // we check if it is an effect
+    const isEffectModule = yield* Nano.option(TypeParser.importedEffectModule(accessedObject))
+    if (Option.isNone(isEffectModule)) return []
+
+    const span = ts.createTextSpan(
+      accessedObject.end + 1,
+      Math.max(0, position - accessedObject.end - 1)
+    )
+
+    const maybeFnName: Array<LSP.CompletionEntryDefinition> = pipe(
+      yield* AST.getAncestorNodesInRange(sourceFile, AST.toTextRange(accessedObject.pos)),
+      Array.filter(ts.isVariableDeclaration),
+      Array.map((_) => _.name && ts.isIdentifier(_.name) ? _.name.text : ""),
+      Array.filter((_) => _.length > 0),
+      Array.head,
+      Option.map((name) => [
+        {
+          name: `fn("${name}")`,
+          kind: ts.ScriptElementKind.constElement,
+          insertText: `fn("${name}")(function*(${"${1}"}){${"${0}"}})`,
+          replacementSpan: span,
+          isSnippet: true as const
+        }
+      ]),
+      Option.getOrElse(() => [] as Array<LSP.CompletionEntryDefinition>)
+    )
+
+    return maybeFnName.concat([{
+      name: `fn(function*(){})`,
+      kind: ts.ScriptElementKind.constElement,
+      insertText: `fn(function*(${"${1}"}){${"${0}"}})`,
+      replacementSpan: span,
+      isSnippet: true
+    }, {
+      name: `fnUntraced(function*(){})`,
+      kind: ts.ScriptElementKind.constElement,
+      insertText: `fnUntraced(function*(${"${1}"}){${"${0}"}})`,
+      replacementSpan: span,
+      isSnippet: true
+    }]) satisfies Array<LSP.CompletionEntryDefinition>
+  })
+})
