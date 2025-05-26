@@ -2,6 +2,7 @@ import { contextSelfInClasses } from "./completions/contextSelfInClasses.js"
 import { effectDataClasses } from "./completions/effectDataClasses.js"
 import { effectSchemaSelfInClasses } from "./completions/effectSchemaSelfInClasses.js"
 import { effectSelfInClasses } from "./completions/effectSelfInClasses.js"
+import { fnFunctionStar } from "./completions/fnFunctionStar.js"
 import { genFunctionStar } from "./completions/genFunctionStar.js"
 
 export const completions = [
@@ -9,5 +10,6 @@ export const completions = [
   effectSelfInClasses,
   contextSelfInClasses,
   genFunctionStar,
+  fnFunctionStar,
   effectDataClasses
 ]

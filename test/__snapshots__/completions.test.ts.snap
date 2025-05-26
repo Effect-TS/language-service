@@ -157,6 +157,44 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
 ]
 `;
 
+exports[`Completion fnFunctionStar > fnFunctionStar.ts at 4:24 1`] = `
+[
+  {
+    "insertText": "fn("program")(function*(\${1}){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "fn("program")",
+    "replacementSpan": {
+      "length": 0,
+      "start": 135,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "fn(function*(\${1}){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "fn(function*(){})",
+    "replacementSpan": {
+      "length": 0,
+      "start": 135,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "fnUntraced(function*(\${1}){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "fnUntraced(function*(){})",
+    "replacementSpan": {
+      "length": 0,
+      "start": 135,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
 [
   {
