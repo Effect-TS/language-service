@@ -45,6 +45,7 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 ### Completions
 
 - Autocomplete 'Self' in Effect.Service, Context.Tag, Schema.TaggedClass, Schema.TaggedRequest and family
+- Autocomplete Effect.gen with `function*(){}`
 
 ### Refactors
 
