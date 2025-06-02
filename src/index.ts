@@ -2,6 +2,7 @@ import { Either } from "effect"
 import { pipe } from "effect/Function"
 import type ts from "typescript"
 import { completions } from "./completions.js"
+import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions.js"
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
 import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
@@ -17,7 +18,8 @@ const init = (
 ) => {
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
-    const pluginOptions: LSP.PluginOptions = LSP.parsePluginOptions(info.config)
+    const languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions =
+      LanguageServicePluginOptions.parse(info.config)
 
     // this is nothing more than an hack. Seems like vscode and other editors do not
     // support new error codes in diagnostics. Because they somehow rely on looking into
@@ -40,6 +42,37 @@ const init = (
       proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
     }
 
+    // this is the Nano runner used by all the endpoints
+    // it will take a nano, provide some LSP services and run it.
+    function runNano(program: ts.Program) {
+      return <A, E>(
+        fa: Nano.Nano<
+          A,
+          E,
+          | TypeCheckerApi.TypeCheckerApi
+          | TypeScriptApi.TypeScriptProgram
+          | TypeScriptApi.TypeScriptApi
+          | LanguageServicePluginOptions.LanguageServicePluginOptions
+          | TypeCheckerApi.TypeCheckerApiCache
+        >
+      ) =>
+        pipe(
+          fa,
+          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+          Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+          Nano.provideService(
+            TypeCheckerApi.TypeCheckerApiCache,
+            TypeCheckerApi.makeTypeCheckerApiCache()
+          ),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
+          Nano.provideService(
+            LanguageServicePluginOptions.LanguageServicePluginOptions,
+            languageServicePluginOptions
+          ),
+          Nano.run
+        )
+    }
+
     const effectCodeFixesForFile = new Map<
       string,
       Array<LSP.ApplicableDiagnosticDefinitionFixWithPositionAndCode>
@@ -48,22 +81,14 @@ const init = (
       const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
       const program = languageService.getProgram()
 
-      if (pluginOptions.diagnostics && program) {
+      if (languageServicePluginOptions.diagnostics && program) {
         effectCodeFixesForFile.delete(fileName)
         const sourceFile = program.getSourceFile(fileName)
 
         if (sourceFile) {
           return pipe(
             LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
-            Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(
-              TypeCheckerApi.TypeCheckerApiCache,
-              TypeCheckerApi.makeTypeCheckerApiCache()
-            ),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provideService(LSP.PluginOptions, pluginOptions),
-            Nano.run,
+            runNano(program),
             Either.map(({ codeFixes, diagnostics }) => {
               effectCodeFixesForFile.set(fileName, codeFixes)
               return diagnostics.concat(applicableDiagnostics)
@@ -151,14 +176,7 @@ const init = (
         if (sourceFile) {
           return pipe(
             LSP.getApplicableRefactors(refactors, sourceFile, positionOrRange),
-            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(
-              TypeCheckerApi.TypeCheckerApiCache,
-              TypeCheckerApi.makeTypeCheckerApiCache()
-            ),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provideService(LSP.PluginOptions, pluginOptions),
-            Nano.run,
+            runNano(program),
             Either.map((effectRefactors) => applicableRefactors.concat(effectRefactors)),
             Either.getOrElse(() => applicableRefactors)
           )
@@ -210,14 +228,7 @@ const init = (
 
               return { edits } as ts.RefactorEditInfo
             }),
-            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(
-              TypeCheckerApi.TypeCheckerApiCache,
-              TypeCheckerApi.makeTypeCheckerApiCache()
-            ),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-            Nano.provideService(LSP.PluginOptions, pluginOptions),
-            Nano.run
+            runNano(program)
           )
 
           if (Either.isRight(result)) return result.right
@@ -238,7 +249,7 @@ const init = (
     proxy.getQuickInfoAtPosition = (fileName, position, ...args) => {
       const quickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
 
-      if (pluginOptions.quickinfo) {
+      if (languageServicePluginOptions.quickinfo) {
         const dedupedTagsQuickInfo = dedupeJsDocTags(quickInfo)
 
         const program = languageService.getProgram()
@@ -251,11 +262,7 @@ const init = (
                 position,
                 dedupedTagsQuickInfo
               ),
-              Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-              Nano.provideService(LSP.PluginOptions, pluginOptions),
-              Nano.run,
+              runNano(program),
               Either.getOrElse(() => dedupedTagsQuickInfo)
             )
           }
@@ -276,7 +283,7 @@ const init = (
         ...args
       )
 
-      if (pluginOptions.completions) {
+      if (languageServicePluginOptions.completions) {
         const program = languageService.getProgram()
         if (program) {
           const sourceFile = program.getSourceFile(fileName)
@@ -289,15 +296,7 @@ const init = (
                 options,
                 formattingSettings
               ),
-              Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-              Nano.provideService(
-                TypeCheckerApi.TypeCheckerApiCache,
-                TypeCheckerApi.makeTypeCheckerApiCache()
-              ),
-              Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
-              Nano.provideService(LSP.PluginOptions, pluginOptions),
-              Nano.run,
+              runNano(program),
               Either.map((effectCompletions) => (applicableCompletions
                 ? {
                   ...applicableCompletions,

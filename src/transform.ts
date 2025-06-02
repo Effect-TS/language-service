@@ -3,11 +3,12 @@ import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import type { PluginConfig, TransformerExtras } from "ts-patch"
 import type * as ts from "typescript"
-import * as LSP from "../src/core/LSP"
-import * as Nano from "../src/core/Nano"
-import * as TypeCheckerApi from "../src/core/TypeCheckerApi"
-import * as TypeScriptApi from "../src/core/TypeScriptApi"
-import { diagnostics } from "../src/diagnostics"
+import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
+import * as LSP from "./core/LSP"
+import * as Nano from "./core/Nano"
+import * as TypeCheckerApi from "./core/TypeCheckerApi"
+import * as TypeScriptApi from "./core/TypeScriptApi"
+import { diagnostics } from "./diagnostics"
 
 export default function(
   program: ts.Program,
@@ -26,7 +27,10 @@ export default function(
           TypeCheckerApi.TypeCheckerApiCache,
           TypeCheckerApi.makeTypeCheckerApiCache()
         ),
-        Nano.provideService(LSP.PluginOptions, LSP.parsePluginOptions(pluginConfig)),
+        Nano.provideService(
+          LanguageServicePluginOptions.LanguageServicePluginOptions,
+          LanguageServicePluginOptions.parse(pluginConfig)
+        ),
         Nano.run,
         Either.map((_) => _.diagnostics),
         Either.map(

@@ -1,3 +1,4 @@
+import * as LanguageServicePluginOptions from "@effect/language-service/core/LanguageServicePluginOptions"
 import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
@@ -75,7 +76,7 @@ function testRefactorOnExample(
       TypeCheckerApi.TypeCheckerApiCache,
       TypeCheckerApi.makeTypeCheckerApiCache()
     ),
-    Nano.provideService(LSP.PluginOptions, {
+    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
       quickinfo: false,
       completions: false,
@@ -99,7 +100,7 @@ function testRefactorOnExample(
       TypeCheckerApi.TypeCheckerApiCache,
       TypeCheckerApi.makeTypeCheckerApiCache()
     ),
-    Nano.provideService(LSP.PluginOptions, {
+    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
       quickinfo: false,
       completions: false,

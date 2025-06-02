@@ -1,0 +1,7 @@
+// code fix floatingEffect_skipNextLine  output for range 62 - 80
+import * as Effect from "effect/Effect"
+
+function test(){
+    // @effect-diagnostics-next-line floatingEffect:off
+Effect.succeed(42)
+}
