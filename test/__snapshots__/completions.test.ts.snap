@@ -9,7 +9,7 @@ exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] =
     "name": "Tag("MyService")",
     "replacementSpan": {
       "length": 8,
-      "start": 151,
+      "start": 144,
     },
     "sortText": "11",
   },
@@ -25,7 +25,7 @@ exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
     "name": "TaggedError("MyError")",
     "replacementSpan": {
       "length": 5,
-      "start": 140,
+      "start": 133,
     },
     "sortText": "11",
   },
@@ -36,7 +36,7 @@ exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
     "name": "TaggedClass("MyError")",
     "replacementSpan": {
       "length": 5,
-      "start": 140,
+      "start": 133,
     },
     "sortText": "11",
   },
@@ -52,7 +52,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "name": "Class<Test>",
     "replacementSpan": {
       "length": 2,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -63,7 +63,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "name": "TaggedError<Test>",
     "replacementSpan": {
       "length": 2,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -74,7 +74,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "name": "TaggedClass<Test>",
     "replacementSpan": {
       "length": 2,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -85,7 +85,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "name": "TaggedRequest<Test>",
     "replacementSpan": {
       "length": 2,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -101,7 +101,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "name": "Class<Test>",
     "replacementSpan": {
       "length": 5,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -112,7 +112,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "name": "TaggedError<Test>",
     "replacementSpan": {
       "length": 5,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -123,7 +123,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "name": "TaggedClass<Test>",
     "replacementSpan": {
       "length": 5,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -134,7 +134,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "name": "TaggedRequest<Test>",
     "replacementSpan": {
       "length": 5,
-      "start": 137,
+      "start": 130,
     },
     "sortText": "11",
   },
@@ -150,7 +150,7 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
     "name": "Service<MyService>",
     "replacementSpan": {
       "length": 7,
-      "start": 148,
+      "start": 141,
     },
     "sortText": "11",
   },
@@ -166,7 +166,7 @@ exports[`Completion fnFunctionStar > fnFunctionStar.ts at 4:24 1`] = `
     "name": "fn("program")",
     "replacementSpan": {
       "length": 0,
-      "start": 135,
+      "start": 128,
     },
     "sortText": "11",
   },
@@ -177,7 +177,7 @@ exports[`Completion fnFunctionStar > fnFunctionStar.ts at 4:24 1`] = `
     "name": "fn(function*(){})",
     "replacementSpan": {
       "length": 0,
-      "start": 135,
+      "start": 128,
     },
     "sortText": "11",
   },
@@ -188,7 +188,7 @@ exports[`Completion fnFunctionStar > fnFunctionStar.ts at 4:24 1`] = `
     "name": "fnUntraced(function*(){})",
     "replacementSpan": {
       "length": 0,
-      "start": 135,
+      "start": 128,
     },
     "sortText": "11",
   },
@@ -204,7 +204,7 @@ exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
     "name": "gen(function*(){})",
     "replacementSpan": {
       "length": 0,
-      "start": 136,
+      "start": 129,
     },
     "sortText": "11",
   },

@@ -8,7 +8,7 @@ import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const functionToArrow = LSP.createRefactor({
-  name: "effect/functionToArrow",
+  name: "functionToArrow",
   description: "Convert to arrow",
   apply: Nano.fn("functionToArrow.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

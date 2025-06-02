@@ -7,7 +7,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import { _createOpaqueTypes, _findSchemaVariableDeclaration } from "./makeSchemaOpaque.js"
 
 export const makeSchemaOpaqueWithNs = LSP.createRefactor({
-  name: "effect/makeSchemaOpaqueWithNs",
+  name: "makeSchemaOpaqueWithNs",
   description: "Make Schema opaque with namespace",
   apply: Nano.fn("makeSchemaOpaqueWithNs.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

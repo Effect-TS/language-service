@@ -7,7 +7,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
 export const unnecessaryEffectGen = LSP.createDiagnostic({
-  name: "effect/unnecessaryEffectGen",
+  name: "unnecessaryEffectGen",
   code: 5,
   apply: Nano.fn("unnecessaryEffectGen.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

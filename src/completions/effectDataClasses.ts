@@ -5,7 +5,7 @@ import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 
 export const effectDataClasses = LSP.createCompletion({
-  name: "effect/effectDataClasses",
+  name: "effectDataClasses",
   apply: Nano.fn("effectDataClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 

@@ -147,7 +147,7 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
 })
 
 export const makeSchemaOpaque = LSP.createRefactor({
-  name: "effect/makeSchemaOpaque",
+  name: "makeSchemaOpaque",
   description: "Make Schema opaque",
   apply: Nano.fn("makeSchemaOpaque.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -44,6 +44,14 @@ function testDiagnosticOnExample(
   // create the language service with mocked services over a VFS
   const { program, sourceFile } = createServicesWithMockedVFS(fileName, sourceText)
 
+  // create snapshot path
+  const snapshotFilePath = path.join(
+    __dirname,
+    "__snapshots__",
+    "diagnostics",
+    diagnostic.name + ".output"
+  )
+
   // attempt to run the diagnostic and get the output
   const output = pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
@@ -71,7 +79,7 @@ function testDiagnosticOnExample(
     Either.getOrElse(() => "// no diagnostics")
   )
 
-  expect(output).toMatchSnapshot("diagnostic output")
+  expect(output).toMatchFileSnapshot(snapshotFilePath)
 }
 
 function testDiagnosticQuickfixesOnExample(
@@ -83,6 +91,14 @@ function testDiagnosticQuickfixesOnExample(
   const { languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
     fileName,
     sourceText
+  )
+
+  // create snapshot path
+  const snapshotFilePathList = path.join(
+    __dirname,
+    "__snapshots__",
+    "diagnostics",
+    diagnostic.name + ".codefixes"
   )
 
   // attempt to run the diagnostic and get the output
@@ -97,6 +113,14 @@ function testDiagnosticQuickfixesOnExample(
         for (
           const codeFix of codeFixes
         ) {
+          // create snapshot path
+          const snapshotFilePath = path.join(
+            __dirname,
+            "__snapshots__",
+            "diagnostics",
+            diagnostic.name + "." + codeFix.fixName + ".from" + codeFix.start + "to" + codeFix.end +
+              ".output"
+          )
           const formatContext = ts.formatting.getFormatContext(
             ts.getDefaultFormatCodeSettings("\n"),
             { getNewLine: () => "\n" }
@@ -115,10 +139,10 @@ function testDiagnosticQuickfixesOnExample(
                 (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
               )
           )
-          expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot(
-            "code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
-              codeFix.end
-          )
+          expect(
+            "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
+              codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
+          ).toMatchFileSnapshot(snapshotFilePath)
         }
 
         return codeFixes.map((_) => _.fixName + " from " + _.start + " to " + _.end).join("\n")
@@ -140,8 +164,8 @@ function testDiagnosticQuickfixesOnExample(
     Nano.unsafeRun,
     (result) => {
       expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
-      expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchSnapshot(
-        "available codefixes list"
+      expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+        snapshotFilePathList
       )
     }
   )
@@ -152,13 +176,12 @@ function testAllDagnostics() {
   const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir())
   // for each diagnostic definition
   for (const diagnostic of diagnostics) {
-    const diagnosticName = diagnostic.name.substring("effect/".length)
     // all files that start with the diagnostic name and end with .ts
     const exampleFiles = allExampleFiles.filter((fileName) =>
-      fileName === diagnosticName + ".ts" ||
-      fileName.startsWith(diagnosticName + "_") && fileName.endsWith(".ts")
+      fileName === diagnostic.name + ".ts" ||
+      fileName.startsWith(diagnostic.name + "_") && fileName.endsWith(".ts")
     )
-    describe("Diagnostic " + diagnosticName, () => {
+    describe("Diagnostic " + diagnostic.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {
         const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
@@ -169,7 +192,7 @@ function testAllDagnostics() {
         )
       }
     })
-    describe("Diagnostic quickfixes " + diagnosticName, () => {
+    describe("Diagnostic quickfixes " + diagnostic.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {
         const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))

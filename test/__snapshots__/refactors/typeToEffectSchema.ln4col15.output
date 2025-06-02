@@ -1,0 +1,8 @@
+// Result of running refactor typeToEffectSchema at position 4:15
+import * as Schema from "effect/Schema"
+
+export const Test = Schema.Literal("a", "b", "c", true, 42)
+
+export type Test = "a" | "b" | "c" | true | 42
+
+export type NoLiteralOptimization = {a: boolean} | "a"

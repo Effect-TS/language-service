@@ -1,0 +1,14 @@
+// Result of running refactor makeSchemaOpaqueWithNs at position 4:17
+import { Schema } from "effect"
+
+export const MyStruct_ = Schema.Struct({
+    id: Schema.Number,
+    name: Schema.String
+})
+
+export interface MyStruct extends Schema.Schema.Type<typeof MyStruct_> { }
+export namespace MyStruct {
+    export interface Encoded extends Schema.Schema.Encoded<typeof MyStruct_> { }
+    export type Context = Schema.Schema.Context<typeof MyStruct_>
+}
+export const MyStruct: Schema.Schema<MyStruct, MyStruct.Encoded, MyStruct.Context> = MyStruct_

@@ -8,7 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeParser from "../utils/TypeParser"
 
 export const fnFunctionStar = LSP.createCompletion({
-  name: "effect/fnFunctionStar",
+  name: "fnFunctionStar",
   apply: Nano.fn("fnFunctionStar")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 

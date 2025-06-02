@@ -1,17 +1,17 @@
-/** @effect-diagnostics effect/floatingEffect:warning */
+/** @effect-diagnostics floatingEffect:warning */
 import * as Effect from "effect/Effect"
 
 Effect.succeed(1)
 
-/** @effect-diagnostics effect/floatingEffect:off */
+/** @effect-diagnostics floatingEffect:off */
 
 Effect.succeed(1)
 
-/** @effect-diagnostics effect/floatingEffect:error */
+/** @effect-diagnostics floatingEffect:error */
 
 Effect.succeed(1)
 
-/** @effect-diagnostics effect/floatingEffect:suggestion */
+/** @effect-diagnostics floatingEffect:suggestion */
 
 Effect.succeed(1)
 

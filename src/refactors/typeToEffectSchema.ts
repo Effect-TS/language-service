@@ -7,7 +7,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as SchemaGen from "../utils/SchemaGen.js"
 
 export const typeToEffectSchema = LSP.createRefactor({
-  name: "effect/typeToEffectSchema",
+  name: "typeToEffectSchema",
   description: "Refactor to Schema",
   apply: Nano.fn("typeToEffectSchema.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

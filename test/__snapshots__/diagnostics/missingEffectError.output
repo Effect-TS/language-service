@@ -1,0 +1,11 @@
+return effectWithErrors
+20:4 - 20:27 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+effectWithErrors
+24:62 - 24:78 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+effectWithErrors
+27:94 - 27:110 | 1 | Missing 'ErrorC' in the expected Effect errors.:10 - 33:23 | 1 | Missing 'A' in the expected Effect errors.
+
+effectWithErrors
+38:10 - 38:26 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.

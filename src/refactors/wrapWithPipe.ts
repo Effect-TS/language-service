@@ -3,7 +3,7 @@ import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const wrapWithPipe = LSP.createRefactor({
-  name: "effect/wrapWithPipe",
+  name: "wrapWithPipe",
   description: "Wrap with pipe",
   apply: Nano.fn("wrapWithPipe.apply")(function*(sourceFile, textRange) {
     if (textRange.end - textRange.pos === 0) {

@@ -8,7 +8,7 @@ import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const toggleTypeAnnotation = LSP.createRefactor({
-  name: "effect/toggleTypeAnnotation",
+  name: "toggleTypeAnnotation",
   description: "Toggle type annotation",
   apply: Nano.fn("toggleTypeAnnotation.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
