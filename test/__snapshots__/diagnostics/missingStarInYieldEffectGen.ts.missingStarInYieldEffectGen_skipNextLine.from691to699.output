@@ -30,10 +30,9 @@ export function* effectInsideStandardGenerator(){
 
 // @ts-expect-error
 // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
-const effectFnUsage = Effect.fn(function*(){
+const effectFnUsage = Effect.fn(function*() {
     yield Effect.never
 })
-
 // @ts-expect-error
 const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*(){
     yield Effect.never

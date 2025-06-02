@@ -32,8 +32,7 @@ export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithS
 export function missingServiceWithGenericType<A>(service: A){
     // @ts-expect-error
     // @effect-diagnostics-next-line missingEffectContext:off
-const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
-    return missingServiceA
+    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()    return missingServiceA
 }
 
 // @ts-expect-error

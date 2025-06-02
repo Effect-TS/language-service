@@ -29,4 +29,3 @@ function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | Ser
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectContext:off
 testFnWithServiceAB(effectWithServices)
-

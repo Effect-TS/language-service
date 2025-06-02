@@ -23,7 +23,7 @@ export function testFn(): Effect.Effect<number> {
  
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectError:off
-export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
 
+export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
 // @ts-expect-error
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors

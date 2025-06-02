@@ -17,4 +17,5 @@ export const test2: {
 // should error
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectContext:off
+
 export const test3 = <A, E, R>(eff: Effect.Effect<A, E, R>): Effect.Effect<A, E, Exclude<R, Scope.Scope>> => Effect.void.pipe(Effect.andThen(eff))

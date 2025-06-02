@@ -19,10 +19,9 @@ const missingStarInMultipleYield = Effect.gen(function*(){
 const missingStarInInnerYield = Effect.gen(function*(){
     // @ts-expect-error
     // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
-yield* Effect.gen(function*(){
+    yield* Effect.gen(function*() {
         yield Effect.succeed(1)
-    })
-})
+    })})
 
 export function* effectInsideStandardGenerator(){
     yield Effect.never

@@ -3,5 +3,4 @@ import * as Effect from "effect/Effect"
 
 function test(){
     // @effect-diagnostics-next-line floatingEffect:off
-Effect.succeed(42)
-}
+    Effect.succeed(42)}

@@ -22,7 +22,6 @@ function testFn(effect: Effect.Effect<number>){
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectContext:off
 testFn(effectWithServices)
-
 function testFnWithServiceAB(effect: Effect.Effect<number, never, ServiceA | ServiceB>){
     return effect
 }

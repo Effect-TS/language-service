@@ -20,8 +20,8 @@ export const noError: Effect.Effect<number> = Effect.succeed(1)
 
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectError:off
-export const missingAllErrors: Effect.Effect<number> = effectWithErrors
 
+export const missingAllErrors: Effect.Effect<number> = effectWithErrors
 // @ts-expect-error
 export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
 

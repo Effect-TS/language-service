@@ -10,8 +10,7 @@ Effect.never
 Effect.runPromise(Effect.gen(function*(){
     const thisIsFine = Effect.succeed(1)
     // @effect-diagnostics-next-line floatingEffect:off
-Effect.never
-}))
+    Effect.never}))
 
 Effect.runPromise(Effect.gen(function*(){
     yield* Effect.succeed(1).pipe(Effect.fork)

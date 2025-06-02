@@ -32,8 +32,7 @@ export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErr
 export function missingErrorWithGenericType<A>(error: A){
     // @ts-expect-error
     // @effect-diagnostics-next-line missingEffectError:off
-const missingErrorA: Effect.Effect<never> = Effect.fail(error)
-    return missingErrorA
+    const missingErrorA: Effect.Effect<never> = Effect.fail(error)    return missingErrorA
 }
 
 // @ts-expect-error

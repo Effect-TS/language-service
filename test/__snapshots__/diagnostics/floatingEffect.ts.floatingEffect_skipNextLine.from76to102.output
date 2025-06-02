@@ -5,7 +5,6 @@ const noError = Effect.succeed(1)
 
 // @effect-diagnostics-next-line floatingEffect:off
 Effect.succeed("floating")
-
 Effect.never
 
 Effect.runPromise(Effect.gen(function*(){
