@@ -5,7 +5,7 @@ import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 
 export const effectSchemaSelfInClasses = LSP.createCompletion({
-  name: "effect/effectSchemaSelfInClasses",
+  name: "effectSchemaSelfInClasses",
   apply: Nano.fn("effectSchemaSelfInClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 

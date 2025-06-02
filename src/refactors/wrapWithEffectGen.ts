@@ -10,7 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
 export const wrapWithEffectGen = LSP.createRefactor({
-  name: "effect/wrapWithEffectGen",
+  name: "wrapWithEffectGen",
   description: "Wrap with Effect.gen",
   apply: Nano.fn("wrapWithEffectGen.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

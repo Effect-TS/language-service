@@ -8,7 +8,7 @@ const effectVersionsCache = new Map<string, ResolvedEffectVersions>()
 const programResolvedCacheSize = new Map<string, number>()
 
 export const multipleEffectVersions = LSP.createDiagnostic({
-  name: "effect/multipleEffectVersions",
+  name: "multipleEffectVersions",
   code: 6,
   apply: Nano.fn("multipleEffectVersions.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

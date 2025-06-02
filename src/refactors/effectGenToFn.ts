@@ -9,7 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
 export const effectGenToFn = LSP.createRefactor({
-  name: "effect/effectGenToFn",
+  name: "effectGenToFn",
   description: "Convert to Effect.fn",
   apply: Nano.fn("effectGenToFn.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

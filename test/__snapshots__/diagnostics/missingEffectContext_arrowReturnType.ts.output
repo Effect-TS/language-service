@@ -1,0 +1,2 @@
+Effect.void.pipe(Effect.andThen(eff))
+18:109 - 18:146 | 1 | Missing 'R' in the expected Effect context.

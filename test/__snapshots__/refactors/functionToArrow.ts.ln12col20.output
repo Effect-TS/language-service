@@ -1,0 +1,24 @@
+// Result of running refactor functionToArrow at position 12:20
+/**
+ * Docs
+ */
+export function myTest(name: string) {
+  return name.length
+}
+
+/**
+ * Docs
+ */
+export const myTest2 = (name: string) => {
+    if (name === "LOL") return 42
+    return name.length
+}
+
+class Sample {
+  /**
+   * Docs
+   */
+  test(name: string) {
+    return name.length
+  }
+}

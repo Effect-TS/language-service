@@ -27,16 +27,27 @@ function testRefactorOnExample(
   // gets the position to test
   let startPos = 0
   let endPos = 0
+  let humanLineCol = ""
   let i = 0
   for (const lineAndCol of textRangeString.split("-")) {
     const [line, character] = lineAndCol.split(":")
     const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
+    if (i === 1) humanLineCol += "-"
+    humanLineCol += "ln" + line + "col" + character
     if (i === 0) startPos = pos
     if (i === 1) endPos = pos
     i += 1
   }
   if (endPos < startPos) endPos = startPos
   const textRange = { pos: startPos, end: endPos }
+
+  // create snapshot path
+  const snapshotFilePath = path.join(
+    __dirname,
+    "__snapshots__",
+    "refactors",
+    fileName + "." + humanLineCol + ".output"
+  )
 
   // ensure there are no errors in TS file
   const diagnostics = languageService.getCompilerOptionsDiagnostics()
@@ -73,14 +84,14 @@ function testRefactorOnExample(
     Nano.unsafeRun
   )
 
-  if (Either.isLeft(canApply)) {
-    expect(sourceText).toMatchSnapshot()
+  if (!(Either.isRight(canApply) && canApply.right.length > 0)) {
+    expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
     return
   }
 
   // then get the actual edits to run it
   const applicableRefactor = pipe(
-    LSP.getEditsForRefactor([refactor], sourceFile, textRange, refactor.name),
+    LSP.getEditsForRefactor([refactor], sourceFile, textRange, canApply.right[0].name),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
@@ -98,7 +109,7 @@ function testRefactorOnExample(
   )
 
   if (Either.isLeft(applicableRefactor)) {
-    expect(sourceText).toMatchSnapshot()
+    expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
     return
   }
 
@@ -121,7 +132,7 @@ function testRefactorOnExample(
       )
   )
 
-  expect(applyEdits(edits, fileName, sourceText)).toMatchSnapshot()
+  expect(applyEdits(edits, fileName, sourceText)).toMatchFileSnapshot(snapshotFilePath)
 }
 
 function testAllRefactors() {
@@ -129,13 +140,12 @@ function testAllRefactors() {
   const allExampleFiles = fs.readdirSync(getExamplesRefactorsDir())
   // for each diagnostic definition
   for (const refactor of refactors) {
-    const refactorName = refactor.name.substring("effect/".length)
     // all files that start with the diagnostic name and end with .ts
     const exampleFiles = allExampleFiles.filter((fileName) =>
-      fileName === refactorName + ".ts" ||
-      fileName.startsWith(refactorName + "_") && fileName.endsWith(".ts")
+      fileName === refactor.name + ".ts" ||
+      fileName.startsWith(refactor.name + "_") && fileName.endsWith(".ts")
     )
-    describe("Refactor " + refactorName, () => {
+    describe("Refactor " + refactor.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {
         // first we extract from the first comment line all the positions where the refactor has to be tested

@@ -69,13 +69,12 @@ function testAllCompletions() {
   const allExampleFiles = fs.readdirSync(getExamplesCompletionsDir())
   // for each definition
   for (const completion of completions) {
-    const completionName = completion.name.substring("effect/".length)
     // all files that start with the name and end with .ts
     const exampleFiles = allExampleFiles.filter((fileName) =>
-      fileName === completionName + ".ts" ||
-      fileName.startsWith(completionName + "_") && fileName.endsWith(".ts")
+      fileName === completion.name + ".ts" ||
+      fileName.startsWith(completion.name + "_") && fileName.endsWith(".ts")
     )
-    describe("Completion " + completionName, () => {
+    describe("Completion " + completion.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {
         // first we extract from the first comment line all the positions where the refactor has to be tested

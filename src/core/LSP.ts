@@ -195,6 +195,10 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
   })
 })
 
+function refactorNameToFullyQualifiedName(name: string) {
+  return `@effect/language-service/refactors/${name}`
+}
+
 export const getApplicableRefactors = Nano.fn("LSP.getApplicableRefactors")(function*(
   refactors: Array<RefactorDefinition>,
   sourceFile: ts.SourceFile,
@@ -208,10 +212,10 @@ export const getApplicableRefactors = Nano.fn("LSP.getApplicableRefactors")(func
     const result = yield* Nano.option(refactor.apply(sourceFile, textRange))
     if (Option.isSome(result)) {
       effectRefactors.push({
-        name: refactor.name,
+        name: refactorNameToFullyQualifiedName(refactor.name),
         description: refactor.description,
         actions: [{
-          name: refactor.name,
+          name: refactorNameToFullyQualifiedName(refactor.name),
           description: result.value.description,
           kind: result.value.kind
         }]
@@ -227,7 +231,9 @@ export const getEditsForRefactor = Nano.fn("LSP.getEditsForRefactor")(function*(
   positionOrRange: number | ts.TextRange,
   refactorName: string
 ) {
-  const refactor = refactors.find((refactor) => refactor.name === refactorName)
+  const refactor = refactors.find((refactor) =>
+    refactorNameToFullyQualifiedName(refactor.name) === refactorName
+  )
   if (!refactor) {
     return yield* Nano.fail(new RefactorNotApplicableError())
   }
@@ -276,7 +282,11 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
         if (trimmedRuleString) {
           const individualRules = trimmedRuleString.split(/\s+/)
           for (const rulePair of individualRules) {
-            const [ruleName, ruleLevel] = rulePair.toLowerCase().split(":")
+            const [rawRuleName, ruleLevel] = rulePair.toLowerCase().split(":")
+            // NOTE: for backwards compatibility, treat "effect/ruleName" same as "ruleName"
+            const ruleName = rawRuleName.startsWith("effect/")
+              ? rawRuleName.substring("effect/".length)
+              : rawRuleName
             if (ruleName && ruleLevel) {
               if (ruleLevel === "skip-file") skippedRules.push(ruleName)
               ruleOverrides[ruleName] = ruleOverrides[ruleName] || []

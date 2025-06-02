@@ -1,0 +1,8 @@
+// Result of running refactor typeToEffectSchema at position 3:15
+
+export const Test = Schema.Struct({
+    a: Schema.String,
+    b: Schema.Boolean
+});
+
+export type Test = { a: string, b: boolean}

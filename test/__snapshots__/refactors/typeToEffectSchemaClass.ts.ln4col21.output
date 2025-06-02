@@ -1,0 +1,10 @@
+// Result of running refactor typeToEffectSchemaClass at position 4:21
+import * as Schema from "effect/Schema"
+
+export class MyStruct extends Schema.Class<MyStruct>("MyStruct")({
+    prop: Schema.String
+}) { }
+
+export interface MyStruct {
+    prop: string
+}

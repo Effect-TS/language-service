@@ -1,0 +1,5 @@
+// Result of running refactor typeToEffectSchema at position 3:15
+
+export const Test =  /* Not supported conversion: {a: string} extends Record<string, infer T> ? T : never */;
+
+export type Test = {a: string} extends Record<string, infer T> ? T : never

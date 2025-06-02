@@ -7,7 +7,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
 export const missingStarInYieldEffectGen = LSP.createDiagnostic({
-  name: "effect/missingStarInYieldEffectGen",
+  name: "missingStarInYieldEffectGen",
   code: 4,
   apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

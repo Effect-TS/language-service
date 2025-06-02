@@ -9,7 +9,7 @@ import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const pipeableToDatafirst = LSP.createRefactor({
-  name: "effect/pipeableToDatafirst",
+  name: "pipeableToDatafirst",
   description: "Rewrite to datafirst",
   apply: Nano.fn("pipeableToDatafirst.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -9,7 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
 export const asyncAwaitToGenTryPromise = LSP.createRefactor({
-  name: "effect/asyncAwaitToGenTryPromise",
+  name: "asyncAwaitToGenTryPromise",
   description: "Convert to Effect.gen with failures",
   apply: Nano.fn("asyncAwaitToGenTryPromise.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

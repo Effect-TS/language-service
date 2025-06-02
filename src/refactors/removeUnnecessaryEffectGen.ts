@@ -36,7 +36,7 @@ import * as TypeParser from "../utils/TypeParser.js"
  *          and applies the refactor if applicable.
  */
 export const removeUnnecessaryEffectGen = LSP.createRefactor({
-  name: "effect/removeUnnecessaryEffectGen",
+  name: "removeUnnecessaryEffectGen",
   description: "Remove unnecessary Effect.gen",
   apply: Nano.fn("removeUnnecessaryEffectGen.apply")(function*(sourceFile, textRange) {
     for (

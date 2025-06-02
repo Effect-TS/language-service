@@ -6,7 +6,7 @@ import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 
 export const genFunctionStar = LSP.createCompletion({
-  name: "effect/genFunctionStar",
+  name: "genFunctionStar",
   apply: Nano.fn("genFunctionStar")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
