@@ -145,7 +145,9 @@ function testDiagnosticQuickfixesOnExample(
           ).toMatchFileSnapshot(snapshotFilePath)
         }
 
-        return codeFixes.map((_) => _.fixName + " from " + _.start + " to " + _.end).join("\n")
+        return codeFixes.length === 0
+          ? "no codefixes"
+          : codeFixes.map((_) => _.fixName + " from " + _.start + " to " + _.end).join("\n")
       })
     ),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
