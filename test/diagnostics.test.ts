@@ -53,7 +53,7 @@ function testDiagnosticOnExample(
   )
 
   // attempt to run the diagnostic and get the output
-  const output = pipe(
+  pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
@@ -72,14 +72,19 @@ function testDiagnosticOnExample(
       // sort by start position
       diagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
       // create human readable messages
-      return diagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
-        .join("\n\n")
+      return diagnostics.length === 0 ?
+        "// no diagnostics" :
+        diagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
+          .join("\n\n")
     }),
     Nano.unsafeRun,
-    Either.getOrElse(() => "// no diagnostics")
+    (result) => {
+      expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
+      expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+        snapshotFilePath
+      )
+    }
   )
-
-  expect(output).toMatchFileSnapshot(snapshotFilePath)
 }
 
 function testDiagnosticQuickfixesOnExample(
