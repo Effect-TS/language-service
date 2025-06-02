@@ -32,9 +32,8 @@ function testRefactorOnExample(
   for (const lineAndCol of textRangeString.split("-")) {
     const [line, character] = lineAndCol.split(":")
     const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
-    if (i === 0) {
-      humanLineCol = "ln" + line + "col" + character
-    }
+    if (i === 1) humanLineCol += "-"
+    humanLineCol += "ln" + line + "col" + character
     if (i === 0) startPos = pos
     if (i === 1) endPos = pos
     i += 1
