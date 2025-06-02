@@ -2,14 +2,12 @@
 import * as Schema from "effect/Schema"
 
 export const MyStruct = Schema.Struct({
-    prop: Schema.Literal(42)
-}, { key: Schema.Number, value: Schema.String })
-
-export interface MyStruct {
-    prop: 42
-    [key: number]: string
-}
- numberProp: Schema.Number,
+    anyProp: Schema.Any,
+    bigintProp: Schema.BigInt,
+    booleanProp: Schema.Boolean,
+    neverProp: Schema.Never,
+    nullProp: Schema.Null,
+    numberProp: Schema.Number,
     stringProp: Schema.String,
     undefinedProp: Schema.Undefined,
     unknownProp: Schema.Unknown,

@@ -6,5 +6,3 @@ export function refactorMe(arg: string) {
         return yield* T.promise(() => Promise.resolve(1))
     })
 }
-    })
-}

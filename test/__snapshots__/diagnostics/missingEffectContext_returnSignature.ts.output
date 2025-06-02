@@ -1,0 +1,8 @@
+return effectWithServices
+19:4 - 19:29 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+
+effectWithServices
+23:62 - 23:80 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.
+
+effectWithServices
+26:105 - 26:123 | 1 | Missing 'ServiceC' in the expected Effect context.

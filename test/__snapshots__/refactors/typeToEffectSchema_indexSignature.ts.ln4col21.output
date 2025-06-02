@@ -1,0 +1,11 @@
+// Result of running refactor typeToEffectSchema at position 4:21
+import * as Schema from "effect/Schema"
+
+export const MyStruct = Schema.Struct({
+    prop: Schema.Literal(42)
+}, { key: Schema.Number, value: Schema.String })
+
+export interface MyStruct {
+    prop: 42
+    [key: number]: string
+}

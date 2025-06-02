@@ -47,7 +47,7 @@ function testRefactorOnExample(
     __dirname,
     "__snapshots__",
     "refactors",
-    refactor.name + "." + humanLineCol + ".output"
+    fileName + "." + humanLineCol + ".output"
   )
 
   // ensure there are no errors in TS file

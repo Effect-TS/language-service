@@ -6,4 +6,3 @@ export const Test = Schema.Struct({
 });
 
 export type Test = { a: string, b: boolean}
- {a: string} extends Record<string, infer T> ? T : never

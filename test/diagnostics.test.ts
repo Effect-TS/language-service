@@ -49,7 +49,7 @@ function testDiagnosticOnExample(
     __dirname,
     "__snapshots__",
     "diagnostics",
-    diagnostic.name + ".output"
+    fileName + ".output"
   )
 
   // attempt to run the diagnostic and get the output
@@ -98,7 +98,7 @@ function testDiagnosticQuickfixesOnExample(
     __dirname,
     "__snapshots__",
     "diagnostics",
-    diagnostic.name + ".codefixes"
+    fileName + ".codefixes"
   )
 
   // attempt to run the diagnostic and get the output
@@ -118,7 +118,7 @@ function testDiagnosticQuickfixesOnExample(
             __dirname,
             "__snapshots__",
             "diagnostics",
-            diagnostic.name + "." + codeFix.fixName + ".from" + codeFix.start + "to" + codeFix.end +
+            fileName + "." + codeFix.fixName + ".from" + codeFix.start + "to" + codeFix.end +
               ".output"
           )
           const formatContext = ts.formatting.getFormatContext(

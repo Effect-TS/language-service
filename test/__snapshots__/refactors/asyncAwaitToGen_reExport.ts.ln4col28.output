@@ -1,0 +1,8 @@
+// Result of running refactor asyncAwaitToGen at position 4:28
+import { Eff } from "@/utils/reExport.js"
+
+export function refactorMe(arg: string) {
+    return Eff.gen(function*() {
+        return yield* Eff.promise(() => Promise.resolve(1))
+    })
+}
