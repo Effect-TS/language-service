@@ -3,6 +3,7 @@ import { pipe } from "effect/Function"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
+import * as LanguageServicePluginOptions from "../src/core/LanguageServicePluginOptions.js"
 import * as LSP from "../src/core/LSP"
 import * as Nano from "../src/core/Nano"
 import * as TypeCheckerApi from "../src/core/TypeCheckerApi"
@@ -38,7 +39,7 @@ function testAllDagnostics() {
           TypeCheckerApi.TypeCheckerApiCache,
           TypeCheckerApi.makeTypeCheckerApiCache()
         ),
-        Nano.provideService(LSP.PluginOptions, {
+        Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
           diagnostics: true,
           quickinfo: false,
           completions: false,

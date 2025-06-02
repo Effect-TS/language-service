@@ -1,0 +1,17 @@
+// code fix floatingEffect_skipNextLine  output for range 298 - 315
+/** @effect-diagnostics floatingEffect:warning */
+import * as Effect from "effect/Effect"
+
+Effect.succeed(1)
+
+/** @effect-diagnostics floatingEffect:off */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics floatingEffect:error */
+
+Effect.succeed(1)
+
+/** @effect-diagnostics floatingEffect:suggestion */
+// @effect-diagnostics-next-line floatingEffect:off
+Effect.succeed(1)

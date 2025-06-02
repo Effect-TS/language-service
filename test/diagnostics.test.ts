@@ -1,3 +1,4 @@
+import * as LanguageServicePluginOptions from "@effect/language-service/core/LanguageServicePluginOptions"
 import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
@@ -62,7 +63,7 @@ function testDiagnosticOnExample(
       TypeCheckerApi.TypeCheckerApiCache,
       TypeCheckerApi.makeTypeCheckerApiCache()
     ),
-    Nano.provideService(LSP.PluginOptions, {
+    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: true,
       quickinfo: false,
       completions: false,
@@ -162,7 +163,7 @@ function testDiagnosticQuickfixesOnExample(
       TypeCheckerApi.TypeCheckerApiCache,
       TypeCheckerApi.makeTypeCheckerApiCache()
     ),
-    Nano.provideService(LSP.PluginOptions, {
+    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: true,
       quickinfo: false,
       completions: false,

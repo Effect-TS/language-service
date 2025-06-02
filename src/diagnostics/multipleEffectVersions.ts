@@ -1,3 +1,4 @@
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
@@ -13,7 +14,7 @@ export const multipleEffectVersions = LSP.createDiagnostic({
   apply: Nano.fn("multipleEffectVersions.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
-    const options = yield* Nano.service(LSP.PluginOptions)
+    const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
 
     if (!options.multipleEffectCheck) return []
