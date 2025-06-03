@@ -1,3 +1,4 @@
+// code fix missingStarInYieldEffectGen_skipNextLine  output for range 853 - 871
 import * as Effect from "effect/Effect"
 
 export const noError = Effect.gen(function*() {
@@ -34,8 +35,8 @@ export const effectFnUsage = Effect.fn(function*() {
 
 // @ts-expect-error
 export const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*() {
-  yield Effect.never
-})
+    // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
+    yield Effect.never})
 
 // @ts-expect-error
 export const untracedEffectFnUsage = Effect.fnUntraced(function*() {

@@ -1,3 +1,4 @@
+// code fix missingStarInYieldEffectGen_fix  output for range 726 - 744
 import * as Effect from "effect/Effect"
 
 export const noError = Effect.gen(function*() {
@@ -29,7 +30,7 @@ export function* effectInsideStandardGenerator() {
 
 // @ts-expect-error
 export const effectFnUsage = Effect.fn(function*() {
-  yield Effect.never
+  yield* Effect.never
 })
 
 // @ts-expect-error

@@ -1,3 +1,4 @@
+// code fix missingStarInYieldEffectGen_fix  output for range 853 - 871
 import * as Effect from "effect/Effect"
 
 export const noError = Effect.gen(function*() {
@@ -34,7 +35,7 @@ export const effectFnUsage = Effect.fn(function*() {
 
 // @ts-expect-error
 export const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*() {
-  yield Effect.never
+  yield* Effect.never
 })
 
 // @ts-expect-error
