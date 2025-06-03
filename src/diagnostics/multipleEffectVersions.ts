@@ -1,11 +1,12 @@
+import { hasProperty, isNumber, isObject, isString } from "effect/Predicate"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
-type ResolvedEffectVersions = Record<string, { resolvedFileName: string }>
+type ResolvedPackagesCache = Record<string, Record<string, any>>
 
-const effectVersionsCache = new Map<string, ResolvedEffectVersions>()
+const checkedPackagesCache = new Map<string, ResolvedPackagesCache>()
 const programResolvedCacheSize = new Map<string, number>()
 
 export const multipleEffectVersions = LSP.createDiagnostic({
@@ -22,44 +23,56 @@ export const multipleEffectVersions = LSP.createDiagnostic({
 
     // whenever we detect the resolution cache size has changed, try again the check
     // this should mitigate how frequently this rule is triggered
-    const effectVersions: ResolvedEffectVersions = effectVersionsCache.get(sourceFile.fileName) ||
+    let resolvedPackages: ResolvedPackagesCache = checkedPackagesCache.get(sourceFile.fileName) ||
       {}
-    const newResolvedModuleSize = "resolvedModules" in program && typeof program.resolvedModules === "object" &&
-        "size" in (program as any).resolvedModules ?
-      (program.resolvedModules as any).size :
-      0
-    const oldResolvedSize = programResolvedCacheSize.get(sourceFile.fileName) || 0
+    const newResolvedModuleSize =
+      hasProperty(program, "resolvedModules") && hasProperty(program.resolvedModules, "size") &&
+        isNumber(program.resolvedModules.size) ?
+        program.resolvedModules.size :
+        0
+    const oldResolvedSize = programResolvedCacheSize.get(sourceFile.fileName) || -1
     if (newResolvedModuleSize !== oldResolvedSize) {
-      if (
-        "forEachResolvedModule" in program && typeof program.forEachResolvedModule === "function"
-      ) {
-        program.forEachResolvedModule((_: any) => {
-          if (
-            _ &&
-            _.resolvedModule && _.resolvedModule.packageId &&
-            _.resolvedModule.packageId.name === "effect" &&
-            !(_.resolvedModule.packageId.version in effectVersions)
-          ) {
-            effectVersions[_.resolvedModule.packageId.version] = {
-              resolvedFileName: _.resolvedModule.resolvedFileName
-            }
-          }
-        })
-      }
-      effectVersionsCache.set(sourceFile.fileName, effectVersions)
+      const seenPackages = new Set<string>()
+      resolvedPackages = {}
+      program.getSourceFiles().map((_) => {
+        if (!hasProperty(_, "packageJsonScope")) return
+        if (!_.packageJsonScope) return
+        const packageJsonScope = _.packageJsonScope
+        if (!hasProperty(packageJsonScope, "contents")) return
+        if (!hasProperty(packageJsonScope.contents, "packageJsonContent")) return
+        const packageJsonContent = packageJsonScope.contents.packageJsonContent
+        if (!hasProperty(packageJsonContent, "name")) return
+        if (!hasProperty(packageJsonContent, "version")) return
+        const { name, version } = packageJsonContent
+        if (!isString(name)) return
+        if (!isString(version)) return
+        if (seenPackages.has(name + "@" + version)) return
+        seenPackages.add(name + "@" + version)
+        const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
+          isObject(packageJsonContent.peerDependencies) &&
+          hasProperty(packageJsonContent.peerDependencies, "effect")
+        if (
+          !(name === "effect" || hasEffectInPeerDependencies)
+        ) return
+        resolvedPackages[name] = resolvedPackages[name] || {}
+        resolvedPackages[name][version] = packageJsonScope.contents.packageJsonContent
+      })
+      checkedPackagesCache.set(sourceFile.fileName, resolvedPackages)
       programResolvedCacheSize.set(sourceFile.fileName, newResolvedModuleSize)
     }
 
-    if (Object.keys(effectVersions).length > 1) {
-      const versions = Object.keys(effectVersions).map((version) => `version ${version}`)
-      effectDiagnostics.push({
-        node: sourceFile.statements[0],
-        category: ts.DiagnosticCategory.Warning,
-        messageText: `Seems like in this project there are multiple effect versions loaded (${
-          versions.join(", ")
-        }). This may cause unexpected type errors and runtime behaviours. If you are ok with that, you can disable this warning by adding "multipleEffectCheck": false to the Effect LSP options inside your tsconfig.json`,
-        fixes: []
-      })
+    for (const packageName of Object.keys(resolvedPackages)) {
+      if (Object.keys(resolvedPackages[packageName]).length > 1) {
+        const versions = Object.keys(resolvedPackages[packageName])
+        effectDiagnostics.push({
+          node: sourceFile.statements[0],
+          category: ts.DiagnosticCategory.Warning,
+          messageText: `Package ${packageName} is referenced multiple times with different versions (${
+            versions.join(", ")
+          }).\nThis may cause unexpected type errors or runtime behaviours.\n\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project, or set the LSP config "multipleEffectCheck" to false.`,
+          fixes: []
+        })
+      }
     }
 
     return effectDiagnostics
