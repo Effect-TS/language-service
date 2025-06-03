@@ -22,8 +22,8 @@ export function testFn(): Effect.Effect<number> {
 
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectContext:off
-
 export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
+
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, never, ServiceA | ServiceB> = () =>
   // @ts-expect-error
   effectWithServices

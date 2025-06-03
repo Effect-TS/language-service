@@ -7,8 +7,9 @@ export const noError = Effect.gen(function*() {
 
 // @ts-expect-error
 export const missingStarInYield = Effect.gen(function*() {
-    // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
-    yield Effect.succeed(1)})
+  // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
+  yield Effect.succeed(1)
+})
 
 // @ts-expect-error
 export const missingStarInMultipleYield = Effect.gen(function*() {

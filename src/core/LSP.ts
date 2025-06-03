@@ -384,17 +384,13 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           (changeTracker) =>
             Nano.sync(() => {
               const disableAtNode = findParentStatementForDisableNextLine(_.node)
+              const { line } = ts.getLineAndCharacterOfPosition(sourceFile, disableAtNode.getStart())
 
-              changeTracker.replaceNode(
+              changeTracker.insertCommentBeforeLine(
                 sourceFile,
-                disableAtNode,
-                ts.addSyntheticLeadingComment(
-                  disableAtNode,
-                  ts.SyntaxKind.SingleLineCommentTrivia,
-                  ` @effect-diagnostics-next-line ${rule.name}:off`,
-                  true
-                ),
-                { leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll }
+                line,
+                disableAtNode.getStart(),
+                ` @effect-diagnostics-next-line ${rule.name}:off`
               )
             })
         )

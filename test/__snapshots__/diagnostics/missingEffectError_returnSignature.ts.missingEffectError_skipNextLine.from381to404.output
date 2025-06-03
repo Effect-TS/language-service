@@ -17,9 +17,10 @@ class ErrorC extends Data.Error<{
 declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
 
 export function testFn(): Effect.Effect<number> {
-    // @ts-expect-error
-    // @effect-diagnostics-next-line missingEffectError:off
-    return effectWithErrors}
+  // @ts-expect-error
+  // @effect-diagnostics-next-line missingEffectError:off
+  return effectWithErrors
+}
 
 // @ts-expect-error
 export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors

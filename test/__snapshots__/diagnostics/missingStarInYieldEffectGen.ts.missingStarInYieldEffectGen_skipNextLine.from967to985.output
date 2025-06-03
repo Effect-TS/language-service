@@ -40,5 +40,6 @@ export const tracedEffectFnUsage = Effect.fn("tracedEffectFnUsage")(function*() 
 
 // @ts-expect-error
 export const untracedEffectFnUsage = Effect.fnUntraced(function*() {
-    // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
-    yield Effect.never})
+  // @effect-diagnostics-next-line missingStarInYieldEffectGen:off
+  yield Effect.never
+})

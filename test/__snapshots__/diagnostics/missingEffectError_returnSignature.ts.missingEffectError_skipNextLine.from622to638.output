@@ -26,5 +26,4 @@ export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
 
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectError:off
-
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors

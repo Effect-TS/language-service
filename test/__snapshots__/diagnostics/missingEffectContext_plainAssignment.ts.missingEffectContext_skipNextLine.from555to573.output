@@ -20,8 +20,8 @@ export const noError: Effect.Effect<number> = Effect.succeed(1)
 
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectContext:off
-
 export const missingAllServices: Effect.Effect<number> = effectWithServices
+
 // @ts-expect-error
 export const missingServiceC: Effect.Effect<number, never, ServiceA | ServiceB> = effectWithServices
 
