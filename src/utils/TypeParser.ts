@@ -358,7 +358,7 @@ export const returnYieldEffectBlock = Nano.fn("TypeParser.returnYieldEffectBlock
     const nodeToCheck = body.statements[0].expression.expression
     const type = typeChecker.getTypeAtLocation(nodeToCheck)
     yield* effectType(type, nodeToCheck)
-    return (nodeToCheck)
+    return nodeToCheck
   }
   return yield* typeParserIssue(
     "Node is not a return statement with a yield expression",

@@ -22,9 +22,7 @@ export const asyncAwaitToGen = LSP.createRefactor({
         ts.isFunctionExpression(node)
       ),
       ReadonlyArray.filter((node) => !!node.body),
-      ReadonlyArray.filter((node) =>
-        !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)
-      ),
+      ReadonlyArray.filter((node) => !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)),
       ReadonlyArray.head
     )
 

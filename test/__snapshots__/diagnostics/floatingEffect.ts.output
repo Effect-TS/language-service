@@ -5,4 +5,4 @@ Effect.never
 7:0 - 7:12 | 1 | Effect must be yielded or assigned to a variable.
 
 Effect.never
-11:4 - 11:16 | 1 | Effect must be yielded or assigned to a variable.
+11:2 - 11:14 | 1 | Effect must be yielded or assigned to a variable.

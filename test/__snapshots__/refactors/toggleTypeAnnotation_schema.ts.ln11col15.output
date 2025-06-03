@@ -1,12 +1,12 @@
 // Result of running refactor toggleTypeAnnotation at position 11:15
-import * as Schema from "effect/Schema"
-import * as ParseResult from "effect/ParseResult"
-import * as ParseOption from "effect/SchemaAST"
 import * as Effect from "effect/Effect"
+import * as ParseResult from "effect/ParseResult"
+import * as Schema from "effect/Schema"
+import * as ParseOption from "effect/SchemaAST"
 
 class Person extends Schema.TaggedClass<Person>("Person")("Person", {
-    name: Schema.NonEmptyString,
-    age: Schema.Int
-}){
-    static decode: (i: { readonly name: string; readonly age: number; readonly _tag: "Person" }, overrideOptions?: ParseOption.ParseOptions) => Effect.Effect<Person, ParseResult.ParseError, never> = Schema.decode(Person)
+  name: Schema.NonEmptyString,
+  age: Schema.Int
+}) {
+  static decode: (i: { readonly name: string; readonly age: number; readonly _tag: "Person" }, overrideOptions?: ParseOption.ParseOptions) => Effect.Effect<Person, ParseResult.ParseError, never> = Schema.decode(Person)
 }

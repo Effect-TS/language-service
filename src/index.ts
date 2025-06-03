@@ -32,7 +32,7 @@ const init = (
         errorCodes: diagnosticsErrorCodes,
         getCodeActions: () => undefined
       })
-      // eslint-disable-next-line no-empty
+      // eslint-disable-next-line no-empty, @typescript-eslint/no-unused-vars
     } catch (_) {}
 
     // create the proxy

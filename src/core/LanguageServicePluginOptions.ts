@@ -12,17 +12,15 @@ export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOption
 
 export function parse(config: any): LanguageServicePluginOptions {
   return {
-    diagnostics:
-      isObject(config) && hasProperty(config, "diagnostics") && isBoolean(config.diagnostics)
-        ? config.diagnostics
-        : true,
+    diagnostics: isObject(config) && hasProperty(config, "diagnostics") && isBoolean(config.diagnostics)
+      ? config.diagnostics
+      : true,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
       : true,
-    completions:
-      isObject(config) && hasProperty(config, "completions") && isBoolean(config.completions)
-        ? config.completions
-        : true,
+    completions: isObject(config) && hasProperty(config, "completions") && isBoolean(config.completions)
+      ? config.completions
+      : true,
     multipleEffectCheck: isObject(config) && hasProperty(config, "multipleEffectCheck") &&
         isBoolean(config.multipleEffectCheck)
       ? config.multipleEffectCheck

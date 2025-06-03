@@ -32,9 +32,7 @@ function diagnosticToLogFormat(
   )
 
   return errorSourceCode + "\n" +
-    `${start.line + 1}:${start.character} - ${
-      end.line + 1
-    }:${end.character} | ${error.category} | ${error.messageText}`
+    `${start.line + 1}:${start.character} - ${end.line + 1}:${end.character} | ${error.category} | ${error.messageText}`
 }
 
 function testDiagnosticOnExample(
@@ -54,7 +52,7 @@ function testDiagnosticOnExample(
   )
 
   // attempt to run the diagnostic and get the output
-  pipe(
+  return pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
@@ -79,9 +77,9 @@ function testDiagnosticOnExample(
           .join("\n\n")
     }),
     Nano.unsafeRun,
-    (result) => {
+    async (result) => {
       expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
-      expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+      await expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
         snapshotFilePath
       )
     }
@@ -93,6 +91,8 @@ function testDiagnosticQuickfixesOnExample(
   fileName: string,
   sourceText: string
 ) {
+  const promises: Array<Promise<void>> = []
+
   // create the language service with mocked services over a VFS
   const { languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
     fileName,
@@ -108,7 +108,7 @@ function testDiagnosticQuickfixesOnExample(
   )
 
   // attempt to run the diagnostic and get the output
-  pipe(
+  return pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
     Nano.flatMap(({ codeFixes, diagnostics }) =>
       Nano.sync(() => {
@@ -145,10 +145,12 @@ function testDiagnosticQuickfixesOnExample(
                 (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
               )
           )
-          expect(
-            "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
-              codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
-          ).toMatchFileSnapshot(snapshotFilePath)
+          promises.push(
+            expect(
+              "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
+                codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
+            ).toMatchFileSnapshot(snapshotFilePath)
+          )
         }
 
         return codeFixes.length === 0
@@ -170,9 +172,10 @@ function testDiagnosticQuickfixesOnExample(
       multipleEffectCheck: true
     }),
     Nano.unsafeRun,
-    (result) => {
+    async (result) => {
       expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
-      expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+      await Promise.allSettled(promises)
+      await expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
         snapshotFilePathList
       )
     }

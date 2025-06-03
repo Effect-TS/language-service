@@ -1,12 +1,12 @@
 // Result of running refactor typeToEffectSchema at position 6:21
 import * as Schema from "effect/Schema"
 
-const myVar = 'A' as const
+const myVar = "A" as const
 
 export const MyStruct = Schema.Struct({
     prop: Schema.Literal("A")
 })
 
 export interface MyStruct {
-    prop: typeof myVar
+  prop: typeof myVar
 }

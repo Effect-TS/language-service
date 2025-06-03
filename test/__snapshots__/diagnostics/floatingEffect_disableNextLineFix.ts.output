@@ -1,2 +1,2 @@
 Effect.succeed(42)
-4:4 - 4:22 | 1 | Effect must be yielded or assigned to a variable.
+4:2 - 4:20 | 1 | Effect must be yielded or assigned to a variable.

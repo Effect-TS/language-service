@@ -5,4 +5,4 @@ export const Test = Schema.Struct({
     b: Schema.Boolean
 });
 
-export type Test = { a: string, b: boolean}
+export type Test = { a: string; b: boolean }

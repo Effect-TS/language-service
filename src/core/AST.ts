@@ -459,8 +459,10 @@ export const parseDataForExtendsClassCompletion = Nano.fn(
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
-  const { accessedObject, outerNode, replacementSpan } =
-    yield* parseAccessedExpressionForCompletion(sourceFile, position)
+  const { accessedObject, outerNode, replacementSpan } = yield* parseAccessedExpressionForCompletion(
+    sourceFile,
+    position
+  )
 
   if (!ts.isIdentifier(accessedObject)) return yield* Nano.fail(new NodeNotFoundError())
 

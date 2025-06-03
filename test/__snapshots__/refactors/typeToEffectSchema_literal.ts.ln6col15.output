@@ -7,4 +7,4 @@ export const NoLiteralOptimization = Schema.Union(Schema.Struct({
     a: Schema.Boolean
 }), Schema.Literal("a"))
 
-export type NoLiteralOptimization = {a: boolean} | "a"
+export type NoLiteralOptimization = { a: boolean } | "a"

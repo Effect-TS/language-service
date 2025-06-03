@@ -9,7 +9,7 @@ function sillyGenerics<A>(value: A): T.Effect<never, A, never> {
   return T.fail(value)
 }
 
-function removeAnnotation():number{
+function removeAnnotation(): number {
   return 42
 }
 

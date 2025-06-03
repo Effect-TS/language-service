@@ -6,5 +6,5 @@ export class MyStruct extends Schema.Class<MyStruct>("MyStruct")({
 }) { }
 
 export interface MyStruct {
-    prop: string
+  prop: string
 }

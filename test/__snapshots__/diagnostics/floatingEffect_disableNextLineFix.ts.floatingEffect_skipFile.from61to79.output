@@ -1,0 +1,7 @@
+// code fix floatingEffect_skipFile  output for range 61 - 79
+/** @effect-diagnostics floatingEffect:skip-file */
+import * as Effect from "effect/Effect"
+
+function test() {
+  Effect.succeed(42)
+}

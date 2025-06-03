@@ -86,8 +86,7 @@ function testRefactorOnExample(
   )
 
   if (!(Either.isRight(canApply) && canApply.right.length > 0)) {
-    expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
-    return
+    return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
   }
 
   // then get the actual edits to run it
@@ -110,8 +109,7 @@ function testRefactorOnExample(
   )
 
   if (Either.isLeft(applicableRefactor)) {
-    expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
-    return
+    return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
   }
 
   // run the refactor and ensure it matches the snapshot
@@ -133,7 +131,7 @@ function testRefactorOnExample(
       )
   )
 
-  expect(applyEdits(edits, fileName, sourceText)).toMatchFileSnapshot(snapshotFilePath)
+  return expect(applyEdits(edits, fileName, sourceText)).toMatchFileSnapshot(snapshotFilePath)
 }
 
 function testAllRefactors() {
@@ -158,7 +156,7 @@ function testAllRefactors() {
             // create the language service
             const sourceText = "// Result of running refactor " + refactor.name +
               " at position " + textRangeString + sourceWithMarker.substring(firstLine.length)
-            testRefactorOnExample(refactor, fileName, sourceText, textRangeString)
+            return testRefactorOnExample(refactor, fileName, sourceText, textRangeString)
           })
         }
       }

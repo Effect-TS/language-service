@@ -92,8 +92,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
       effectDiagnostics.push({
         node,
         category: ts.DiagnosticCategory.Error,
-        messageText:
-          `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
+        messageText: `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
         fixes: fix
       })
     })

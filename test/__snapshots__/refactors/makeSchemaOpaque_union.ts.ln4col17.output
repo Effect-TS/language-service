@@ -2,8 +2,8 @@
 import * as Schema from "effect/Schema"
 
 export const MyUnion_ = Schema.Union(
-    Schema.Literal("A"),
-    Schema.Literal("B")
+  Schema.Literal("A"),
+  Schema.Literal("B")
 )
 
 export type MyUnion = Schema.Schema.Type<typeof MyUnion_>

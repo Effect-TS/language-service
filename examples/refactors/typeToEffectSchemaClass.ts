@@ -2,5 +2,5 @@
 import * as Schema from "effect/Schema"
 
 export interface MyStruct {
-    prop: string
+  prop: string
 }

@@ -36,12 +36,12 @@ export const getMissingTypeEntriesInTargetType = Nano.fn(
     const typeChecker = yield* Nano.service(TypeCheckerApi)
 
     const result: Array<ts.Type> = []
-    const toTest: Array<ts.Type> = [realType]
+    let toTest: Array<ts.Type> = [realType]
     while (toTest.length > 0) {
       const type = toTest.pop()
       if (!type) return result
       if (type.isUnion()) {
-        toTest.push(...type.types)
+        toTest = toTest.concat(type.types)
       } else {
         const assignable = typeChecker.isTypeAssignableTo(type, expectedType)
         if (!assignable) {

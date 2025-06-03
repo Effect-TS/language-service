@@ -200,10 +200,9 @@ export const processNode = (
   TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | SchemaGenContext
 > =>
   Nano.gen(function*() {
-    const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, ts } =
-      yield* Nano.service(
-        SchemaGenContext
-      )
+    const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, ts } = yield* Nano.service(
+      SchemaGenContext
+    )
     // string | number | boolean | undefined | void | never
     switch (node.kind) {
       case ts.SyntaxKind.AnyKeyword:

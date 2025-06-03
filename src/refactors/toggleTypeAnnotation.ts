@@ -16,9 +16,7 @@ export const toggleTypeAnnotation = LSP.createRefactor({
 
     const maybeNode = pipe(
       yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.filter((node) =>
-        ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)
-      ),
+      ReadonlyArray.filter((node) => ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)),
       ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
       ReadonlyArray.filter((node) => !!node.initializer),
       ReadonlyArray.head

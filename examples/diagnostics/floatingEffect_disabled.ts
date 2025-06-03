@@ -14,4 +14,3 @@ Effect.succeed(1)
 /** @effect-diagnostics floatingEffect:suggestion */
 
 Effect.succeed(1)
-

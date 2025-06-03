@@ -238,36 +238,35 @@ export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
     return makeInternalSuccess(state.value)
   })
 
-export const fn =
-  (_: string) =>
-  <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff, Args extends Array<any>>(
-    body: (...args: Args) => Generator<Eff, AEff, never>
-  ) =>
-  (...args: Args) => (
-    make<
-      AEff,
-      [Eff] extends [never] ? never
-        : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
-        : never,
-      [Eff] extends [never] ? never
-        : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer _E, infer R>>] ? R
-        : never
-    >((ctx) => {
-      const iterator = body(...args)
-      let state: IteratorResult<any> = iterator.next()
-      while (!state.done) {
-        const current = Gen.isGenKind(state.value)
-          ? state.value.value
-          : Gen.yieldWrapGet(state.value)
-        const result: NanoInternalResult<any, any> = current.run(ctx)
-        if (result._tag !== "Right") {
-          return result
-        }
-        state = iterator.next(result.value as never)
+export const fn = (_: string) =>
+<Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff, Args extends Array<any>>(
+  body: (...args: Args) => Generator<Eff, AEff, never>
+) =>
+(...args: Args) => (
+  make<
+    AEff,
+    [Eff] extends [never] ? never
+      : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
+      : never,
+    [Eff] extends [never] ? never
+      : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer _E, infer R>>] ? R
+      : never
+  >((ctx) => {
+    const iterator = body(...args)
+    let state: IteratorResult<any> = iterator.next()
+    while (!state.done) {
+      const current = Gen.isGenKind(state.value)
+        ? state.value.value
+        : Gen.yieldWrapGet(state.value)
+      const result: NanoInternalResult<any, any> = current.run(ctx)
+      if (result._tag !== "Right") {
+        return result
       }
-      return makeInternalSuccess(state.value)
-    })
-  )
+      state = iterator.next(result.value as never)
+    }
+    return makeInternalSuccess(state.value)
+  })
+)
 
 export const option = <A, E, R>(fa: Nano<A, E, R>) =>
   make<Option.Option<A>, never, R>((ctx) => {
@@ -320,9 +319,9 @@ export const getTimings = () => {
   const lines: Array<string> = []
   for (const [name, avg, hits, total] of result) {
     lines.push(
-      `${name.padEnd(75)} tot ${total.toFixed(2).padStart(10)}ms avg ${
-        avg.toFixed(2).padStart(10)
-      }ms ${hits.toString().padStart(10)} hits`
+      `${name.padEnd(75)} tot ${total.toFixed(2).padStart(10)}ms avg ${avg.toFixed(2).padStart(10)}ms ${
+        hits.toString().padStart(10)
+      } hits`
     )
   }
   return lines
