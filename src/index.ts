@@ -11,6 +11,8 @@ import { diagnostics } from "./diagnostics.js"
 import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 
+const LSP_INJECTED_URI = "@effect/language-service/injected"
+
 const init = (
   modules: {
     typescript: typeof ts
@@ -18,6 +20,10 @@ const init = (
 ) => {
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
+
+    // prevent double-injection of the effect language service
+    if ((languageService as any)[LSP_INJECTED_URI]) return languageService
+
     const languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions =
       LanguageServicePluginOptions.parse(info.config)
 
@@ -35,8 +41,9 @@ const init = (
       // eslint-disable-next-line no-empty, @typescript-eslint/no-unused-vars
     } catch (_) {}
 
-    // create the proxy
+    // create the proxy and mark it as injected (to avoid double-applies)
     const proxy: ts.LanguageService = Object.create(null)
+    ;(proxy as any)[LSP_INJECTED_URI] = true
     for (const k of Object.keys(languageService) as Array<keyof ts.LanguageService>) {
       // @ts-expect-error
       proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
