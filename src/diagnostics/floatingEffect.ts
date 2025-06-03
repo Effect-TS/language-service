@@ -23,7 +23,10 @@ export const floatingEffect = LSP.createDiagnostic({
       // this.variable = Effect.succeed is a valid expression
       if (
         ts.isBinaryExpression(expression) && expression.operatorToken &&
-        expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        (expression.operatorToken.kind === ts.SyntaxKind.EqualsToken ||
+          expression.operatorToken.kind === ts.SyntaxKind.QuestionQuestionEqualsToken ||
+          expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandEqualsToken ||
+          expression.operatorToken.kind === ts.SyntaxKind.BarBarEqualsToken)
       ) return false
       return true
     }
