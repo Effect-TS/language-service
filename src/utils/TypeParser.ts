@@ -159,10 +159,12 @@ export const effectSubtype = Nano.fn("TypeParser.effectSubtype")(function*(
   // there is no better way to check if a type is a subtype of effect
   // so we just check for the existence of the property "_tag"
   // which is common for Option, Either, and others
+  // and other datatypes as "Pool" have "get"
   const tagSymbol = typeChecker.getPropertyOfType(type, "_tag")
-  if (!tagSymbol) {
+  const getSymbol = typeChecker.getPropertyOfType(type, "get")
+  if (!(tagSymbol || getSymbol)) {
     return yield* typeParserIssue(
-      "Type is not a subtype of effect because it does not have '_tag' property",
+      "Type is not a subtype of effect because it does not have '_tag' or 'get' property",
       type,
       atLocation
     )
