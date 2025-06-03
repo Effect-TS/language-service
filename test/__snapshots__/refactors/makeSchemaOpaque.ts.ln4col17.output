@@ -2,8 +2,8 @@
 import * as Schema from "effect/Schema"
 
 export const MyStruct_ = Schema.Struct({
-    id: Schema.Number,
-    name: Schema.String
+  id: Schema.Number,
+  name: Schema.String
 })
 
 export interface MyStruct extends Schema.Schema.Type<typeof MyStruct_> { }

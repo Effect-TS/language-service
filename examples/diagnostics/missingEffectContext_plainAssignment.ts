@@ -1,19 +1,19 @@
-import * as Context from "effect/Context"
+import type * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
 
 class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
-    succeed: { a: 1}
-}){}
+  succeed: { a: 1 }
+}) {}
 
 class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
-    succeed: { a: 2}
-}){}
+  succeed: { a: 2 }
+}) {}
 
 class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
-    succeed: { a: 3}
-}){}
+  succeed: { a: 3 }
+}) {}
 
-declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC >
+declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC>
 
 export const noError: Effect.Effect<number> = Effect.succeed(1)
 
@@ -28,10 +28,10 @@ export interface EffectSubtyping<A> extends Effect.Effect<A, never, ServiceA | S
 // @ts-expect-error
 export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithServices
 
-export function missingServiceWithGenericType<A>(service: A){
-    // @ts-expect-error
-    const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
-    return missingServiceA
+export function missingServiceWithGenericType<A>(service: A) {
+  // @ts-expect-error
+  const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
+  return missingServiceA
 }
 
 // @ts-expect-error

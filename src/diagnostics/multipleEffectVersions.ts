@@ -24,11 +24,10 @@ export const multipleEffectVersions = LSP.createDiagnostic({
     // this should mitigate how frequently this rule is triggered
     const effectVersions: ResolvedEffectVersions = effectVersionsCache.get(sourceFile.fileName) ||
       {}
-    const newResolvedModuleSize =
-      "resolvedModules" in program && typeof program.resolvedModules === "object" &&
+    const newResolvedModuleSize = "resolvedModules" in program && typeof program.resolvedModules === "object" &&
         "size" in (program as any).resolvedModules ?
-        (program.resolvedModules as any).size :
-        0
+      (program.resolvedModules as any).size :
+      0
     const oldResolvedSize = programResolvedCacheSize.get(sourceFile.fileName) || 0
     if (newResolvedModuleSize !== oldResolvedSize) {
       if (

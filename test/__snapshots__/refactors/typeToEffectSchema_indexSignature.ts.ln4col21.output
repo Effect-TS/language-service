@@ -6,6 +6,6 @@ export const MyStruct = Schema.Struct({
 }, { key: Schema.Number, value: Schema.String })
 
 export interface MyStruct {
-    prop: 42
-    [key: number]: string
+  prop: 42
+  [key: number]: string
 }

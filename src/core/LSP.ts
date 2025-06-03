@@ -66,9 +66,7 @@ export interface ApplicableDiagnosticDefinitionFix {
   apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
 }
 
-export interface ApplicableDiagnosticDefinitionFixWithPositionAndCode
-  extends ApplicableDiagnosticDefinitionFix
-{
+export interface ApplicableDiagnosticDefinitionFixWithPositionAndCode extends ApplicableDiagnosticDefinitionFix {
   code: number
   start: number
   end: number
@@ -121,16 +119,16 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
   rules: Array<DiagnosticDefinition>,
   sourceFile: ts.SourceFile
 ) {
-  const effectDiagnostics: Array<ts.Diagnostic> = []
-  const effectCodeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
+  let effectDiagnostics: Array<ts.Diagnostic> = []
+  let effectCodeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
   const executor = yield* createDiagnosticExecutor(sourceFile)
   for (const rule of rules) {
     const result = yield* (
       Nano.option(executor.execute(rule))
     )
     if (Option.isSome(result)) {
-      effectDiagnostics.push(
-        ...pipe(
+      effectDiagnostics = effectDiagnostics.concat(
+        pipe(
           result.value,
           ReadonlyArray.map((_) => ({
             file: sourceFile,
@@ -143,8 +141,8 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
           }))
         )
       )
-      effectCodeFixes.push(
-        ...pipe(
+      effectCodeFixes = effectCodeFixes.concat(
+        pipe(
           result.value,
           ReadonlyArray.map((_) =>
             ReadonlyArray.map(
@@ -205,9 +203,7 @@ export const getEditsForRefactor = Nano.fn("LSP.getEditsForRefactor")(function*(
   positionOrRange: number | ts.TextRange,
   refactorName: string
 ) {
-  const refactor = refactors.find((refactor) =>
-    refactorNameToFullyQualifiedName(refactor.name) === refactorName
-  )
+  const refactor = refactors.find((refactor) => refactorNameToFullyQualifiedName(refactor.name) === refactorName)
   if (!refactor) {
     return yield* Nano.fail(new RefactorNotApplicableError())
   }
@@ -225,11 +221,11 @@ export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(
   options: ts.GetCompletionsAtPositionOptions | undefined,
   formatCodeSettings: ts.FormatCodeSettings | undefined
 ) {
-  const effectCompletions: Array<ts.CompletionEntry> = []
+  let effectCompletions: Array<ts.CompletionEntry> = []
   for (const completion of completions) {
     const result = yield* completion.apply(sourceFile, position, options, formatCodeSettings)
-    effectCompletions.push(
-      ...result.map((_) => ({ sortText: "11", ..._ }) satisfies ts.CompletionEntry)
+    effectCompletions = effectCompletions.concat(
+      result.map((_) => ({ sortText: "11", ..._ }) satisfies ts.CompletionEntry)
     )
   }
   return effectCompletions

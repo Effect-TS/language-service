@@ -8,7 +8,7 @@ missingServiceCWithSubtyping
 29:13 - 29:41 | 1 | Missing 'ServiceC' in the expected Effect context.
 
 missingServiceA
-33:10 - 33:25 | 1 | Missing 'A' in the expected Effect context.
+33:8 - 33:23 | 1 | Missing 'A' in the expected Effect context.
 
 effectWithServices
 38:10 - 38:28 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.

@@ -15,15 +15,14 @@ const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "
 
 function testAllDagnostics() {
   // read all filenames
-  const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir()).filter((fileName) =>
-    fileName.endsWith(".ts")
-  ).map(
-    (fileName) => {
-      const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
-        .toString("utf8")
-      return createServicesWithMockedVFS(fileName, sourceText)
-    }
-  )
+  const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir()).filter((fileName) => fileName.endsWith(".ts"))
+    .map(
+      (fileName) => {
+        const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
+          .toString("utf8")
+        return createServicesWithMockedVFS(fileName, sourceText)
+      }
+    )
   // run a couple of times
   const totalSamples = 1000
   let totalTime = 0

@@ -9,9 +9,7 @@ import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import * as TypeParser from "./utils/TypeParser.js"
 
-const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) =>
-  fa.kind === fb.kind && fa.text === fb.text
-)
+const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) => fa.kind === fb.kind && fa.text === fb.text)
 
 const JSDocTagInfoEq = Eq.make<ts.JSDocTagInfo>((fa, fb) =>
   fa.name === fb.name && typeof fa.text === typeof fb.text &&
@@ -67,10 +65,9 @@ export function prependEffectTypeArguments(
       // if we are hovering a "yield*" and there are no quickinfo,
       // we try to parse the effect type
       // otherwise if no truncation has happened, do nothing
-      const nodeForType =
-        (!quickInfo && ts.isYieldExpression(node) && node.asteriskToken && node.expression)
-          ? node.expression
-          : (hasTruncationHappened ? node : undefined)
+      const nodeForType = (!quickInfo && ts.isYieldExpression(node) && node.asteriskToken && node.expression)
+        ? node.expression
+        : (hasTruncationHappened ? node : undefined)
 
       // we have no node to get type from
       if (!nodeForType) return quickInfo

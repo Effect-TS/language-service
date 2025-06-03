@@ -1,17 +1,17 @@
-import * as Effect from "effect/Effect"
 import * as Data from "effect/Data"
+import * as Effect from "effect/Effect"
 
 class ErrorA extends Data.Error<{
-    a: 1
-}>{}
+  a: 1
+}> {}
 
 class ErrorB extends Data.Error<{
-    a: 2
-}>{}
+  a: 2
+}> {}
 
 class ErrorC extends Data.Error<{
-    a: 3
-}>{}
+  a: 3
+}> {}
 
 declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
 
@@ -28,10 +28,10 @@ export interface EffectSubtyping<A> extends Effect.Effect<A, ErrorA | ErrorB> {}
 // @ts-expect-error
 export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErrors
 
-export function missingErrorWithGenericType<A>(error: A){
-    // @ts-expect-error
-    const missingErrorA: Effect.Effect<never> = Effect.fail(error)
-    return missingErrorA
+export function missingErrorWithGenericType<A>(error: A) {
+  // @ts-expect-error
+  const missingErrorA: Effect.Effect<never> = Effect.fail(error)
+  return missingErrorA
 }
 
 // @ts-expect-error

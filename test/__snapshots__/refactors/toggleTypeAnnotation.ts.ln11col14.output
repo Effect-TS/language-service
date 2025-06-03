@@ -11,7 +11,7 @@ const callable = () => 42
 export const test4: () => number = callable
 export const test5 = T.die
 
-const removeAnnotation:number=42
+const removeAnnotation: number = 42
 const removeAnnotationWithSpace: number = 42
 
 declare function withOverloads(a: 1): boolean
@@ -24,13 +24,13 @@ declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 export const test7 = functIntersection
 
 declare const intersection1: {
-    (a: 1): boolean
-    (b: 2): string
+  (a: 1): boolean
+  (b: 2): string
 }
 
 declare const intersection2: {
-    (a: 3): number
-    (b: 4): bigint
+  (a: 3): number
+  (b: 4): bigint
 }
 
 declare function intersect<A, B>(a: A, b: B): A & B
@@ -38,8 +38,8 @@ declare function intersect<A, B>(a: A, b: B): A & B
 export const test8 = intersect(intersection1, intersection2)
 
 class Test {
-    static liveAdd = "hello"
-    static liveRemove: string = "hello"
-    propAdd = "hello"
-    propRemove: string = "hello"    
+  static liveAdd = "hello"
+  static liveRemove: string = "hello"
+  propAdd = "hello"
+  propRemove: string = "hello"
 }

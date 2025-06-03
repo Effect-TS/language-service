@@ -1,5 +1,5 @@
 return effectWithErrors
-20:4 - 20:27 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+20:2 - 20:25 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
 
 effectWithErrors
 24:62 - 24:78 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.

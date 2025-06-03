@@ -1,3 +1,0 @@
-// Result of running refactor wrapWithPipe at position 2:13-2:26
-const txt = pipe("Hello World")
-const txt2 = "Hello"
