@@ -11,7 +11,6 @@ export const shouldNotRaiseForNonEffect = Effect.gen(function*() {
 })
 
 // @effect-diagnostics-next-line unnecessaryEffectGen:off
-
 export const shouldRaiseForSingle = Effect.gen(function*() {
-    return yield* Effect.succeed(42)
+  return yield* Effect.succeed(42)
 })

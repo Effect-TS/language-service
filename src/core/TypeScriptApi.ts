@@ -104,6 +104,12 @@ declare module "typescript" {
       ): void
       insertNodeAfter(sourceFile: ts.SourceFile, after: ts.Node, newNode: ts.Node): void
       insertText(sourceFile: ts.SourceFile, pos: number, text: string): void
+      insertCommentBeforeLine(
+        sourceFile: ts.SourceFile,
+        lineNumber: number,
+        position: number,
+        commentText: string
+      ): void
     }
     export function applyChanges(text: string, changes: ReadonlyArray<ts.TextChange>): string
   }

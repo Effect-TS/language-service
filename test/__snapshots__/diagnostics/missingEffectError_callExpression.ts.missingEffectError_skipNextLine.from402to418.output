@@ -23,6 +23,7 @@ function testFn(effect: Effect.Effect<number>) {
 // @ts-expect-error
 // @effect-diagnostics-next-line missingEffectError:off
 testFn(effectWithErrors)
+
 function testFnWithServiceAB(effect: Effect.Effect<number, ErrorA | ErrorB>) {
   return effect
 }

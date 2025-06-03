@@ -16,9 +16,10 @@ class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
 declare const effectWithServices: Effect.Effect<number, never, ServiceA | ServiceB | ServiceC>
 
 export function testFn(): Effect.Effect<number> {
-    // @ts-expect-error
-    // @effect-diagnostics-next-line missingEffectContext:off
-    return effectWithServices}
+  // @ts-expect-error
+  // @effect-diagnostics-next-line missingEffectContext:off
+  return effectWithServices
+}
 
 // @ts-expect-error
 export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
