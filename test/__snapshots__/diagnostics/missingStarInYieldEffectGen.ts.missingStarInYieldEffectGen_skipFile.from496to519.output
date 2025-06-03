@@ -1,3 +1,5 @@
+// code fix missingStarInYieldEffectGen_skipFile  output for range 496 - 519
+/** @effect-diagnostics missingStarInYieldEffectGen:skip-file */
 import * as Effect from "effect/Effect"
 
 export const noError = Effect.gen(function*() {

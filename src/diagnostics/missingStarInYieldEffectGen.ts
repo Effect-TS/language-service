@@ -35,9 +35,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
         // go up until we meet the causing generator
         const functionStarNode = ts.findAncestor(
           node,
-          (_) =>
-            (ts.isFunctionExpression(_) || ts.isMethodDeclaration(_)) &&
-            _.asteriskToken !== undefined
+          (_) => (ts.isFunctionExpression(_) || ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_))
         )
 
         // .gen should always be the parent ideally
