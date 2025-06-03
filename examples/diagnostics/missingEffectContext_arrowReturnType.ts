@@ -14,6 +14,6 @@ export const test2: {
 } = <A, E, R>(eff: Effect.Effect<A, E, R>) => Effect.void.pipe(Effect.andThen(eff), Effect.scoped)
 
 // should error
-// @ts-expect-error
 export const test3 = <A, E, R>(eff: Effect.Effect<A, E, R>): Effect.Effect<A, E, Exclude<R, Scope.Scope>> =>
+  // @ts-expect-error
   Effect.void.pipe(Effect.andThen(eff))

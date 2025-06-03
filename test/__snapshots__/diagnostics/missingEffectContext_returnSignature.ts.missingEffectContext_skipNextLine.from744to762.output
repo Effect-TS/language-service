@@ -1,5 +1,4 @@
-// code fix missingEffectContext_skipFile  output for range 742 - 760
-/** @effect-diagnostics missingEffectContext:skip-file */
+// code fix missingEffectContext_skipNextLine  output for range 744 - 762
 import * as Effect from "effect/Effect"
 
 class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
@@ -24,6 +23,8 @@ export function testFn(): Effect.Effect<number> {
 // @ts-expect-error
 export const conciseBody: () => Effect.Effect<number> = () => effectWithServices
 
-// @ts-expect-error
+// @effect-diagnostics-next-line missingEffectContext:off
+
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, never, ServiceA | ServiceB> = () =>
-  effectWithServices
+    // @ts-expect-error
+    effectWithServices

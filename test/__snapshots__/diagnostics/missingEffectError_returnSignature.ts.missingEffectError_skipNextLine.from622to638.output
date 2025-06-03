@@ -1,5 +1,5 @@
-// code fix missingEffectError_skipNextLine  output for range 386 - 409
-import type * as Data from "effect/Data"
+// code fix missingEffectError_skipNextLine  output for range 622 - 638
+import * as Data from "effect/Data"
 import type * as Effect from "effect/Effect"
 
 class ErrorA extends Data.Error<{
@@ -17,12 +17,14 @@ class ErrorC extends Data.Error<{
 declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
 
 export function testFn(): Effect.Effect<number> {
-    // @ts-expect-error
-    // @effect-diagnostics-next-line missingEffectError:off
-    return effectWithErrors}
+  // @ts-expect-error
+  return effectWithErrors
+}
 
 // @ts-expect-error
 export const conciseBody: () => Effect.Effect<number> = () => effectWithErrors
 
 // @ts-expect-error
+// @effect-diagnostics-next-line missingEffectError:off
+
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors

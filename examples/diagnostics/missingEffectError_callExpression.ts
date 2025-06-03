@@ -1,4 +1,4 @@
-import type * as Data from "effect/Data"
+import * as Data from "effect/Data"
 import type * as Effect from "effect/Effect"
 
 class ErrorA extends Data.Error<{
