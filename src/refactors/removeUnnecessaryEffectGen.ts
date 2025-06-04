@@ -1,4 +1,3 @@
-import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
@@ -42,21 +41,17 @@ export const removeUnnecessaryEffectGen = LSP.createRefactor({
     for (
       const nodeToReplace of yield* AST.getAncestorNodesInRange(sourceFile, textRange)
     ) {
-      const maybeNode = yield* pipe(
-        TypeParser.effectGen(nodeToReplace),
-        Nano.flatMap(({ body }) => TypeParser.returnYieldEffectBlock(body)),
-        Nano.option
-      )
+      const maybeNode = yield* Nano.option(TypeParser.unnecessaryEffectGen(nodeToReplace))
 
       if (Option.isNone(maybeNode)) continue
-      const returnedYieldedEffect = maybeNode.value
+      const replacementNode = maybeNode.value.replacementNode
 
       return ({
         kind: "refactor.rewrite.effect.removeUnnecessaryEffectGen",
         description: "Remove unnecessary Effect.gen",
         apply: Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          changeTracker.replaceNode(sourceFile, nodeToReplace, returnedYieldedEffect)
+          changeTracker.replaceNode(sourceFile, nodeToReplace, yield* replacementNode)
         })
       })
     }

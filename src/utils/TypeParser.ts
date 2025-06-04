@@ -1,5 +1,7 @@
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
+import * as AST from "../core/AST.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
@@ -342,30 +344,80 @@ export const effectFnGen = Nano.fn("TypeParser.effectFnGen")(function*(node: ts.
   })
 })
 
-export const returnYieldEffectBlock = Nano.fn("TypeParser.returnYieldEffectBlock")(function*(
-  body: ts.Node
+export const unnecessaryEffectGen = Nano.fn("TypeParser.unnecessaryEffectGen")(function*(
+  node: ts.Node
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
   const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-  // check if the body is a block with a single effect return statement
-  if (
-    ts.isBlock(body) &&
-    body.statements.length === 1 &&
-    ts.isReturnStatement(body.statements[0]) &&
-    body.statements[0].expression &&
-    ts.isYieldExpression(body.statements[0].expression) &&
-    body.statements[0].expression.expression
-  ) {
-    // get the type of the node
-    const nodeToCheck = body.statements[0].expression.expression
-    const type = typeChecker.getTypeAtLocation(nodeToCheck)
-    yield* effectType(type, nodeToCheck)
-    return nodeToCheck
+
+  // ensure is an effect gen with a single statement
+  const { body } = yield* effectGen(node)
+  if (body.statements.length !== 1) {
+    return yield* typeParserIssue(
+      "Generator body should have a single statement",
+      undefined,
+      node
+    )
   }
+
+  let explicitReturn = false
+  let nodeToCheck: ts.Node = body.statements[0]
+  while (nodeToCheck) {
+    // return XXX
+    if (ts.isReturnStatement(nodeToCheck) && nodeToCheck.expression) {
+      nodeToCheck = nodeToCheck.expression
+      explicitReturn = true
+      continue
+    }
+    // expression yield*
+    if (ts.isExpressionStatement(nodeToCheck)) {
+      nodeToCheck = nodeToCheck.expression
+      continue
+    }
+    // yield* XXX
+    if (ts.isYieldExpression(nodeToCheck) && nodeToCheck.asteriskToken && nodeToCheck.expression) {
+      const yieldedExpression = nodeToCheck.expression
+      const type = typeChecker.getTypeAtLocation(yieldedExpression)
+      const { A: successType } = yield* effectType(type, yieldedExpression)
+      let replacementNode: Nano.Nano<ts.Node> = Nano.succeed(yieldedExpression)
+      if (!explicitReturn && !(successType.flags & ts.TypeFlags.VoidLike)) {
+        replacementNode = pipe(
+          Nano.gen(function*() {
+            const effectIdentifier = pipe(
+              yield* Nano.option(
+                AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(node.getSourceFile(), "effect", "Effect")
+              ),
+              Option.match({
+                onNone: () => "Effect",
+                onSome: (_) => _.text
+              })
+            )
+
+            return ts.factory.createCallExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier(effectIdentifier),
+                "asVoid"
+              ),
+              undefined,
+              [
+                yieldedExpression
+              ]
+            )
+          }),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        )
+      }
+      return { node, body, yieldedExpression, replacementNode }
+    }
+    // fall through
+    break
+  }
+
+  // fall through case
   return yield* typeParserIssue(
-    "Node is not a return statement with a yield expression",
+    "Not an handled node",
     undefined,
-    body
+    node
   )
 })
 
