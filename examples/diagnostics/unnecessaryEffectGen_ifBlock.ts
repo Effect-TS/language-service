@@ -1,6 +1,6 @@
 import * as Effect from "effect/Effect"
 
-const a = Effect.gen(function*() {
+export const shouldNotTrigger = Effect.gen(function*() {
   const query = yield* Effect.succeed("")
   yield* Effect.annotateCurrentSpan("query", query)
   if (query.length < 3) {

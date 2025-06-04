@@ -1,4 +1,3 @@
-import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
@@ -13,7 +12,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
-    const unnecessaryGenerators = new Map<ts.Node, ts.Node>()
+    const unnecessaryGenerators = new Map<ts.Node, Nano.Nano<ts.Node>>()
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -26,14 +25,10 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      const maybeNode = yield* pipe(
-        TypeParser.effectGen(node),
-        Nano.flatMap(({ body }) => TypeParser.returnYieldEffectBlock(body)),
-        Nano.option
-      )
+      const maybeNode = yield* Nano.option(TypeParser.unnecessaryEffectGen(node))
 
       if (Option.isSome(maybeNode)) {
-        unnecessaryGenerators.set(node, maybeNode.value)
+        unnecessaryGenerators.set(node, maybeNode.value.replacementNode)
       }
     }
 
@@ -50,7 +45,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
             const textChanges = yield* Nano.service(
               TypeScriptApi.ChangeTracker
             )
-            textChanges.replaceNode(sourceFile, effectGenCall, yieldedResult)
+            textChanges.replaceNode(sourceFile, effectGenCall, yield* yieldedResult)
           })
         }]
       })
