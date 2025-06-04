@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.18.1
+
+### Patch Changes
+
+- [#179](https://github.com/Effect-TS/language-service/pull/179) [`a170bfc`](https://github.com/Effect-TS/language-service/commit/a170bfc097b2d1e97b3db0f5b9d19093b24117ac) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Handle unnecessary Effect.gen even when yielded expression is not returned
+
+  ```ts
+  export const shouldRaiseForSingle = Effect.gen(function* () {
+    yield* Effect.succeed(42);
+  });
+  // ^- this will become Effect.asVoid(Effect.succeed(42))
+
+  export const shouldRaiseForSingleReturnVoid = Effect.gen(function* () {
+    yield* Effect.void;
+  });
+  // ^- this will become Effect.void
+  ```
+
 ## 0.18.0
 
 ### Minor Changes
