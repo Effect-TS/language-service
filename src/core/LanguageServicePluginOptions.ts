@@ -1,11 +1,12 @@
-import { hasProperty, isBoolean, isObject } from "effect/Predicate"
+import { isArray } from "effect/Array"
+import { hasProperty, isBoolean, isObject, isString } from "effect/Predicate"
 import * as Nano from "./Nano"
 
 export interface LanguageServicePluginOptions {
   diagnostics: boolean
   quickinfo: boolean
   completions: boolean
-  multipleEffectCheck: boolean
+  allowedDuplicatedPackages: Array<string>
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -21,9 +22,9 @@ export function parse(config: any): LanguageServicePluginOptions {
     completions: isObject(config) && hasProperty(config, "completions") && isBoolean(config.completions)
       ? config.completions
       : true,
-    multipleEffectCheck: isObject(config) && hasProperty(config, "multipleEffectCheck") &&
-        isBoolean(config.multipleEffectCheck)
-      ? config.multipleEffectCheck
-      : true
+    allowedDuplicatedPackages: isObject(config) && hasProperty(config, "allowedDuplicatedPackages") &&
+        isArray(config.allowedDuplicatedPackages) && config.allowedDuplicatedPackages.every(isString)
+      ? config.allowedDuplicatedPackages.map((_) => _.toLowerCase())
+      : []
   }
 }

@@ -65,7 +65,7 @@ function testDiagnosticOnExample(
       diagnostics: true,
       quickinfo: false,
       completions: false,
-      multipleEffectCheck: true
+      allowedDuplicatedPackages: []
     }),
     Nano.map(({ diagnostics }) => {
       // sort by start position
@@ -169,7 +169,7 @@ function testDiagnosticQuickfixesOnExample(
       diagnostics: true,
       quickinfo: false,
       completions: false,
-      multipleEffectCheck: true
+      allowedDuplicatedPackages: []
     }),
     Nano.unsafeRun,
     async (result) => {

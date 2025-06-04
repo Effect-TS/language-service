@@ -71,7 +71,7 @@ Few options can be provided alongside the initialization of the Language Service
         "diagnostics": true, // controls Effect diagnostics (default: true)
         "quickinfo": true, // controls quickinfo over Effect (default: true)
         "completions": true, // controls Effect completions (default: true)
-        "multipleEffectCheck": true // controls if multiple versions of Effect are referenced (default: true)
+        "allowedDuplicatedPackages": [] // list of package names that has effect in peer dependencies and are allowed to be duplicated (default: [])
       }
     ]
   }
