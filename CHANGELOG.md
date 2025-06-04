@@ -1,5 +1,29 @@
 # @effect/language-service
 
+## 0.18.0
+
+### Minor Changes
+
+- [#177](https://github.com/Effect-TS/language-service/pull/177) [`9d2ee02`](https://github.com/Effect-TS/language-service/commit/9d2ee027df08e6fdd24bb7311dda76da44ac9bdc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Check duplicated package for any that has peer dependency on Effect
+
+### Patch Changes
+
+- [#178](https://github.com/Effect-TS/language-service/pull/178) [`9baf025`](https://github.com/Effect-TS/language-service/commit/9baf025dd0a3ca423d1399fd776a294666bc27b8) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Avoid multiple LSP patching
+
+- [#176](https://github.com/Effect-TS/language-service/pull/176) [`f9fca38`](https://github.com/Effect-TS/language-service/commit/f9fca386ed59947b45020026a3692a3cd652db4f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix false positive of logical assignments closes #166
+
+- [#168](https://github.com/Effect-TS/language-service/pull/168) [`5e9e7c9`](https://github.com/Effect-TS/language-service/commit/5e9e7c9008c69e50b2c0ed3c10e1c4d979a4d0dc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Remove fixed effect/ from all rules and refactors, improve testing setup
+
+- [#170](https://github.com/Effect-TS/language-service/pull/170) [`a492078`](https://github.com/Effect-TS/language-service/commit/a492078398696ee824b7679bc11469ec3eddfe3f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add disable next line feature
+
+- [#171](https://github.com/Effect-TS/language-service/pull/171) [`93db3db`](https://github.com/Effect-TS/language-service/commit/93db3db7261fb9fb3b776dcea128833858f4d477) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update setup to auto-format example files
+
+- [#174](https://github.com/Effect-TS/language-service/pull/174) [`824b249`](https://github.com/Effect-TS/language-service/commit/824b249ba5ba8d34db39da776d748337c1819270) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add Pool as effect subtype allowed to be floating
+
+- [#173](https://github.com/Effect-TS/language-service/pull/173) [`74e6fcd`](https://github.com/Effect-TS/language-service/commit/74e6fcd0d2868d94031bb0cf31d40988f477057a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix false positive with yield\* and function declaration
+
+- [#175](https://github.com/Effect-TS/language-service/pull/175) [`4bb23a0`](https://github.com/Effect-TS/language-service/commit/4bb23a05a371672468882fa54583179d29995090) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Better whitespace handling while inserting disable next line comments
+
 ## 0.17.1
 
 ### Patch Changes
