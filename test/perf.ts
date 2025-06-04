@@ -42,7 +42,7 @@ function testAllDagnostics() {
           diagnostics: true,
           quickinfo: false,
           completions: false,
-          multipleEffectCheck: true
+          allowedDuplicatedPackages: []
         }),
         Nano.unsafeRun,
         Either.getOrElse(() => "// no diagnostics")

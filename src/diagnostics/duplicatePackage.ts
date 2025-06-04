@@ -9,16 +9,46 @@ type ResolvedPackagesCache = Record<string, Record<string, any>>
 const checkedPackagesCache = new Map<string, ResolvedPackagesCache>()
 const programResolvedCacheSize = new Map<string, number>()
 
-export const multipleEffectVersions = LSP.createDiagnostic({
-  name: "multipleEffectVersions",
+interface ModuleWithPackageInfo {
+  name: string
+  version: string
+  hasEffectInPeerDependencies: boolean
+  contents: any
+}
+
+function parsePackageContentNameAndVersion(v: unknown): ModuleWithPackageInfo | undefined {
+  if (!isObject(v)) return
+  if (!hasProperty(v, "packageJsonScope")) return
+  if (!v.packageJsonScope) return
+  const packageJsonScope = v.packageJsonScope
+  if (!hasProperty(packageJsonScope, "contents")) return
+  if (!hasProperty(packageJsonScope.contents, "packageJsonContent")) return
+  const packageJsonContent = packageJsonScope.contents.packageJsonContent
+  if (!hasProperty(packageJsonContent, "name")) return
+  if (!hasProperty(packageJsonContent, "version")) return
+  const { name, version } = packageJsonContent
+  if (!isString(name)) return
+  if (!isString(version)) return
+  const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
+    isObject(packageJsonContent.peerDependencies) &&
+    hasProperty(packageJsonContent.peerDependencies, "effect")
+  return {
+    name: name.toLowerCase(),
+    version: version.toLowerCase(),
+    hasEffectInPeerDependencies,
+    contents: packageJsonContent
+  }
+}
+
+export const duplicatePackage = LSP.createDiagnostic({
+  name: "duplicatePackage",
   code: 6,
-  apply: Nano.fn("multipleEffectVersions.apply")(function*(sourceFile) {
+  apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
 
-    if (!options.multipleEffectCheck) return []
     if (sourceFile.statements.length < 1) return []
 
     // whenever we detect the resolution cache size has changed, try again the check
@@ -35,27 +65,17 @@ export const multipleEffectVersions = LSP.createDiagnostic({
       const seenPackages = new Set<string>()
       resolvedPackages = {}
       program.getSourceFiles().map((_) => {
-        if (!hasProperty(_, "packageJsonScope")) return
-        if (!_.packageJsonScope) return
-        const packageJsonScope = _.packageJsonScope
-        if (!hasProperty(packageJsonScope, "contents")) return
-        if (!hasProperty(packageJsonScope.contents, "packageJsonContent")) return
-        const packageJsonContent = packageJsonScope.contents.packageJsonContent
-        if (!hasProperty(packageJsonContent, "name")) return
-        if (!hasProperty(packageJsonContent, "version")) return
-        const { name, version } = packageJsonContent
-        if (!isString(name)) return
-        if (!isString(version)) return
-        if (seenPackages.has(name + "@" + version)) return
-        seenPackages.add(name + "@" + version)
-        const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
-          isObject(packageJsonContent.peerDependencies) &&
-          hasProperty(packageJsonContent.peerDependencies, "effect")
+        const packageInfo = parsePackageContentNameAndVersion(_)
+        if (!packageInfo) return
+        const packageNameAndVersion = packageInfo.name + "@" + packageInfo.version
+        if (seenPackages.has(packageNameAndVersion)) return
+        seenPackages.add(packageNameAndVersion)
         if (
-          !(name === "effect" || hasEffectInPeerDependencies)
+          !(packageInfo.name === "effect" || packageInfo.hasEffectInPeerDependencies)
         ) return
-        resolvedPackages[name] = resolvedPackages[name] || {}
-        resolvedPackages[name][version] = packageJsonScope.contents.packageJsonContent
+        if (options.allowedDuplicatedPackages.indexOf(packageInfo.name) > -1) return
+        resolvedPackages[packageInfo.name] = resolvedPackages[packageInfo.name] || {}
+        resolvedPackages[packageInfo.name][packageInfo.version] = packageInfo.contents
       })
       checkedPackagesCache.set(sourceFile.fileName, resolvedPackages)
       programResolvedCacheSize.set(sourceFile.fileName, newResolvedModuleSize)
@@ -69,7 +89,9 @@ export const multipleEffectVersions = LSP.createDiagnostic({
           category: ts.DiagnosticCategory.Warning,
           messageText: `Package ${packageName} is referenced multiple times with different versions (${
             versions.join(", ")
-          }).\nThis may cause unexpected type errors or runtime behaviours.\n\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project, or set the LSP config "multipleEffectCheck" to false.`,
+          }) and may cause unexpected type errors.\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project.\nIf this is intended set the LSP config "allowedDuplicatedPackages" to ${
+            JSON.stringify(options.allowedDuplicatedPackages.concat([packageName]))
+          }.`,
           fixes: []
         })
       }
