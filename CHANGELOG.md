@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.19.0
+
+### Minor Changes
+
+- [#182](https://github.com/Effect-TS/language-service/pull/182) [`e3f52a6`](https://github.com/Effect-TS/language-service/commit/e3f52a685be7f55d143011967890001aad9dc70d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add quickinfo for Layers
+
 ## 0.18.1
 
 ### Patch Changes
