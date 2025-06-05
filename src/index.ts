@@ -8,7 +8,7 @@ import * as Nano from "./core/Nano.js"
 import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import { diagnostics } from "./diagnostics.js"
-import { dedupeJsDocTags, prependEffectTypeArguments } from "./quickinfo.js"
+import { quickInfo } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 
 const LSP_INJECTED_URI = "@effect/language-service/injected"
@@ -254,31 +254,27 @@ const init = (
     }
 
     proxy.getQuickInfoAtPosition = (fileName, position, ...args) => {
-      const quickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
+      const applicableQuickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
 
       if (languageServicePluginOptions.quickinfo) {
-        const dedupedTagsQuickInfo = dedupeJsDocTags(quickInfo)
-
         const program = languageService.getProgram()
         if (program) {
           const sourceFile = program.getSourceFile(fileName)
           if (sourceFile) {
             return pipe(
-              prependEffectTypeArguments(
+              quickInfo(
                 sourceFile,
                 position,
-                dedupedTagsQuickInfo
+                applicableQuickInfo
               ),
               runNano(program),
-              Either.getOrElse(() => dedupedTagsQuickInfo)
+              Either.getOrElse(() => applicableQuickInfo)
             )
           }
         }
-
-        return dedupedTagsQuickInfo
       }
 
-      return quickInfo
+      return applicableQuickInfo
     }
 
     proxy.getCompletionsAtPosition = (fileName, position, options, formattingSettings, ...args) => {

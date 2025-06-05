@@ -34,6 +34,16 @@ export function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypePar
   return Nano.succeed(signatures[0].getReturnType())
 }
 
+export function contravariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
+  const signatures = type.getCallSignatures()
+  // Contravariant<A> has only 1 type signature
+  if (signatures.length !== 1) {
+    return typeParserIssue("Contravariant type has no call signature", type)
+  }
+  // get the return type
+  return Nano.succeed(signatures[0].getTypeParameterAtPosition(0))
+}
+
 export function invariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
   const signatures = type.getCallSignatures()
   // Invariant<A> has only 1 type signature
@@ -78,6 +88,25 @@ export const varianceStructCovariantType = Nano.fn("TypeParser.varianceStructCov
     return yield* covariantTypeArgument(propertyType)
   }
 )
+
+export const varianceStructContravariantType = Nano.fn(
+  "TypeParser.varianceStructContravariantType"
+)(
+  function*<A extends string>(
+    type: ts.Type,
+    atLocation: ts.Node,
+    propertyName: A
+  ) {
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
+    if (!propertySymbol) {
+      return yield* typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
+    }
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    return yield* contravariantTypeArgument(propertyType)
+  }
+)
+
 export const varianceStructInvariantType = Nano.fn("TypeParser.varianceStructInvariantType")(
   function*<A extends string>(
     type: ts.Type,
@@ -102,6 +131,17 @@ export const effectVarianceStruct = Nano.fn("TypeParser.effectVarianceStruct")(f
     A: yield* varianceStructCovariantType(type, atLocation, "_A"),
     E: yield* varianceStructCovariantType(type, atLocation, "_E"),
     R: yield* varianceStructCovariantType(type, atLocation, "_R")
+  })
+})
+
+export const layerVarianceStruct = Nano.fn("TypeParser.layerVarianceStruct")(function*(
+  type: ts.Type,
+  atLocation: ts.Node
+) {
+  return ({
+    ROut: yield* varianceStructContravariantType(type, atLocation, "_ROut"),
+    E: yield* varianceStructCovariantType(type, atLocation, "_E"),
+    RIn: yield* varianceStructCovariantType(type, atLocation, "_RIn")
   })
 })
 
@@ -131,6 +171,34 @@ export const effectType = Nano.fn("TypeParser.effectType")(function*(
     }
   }
   return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+})
+
+export const layerType = Nano.fn("TypeParser.layerType")(function*(
+  type: ts.Type,
+  atLocation: ts.Node
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+  // should be pipeable
+  yield* pipeableType(type, atLocation)
+  // get the properties to check (exclude non-property and optional properties)
+  const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+    _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+  )
+  // try to put typeid first (heuristic to optimize hot path)
+  propertiesSymbols.sort((a, b) => b.name.indexOf("LayerTypeId") - a.name.indexOf("LayerTypeId"))
+  // has a property symbol which is a layer variance struct
+  for (const propertySymbol of propertiesSymbols) {
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    const varianceArgs = yield* Nano.option(layerVarianceStruct(
+      propertyType,
+      atLocation
+    ))
+    if (Option.isSome(varianceArgs)) {
+      return varianceArgs.value
+    }
+  }
+  return yield* typeParserIssue("Type has no layer variance struct", type, atLocation)
 })
 
 export const fiberType = Nano.fn("TypeParser.fiberType")(function*(

@@ -1,3 +1,5 @@
+import * as Array from "effect/Array"
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
 import type ts from "typescript"
@@ -275,3 +277,51 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
   cache.expectedAndRealType.set(sourceFile, result)
   return result
 })
+
+export const appendToUniqueTypesMap = Nano.fn(
+  "TypeCheckerApi.appendToUniqueTypesMap"
+)(
+  function*(memory: Map<string, ts.Type>, initialType: ts.Type, excludeNever: boolean) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi)
+
+    const newIndexes: Set<string> = new Set()
+    const knownIndexes: Set<string> = new Set()
+    let toTest: Array<ts.Type> = [initialType]
+    while (toTest.length > 0) {
+      const type = toTest.pop()
+      if (!type) break
+      if (excludeNever && type.flags & ts.TypeFlags.Never) {
+        continue
+      }
+      if (type.isUnion()) {
+        toTest = toTest.concat(type.types)
+      } else {
+        const foundMatch: Array<string> = []
+        for (const [typeId, knownType] of memory.entries()) {
+          const areSame = typeChecker.isTypeAssignableTo(knownType, type) &&
+            typeChecker.isTypeAssignableTo(type, knownType)
+          if (areSame) {
+            foundMatch.push(typeId)
+            break
+          }
+        }
+        if (foundMatch.length === 0) {
+          const newId = "t" + (memory.size + 1)
+          memory.set(newId, type)
+          newIndexes.add(newId)
+        } else {
+          knownIndexes.add(foundMatch[0])
+        }
+      }
+    }
+    return {
+      newIndexes,
+      knownIndexes,
+      allIndexes: pipe(
+        Array.fromIterable(newIndexes),
+        Array.appendAll(Array.fromIterable(knownIndexes))
+      )
+    }
+  }
+)
