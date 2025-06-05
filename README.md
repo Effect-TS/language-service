@@ -33,6 +33,8 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 
 - Show the extended type of the current Effect
 - Hovering yield\* of Effect.gen will show the Effect type parameters
+- Hovering a variable assignment of a type Layer, will show info on how each service got involve
+- Hovering a layer, will attempt to produce a graph
 
 ### Diagnostics
 
