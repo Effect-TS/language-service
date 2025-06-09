@@ -63,25 +63,14 @@ function processLayerGraphNode(
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
     // expression.pipe(.....)
-    if (
-      ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
-      node.expression.name.text === "pipe"
-    ) {
-      let graphNode = yield* processLayerGraphNode(ctx, node.expression.expression, undefined)
-      for (const entry of node.arguments) {
-        graphNode = yield* processLayerGraphNode(ctx, entry, graphNode)
-      }
-      return graphNode
-    }
-
     // pipe(A, B, ...)
+    const maybePipe = yield* Nano.option(AST.parsePipeCall(node))
     if (
-      ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "pipe" &&
-      node.arguments.length > 0
+      Option.isSome(maybePipe)
     ) {
-      let graphNode = yield* processLayerGraphNode(ctx, node.arguments[0], undefined)
-      for (let i = 1; i < node.arguments.length; i++) {
-        graphNode = yield* processLayerGraphNode(ctx, node.arguments[i], graphNode)
+      let graphNode = yield* processLayerGraphNode(ctx, maybePipe.value.subject, undefined)
+      for (const entry of maybePipe.value.args) {
+        graphNode = yield* processLayerGraphNode(ctx, entry, graphNode)
       }
       return graphNode
     }

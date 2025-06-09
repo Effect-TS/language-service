@@ -52,26 +52,18 @@ export const effectGenToFn = LSP.createRefactor({
           continue
         }
         // if parent is a .pipe, and gen is the subject piped
-        if (
-          ts.isPropertyAccessExpression(parent) &&
-          parent.expression === nodeToReplace &&
-          parent.name.text === "pipe" &&
-          ts.isCallExpression(parent.parent)
-        ) {
-          pipeArgs = ts.factory.createNodeArray(pipeArgs.concat(parent.parent.arguments))
-          nodeToReplace = parent.parent
-          continue
-        }
         // if parent is a pipe(gen(), ..., ...) and gen is the first subject piped
+        const maybePipe = yield* pipe(
+          AST.parsePipeCall(parent),
+          Nano.orElse((e) => parent.parent ? AST.parsePipeCall(parent.parent) : Nano.fail(e)),
+          Nano.option
+        )
         if (
-          ts.isCallExpression(parent) &&
-          ts.isIdentifier(parent.expression) &&
-          parent.expression.text === "pipe" &&
-          parent.arguments.length > 0 &&
-          parent.arguments[0] === nodeToReplace
+          Option.isSome(maybePipe) &&
+          maybePipe.value.subject === nodeToReplace
         ) {
-          pipeArgs = ts.factory.createNodeArray(pipeArgs.concat(parent.arguments.slice(1)))
-          nodeToReplace = parent
+          pipeArgs = ts.factory.createNodeArray(pipeArgs.concat(maybePipe.value.args))
+          nodeToReplace = maybePipe.value.node
           continue
         }
         // exit
