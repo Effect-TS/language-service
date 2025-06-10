@@ -1,3 +1,4 @@
+import { hasProperty, isObject, isString } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 
@@ -157,3 +158,34 @@ export interface TypeScriptProgram extends _TypeScriptProgram {}
 export const TypeScriptProgram = Nano.Tag<TypeScriptProgram>("TypeScriptProgram")
 
 export const ChangeTracker = Nano.Tag<ts.textChanges.ChangeTracker>("ChangeTracker")
+
+interface ModuleWithPackageInfo {
+  name: string
+  version: string
+  hasEffectInPeerDependencies: boolean
+  contents: any
+}
+
+export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWithPackageInfo | undefined {
+  if (!isObject(v)) return
+  if (!hasProperty(v, "packageJsonScope")) return
+  if (!v.packageJsonScope) return
+  const packageJsonScope = v.packageJsonScope
+  if (!hasProperty(packageJsonScope, "contents")) return
+  if (!hasProperty(packageJsonScope.contents, "packageJsonContent")) return
+  const packageJsonContent = packageJsonScope.contents.packageJsonContent
+  if (!hasProperty(packageJsonContent, "name")) return
+  if (!hasProperty(packageJsonContent, "version")) return
+  const { name, version } = packageJsonContent
+  if (!isString(name)) return
+  if (!isString(version)) return
+  const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
+    isObject(packageJsonContent.peerDependencies) &&
+    hasProperty(packageJsonContent.peerDependencies, "effect")
+  return {
+    name: name.toLowerCase(),
+    version: version.toLowerCase(),
+    hasEffectInPeerDependencies,
+    contents: packageJsonContent
+  }
+}
