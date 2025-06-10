@@ -210,3 +210,19 @@ exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
   },
 ]
 `;
+
+exports[`Completion rpcMakeClasses > rpcMakeClasses.ts at 4:36 1`] = `
+[
+  {
+    "insertText": "Rpc.make("MyRequest", {\${0}}) {}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "make("MyRequest")",
+    "replacementSpan": {
+      "length": 4,
+      "start": 135,
+    },
+    "sortText": "11",
+  },
+]
+`;
