@@ -1,4 +1,4 @@
-import { hasProperty, isNumber, isObject, isString } from "effect/Predicate"
+import { hasProperty, isNumber } from "effect/Predicate"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -8,37 +8,6 @@ type ResolvedPackagesCache = Record<string, Record<string, any>>
 
 const checkedPackagesCache = new Map<string, ResolvedPackagesCache>()
 const programResolvedCacheSize = new Map<string, number>()
-
-interface ModuleWithPackageInfo {
-  name: string
-  version: string
-  hasEffectInPeerDependencies: boolean
-  contents: any
-}
-
-function parsePackageContentNameAndVersion(v: unknown): ModuleWithPackageInfo | undefined {
-  if (!isObject(v)) return
-  if (!hasProperty(v, "packageJsonScope")) return
-  if (!v.packageJsonScope) return
-  const packageJsonScope = v.packageJsonScope
-  if (!hasProperty(packageJsonScope, "contents")) return
-  if (!hasProperty(packageJsonScope.contents, "packageJsonContent")) return
-  const packageJsonContent = packageJsonScope.contents.packageJsonContent
-  if (!hasProperty(packageJsonContent, "name")) return
-  if (!hasProperty(packageJsonContent, "version")) return
-  const { name, version } = packageJsonContent
-  if (!isString(name)) return
-  if (!isString(version)) return
-  const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
-    isObject(packageJsonContent.peerDependencies) &&
-    hasProperty(packageJsonContent.peerDependencies, "effect")
-  return {
-    name: name.toLowerCase(),
-    version: version.toLowerCase(),
-    hasEffectInPeerDependencies,
-    contents: packageJsonContent
-  }
-}
 
 export const duplicatePackage = LSP.createDiagnostic({
   name: "duplicatePackage",
@@ -65,7 +34,7 @@ export const duplicatePackage = LSP.createDiagnostic({
       const seenPackages = new Set<string>()
       resolvedPackages = {}
       program.getSourceFiles().map((_) => {
-        const packageInfo = parsePackageContentNameAndVersion(_)
+        const packageInfo = TypeScriptApi.parsePackageContentNameAndVersionFromScope(_)
         if (!packageInfo) return
         const packageNameAndVersion = packageInfo.name + "@" + packageInfo.version
         if (seenPackages.has(packageNameAndVersion)) return

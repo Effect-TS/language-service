@@ -60,6 +60,9 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 - Remove unnecessary `Effect.gen` definitions that contains a single `yield` statement.
 - Wrap an `Effect` expression with `Effect.gen`
 
+### Miscellaneous
+- "Go to definition" for RpcClient will resolve to the Rpc definition
+
 ## Options
 
 Few options can be provided alongside the initialization of the Language Service Plugin.

@@ -8,6 +8,7 @@ import * as Nano from "./core/Nano.js"
 import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import { diagnostics } from "./diagnostics.js"
+import { goto } from "./goto.js"
 import { quickInfo } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 
@@ -321,6 +322,24 @@ const init = (
       }
 
       return applicableCompletions
+    }
+
+    proxy.getDefinitionAndBoundSpan = (fileName, position, ...args) => {
+      const applicableDefinition = languageService.getDefinitionAndBoundSpan(fileName, position, ...args)
+
+      const program = languageService.getProgram()
+      if (program) {
+        const sourceFile = program.getSourceFile(fileName)
+        if (sourceFile) {
+          return pipe(
+            goto(applicableDefinition, sourceFile, position),
+            runNano(program),
+            Either.getOrElse(() => applicableDefinition)
+          )
+        }
+      }
+
+      return applicableDefinition
     }
 
     return proxy
