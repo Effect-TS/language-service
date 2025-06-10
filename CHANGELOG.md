@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.20.0
+
+### Minor Changes
+
+- [#188](https://github.com/Effect-TS/language-service/pull/188) [`e04578e`](https://github.com/Effect-TS/language-service/commit/e04578ecb7ef13519ba4e877e3b1fa4c1df55634) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add error when yield\* with never-completing effect is not returned
+
+- [#190](https://github.com/Effect-TS/language-service/pull/190) [`f3a1e25`](https://github.com/Effect-TS/language-service/commit/f3a1e25450289f22b8a1b8710481ff9c46c0183c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add completions for Rpc.make while declaring classes
+
+- [#189](https://github.com/Effect-TS/language-service/pull/189) [`9c1b0d2`](https://github.com/Effect-TS/language-service/commit/9c1b0d25853a9d225af412da30ddfff49a0aacf1) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow goto definition to Jump to Rpc definition object
+
+### Patch Changes
+
+- [#186](https://github.com/Effect-TS/language-service/pull/186) [`cdfff27`](https://github.com/Effect-TS/language-service/commit/cdfff27675e86df19f7f0398e82aca1ae3797a7f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Unify pipe parsing
+
 ## 0.19.0
 
 ### Minor Changes
