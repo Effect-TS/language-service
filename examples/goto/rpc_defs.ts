@@ -10,6 +10,8 @@ export class MakeReservation extends Schema.TaggedRequest<MakeReservation>("Make
   failure: Schema.Never
 }) {}
 
+export class GetAvailable extends Rpc.make("GetAvailable", {}) {}
+
 export const MyApi = RpcGroup.make(
   Rpc.fromTaggedRequest(MakeReservation)
 )
