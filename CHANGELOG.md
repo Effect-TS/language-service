@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.20.1
+
+### Patch Changes
+
+- [#191](https://github.com/Effect-TS/language-service/pull/191) [`3cf789b`](https://github.com/Effect-TS/language-service/commit/3cf789b8b546f7eaeb82913e328f9da6b62c07b0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix parenthesized type handling
+
+- [#193](https://github.com/Effect-TS/language-service/pull/193) [`09b19f9`](https://github.com/Effect-TS/language-service/commit/09b19f9242153901aa24ddeb448315b9a2b47672) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Handle special pattern of (typeof A)[keyof typeof A]
+
 ## 0.20.0
 
 ### Minor Changes
