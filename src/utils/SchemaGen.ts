@@ -278,6 +278,10 @@ export const processNode = (
         [ts.factory.createObjectLiteralExpression(properties, true)].concat(records)
       )
     }
+    // parenthesided (A)
+    if (ts.isParenthesizedTypeNode(node)) {
+      return yield* processNode(node.type, isVirtualTypeNode)
+    }
     // typeof A
     if (ts.isTypeQueryNode(node)) {
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
