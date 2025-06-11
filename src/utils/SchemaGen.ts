@@ -289,6 +289,19 @@ export const processNode = (
       const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
       if (typeNode) return yield* processNode(typeNode, true)
     }
+    // special pattern (typeof A)[keyof typeof A]
+    if (
+      !isVirtualTypeNode &&
+      ts.isIndexedAccessTypeNode(node) && ts.isParenthesizedTypeNode(node.objectType) &&
+      ts.isTypeQueryNode(node.objectType.type) && ts.isTypeOperatorNode(node.indexType) &&
+      node.indexType.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeQueryNode(node.indexType.type) &&
+      node.indexType.type.exprName.getText().trim() === node.objectType.type.exprName.getText().trim()
+    ) {
+      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const type = typeChecker.getTypeAtLocation(node)
+      const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+      if (typeNode) return yield* processNode(typeNode, true)
+    }
     // type reference
     if (ts.isTypeReferenceNode(node)) {
       const parsedName = entityNameToDataTypeName(node.typeName)
