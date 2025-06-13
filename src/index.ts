@@ -327,15 +327,17 @@ const init = (
     proxy.getDefinitionAndBoundSpan = (fileName, position, ...args) => {
       const applicableDefinition = languageService.getDefinitionAndBoundSpan(fileName, position, ...args)
 
-      const program = languageService.getProgram()
-      if (program) {
-        const sourceFile = program.getSourceFile(fileName)
-        if (sourceFile) {
-          return pipe(
-            goto(applicableDefinition, sourceFile, position),
-            runNano(program),
-            Either.getOrElse(() => applicableDefinition)
-          )
+      if (languageServicePluginOptions.goto) {
+        const program = languageService.getProgram()
+        if (program) {
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              goto(applicableDefinition, sourceFile, position),
+              runNano(program),
+              Either.getOrElse(() => applicableDefinition)
+            )
+          }
         }
       }
 
