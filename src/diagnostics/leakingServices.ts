@@ -27,14 +27,27 @@ export const leakingServices = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      yield* pipe(
-        TypeParser.contextTag(typeChecker.getTypeAtLocation(node), node),
-        Nano.map(({ Identifier, Service }) => {
-          console.log(Identifier, Service)
-          return true
-        }),
-        Nano.ignore
-      )
+      // we need to check the type of the class declaration (if any)
+      const typesToCheck = [typeChecker.getTypeAtLocation(node)]
+      if (node.parent && ts.isClassDeclaration(node) && node.name && node.parent === node.getSourceFile()) {
+        const classSym = typeChecker.getSymbolAtLocation(node.name)
+        if (classSym) {
+          const type = typeChecker.getTypeOfSymbolAtLocation(classSym, node.parent)
+          typesToCheck.push(type)
+        }
+      }
+
+      // check the types
+      for (const type of typesToCheck) {
+        yield* pipe(
+          TypeParser.contextTag(type, node),
+          Nano.map(({ Identifier, Service }) => {
+            console.log(Identifier, Service)
+            return true
+          }),
+          Nano.ignore
+        )
+      }
     }
 
     // emit diagnostics
