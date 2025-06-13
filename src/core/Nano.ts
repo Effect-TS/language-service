@@ -13,7 +13,7 @@ interface NanoInternalSuccess<A> {
   value: A
 }
 
-function makeInternalSuccess<A>(value: A): NanoInternalResult<A, never> {
+function makeInternalSuccess<A>(value: A): NanoExit<A, never> {
   const result = Object.create(NanoInternalSuccessProto)
   result.value = value
   return result
@@ -28,7 +28,7 @@ interface NanoInternalFailure<E> {
   value: E
 }
 
-function makeInternalFailure<E>(value: E): NanoInternalResult<never, E> {
+function makeInternalFailure<E>(value: E): NanoExit<never, E> {
   const result = Object.create(NanoInternalFailureProto)
   result.value = value
   return result
@@ -43,13 +43,13 @@ interface NanoInternalDefect {
   value: unknown
 }
 
-function makeInternalDefect(value: unknown): NanoInternalResult<never, never> {
+function makeInternalDefect(value: unknown): NanoExit<never, never> {
   const result = Object.create(NanoInternalDefectProto)
   result.value = value
   return result
 }
 
-type NanoInternalResult<A, E> =
+type NanoExit<A, E> =
   | NanoInternalSuccess<A>
   | NanoInternalFailure<E>
   | NanoInternalDefect
@@ -102,7 +102,7 @@ export interface Nano<out A = never, out E = never, out R = never> {
   [Symbol.iterator](): NanoIterator<Nano<A, E, R>>
   run: (
     ctx: NanoContext<unknown>
-  ) => NanoInternalResult<A, E>
+  ) => NanoExit<A, E>
 }
 
 const Proto = {
@@ -116,7 +116,7 @@ const Proto = {
 function make<A, E, R>(
   run: (
     ctx: NanoContext<unknown>
-  ) => NanoInternalResult<A, E>
+  ) => NanoExit<A, E>
 ): Nano<A, E, R> {
   const result = Object.create(Proto)
   result.run = run
@@ -126,7 +126,8 @@ function make<A, E, R>(
 export const unsafeRun = <A, E>(
   fa: Nano<A, E, never>
 ): Either.Either<A, E | NanoDefectException> => {
-  const result = fa.run(contextEmpty)
+  const program = provideService(internalNanoCache, {})(fa)
+  const result = program.run(contextEmpty)
   switch (result._tag) {
     case "Left":
       return Either.left(result.value)
@@ -192,7 +193,7 @@ export const firstSuccessOf = <A extends Array<Nano<any, any, any>>>(
 export const service = <I extends NanoTag<any>>(tag: I) =>
   make<I["~nano.requirements"], never, I["~nano.requirements"]>((ctx) =>
     (tag.key in ctx.value)
-      ? makeInternalSuccess(ctx.value[tag.key])
+      ? (ctx.value[tag.key] as NanoExit<I["~nano.requirements"], never>)
       : makeInternalDefect(`Cannot find service ${tag.key}`)
   )
 
@@ -206,7 +207,7 @@ export const provideService = <I extends NanoTag<any>>(
       ...ctx,
       value: {
         ...ctx.value,
-        [tag.key]: value
+        [tag.key]: makeInternalSuccess(value)
       }
     })
   })
@@ -229,7 +230,7 @@ export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
       const current = Gen.isGenKind(state.value)
         ? state.value.value
         : Gen.yieldWrapGet(state.value)
-      const result: NanoInternalResult<any, any> = current.run(ctx)
+      const result: NanoExit<any, any> = current.run(ctx)
       if (result._tag !== "Right") {
         return result
       }
@@ -258,7 +259,7 @@ export const fn = (_: string) =>
       const current = Gen.isGenKind(state.value)
         ? state.value.value
         : Gen.yieldWrapGet(state.value)
-      const result: NanoInternalResult<any, any> = current.run(ctx)
+      const result: NanoExit<any, any> = current.run(ctx)
       if (result._tag !== "Right") {
         return result
       }
@@ -325,4 +326,31 @@ export const getTimings = () => {
     )
   }
   return lines
+}
+
+const internalNanoCache = Tag<Record<string, Map<any, NanoExit<any, any>>>>(
+  "@effect/language-service/internalNanoCache"
+)
+
+export function cachedBy<P extends Array<any>, A, E, R>(
+  fa: (...args: P) => Nano<A, E, R>,
+  key: string,
+  lookupKey: (...args: P) => any
+) {
+  return (...args: P) =>
+    make<A, E, R>((ctx) => {
+      const cacheObj = ctx.value[internalNanoCache.key] as Record<string, Map<any, NanoExit<any, any>>>
+      let cache = cacheObj[key]
+      if (!cache) {
+        cache = new Map<any, NanoExit<any, any>>()
+        cacheObj[key] = cache
+      }
+      const lookup = lookupKey(...args)
+      if (cache.has(lookup)) {
+        return cache.get(lookup)!
+      }
+      const result = fa(...args).run(ctx)
+      cache.set(lookup, result)
+      return result
+    })
 }
