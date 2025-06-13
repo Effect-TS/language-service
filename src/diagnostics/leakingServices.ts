@@ -2,14 +2,16 @@ import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeParser from "../utils/TypeParser.js"
 
-export const unnecessaryEffectGen = LSP.createDiagnostic({
-  name: "unnecessaryEffectGen",
-  code: 5,
-  apply: Nano.fn("unnecessaryEffectGen.apply")(function*(sourceFile) {
+export const leakingServices = LSP.createDiagnostic({
+  name: "leakingServices",
+  code: 8,
+  apply: Nano.fn("leakingServices.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
     const unnecessaryGenerators = new Map<ts.Node, Nano.Nano<ts.Node>>()
@@ -26,8 +28,11 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       ts.forEachChild(node, appendNodeToVisit)
 
       yield* pipe(
-        TypeParser.unnecessaryEffectGen(node),
-        Nano.map(({ replacementNode }) => unnecessaryGenerators.set(node, replacementNode)),
+        TypeParser.contextTag(typeChecker.getTypeAtLocation(node), node),
+        Nano.map(({ Identifier, Service }) => {
+          console.log(Identifier, Service)
+          return true
+        }),
         Nano.ignore
       )
     }

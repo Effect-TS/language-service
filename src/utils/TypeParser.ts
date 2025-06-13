@@ -573,3 +573,56 @@ export const effectSchemaType = Nano.cachedBy(
   "TypeParser.effectSchemaType",
   (type) => type
 )
+
+export const contextTagVarianceStruct = Nano.fn("TypeParser.contextTagVarianceStruct")(
+  function*(
+    type: ts.Type,
+    atLocation: ts.Node
+  ) {
+    return ({
+      Identifier: yield* varianceStructInvariantType(type, atLocation, "_Identifier"),
+      Service: yield* varianceStructInvariantType(type, atLocation, "_Service")
+    })
+  }
+)
+
+export const contextTag = Nano.cachedBy(
+  Nano.fn("TypeParser.contextTag")(function*(
+    type: ts.Type,
+    atLocation: ts.Node
+  ) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    // get the properties to check (exclude non-property and optional properties)
+    const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+      _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+    )
+    // try to put typeid first (heuristic to optimize hot path)
+    propertiesSymbols.sort((a, b) => b.name.indexOf("TypeId") - a.name.indexOf("TypeId"))
+    // has a property symbol which is an effect variance struct
+    for (const propertySymbol of propertiesSymbols) {
+      const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+      const varianceArgs = yield* Nano.option(contextTagVarianceStruct(
+        propertyType,
+        atLocation
+      ))
+      if (Option.isSome(varianceArgs)) {
+        return varianceArgs.value
+      }
+    }
+    return yield* typeParserIssue("Type has no tag variance struct", type, atLocation)
+  }),
+  "TypeParser.contextTag",
+  (type) => type
+)
+
+export const getClassConstructorType = Nano.fn("TypeParser.getClassConstructorType")(function*(
+  typeChecker: ts.TypeChecker,
+  classDeclaration: ts.ClassDeclaration
+) {
+  // Get the constructor type by getting the type of the class itself
+  // This will give us the constructor type with static members
+  const constructorType = typeChecker.getTypeAtLocation(classDeclaration)
+
+  return constructorType
+})
