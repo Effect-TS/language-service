@@ -52,6 +52,7 @@ function testCompletionOnExample(
       diagnostics: false,
       quickinfo: false,
       completions: false,
+      goto: false,
       allowedDuplicatedPackages: []
     }),
     Nano.unsafeRun

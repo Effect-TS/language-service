@@ -42,6 +42,7 @@ function testAllDagnostics() {
           diagnostics: true,
           quickinfo: false,
           completions: false,
+          goto: false,
           allowedDuplicatedPackages: []
         }),
         Nano.unsafeRun,

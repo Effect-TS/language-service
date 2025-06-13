@@ -65,6 +65,7 @@ function testDiagnosticOnExample(
       diagnostics: true,
       quickinfo: false,
       completions: false,
+      goto: false,
       allowedDuplicatedPackages: []
     }),
     Nano.map(({ diagnostics }) => {
@@ -169,6 +170,7 @@ function testDiagnosticQuickfixesOnExample(
       diagnostics: true,
       quickinfo: false,
       completions: false,
+      goto: false,
       allowedDuplicatedPackages: []
     }),
     Nano.unsafeRun,

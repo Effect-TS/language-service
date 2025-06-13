@@ -6,6 +6,7 @@ export interface LanguageServicePluginOptions {
   diagnostics: boolean
   quickinfo: boolean
   completions: boolean
+  goto: boolean
   allowedDuplicatedPackages: Array<string>
 }
 
@@ -21,6 +22,9 @@ export function parse(config: any): LanguageServicePluginOptions {
       : true,
     completions: isObject(config) && hasProperty(config, "completions") && isBoolean(config.completions)
       ? config.completions
+      : true,
+    goto: isObject(config) && hasProperty(config, "goto") && isBoolean(config.goto)
+      ? config.goto
       : true,
     allowedDuplicatedPackages: isObject(config) && hasProperty(config, "allowedDuplicatedPackages") &&
         isArray(config.allowedDuplicatedPackages) && config.allowedDuplicatedPackages.every(isString)
