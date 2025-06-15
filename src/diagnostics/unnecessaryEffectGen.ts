@@ -1,4 +1,4 @@
-import * as Option from "effect/Option"
+import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -25,11 +25,11 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      const maybeNode = yield* Nano.option(TypeParser.unnecessaryEffectGen(node))
-
-      if (Option.isSome(maybeNode)) {
-        unnecessaryGenerators.set(node, maybeNode.value.replacementNode)
-      }
+      yield* pipe(
+        TypeParser.unnecessaryEffectGen(node),
+        Nano.map(({ replacementNode }) => unnecessaryGenerators.set(node, replacementNode)),
+        Nano.ignore
+      )
     }
 
     // emit diagnostics

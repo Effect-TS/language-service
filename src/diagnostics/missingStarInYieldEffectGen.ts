@@ -1,5 +1,4 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -42,18 +41,18 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
         if (functionStarNode && functionStarNode.parent) {
           const effectGenNode = functionStarNode.parent
           // continue if we hit effect gen-like
-          const effectGenLike = yield* pipe(
+          yield* pipe(
             TypeParser.effectGen(effectGenNode),
             Nano.orElse(() => TypeParser.effectFnUntracedGen(effectGenNode)),
             Nano.orElse(() => TypeParser.effectFnGen(effectGenNode)),
-            Nano.option
+            Nano.map(({ functionStar }) => {
+              if (functionStar) {
+                brokenGenerators.add(functionStar)
+              }
+              brokenYields.add(node)
+            }),
+            Nano.ignore
           )
-          if (Option.isSome(effectGenLike)) {
-            if (effectGenLike.value.functionStar) {
-              brokenGenerators.add(effectGenLike.value.functionStar)
-            }
-            brokenYields.add(node)
-          }
         }
       }
     }

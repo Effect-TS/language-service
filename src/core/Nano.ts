@@ -282,6 +282,16 @@ export const option = <A, E, R>(fa: Nano<A, E, R>) =>
     }
   })
 
+const successUndefined = makeInternalSuccess(undefined)
+
+export const void_ = make<void, never, never>(() => successUndefined)
+
+export const ignore = <A, E, R>(fa: Nano<A, E, R>) =>
+  make<void, never, R>((ctx) => {
+    fa.run(ctx)
+    return successUndefined
+  })
+
 export const all = <A extends Array<Nano<any, any, any>>>(
   ...args: A
 ): Nano<
@@ -289,13 +299,18 @@ export const all = <A extends Array<Nano<any, any, any>>>(
   A[number]["~nano.error"],
   A[number]["~nano.requirements"]
 > =>
-  gen(function*() {
+  make<
+    Array<A[number]["~nano.success"]>,
+    A[number]["~nano.error"],
+    A[number]["~nano.requirements"]
+  >((ctx) => {
     const results: Array<A[number]["~nano.success"]> = []
     for (const arg of args) {
-      const result = yield* arg
-      results.push(result)
+      const result = arg.run(ctx)
+      if (result._tag !== "Right") return result
+      results.push(result.value)
     }
-    return results
+    return makeInternalSuccess(results)
   })
 
 const timings: Record<string, number> = {}
