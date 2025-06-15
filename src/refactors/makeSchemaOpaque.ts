@@ -6,8 +6,8 @@ import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const _findSchemaVariableDeclaration = Nano.fn(
   "makeSchemaOpaque._findSchemaVariableDeclaration"
@@ -15,6 +15,7 @@ export const _findSchemaVariableDeclaration = Nano.fn(
   function*(sourceFile: ts.SourceFile, textRange: ts.TextRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const findSchema = Nano.fn("makeSchemaOpaque.apply.findSchema")(
       function*(node: ts.Node) {
@@ -37,7 +38,7 @@ export const _findSchemaVariableDeclaration = Nano.fn(
         }
 
         const type = typeChecker.getTypeAtLocation(initializer)
-        const types = yield* TypeParser.effectSchemaType(type, initializer)
+        const types = yield* typeParser.effectSchemaType(type, initializer)
 
         return { identifier, variableStatement, variableDeclarationList, types }
       }

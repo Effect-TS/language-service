@@ -4,8 +4,8 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
@@ -13,6 +13,7 @@ export const leakingRequirements = LSP.createDiagnostic({
   apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
@@ -32,13 +33,13 @@ export const leakingRequirements = LSP.createDiagnostic({
             const servicePropertyType = typeChecker.getTypeOfSymbolAtLocation(property, atLocation)
             let effectContextType: ts.Type | undefined = undefined
             yield* pipe(
-              TypeParser.effectType(servicePropertyType, atLocation),
+              typeParser.effectType(servicePropertyType, atLocation),
               Nano.map((_) => effectContextType = _.R),
               Nano.orElse(() => {
                 const servicePropertyCallSignatures = servicePropertyType.getCallSignatures()
                 if (servicePropertyCallSignatures.length === 1) {
                   return pipe(
-                    TypeParser.effectType(servicePropertyCallSignatures[0].getReturnType(), atLocation),
+                    typeParser.effectType(servicePropertyCallSignatures[0].getReturnType(), atLocation),
                     Nano.map((_) => {
                       effectContextType = _.R
                     })
@@ -111,7 +112,7 @@ export const leakingRequirements = LSP.createDiagnostic({
       // check the types
       for (const [type, reportAt] of typesToCheck) {
         yield* pipe(
-          TypeParser.contextTag(type, node),
+          typeParser.contextTag(type, node),
           Nano.flatMap(({ Service }) =>
             pipe(
               parseLeakedRequirements(Service, node),

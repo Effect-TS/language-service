@@ -2,8 +2,8 @@ import * as Option from "effect/Option"
 import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 /**
  * Refactor to remove unnecessary `Effect.gen` calls.
@@ -38,10 +38,12 @@ export const removeUnnecessaryEffectGen = LSP.createRefactor({
   name: "removeUnnecessaryEffectGen",
   description: "Remove unnecessary Effect.gen",
   apply: Nano.fn("removeUnnecessaryEffectGen.apply")(function*(sourceFile, textRange) {
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+
     for (
       const nodeToReplace of yield* AST.getAncestorNodesInRange(sourceFile, textRange)
     ) {
-      const maybeNode = yield* Nano.option(TypeParser.unnecessaryEffectGen(nodeToReplace))
+      const maybeNode = yield* Nano.option(typeParser.unnecessaryEffectGen(nodeToReplace))
 
       if (Option.isNone(maybeNode)) continue
       const replacementNode = maybeNode.value.replacementNode

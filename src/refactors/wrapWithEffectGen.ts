@@ -6,8 +6,8 @@ import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const wrapWithEffectGen = LSP.createRefactor({
   name: "wrapWithEffectGen",
@@ -15,6 +15,7 @@ export const wrapWithEffectGen = LSP.createRefactor({
   apply: Nano.fn("wrapWithEffectGen.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const findEffectToWrap = Nano.fn("wrapWithEffectGen.apply.findEffectToWrap")(
       function*(node: ts.Node) {
@@ -26,7 +27,7 @@ export const wrapWithEffectGen = LSP.createRefactor({
         ) return yield* Nano.fail("is LHS of variable declaration")
 
         const type = typeChecker.getTypeAtLocation(node)
-        yield* TypeParser.effectType(type, node)
+        yield* typeParser.effectType(type, node)
 
         return node
       }
@@ -40,6 +41,24 @@ export const wrapWithEffectGen = LSP.createRefactor({
     )
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
+    const effectModuleIdentifier = Option.match(
+      yield* Nano.option(
+        AST.findImportedModuleIdentifier(
+          sourceFile,
+          (node) =>
+            pipe(
+              typeParser.importedEffectModule(node),
+              Nano.option,
+              Nano.map(Option.isSome)
+            )
+        )
+      ),
+      {
+        onNone: () => "Effect",
+        onSome: (node) => node.text
+      }
+    )
+
     return {
       kind: "refactor.rewrite.effect.wrapWithEffectGen",
       description: `Wrap with Effect.gen`,
@@ -49,7 +68,7 @@ export const wrapWithEffectGen = LSP.createRefactor({
 
           const effectGen = yield* pipe(
             AST.createEffectGenCallExpressionWithBlock(
-              yield* getEffectModuleIdentifierName(sourceFile),
+              effectModuleIdentifier,
               yield* AST.createReturnYieldStarStatement(maybeNode.value)
             )
           )
@@ -62,25 +81,3 @@ export const wrapWithEffectGen = LSP.createRefactor({
     }
   })
 })
-
-export const getEffectModuleIdentifierName = Nano.fn("getEffectModuleIdentifierName")(
-  function*(sourceFile: ts.SourceFile) {
-    return Option.match(
-      yield* Nano.option(
-        AST.findImportedModuleIdentifier(
-          sourceFile,
-          (node) =>
-            pipe(
-              TypeParser.importedEffectModule(node),
-              Nano.option,
-              Nano.map(Option.isSome)
-            )
-        )
-      ),
-      {
-        onNone: () => "Effect",
-        onSome: (node) => node.text
-      }
-    )
-  }
-)

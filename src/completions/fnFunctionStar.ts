@@ -4,13 +4,14 @@ import * as Option from "effect/Option"
 import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
+import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
-import * as TypeParser from "../utils/TypeParser"
 
 export const fnFunctionStar = LSP.createCompletion({
   name: "fnFunctionStar",
   apply: Nano.fn("fnFunctionStar")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const maybeInfos = yield* Nano.option(
       AST.parseAccessedExpressionForCompletion(sourceFile, position)
@@ -19,7 +20,7 @@ export const fnFunctionStar = LSP.createCompletion({
     const { accessedObject } = maybeInfos.value
 
     // we check if it is an effect
-    const isEffectModule = yield* Nano.option(TypeParser.importedEffectModule(accessedObject))
+    const isEffectModule = yield* Nano.option(typeParser.importedEffectModule(accessedObject))
     if (Option.isNone(isEffectModule)) return []
 
     const span = ts.createTextSpan(

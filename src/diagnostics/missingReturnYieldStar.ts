@@ -4,8 +4,8 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const missingReturnYieldStar = LSP.createDiagnostic({
   name: "missingReturnYieldStar",
@@ -13,6 +13,7 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
   apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
     const brokenYields = new Set<ts.YieldExpression>()
@@ -35,7 +36,7 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
       ) {
         // are we returning an effect with never as success type?
         const type = typeChecker.getTypeAtLocation(node.expression)
-        const maybeEffect = yield* Nano.option(TypeParser.effectType(type, node.expression))
+        const maybeEffect = yield* Nano.option(typeParser.effectType(type, node.expression))
 
         if (Option.isSome(maybeEffect) && maybeEffect.value.A.flags & ts.TypeFlags.Never) {
           // go up until we meet the causing generator
@@ -54,9 +55,9 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
               const effectGenNode = generatorFunctionOrReturnStatement.parent
               // continue if we hit effect gen-like
               const effectGenLike = yield* pipe(
-                TypeParser.effectGen(effectGenNode),
-                Nano.orElse(() => TypeParser.effectFnUntracedGen(effectGenNode)),
-                Nano.orElse(() => TypeParser.effectFnGen(effectGenNode)),
+                typeParser.effectGen(effectGenNode),
+                Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
+                Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
                 Nano.option
               )
               if (Option.isSome(effectGenLike)) {

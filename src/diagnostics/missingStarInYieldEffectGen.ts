@@ -2,14 +2,15 @@ import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   name: "missingStarInYieldEffectGen",
   code: 4,
   apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
     const brokenGenerators = new Set<ts.Node>()
@@ -42,9 +43,9 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
           const effectGenNode = functionStarNode.parent
           // continue if we hit effect gen-like
           yield* pipe(
-            TypeParser.effectGen(effectGenNode),
-            Nano.orElse(() => TypeParser.effectFnUntracedGen(effectGenNode)),
-            Nano.orElse(() => TypeParser.effectFnGen(effectGenNode)),
+            typeParser.effectGen(effectGenNode),
+            Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
+            Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
             Nano.map(({ functionStar }) => {
               if (functionStar) {
                 brokenGenerators.add(functionStar)

@@ -5,18 +5,19 @@ import type ts from "typescript"
 import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const effectGenToFn = LSP.createRefactor({
   name: "effectGenToFn",
   description: "Convert to Effect.fn",
   apply: Nano.fn("effectGenToFn.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const parseEffectGenNode = Nano.fn("asyncAwaitToGen.apply")(function*(node: ts.Node) {
       // check if the node is a Effect.gen(...)
-      const effectGen = yield* TypeParser.effectGen(node)
+      const effectGen = yield* typeParser.effectGen(node)
       // if parent is a Effect.gen(...).pipe(...) we then move the pipe tot the new Effect.fn
       let pipeArgs = ts.factory.createNodeArray<ts.Expression>([])
       let nodeToReplace = node

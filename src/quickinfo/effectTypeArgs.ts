@@ -5,8 +5,8 @@ import type ts from "typescript"
 import * as AST from "../core/AST.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 function formatTypeForQuickInfo(channelType: ts.Type, channelName: string) {
   return Nano.gen(function*() {
@@ -31,6 +31,7 @@ export function effectTypeArgs(
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
       // find the node we are hovering
       const maybeNode = pipe(
@@ -53,7 +54,7 @@ export function effectTypeArgs(
       // we have no node to get type from
       if (!nodeForType) return quickInfo
 
-      const effectType = yield* TypeParser.effectType(
+      const effectType = yield* typeParser.effectType(
         typeChecker.getTypeAtLocation(nodeForType),
         nodeForType
       )
