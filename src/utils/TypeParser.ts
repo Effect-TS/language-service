@@ -591,6 +591,8 @@ export const contextTag = Nano.cachedBy(
     type: ts.Type,
     atLocation: ts.Node
   ) {
+    // should be pipeable
+    yield* pipeableType(type, atLocation)
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     // get the properties to check (exclude non-property and optional properties)

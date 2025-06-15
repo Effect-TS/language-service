@@ -283,6 +283,9 @@ export const option = <A, E, R>(fa: Nano<A, E, R>) =>
   })
 
 const successUndefined = makeInternalSuccess(undefined)
+
+export const void_ = make<void, never, never>(() => successUndefined)
+
 export const ignore = <A, E, R>(fa: Nano<A, E, R>) =>
   make<void, never, R>((ctx) => {
     fa.run(ctx)
