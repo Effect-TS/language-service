@@ -145,74 +145,70 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     (type) => type
   )
 
-  const varianceStructCovariantType = Nano.fn("TypeParser.varianceStructCovariantType")(
-    function*<A extends string>(
-      type: ts.Type,
-      atLocation: ts.Node,
-      propertyName: A
-    ) {
-      const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
-      if (!propertySymbol) {
-        return yield* typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
-      }
-      const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-      return yield* covariantTypeArgument(propertyType)
+  const varianceStructCovariantType = <A extends string>(
+    type: ts.Type,
+    atLocation: ts.Node,
+    propertyName: A
+  ) => {
+    const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
+    if (!propertySymbol) {
+      return typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
     }
-  )
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    return covariantTypeArgument(propertyType)
+  }
 
-  const varianceStructContravariantType = Nano.fn(
-    "TypeParser.varianceStructContravariantType"
-  )(
-    function*<A extends string>(
-      type: ts.Type,
-      atLocation: ts.Node,
-      propertyName: A
-    ) {
-      const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
-      if (!propertySymbol) {
-        return yield* typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
-      }
-      const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-      return yield* contravariantTypeArgument(propertyType)
+  const varianceStructContravariantType = <A extends string>(
+    type: ts.Type,
+    atLocation: ts.Node,
+    propertyName: A
+  ) => {
+    const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
+    if (!propertySymbol) {
+      return typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
     }
-  )
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    return contravariantTypeArgument(propertyType)
+  }
 
-  const varianceStructInvariantType = Nano.fn("TypeParser.varianceStructInvariantType")(
-    function*<A extends string>(
-      type: ts.Type,
-      atLocation: ts.Node,
-      propertyName: A
-    ) {
-      const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
-      if (!propertySymbol) {
-        return yield* typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
-      }
-      const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-      return yield* invariantTypeArgument(propertyType)
+  const varianceStructInvariantType = <A extends string>(
+    type: ts.Type,
+    atLocation: ts.Node,
+    propertyName: A
+  ) => {
+    const propertySymbol = typeChecker.getPropertyOfType(type, propertyName)
+    if (!propertySymbol) {
+      return typeParserIssue(`Type has no '${propertyName}' property`, type, atLocation)
     }
-  )
+    const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+    return invariantTypeArgument(propertyType)
+  }
 
-  const effectVarianceStruct = Nano.fn("TypeParser.effectVarianceStruct")(function*(
+  const effectVarianceStruct = (
     type: ts.Type,
     atLocation: ts.Node
-  ) {
-    return ({
-      A: yield* varianceStructCovariantType(type, atLocation, "_A"),
-      E: yield* varianceStructCovariantType(type, atLocation, "_E"),
-      R: yield* varianceStructCovariantType(type, atLocation, "_R")
-    })
-  })
+  ) =>
+    Nano.map(
+      Nano.all(
+        varianceStructCovariantType(type, atLocation, "_A"),
+        varianceStructCovariantType(type, atLocation, "_E"),
+        varianceStructCovariantType(type, atLocation, "_R")
+      ),
+      ([A, E, R]) => ({ A, E, R })
+    )
 
-  const layerVarianceStruct = Nano.fn("TypeParser.layerVarianceStruct")(function*(
+  const layerVarianceStruct = (
     type: ts.Type,
     atLocation: ts.Node
-  ) {
-    return ({
-      ROut: yield* varianceStructContravariantType(type, atLocation, "_ROut"),
-      E: yield* varianceStructCovariantType(type, atLocation, "_E"),
-      RIn: yield* varianceStructCovariantType(type, atLocation, "_RIn")
-    })
-  })
+  ) =>
+    Nano.map(
+      Nano.all(
+        varianceStructContravariantType(type, atLocation, "_ROut"),
+        varianceStructCovariantType(type, atLocation, "_E"),
+        varianceStructCovariantType(type, atLocation, "_RIn")
+      ),
+      ([ROut, E, RIn]) => ({ ROut, E, RIn })
+    )
 
   const effectType = Nano.cachedBy(
     Nano.fn("TypeParser.effectType")(function*(
@@ -581,18 +577,18 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     (node) => node
   )
 
-  const effectSchemaVarianceStruct = Nano.fn("TypeParser.effectSchemaVarianceStruct")(
-    function*(
-      type: ts.Type,
-      atLocation: ts.Node
-    ) {
-      return ({
-        A: yield* varianceStructInvariantType(type, atLocation, "_A"),
-        I: yield* varianceStructInvariantType(type, atLocation, "_I"),
-        R: yield* varianceStructCovariantType(type, atLocation, "_R")
-      })
-    }
-  )
+  const effectSchemaVarianceStruct = (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) =>
+    Nano.map(
+      Nano.all(
+        varianceStructInvariantType(type, atLocation, "_A"),
+        varianceStructInvariantType(type, atLocation, "_I"),
+        varianceStructCovariantType(type, atLocation, "_R")
+      ),
+      ([A, I, R]) => ({ A, I, R })
+    )
 
   const effectSchemaType = Nano.cachedBy(
     Nano.fn("TypeParser.effectSchemaType")(function*(
@@ -627,17 +623,17 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     (type) => type
   )
 
-  const contextTagVarianceStruct = Nano.fn("TypeParser.contextTagVarianceStruct")(
-    function*(
-      type: ts.Type,
-      atLocation: ts.Node
-    ) {
-      return ({
-        Identifier: yield* varianceStructInvariantType(type, atLocation, "_Identifier"),
-        Service: yield* varianceStructInvariantType(type, atLocation, "_Service")
-      })
-    }
-  )
+  const contextTagVarianceStruct = (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) =>
+    Nano.map(
+      Nano.all(
+        varianceStructInvariantType(type, atLocation, "_Identifier"),
+        varianceStructInvariantType(type, atLocation, "_Service")
+      ),
+      ([Identifier, Service]) => ({ Identifier, Service })
+    )
 
   const contextTag = Nano.cachedBy(
     Nano.fn("TypeParser.contextTag")(function*(
