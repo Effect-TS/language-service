@@ -6,6 +6,7 @@ import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptio
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
 import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
+import * as TypeParser from "./core/TypeParser.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import { diagnostics } from "./diagnostics.js"
 import { goto } from "./goto.js"
@@ -60,12 +61,14 @@ const init = (
           | TypeCheckerApi.TypeCheckerApi
           | TypeScriptApi.TypeScriptProgram
           | TypeScriptApi.TypeScriptApi
+          | TypeParser.TypeParser
           | LanguageServicePluginOptions.LanguageServicePluginOptions
           | TypeCheckerApi.TypeCheckerApiCache
         >
       ) =>
         pipe(
           fa,
+          Nano.provideService(TypeParser.TypeParser, TypeParser.make(modules.typescript, program.getTypeChecker())),
           Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
           Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
           Nano.provideService(

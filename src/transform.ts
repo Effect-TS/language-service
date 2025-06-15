@@ -7,6 +7,7 @@ import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptio
 import * as LSP from "./core/LSP"
 import * as Nano from "./core/Nano"
 import * as TypeCheckerApi from "./core/TypeCheckerApi"
+import * as TypeParser from "./core/TypeParser"
 import * as TypeScriptApi from "./core/TypeScriptApi"
 import { diagnostics } from "./diagnostics"
 
@@ -23,6 +24,7 @@ export default function(
         Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
         Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+        Nano.provideService(TypeParser.TypeParser, TypeParser.make(tsInstance, program.getTypeChecker())),
         Nano.provideService(
           TypeCheckerApi.TypeCheckerApiCache,
           TypeCheckerApi.makeTypeCheckerApiCache()

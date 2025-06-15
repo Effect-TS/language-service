@@ -4,8 +4,8 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const missingEffectContext = LSP.createDiagnostic({
   name: "missingEffectContext",
@@ -13,6 +13,7 @@ export const missingEffectContext = LSP.createDiagnostic({
   apply: Nano.fn("missingEffectContext.apply")(function*(sourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
     const checkForMissingContextTypes = Nano.fn(
@@ -24,12 +25,12 @@ export const missingEffectContext = LSP.createDiagnostic({
       realType: ts.Type
     ) {
       // the expected type is an effect
-      const expectedEffect = yield* (TypeParser.effectType(
+      const expectedEffect = yield* (typeParser.effectType(
         expectedType,
         node
       ))
       // the real type is an effect
-      const realEffect = yield* (TypeParser.effectType(
+      const realEffect = yield* (typeParser.effectType(
         realType,
         valueNode
       ))

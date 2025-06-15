@@ -5,8 +5,8 @@ import type * as ts from "typescript"
 import * as AST from "../core/AST"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
+import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
-import * as TypeParser from "../utils/TypeParser"
 
 interface LayerGraphContext {
   services: Map<string, ts.Type>
@@ -56,11 +56,12 @@ function processLayerGraphNode(
 ): Nano.Nano<
   LayerGraphNode,
   UnableToProduceLayerGraphError,
-  TypeCheckerApi.TypeCheckerApi | TypeScriptApi.TypeScriptApi
+  TypeCheckerApi.TypeCheckerApi | TypeScriptApi.TypeScriptApi | TypeParser.TypeParser
 > {
   return Nano.gen(function*() {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     // expression.pipe(.....)
     // pipe(A, B, ...)
@@ -80,7 +81,7 @@ function processLayerGraphNode(
       ts.isCallExpression(node)
     ) {
       const type = typeChecker.getTypeAtLocation(node)
-      const maybeLayer = yield* Nano.option(TypeParser.layerType(type, node))
+      const maybeLayer = yield* Nano.option(typeParser.layerType(type, node))
 
       if (Option.isSome(maybeLayer)) {
         const argNodes = yield* Nano.option(
@@ -116,7 +117,7 @@ function processLayerGraphNode(
         if (callSignatures.length === 1) {
           const [signature] = callSignatures
           const returnType = signature.getReturnType()
-          const maybeLayer = yield* Nano.option(TypeParser.layerType(returnType, node))
+          const maybeLayer = yield* Nano.option(typeParser.layerType(returnType, node))
           if (Option.isSome(maybeLayer)) {
             const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
               ctx.services,
@@ -169,7 +170,7 @@ function processLayerGraphNode(
     // if this is an expression that returns a layer, this is the most basic building block.
     if (ts.isExpression(node)) {
       const type = typeChecker.getTypeAtLocation(node)
-      const maybeLayer = yield* Nano.option(TypeParser.layerType(type, node))
+      const maybeLayer = yield* Nano.option(typeParser.layerType(type, node))
       if (Option.isSome(maybeLayer)) {
         const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
           ctx.services,
@@ -338,6 +339,7 @@ export function layerInfo(
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
       // find the node we are hovering
       const range = AST.toTextRange(position)
@@ -354,7 +356,7 @@ export function layerInfo(
         : node
 
       const layerType = typeChecker.getTypeAtLocation(layerNode)
-      const maybeLayer = yield* Nano.option(TypeParser.layerType(layerType, layerNode))
+      const maybeLayer = yield* Nano.option(typeParser.layerType(layerType, layerNode))
 
       if (Option.isNone(maybeLayer)) return quickInfo
 

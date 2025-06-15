@@ -7,6 +7,7 @@ import * as LanguageServicePluginOptions from "../src/core/LanguageServicePlugin
 import * as LSP from "../src/core/LSP"
 import * as Nano from "../src/core/Nano"
 import * as TypeCheckerApi from "../src/core/TypeCheckerApi"
+import * as TypeParser from "../src/core/TypeParser"
 import * as TypeScriptApi from "../src/core/TypeScriptApi"
 import { diagnostics } from "../src/diagnostics"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
@@ -26,7 +27,8 @@ function testAllDagnostics() {
   // run a couple of times
   const totalSamples = 1000
   let totalTime = 0
-  for (let i = 0; i < totalSamples; i++) {
+  const cache = TypeCheckerApi.makeTypeCheckerApiCache()
+  for (let i = -1; i < totalSamples; i++) {
     for (const example of allExampleFiles) {
       const start = performance.now()
       pipe(
@@ -36,8 +38,9 @@ function testAllDagnostics() {
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, example.program.getTypeChecker()),
         Nano.provideService(
           TypeCheckerApi.TypeCheckerApiCache,
-          TypeCheckerApi.makeTypeCheckerApiCache()
+          cache
         ),
+        Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, example.program.getTypeChecker())),
         Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
           diagnostics: true,
           quickinfo: false,
@@ -49,7 +52,7 @@ function testAllDagnostics() {
         Either.getOrElse(() => "// no diagnostics")
       )
       const end = performance.now()
-      totalTime += end - start
+      if (i !== -1) totalTime += end - start
     }
   }
   console.log(totalTime + " total " + (totalTime / totalSamples).toFixed(4) + " avg")

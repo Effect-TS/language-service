@@ -3,6 +3,7 @@ import * as LanguageServicePluginOptions from "@effect/language-service/core/Lan
 import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
+import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import { Either } from "effect"
 import { pipe } from "effect/Function"
@@ -48,6 +49,7 @@ function testCompletionOnExample(
       TypeCheckerApi.TypeCheckerApiCache,
       TypeCheckerApi.makeTypeCheckerApiCache()
     ),
+    Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
       quickinfo: false,

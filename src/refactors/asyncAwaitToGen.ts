@@ -5,8 +5,8 @@ import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import * as TypeParser from "../utils/TypeParser.js"
 
 export const asyncAwaitToGen = LSP.createRefactor({
   name: "asyncAwaitToGen",
@@ -14,6 +14,7 @@ export const asyncAwaitToGen = LSP.createRefactor({
   apply: Nano.fn("asyncAwaitToGen.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const maybeNode = pipe(
       yield* AST.getAncestorNodesInRange(sourceFile, textRange),
@@ -42,7 +43,7 @@ export const asyncAwaitToGen = LSP.createRefactor({
                 sourceFile,
                 (node) =>
                   pipe(
-                    TypeParser.importedEffectModule(node),
+                    typeParser.importedEffectModule(node),
                     Nano.option,
                     Nano.map(Option.isSome)
                   )

@@ -8,6 +8,6 @@ const divide = Effect.fn(function*(fa: number, divideBy: number) {
   return fa / divideBy
 })
 
-const program = Effect.gen(function*() {
-  const result = yield* divide(42, 2)
+export const program = Effect.gen(function*() {
+  return yield* divide(42, 2)
 })

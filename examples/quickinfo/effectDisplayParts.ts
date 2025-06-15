@@ -1,3 +1,4 @@
+/** @effect-diagnostics missingReturnYieldStar:skip-file */
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 
@@ -17,7 +18,7 @@ class ErrorWithVeryLongName10 extends Data.TaggedError("Error10") {}
 /**
  * This is standard docs
  */
-const longErrorType = Effect.gen(function*() {
+export const longErrorType = Effect.gen(function*() {
   yield* Effect.fail(new ErrorWithVeryLongName1())
   yield* Effect.fail(new ErrorWithVeryLongName2())
   yield* Effect.fail(new ErrorWithVeryLongName3())
@@ -30,7 +31,7 @@ const longErrorType = Effect.gen(function*() {
   yield* Effect.fail(new ErrorWithVeryLongName10())
 })
 
-const longSuccessValue = Effect.gen(function*() {
+export const longSuccessValue = Effect.gen(function*() {
   const a: number = 0
   if (a === 1) return yield* Effect.succeed(new ErrorWithVeryLongName1())
   if (a === 2) return yield* Effect.succeed(new ErrorWithVeryLongName2())

@@ -3,6 +3,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import type * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import type * as LanguageServicePluginOptions from "./LanguageServicePluginOptions.js"
 import * as Nano from "./Nano.js"
@@ -22,6 +23,7 @@ export interface RefactorDefinition {
     RefactorNotApplicableError,
     | TypeScriptApi.TypeScriptApi
     | TypeCheckerApi.TypeCheckerApi
+    | TypeParser.TypeParser
     | LanguageServicePluginOptions.LanguageServicePluginOptions
     | TypeCheckerApi.TypeCheckerApiCache
   >
@@ -46,6 +48,7 @@ export interface DiagnosticDefinition {
     Array<ApplicableDiagnosticDefinition>,
     never,
     | TypeCheckerApi.TypeCheckerApi
+    | TypeParser.TypeParser
     | LanguageServicePluginOptions.LanguageServicePluginOptions
     | TypeScriptApi.TypeScriptApi
     | TypeCheckerApi.TypeCheckerApiCache
@@ -87,6 +90,7 @@ export interface CompletionDefinition {
     Array<CompletionEntryDefinition>,
     never,
     | TypeCheckerApi.TypeCheckerApi
+    | TypeParser.TypeParser
     | LanguageServicePluginOptions.LanguageServicePluginOptions
     | TypeScriptApi.TypeScriptApi
     | TypeCheckerApi.TypeCheckerApiCache
