@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.21.0
+
+### Minor Changes
+
+- [#199](https://github.com/Effect-TS/language-service/pull/199) [`5e037ec`](https://github.com/Effect-TS/language-service/commit/5e037ecfa37af20c96324b9d9d518a4631bf48be) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add leaking requirements diagnostic
+
+### Patch Changes
+
+- [#200](https://github.com/Effect-TS/language-service/pull/200) [`045c70d`](https://github.com/Effect-TS/language-service/commit/045c70d72d3f7684381650ae26710b84b2ff6180) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Make TypeParser a first class service
+
+- [#196](https://github.com/Effect-TS/language-service/pull/196) [`ea894af`](https://github.com/Effect-TS/language-service/commit/ea894af9ea410de88cb1cc759d0953aca99a05ff) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add option to disable goto functionalities
+
+- [#194](https://github.com/Effect-TS/language-service/pull/194) [`5e58b25`](https://github.com/Effect-TS/language-service/commit/5e58b25797b2c6afa162dd3a84978993e7474c1c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add aggressive caching on type parsers
+
 ## 0.20.1
 
 ### Patch Changes
