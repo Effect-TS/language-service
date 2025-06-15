@@ -43,6 +43,7 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 - Wrong usage of yield inside Effect.gen
 - Unnecessary usages of Effect.gen
 - Multiple versions of Effect in your project
+- Warn on leaking requirements in Effect services
 
 ### Completions
 
