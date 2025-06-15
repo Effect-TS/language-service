@@ -76,9 +76,9 @@ export const leakingRequirements = LSP.createDiagnostic({
       effectDiagnostics.push({
         node,
         category: ts.DiagnosticCategory.Warning,
-        messageText: `This Service is leaking the requirements ${
+        messageText: `This Service is leaking the ${
           requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
-        }`,
+        } requirement`,
         fixes: []
       })
     }

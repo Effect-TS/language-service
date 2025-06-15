@@ -1,5 +1,5 @@
 LeakingDeps
-8:13 - 8:24 | 0 | This Service is leaking the requirements FileSystem
+8:13 - 8:24 | 0 | This Service is leaking the FileSystem requirement
 
 _LocalLeaking
-18:8 - 18:21 | 0 | This Service is leaking the requirements FileSystem
+18:8 - 18:21 | 0 | This Service is leaking the FileSystem requirement
