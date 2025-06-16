@@ -5,7 +5,7 @@ import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import type * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-import type * as LanguageServicePluginOptions from "./LanguageServicePluginOptions.js"
+import * as LanguageServicePluginOptions from "./LanguageServicePluginOptions.js"
 import * as Nano from "./Nano.js"
 
 export class RefactorNotApplicableError {
@@ -238,6 +238,7 @@ export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(
 const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")(
   function*(sourceFile: ts.SourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const pluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
     function findNodeWithLeadingCommentAtPosition(position: number) {
       const sourceText = sourceFile.text
@@ -348,6 +349,15 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       if (skippedRules.indexOf(ruleNameLowered) > -1) return []
       // run the executor
       let modifiedDiagnostics = yield* rule.apply(sourceFile)
+      // change the severity according to the plugin options
+      const newLevel = pluginOptions.diagnosticSeverity[ruleNameLowered]
+      if (newLevel) {
+        for (const emitted of modifiedDiagnostics) {
+          emitted.category = newLevel && newLevel in levelToDiagnosticCategory
+            ? levelToDiagnosticCategory[newLevel]
+            : emitted.category
+        }
+      }
       // loop through rules
       for (const emitted of modifiedDiagnostics.slice(0)) {
         let newLevel: string | undefined = undefined

@@ -43,6 +43,7 @@ function testAllDagnostics() {
         Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, example.program.getTypeChecker())),
         Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
           diagnostics: true,
+          diagnosticSeverity: {},
           quickinfo: false,
           completions: false,
           goto: false,
