@@ -65,7 +65,7 @@ function processLayerGraphNode(
 
     // expression.pipe(.....)
     // pipe(A, B, ...)
-    const maybePipe = yield* Nano.option(AST.parsePipeCall(node))
+    const maybePipe = yield* Nano.option(typeParser.pipeCall(node))
     if (
       Option.isSome(maybePipe)
     ) {

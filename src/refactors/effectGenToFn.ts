@@ -55,8 +55,8 @@ export const effectGenToFn = LSP.createRefactor({
         // if parent is a .pipe, and gen is the subject piped
         // if parent is a pipe(gen(), ..., ...) and gen is the first subject piped
         const maybePipe = yield* pipe(
-          AST.parsePipeCall(parent),
-          Nano.orElse((e) => parent.parent ? AST.parsePipeCall(parent.parent) : Nano.fail(e)),
+          typeParser.pipeCall(parent),
+          Nano.orElse((e) => parent.parent ? typeParser.pipeCall(parent.parent) : Nano.fail(e)),
           Nano.option
         )
         if (
