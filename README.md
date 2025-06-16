@@ -41,9 +41,9 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 - Better error readability when you're missing errors or service types in your Effect definitions
 - Floating Effects that are not yielded or run
 - Wrong usage of yield inside Effect.gen
-- Unnecessary usages of Effect.gen
 - Multiple versions of Effect in your project
 - Warn on leaking requirements in Effect services
+- Unnecessary usages of Effect.gen or pipe()
 
 ### Completions
 
