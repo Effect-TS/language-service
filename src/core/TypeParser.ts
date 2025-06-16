@@ -76,6 +76,13 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ Identifier: ts.Type; Service: ts.Type }, TypeParserIssue>
+  pipeCall: (
+    node: ts.Node
+  ) => Nano.Nano<
+    { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression> },
+    TypeParserIssue,
+    never
+  >
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -124,23 +131,23 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
   }
 
   const pipeableType = Nano.cachedBy(
-    Nano.fn("TypeParser.pipeableType")(function*(
+    function(
       type: ts.Type,
       atLocation: ts.Node
     ) {
       // Pipeable has a pipe property on the type
       const pipeSymbol = typeChecker.getPropertyOfType(type, "pipe")
       if (!pipeSymbol) {
-        return yield* typeParserIssue("Type has no 'pipe' property", type, atLocation)
+        return typeParserIssue("Type has no 'pipe' property", type, atLocation)
       }
       // which should be callable with at least one call signature
       const pipeType = typeChecker.getTypeOfSymbolAtLocation(pipeSymbol, atLocation)
       const signatures = pipeType.getCallSignatures()
       if (signatures.length === 0) {
-        return yield* typeParserIssue("'pipe' property is not callable", type, atLocation)
+        return typeParserIssue("'pipe' property is not callable", type, atLocation)
       }
-      return type
-    }),
+      return Nano.succeed(type)
+    },
     "TypeParser.pipeableType",
     (type) => type
   )
@@ -344,122 +351,124 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
   )
 
   const effectGen = Nano.cachedBy(
-    Nano.fn("TypeParser.effectGen")(function*(node: ts.Node) {
+    function(node: ts.Node) {
       // Effect.gen(...)
       if (!ts.isCallExpression(node)) {
-        return yield* typeParserIssue("Node is not a call expression", undefined, node)
+        return typeParserIssue("Node is not a call expression", undefined, node)
       }
       // ...
       if (node.arguments.length === 0) {
-        return yield* typeParserIssue("Node has no arguments", undefined, node)
+        return typeParserIssue("Node has no arguments", undefined, node)
       }
       // firsta argument is a generator function expression
       const generatorFunction = node.arguments[0]
       if (!ts.isFunctionExpression(generatorFunction)) {
-        return yield* typeParserIssue("Node is not a function expression", undefined, node)
+        return typeParserIssue("Node is not a function expression", undefined, node)
       }
       if (generatorFunction.asteriskToken === undefined) {
-        return yield* typeParserIssue("Node is not a generator function", undefined, node)
+        return typeParserIssue("Node is not a generator function", undefined, node)
       }
       // Effect.gen
       if (!ts.isPropertyAccessExpression(node.expression)) {
-        return yield* typeParserIssue("Node is not a property access expression", undefined, node)
+        return typeParserIssue("Node is not a property access expression", undefined, node)
       }
       const propertyAccess = node.expression
       // gen
       if (propertyAccess.name.text !== "gen") {
-        return yield* typeParserIssue("Call expression name is not 'gen'", undefined, node)
+        return typeParserIssue("Call expression name is not 'gen'", undefined, node)
       }
       // check Effect module
-      const effectModule = yield* importedEffectModule(propertyAccess.expression)
-      return ({
-        node,
-        effectModule,
-        generatorFunction,
-        body: generatorFunction.body,
-        functionStar: generatorFunction.getFirstToken()
-      })
-    }),
-    "TypeParser.effectGen",
-    (node) => node
-  )
-
-  const effectFnUntracedGen = Nano.cachedBy(
-    Nano.fn("TypeParser.effectFnUntracedGen")(
-      function*(node: ts.Node) {
-        // Effect.gen(...)
-        if (!ts.isCallExpression(node)) {
-          return yield* typeParserIssue("Node is not a call expression", undefined, node)
-        }
-        // ...
-        if (node.arguments.length === 0) {
-          return yield* typeParserIssue("Node has no arguments", undefined, node)
-        }
-        // firsta argument is a generator function expression
-        const generatorFunction = node.arguments[0]
-        if (!ts.isFunctionExpression(generatorFunction)) {
-          return yield* typeParserIssue("Node is not a function expression", undefined, node)
-        }
-        if (generatorFunction.asteriskToken === undefined) {
-          return yield* typeParserIssue(
-            "Node is not a generator function",
-            undefined,
-            node
-          )
-        }
-        // Effect.gen
-        if (!ts.isPropertyAccessExpression(node.expression)) {
-          return yield* typeParserIssue(
-            "Node is not a property access expression",
-            undefined,
-            node
-          )
-        }
-        const propertyAccess = node.expression
-        // gen
-        if (propertyAccess.name.text !== "fnUntraced") {
-          return yield* typeParserIssue(
-            "Call expression name is not 'fnUntraced'",
-            undefined,
-            node
-          )
-        }
-        // check Effect module
-        const effectModule = yield* importedEffectModule(propertyAccess.expression)
-        return ({
+      return pipe(
+        importedEffectModule(propertyAccess.expression),
+        Nano.map((effectModule) => ({
           node,
           effectModule,
           generatorFunction,
           body: generatorFunction.body,
           functionStar: generatorFunction.getFirstToken()
-        })
+        }))
+      )
+    },
+    "TypeParser.effectGen",
+    (node) => node
+  )
+
+  const effectFnUntracedGen = Nano.cachedBy(
+    function(node: ts.Node) {
+      // Effect.gen(...)
+      if (!ts.isCallExpression(node)) {
+        return typeParserIssue("Node is not a call expression", undefined, node)
       }
-    ),
+      // ...
+      if (node.arguments.length === 0) {
+        return typeParserIssue("Node has no arguments", undefined, node)
+      }
+      // firsta argument is a generator function expression
+      const generatorFunction = node.arguments[0]
+      if (!ts.isFunctionExpression(generatorFunction)) {
+        return typeParserIssue("Node is not a function expression", undefined, node)
+      }
+      if (generatorFunction.asteriskToken === undefined) {
+        return typeParserIssue(
+          "Node is not a generator function",
+          undefined,
+          node
+        )
+      }
+      // Effect.gen
+      if (!ts.isPropertyAccessExpression(node.expression)) {
+        return typeParserIssue(
+          "Node is not a property access expression",
+          undefined,
+          node
+        )
+      }
+      const propertyAccess = node.expression
+      // gen
+      if (propertyAccess.name.text !== "fnUntraced") {
+        return typeParserIssue(
+          "Call expression name is not 'fnUntraced'",
+          undefined,
+          node
+        )
+      }
+      // check Effect module
+      return pipe(
+        importedEffectModule(propertyAccess.expression),
+        Nano.map((effectModule) => ({
+          node,
+          effectModule,
+          generatorFunction,
+          body: generatorFunction.body,
+          functionStar: generatorFunction.getFirstToken()
+        }))
+      )
+    },
     "TypeParser.effectFnUntracedGen",
     (node) => node
   )
 
   const effectFnGen = Nano.cachedBy(
-    Nano.fn("TypeParser.effectFnGen")(function*(node: ts.Node) {
+    function(node: ts.Node) {
       // Effect.fn(...)
       if (!ts.isCallExpression(node)) {
-        return yield* typeParserIssue("Node is not a call expression", undefined, node)
+        return typeParserIssue("Node is not a call expression", undefined, node)
       }
       // ...
       if (node.arguments.length === 0) {
-        return yield* typeParserIssue("Node has no arguments", undefined, node)
+        return typeParserIssue("Node has no arguments", undefined, node)
       }
       // firsta argument is a generator function expression
       const generatorFunction = node.arguments[0]
       if (!ts.isFunctionExpression(generatorFunction)) {
-        return yield* typeParserIssue(
+        return typeParserIssue(
           "Node is not a function expression",
           undefined,
           node
         )
       }
       if (generatorFunction.asteriskToken === undefined) {
-        return yield* typeParserIssue(
+        return typeParserIssue(
           "Node is not a generator function",
           undefined,
           node
@@ -470,7 +479,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
         ? node.expression.expression
         : node.expression
       if (!ts.isPropertyAccessExpression(expressionToTest)) {
-        return yield* typeParserIssue(
+        return typeParserIssue(
           "Node is not a property access expression",
           undefined,
           node
@@ -479,22 +488,24 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       const propertyAccess = expressionToTest
       // fn
       if (propertyAccess.name.text !== "fn") {
-        return yield* typeParserIssue(
+        return typeParserIssue(
           "Call expression name is not 'fn'",
           undefined,
           node
         )
       }
       // check Effect module
-      const effectModule = yield* importedEffectModule(propertyAccess.expression)
-      return ({
-        node,
-        generatorFunction,
-        effectModule,
-        body: generatorFunction.body,
-        functionStar: generatorFunction.getFirstToken()
-      })
-    }),
+      return pipe(
+        importedEffectModule(propertyAccess.expression),
+        Nano.map((effectModule) => ({
+          node,
+          generatorFunction,
+          effectModule,
+          body: generatorFunction.body,
+          functionStar: generatorFunction.getFirstToken()
+        }))
+      )
+    },
     "TypeParser.effectFnGen",
     (node) => node
   )
@@ -665,6 +676,38 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     (type) => type
   )
 
+  const pipeCall = Nano.cachedBy(
+    function(
+      node: ts.Node
+    ): Nano.Nano<
+      { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression> },
+      TypeParserIssue,
+      never
+    > {
+      // expression.pipe(.....)
+      if (
+        ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.name) &&
+        node.expression.name.text === "pipe"
+      ) {
+        return Nano.succeed({ node, subject: node.expression.expression, args: Array.from(node.arguments) })
+      }
+
+      // pipe(A, B, ...)
+      if (
+        ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "pipe" &&
+        node.arguments.length > 0
+      ) {
+        const [subject, ...args] = node.arguments
+        return Nano.succeed({ node, subject, args })
+      }
+
+      return typeParserIssue("Node is not a pipe call", undefined, node)
+    },
+    "TypeParser.pipeCall",
+    (node) => node
+  )
+
   return {
     effectType,
     layerType,
@@ -676,6 +719,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     effectFnGen,
     unnecessaryEffectGen,
     effectSchemaType,
-    contextTag
+    contextTag,
+    pipeCall
   }
 }

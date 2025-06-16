@@ -535,29 +535,3 @@ export const createReturnYieldStarStatement = Nano.fn("AST.createReturnYieldStar
     )
   }
 )
-
-export const parsePipeCall = Nano.fn("AST.parsePipeCall")(
-  function*(node: ts.Node) {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-
-    // expression.pipe(.....)
-    if (
-      ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
-      ts.isIdentifier(node.expression.name) &&
-      node.expression.name.text === "pipe"
-    ) {
-      return { node, subject: node.expression.expression, args: node.arguments }
-    }
-
-    // pipe(A, B, ...)
-    if (
-      ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "pipe" &&
-      node.arguments.length > 0
-    ) {
-      const [subject, ...args] = node.arguments
-      return { node, subject, args }
-    }
-
-    return yield* Nano.fail(new NodeNotFoundError())
-  }
-)

@@ -6,6 +6,7 @@ import { missingEffectError } from "./diagnostics/missingEffectError.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
+import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 
 export const diagnostics = [
   duplicatePackage,
@@ -15,5 +16,6 @@ export const diagnostics = [
   missingStarInYieldEffectGen,
   unnecessaryEffectGen,
   missingReturnYieldStar,
-  leakingRequirements
+  leakingRequirements,
+  unnecessaryPipe
 ]
