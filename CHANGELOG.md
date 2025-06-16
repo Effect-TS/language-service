@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.21.1
+
+### Patch Changes
+
+- [#207](https://github.com/Effect-TS/language-service/pull/207) [`7b7906a`](https://github.com/Effect-TS/language-service/commit/7b7906a92e2823cee5ba707c565b351218820a2a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Diagnostic to report unnecessary pipe calls
+
+- [#205](https://github.com/Effect-TS/language-service/pull/205) [`4e921b5`](https://github.com/Effect-TS/language-service/commit/4e921b59e1a10c82913bcd40b5d177f15d2ba71e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow to change diagnostic severity inside the LSP options
+
 ## 0.21.0
 
 ### Minor Changes
