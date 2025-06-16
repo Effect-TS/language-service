@@ -34,7 +34,7 @@ const init = (
     // prevent double-injection of the effect language service
     if ((languageService as any)[LSP_INJECTED_URI]) return languageService
 
-    info.project.log("[@effect/language-service] Started")
+    info.project.log("[@effect/language-service] Started!")
 
     // this is nothing more than an hack. Seems like vscode and other editors do not
     // support new error codes in diagnostics. Because they somehow rely on looking into
