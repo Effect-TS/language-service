@@ -20,14 +20,19 @@ const init = (
     typescript: typeof ts
   }
 ) => {
+  let languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions =
+    LanguageServicePluginOptions.parse({})
+
+  function onConfigurationChanged(config: any) {
+    languageServicePluginOptions = LanguageServicePluginOptions.parse(config)
+  }
+
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
+    languageServicePluginOptions = LanguageServicePluginOptions.parse(info.config)
 
     // prevent double-injection of the effect language service
     if ((languageService as any)[LSP_INJECTED_URI]) return languageService
-
-    const languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions =
-      LanguageServicePluginOptions.parse(info.config)
 
     // this is nothing more than an hack. Seems like vscode and other editors do not
     // support new error codes in diagnostics. Because they somehow rely on looking into
@@ -350,7 +355,7 @@ const init = (
     return proxy
   }
 
-  return { create }
+  return { create, onConfigurationChanged }
 }
 
 module.exports = init

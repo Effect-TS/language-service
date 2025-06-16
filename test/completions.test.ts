@@ -52,6 +52,7 @@ function testCompletionOnExample(
     Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
+      diagnosticSeverity: {},
       quickinfo: false,
       completions: false,
       goto: false,
