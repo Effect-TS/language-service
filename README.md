@@ -6,11 +6,11 @@ This package implements a TypeScript language service plugin that allows additio
 
 1. `npm install @effect/language-service --save-dev` in your project
 2. inside your tsconfig.json, you should add the plugin configuration as follows:
-
 ```json
 {
   "compilerOptions": {
     "plugins": [
+      // ... other LSPs (if any) and as last
       {
         "name": "@effect/language-service"
       }
@@ -132,4 +132,43 @@ Effect.succeed(1); // This will not be reported as a floating effect
 
 // @effect-diagnostics effect/floatingEffect:error
 Effect.succeed(1); // This will be reported as a floating effect
+```
+
+or you can set the severity for the entire project in the global plugin configuration
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        // ...
+        "diagnosticSeverity": { // allows to change per-rule default severity of the diagnostic in the whole project
+          "floatingEffect": "warning" // example for a rule, allowed values are off,error,warning,message,suggestion
+        },
+        // ...
+      }
+    ]
+  }
+}
+```
+
+## Known gotchas
+
+### Svelte VSCode extension and SvelteKit
+
+The Svelte LSP does not properly compose with other LSPs when using SvelteKit. So the Effect LSP should be loaded as last entry to ensure proper composition.
+
+If you did not installed the Svelte LSP into your local project but instead through the Svelte VSCode extension, we recommend instead to install locally and add it as first entry. That way it won't be applied by the VSCode extension.
+
+Your tsconfig should look like this:
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      { "name": "typescript-svelte-plugin" },
+      { "name": "@effect/language-service" }
+    ]
+  }
+}
 ```
