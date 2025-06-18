@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.21.3
+
+### Patch Changes
+
+- [#213](https://github.com/Effect-TS/language-service/pull/213) [`3487467`](https://github.com/Effect-TS/language-service/commit/34874674d4a1f9a4aeeb769200335c74a7151d76) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve message for return yield\* diagnostic
+
+- [#211](https://github.com/Effect-TS/language-service/pull/211) [`c52cd0e`](https://github.com/Effect-TS/language-service/commit/c52cd0e8dffd7e7f226912b029108d9f49831b2b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add documentation for usage with SvelteKit LSP
+
+- [#214](https://github.com/Effect-TS/language-service/pull/214) [`27a0d41`](https://github.com/Effect-TS/language-service/commit/27a0d414287445e9d2cd7105714af98d3df37bc6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add found at path in duplicate check
+
 ## 0.21.2
 
 ### Patch Changes
