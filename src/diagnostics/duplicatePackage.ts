@@ -44,7 +44,7 @@ export const duplicatePackage = LSP.createDiagnostic({
         ) return
         if (options.allowedDuplicatedPackages.indexOf(packageInfo.name) > -1) return
         resolvedPackages[packageInfo.name] = resolvedPackages[packageInfo.name] || {}
-        resolvedPackages[packageInfo.name][packageInfo.version] = packageInfo.contents
+        resolvedPackages[packageInfo.name][packageInfo.version] = packageInfo.packageDirectory
       })
       checkedPackagesCache.set(sourceFile.fileName, resolvedPackages)
       programResolvedCacheSize.set(sourceFile.fileName, newResolvedModuleSize)
@@ -60,7 +60,9 @@ export const duplicatePackage = LSP.createDiagnostic({
             versions.join(", ")
           }) and may cause unexpected type errors.\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project.\nIf this is intended set the LSP config "allowedDuplicatedPackages" to ${
             JSON.stringify(options.allowedDuplicatedPackages.concat([packageName]))
-          }.`,
+          }.\n\n${
+            versions.map((version) => `- found ${version} at ${resolvedPackages[packageName][version]}`).join("\n")
+          }`,
           fixes: []
         })
       }
