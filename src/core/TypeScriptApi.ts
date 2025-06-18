@@ -164,6 +164,7 @@ interface ModuleWithPackageInfo {
   version: string
   hasEffectInPeerDependencies: boolean
   contents: any
+  packageDirectory: string
 }
 
 export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWithPackageInfo | undefined {
@@ -176,6 +177,8 @@ export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWi
   const packageJsonContent = packageJsonScope.contents.packageJsonContent
   if (!hasProperty(packageJsonContent, "name")) return
   if (!hasProperty(packageJsonContent, "version")) return
+  if (!hasProperty(packageJsonScope, "packageDirectory")) return
+  if (!isString(packageJsonScope.packageDirectory)) return
   const { name, version } = packageJsonContent
   if (!isString(name)) return
   if (!isString(version)) return
@@ -186,6 +189,7 @@ export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWi
     name: name.toLowerCase(),
     version: version.toLowerCase(),
     hasEffectInPeerDependencies,
-    contents: packageJsonContent
+    contents: packageJsonContent,
+    packageDirectory: packageJsonScope.packageDirectory
   }
 }
