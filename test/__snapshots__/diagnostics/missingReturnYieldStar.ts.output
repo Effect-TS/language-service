@@ -1,8 +1,8 @@
 yield* Effect.fail("no zero!")
-11:6 - 11:36 | 1 | Yielded Effect never completes, so it is best to use a 'return yield*' instead.
+11:6 - 11:36 | 1 | Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.
 
 yield* Effect.interrupt
-18:4 - 18:27 | 1 | Yielded Effect never completes, so it is best to use a 'return yield*' instead.
+18:4 - 18:27 | 1 | Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.
 
 yield* Effect.die("lol")
-19:4 - 19:28 | 1 | Yielded Effect never completes, so it is best to use a 'return yield*' instead.
+19:4 - 19:28 | 1 | Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.
