@@ -98,7 +98,7 @@ export const leakingRequirements = LSP.createDiagnostic({
       const typesToCheck: Array<[type: ts.Type, reportNode: ts.Node]> = []
       if (ts.isCallExpression(node)) {
         typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
-      } else if (ts.isClassDeclaration(node) && node.name) {
+      } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
         const classSym = typeChecker.getSymbolAtLocation(node.name)
         if (classSym) {
           const type = typeChecker.getTypeOfSymbol(classSym)
