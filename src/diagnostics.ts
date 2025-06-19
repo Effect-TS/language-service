@@ -6,6 +6,7 @@ import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
 import { missingEffectError } from "./diagnostics/missingEffectError.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
+import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 
@@ -19,5 +20,6 @@ export const diagnostics = [
   missingReturnYieldStar,
   leakingRequirements,
   unnecessaryPipe,
-  genericEffectServices
+  genericEffectServices,
+  returnEffectInGen
 ]
