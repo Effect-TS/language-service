@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.21.4
+
+### Patch Changes
+
+- [#218](https://github.com/Effect-TS/language-service/pull/218) [`5243677`](https://github.com/Effect-TS/language-service/commit/52436772a75f2758650239a71ca42dc0d68b354d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add diagnostic when missing yield\* in return Effect
+
+- [#215](https://github.com/Effect-TS/language-service/pull/215) [`207d06b`](https://github.com/Effect-TS/language-service/commit/207d06b043870d33751f4d06e8a0f1589c6b8024) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Warn about definitions of generic services
+
 ## 0.21.3
 
 ### Patch Changes
