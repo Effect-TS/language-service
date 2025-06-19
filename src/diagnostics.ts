@@ -1,5 +1,6 @@
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
+import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
 import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
 import { missingEffectError } from "./diagnostics/missingEffectError.js"
@@ -17,5 +18,6 @@ export const diagnostics = [
   unnecessaryEffectGen,
   missingReturnYieldStar,
   leakingRequirements,
-  unnecessaryPipe
+  unnecessaryPipe,
+  genericEffectServices
 ]
