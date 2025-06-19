@@ -1,0 +1,7 @@
+// code fix returnEffectInGen_skipNextLine  output for range 86 - 113
+import { Effect } from "effect"
+
+export const shouldWarn = Effect.gen(function*() {
+  // @effect-diagnostics-next-line returnEffectInGen:off
+  return Effect.fail("error")
+})

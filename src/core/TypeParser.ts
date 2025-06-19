@@ -310,11 +310,14 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       // so we just check for the existence of the property "_tag"
       // which is common for Option, Either, and others
       // and other datatypes as "Pool" have "get"
+      // and "Mailbox" have "commit"
       const tagSymbol = typeChecker.getPropertyOfType(type, "_tag")
       const getSymbol = typeChecker.getPropertyOfType(type, "get")
-      if (!(tagSymbol || getSymbol)) {
+      const commitSymbol = typeChecker.getPropertyOfType(type, "commit")
+      const unsafeSize = typeChecker.getPropertyOfType(type, "unsafeSize")
+      if (!(tagSymbol || getSymbol || commitSymbol || unsafeSize)) {
         return yield* typeParserIssue(
-          "Type is not a subtype of effect because it does not have '_tag' or 'get' property",
+          "Type is not a subtype of effect because it does not have '_tag', 'get', 'commit', or 'unsafeSize' property",
           type,
           atLocation
         )

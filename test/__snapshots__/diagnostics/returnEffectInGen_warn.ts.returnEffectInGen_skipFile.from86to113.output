@@ -1,0 +1,7 @@
+// code fix returnEffectInGen_skipFile  output for range 86 - 113
+/** @effect-diagnostics returnEffectInGen:skip-file */
+import { Effect } from "effect"
+
+export const shouldWarn = Effect.gen(function*() {
+  return Effect.fail("error")
+})
