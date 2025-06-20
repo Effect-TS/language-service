@@ -1,5 +1,4 @@
-// code fix unnecessaryPipe_skipFile  output for range 313 - 315
-/** @effect-diagnostics unnecessaryPipe:skip-file */
+// code fix unnecessaryPipe_skipNextLine  output for range 308 - 316
 import * as Effect from "effect/Effect"
 import { pipe } from "effect/Function"
 
@@ -12,6 +11,7 @@ export const shouldNotReport2 = Effect.succeed("Hello").pipe(
   Effect.map((x) => x + " World")
 )
 
+// @effect-diagnostics-next-line unnecessaryPipe:off
 export const shouldReport = pipe(32)
 
 export const shouldReportNoArgs = Effect.succeed(32).pipe()

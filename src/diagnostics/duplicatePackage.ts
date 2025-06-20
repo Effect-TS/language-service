@@ -12,13 +12,12 @@ const programResolvedCacheSize = new Map<string, number>()
 export const duplicatePackage = LSP.createDiagnostic({
   name: "duplicatePackage",
   code: 6,
-  apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile) {
+  apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
 
-    if (sourceFile.statements.length < 1) return []
+    if (sourceFile.statements.length < 1) return
 
     // whenever we detect the resolution cache size has changed, try again the check
     // this should mitigate how frequently this rule is triggered
@@ -53,7 +52,7 @@ export const duplicatePackage = LSP.createDiagnostic({
     for (const packageName of Object.keys(resolvedPackages)) {
       if (Object.keys(resolvedPackages[packageName]).length > 1) {
         const versions = Object.keys(resolvedPackages[packageName])
-        effectDiagnostics.push({
+        report({
           node: sourceFile.statements[0],
           category: ts.DiagnosticCategory.Warning,
           messageText: `Package ${packageName} is referenced multiple times with different versions (${
@@ -67,7 +66,5 @@ export const duplicatePackage = LSP.createDiagnostic({
         })
       }
     }
-
-    return effectDiagnostics
   })
 })

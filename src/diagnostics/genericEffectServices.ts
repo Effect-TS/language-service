@@ -9,12 +9,10 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const genericEffectServices = LSP.createDiagnostic({
   name: "genericEffectServices",
   code: 10,
-  apply: Nano.fn("genericEffectServices.apply")(function*(sourceFile) {
+  apply: Nano.fn("genericEffectServices.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -43,7 +41,7 @@ export const genericEffectServices = LSP.createDiagnostic({
         yield* pipe(
           typeParser.contextTag(type, node),
           Nano.map(() => {
-            effectDiagnostics.push({
+            report({
               node: reportAt,
               category: ts.DiagnosticCategory.Warning,
               messageText:
@@ -56,7 +54,5 @@ export const genericEffectServices = LSP.createDiagnostic({
         )
       }
     }
-
-    return effectDiagnostics
   })
 })

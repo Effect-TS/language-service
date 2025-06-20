@@ -8,12 +8,9 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unnecessaryEffectGen = LSP.createDiagnostic({
   name: "unnecessaryEffectGen",
   code: 5,
-  apply: Nano.fn("unnecessaryEffectGen.apply")(function*(sourceFile) {
+  apply: Nano.fn("unnecessaryEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
-    const unnecessaryGenerators = new Map<ts.Node, Nano.Nano<ts.Node>>()
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -29,31 +26,26 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
       if (ts.isCallExpression(node)) {
         yield* pipe(
           typeParser.unnecessaryEffectGen(node),
-          Nano.map(({ replacementNode }) => unnecessaryGenerators.set(node, replacementNode)),
+          Nano.map(({ replacementNode }) =>
+            report({
+              node,
+              category: ts.DiagnosticCategory.Suggestion,
+              messageText: `This Effect.gen contains a single return statement.`,
+              fixes: [{
+                fixName: "unnecessaryEffectGen_fix",
+                description: "Remove the Effect.gen, and keep the body",
+                apply: Nano.gen(function*() {
+                  const textChanges = yield* Nano.service(
+                    TypeScriptApi.ChangeTracker
+                  )
+                  textChanges.replaceNode(sourceFile, node, yield* replacementNode)
+                })
+              }]
+            })
+          ),
           Nano.ignore
         )
       }
     }
-
-    // emit diagnostics
-    unnecessaryGenerators.forEach((yieldedResult, effectGenCall) =>
-      effectDiagnostics.push({
-        node: effectGenCall,
-        category: ts.DiagnosticCategory.Suggestion,
-        messageText: `This Effect.gen contains a single return statement.`,
-        fixes: [{
-          fixName: "unnecessaryEffectGen_fix",
-          description: "Remove the Effect.gen, and keep the body",
-          apply: Nano.gen(function*() {
-            const textChanges = yield* Nano.service(
-              TypeScriptApi.ChangeTracker
-            )
-            textChanges.replaceNode(sourceFile, effectGenCall, yield* yieldedResult)
-          })
-        }]
-      })
-    )
-
-    return effectDiagnostics
   })
 })

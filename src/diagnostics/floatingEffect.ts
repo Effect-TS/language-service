@@ -10,7 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const floatingEffect = LSP.createDiagnostic({
   name: "floatingEffect",
   code: 3,
-  apply: Nano.fn("floatingEffect.apply")(function*(sourceFile) {
+  apply: Nano.fn("floatingEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
@@ -31,8 +31,6 @@ export const floatingEffect = LSP.createDiagnostic({
       ) return false
       return true
     }
-
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -58,7 +56,7 @@ export const floatingEffect = LSP.createDiagnostic({
           Nano.option
         )
         if (Option.isNone(allowedFloatingEffects)) {
-          effectDiagnostics.push({
+          report({
             node,
             category: ts.DiagnosticCategory.Error,
             messageText: `Effect must be yielded or assigned to a variable.`,
@@ -67,7 +65,5 @@ export const floatingEffect = LSP.createDiagnostic({
         }
       }
     }
-
-    return effectDiagnostics
   })
 })

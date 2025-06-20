@@ -1,5 +1,5 @@
-32
-13:33 - 13:35 | 2 | This pipe call contains no arguments.
+pipe(32)
+13:28 - 13:36 | 2 | This pipe call contains no arguments.
 
-Effect.succeed(32)
-15:34 - 15:52 | 2 | This pipe call contains no arguments.
+Effect.succeed(32).pipe()
+15:34 - 15:59 | 2 | This pipe call contains no arguments.

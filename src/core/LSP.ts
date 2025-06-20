@@ -43,9 +43,10 @@ export interface DiagnosticDefinition {
   name: string
   code: number
   apply: (
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
+    report: (data: ApplicableDiagnosticDefinition) => void
   ) => Nano.Nano<
-    Array<ApplicableDiagnosticDefinition>,
+    void,
     never,
     | TypeCheckerApi.TypeCheckerApi
     | TypeParser.TypeParser
@@ -347,46 +348,6 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       const ruleNameLowered = rule.name.toLowerCase()
       // if file is skipped entirely, do not process the rule
       if (skippedRules.indexOf(ruleNameLowered) > -1) return []
-      // run the executor
-      let modifiedDiagnostics = yield* rule.apply(sourceFile)
-      // change the severity according to the plugin options
-      const newLevel = pluginOptions.diagnosticSeverity[ruleNameLowered]
-      if (newLevel) {
-        for (const emitted of modifiedDiagnostics) {
-          emitted.category = newLevel && newLevel in levelToDiagnosticCategory
-            ? levelToDiagnosticCategory[newLevel]
-            : emitted.category
-        }
-      }
-      // loop through rules
-      for (const emitted of modifiedDiagnostics.slice(0)) {
-        let newLevel: string | undefined = undefined
-        // early exit, no customizations
-        if (!(ruleNameLowered in sectionOverrides || ruleNameLowered in lineOverrides)) continue
-        // attempt with line overrides
-        const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
-          _.pos < emitted.node.getStart(sourceFile) && _.end >= emitted.node.getEnd()
-        )
-        if (lineOverride) {
-          newLevel = lineOverride.level
-        } else {
-          // then attempt with section overrides
-          const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
-            _.pos < emitted.node.getStart(sourceFile)
-          )
-          if (sectionOverride) newLevel = sectionOverride.level
-        }
-        if (newLevel === "off") {
-          // remove from output those in range
-          modifiedDiagnostics = modifiedDiagnostics.filter((_) => _ !== emitted)
-        } else {
-          // change severity
-          emitted.category = newLevel && newLevel in levelToDiagnosticCategory
-            ? levelToDiagnosticCategory[newLevel]
-            : emitted.category
-        }
-      }
-
       // append a rule fix to disable this check only for next line
       const fixByDisableNextLine = (
         _: ApplicableDiagnosticDefinition
@@ -426,13 +387,50 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
             )
         )
       }
+      // run the executor
+      let modifiedDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+      yield* rule.apply(sourceFile, (entry) => {
+        modifiedDiagnostics.push({
+          ...entry,
+          fixes: entry.fixes.concat([fixByDisableNextLine(entry), fixByDisableEntireFile])
+        })
+      })
 
-      const rulesWithDisableFix = modifiedDiagnostics.map((diagnostic) => ({
-        ...diagnostic,
-        fixes: diagnostic.fixes.concat([fixByDisableNextLine(diagnostic), fixByDisableEntireFile])
-      }))
+      // early exit, no customizations of severity
+      if (
+        !(ruleNameLowered in pluginOptions.diagnosticSeverity || ruleNameLowered in sectionOverrides ||
+          ruleNameLowered in lineOverrides)
+      ) return modifiedDiagnostics
 
-      return rulesWithDisableFix
+      // loop through rules
+      for (const emitted of modifiedDiagnostics.slice(0)) {
+        // by default, use the overriden level from the plugin options
+        let newLevel: string | undefined = pluginOptions.diagnosticSeverity[ruleNameLowered]
+        // attempt with line overrides
+        const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
+          _.pos < emitted.node.getStart(sourceFile) && _.end >= emitted.node.getEnd()
+        )
+        if (lineOverride) {
+          newLevel = lineOverride.level
+        } else {
+          // then attempt with section overrides
+          const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
+            _.pos < emitted.node.getStart(sourceFile)
+          )
+          if (sectionOverride) newLevel = sectionOverride.level
+        }
+        if (newLevel === "off") {
+          // remove from output those in range
+          modifiedDiagnostics = modifiedDiagnostics.filter((_) => _ !== emitted)
+        } else {
+          // change severity
+          emitted.category = newLevel && newLevel in levelToDiagnosticCategory
+            ? levelToDiagnosticCategory[newLevel]
+            : emitted.category
+        }
+      }
+
+      return modifiedDiagnostics
     })
 
     return { execute }
