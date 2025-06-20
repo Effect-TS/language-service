@@ -1,4 +1,5 @@
-import { Effect } from "effect"
+import type { HttpApp } from "@effect/platform"
+import { Effect, Stream } from "effect"
 
 export const shouldNotWarn = Effect.gen(function*() {
   yield* Effect.log("about to fail")
@@ -22,4 +23,16 @@ export const classGetter = Effect.gen(function*() {
       return Effect.fail("error")
     }
   }
+})
+
+export const shouldNotWarnStream = Effect.gen(function*() {
+  yield* Effect.log("about to fail")
+  return Stream.fromIterable([1, 2, 3])
+})
+
+declare function httpApp(): HttpApp.Default
+
+export const shouldNotWarnHttpApp = Effect.gen(function*() {
+  yield* Effect.log("about to fail")
+  return httpApp()
 })
