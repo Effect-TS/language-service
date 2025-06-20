@@ -35,6 +35,7 @@ export const getMissingTypeEntriesInTargetType = Nano.fn(
   "TypeCheckerApi.getMissingTypeEntriesInTargetType"
 )(
   function*(realType: ts.Type, expectedType: ts.Type) {
+    if (realType === expectedType) return []
     const typeChecker = yield* Nano.service(TypeCheckerApi)
 
     const result: Array<ts.Type> = []

@@ -10,12 +10,11 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const returnEffectInGen = LSP.createDiagnostic({
   name: "returnEffectInGen",
   code: 11,
-  apply: Nano.fn("returnEffectInGen.apply")(function*(sourceFile) {
+  apply: Nano.fn("returnEffectInGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
     const brokenReturnStatements = new Set<ts.ReturnStatement>()
 
     const nodeToVisit: Array<ts.Node> = []
@@ -96,7 +95,7 @@ export const returnEffectInGen = LSP.createDiagnostic({
         }] :
         []
 
-      effectDiagnostics.push({
+      report({
         node,
         category: ts.DiagnosticCategory.Suggestion,
         messageText:
@@ -104,7 +103,5 @@ export const returnEffectInGen = LSP.createDiagnostic({
         fixes: fix
       })
     })
-
-    return effectDiagnostics
   })
 })

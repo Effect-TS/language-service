@@ -10,38 +10,31 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingEffectError = LSP.createDiagnostic({
   name: "missingEffectError",
   code: 1,
-  apply: Nano.fn("missingEffectError.apply")(function*(sourceFile) {
+  apply: Nano.fn("missingEffectError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
-    const checkForMissingErrorTypes = Nano.fn("missingEffectError.apply.checkForMissingErrorTypes")(
-      function*(
-        node: ts.Node,
-        expectedType: ts.Type,
-        valueNode: ts.Node,
-        realType: ts.Type
-      ) {
-        // the expected type is an effect
-        const expectedEffect = yield* (typeParser.effectType(
-          expectedType,
-          node
-        ))
-        // the real type is an effect
-        const realEffect = yield* (typeParser.effectType(
-          realType,
-          valueNode
-        ))
-        // get the missing types
-        return yield* TypeCheckerApi.getMissingTypeEntriesInTargetType(
-          realEffect.E,
-          expectedEffect.E
+    const checkForMissingErrorTypes = (
+      node: ts.Node,
+      expectedType: ts.Type,
+      valueNode: ts.Node,
+      realType: ts.Type
+    ) =>
+      pipe(
+        Nano.all(
+          typeParser.effectType(expectedType, node),
+          typeParser.effectType(realType, valueNode)
+        ),
+        Nano.flatMap(([expectedEffect, realEffect]) =>
+          TypeCheckerApi.getMissingTypeEntriesInTargetType(
+            realEffect.E,
+            expectedEffect.E
+          )
         )
-      }
-    )
+      )
 
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
     const sortTypes = ReadonlyArray.sort(typeOrder)
 
     const entries = yield* TypeCheckerApi.expectedAndRealType(sourceFile)
@@ -56,7 +49,7 @@ export const missingEffectError = LSP.createDiagnostic({
         Nano.orElse(() => Nano.succeed([]))
       )
       if (missingContext.length > 0) {
-        effectDiagnostics.push(
+        report(
           {
             node,
             category: ts.DiagnosticCategory.Error,
@@ -68,7 +61,5 @@ export const missingEffectError = LSP.createDiagnostic({
         )
       }
     }
-
-    return effectDiagnostics
   })
 })

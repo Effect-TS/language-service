@@ -10,13 +10,10 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingReturnYieldStar = LSP.createDiagnostic({
   name: "missingReturnYieldStar",
   code: 7,
-  apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile) {
+  apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
-    const brokenYields = new Set<ts.YieldExpression>()
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -61,42 +58,36 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
                 Nano.option
               )
               if (Option.isSome(effectGenLike)) {
-                brokenYields.add(node)
+                // emit diagnostic
+                const fix = node.expression ?
+                  [{
+                    fixName: "missingReturnYieldStar_fix",
+                    description: "Add return statement",
+                    apply: Nano.gen(function*() {
+                      const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                      changeTracker.replaceNode(
+                        sourceFile,
+                        node,
+                        ts.factory.createReturnStatement(
+                          node
+                        )
+                      )
+                    })
+                  }] :
+                  []
+
+                report({
+                  node,
+                  category: ts.DiagnosticCategory.Error,
+                  messageText: `Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.`,
+                  fixes: fix
+                })
               }
             }
           }
         }
       }
     }
-
-    // emit diagnostics
-    brokenYields.forEach((node) => {
-      const fix = node.expression ?
-        [{
-          fixName: "missingReturnYieldStar_fix",
-          description: "Add return statement",
-          apply: Nano.gen(function*() {
-            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-            changeTracker.replaceNode(
-              sourceFile,
-              node,
-              ts.factory.createReturnStatement(
-                node
-              )
-            )
-          })
-        }] :
-        []
-
-      effectDiagnostics.push({
-        node,
-        category: ts.DiagnosticCategory.Error,
-        messageText: `Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.`,
-        fixes: fix
-      })
-    })
-
-    return effectDiagnostics
   })
 })

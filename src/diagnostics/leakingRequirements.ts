@@ -10,13 +10,11 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
   code: 8,
-  apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile) {
+  apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
-
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
 
     const parseLeakedRequirements = Nano.cachedBy(
       Nano.fn("leakingServices.checkServiceLeaking")(
@@ -74,7 +72,7 @@ export const leakingRequirements = LSP.createDiagnostic({
 
     function reportLeakingRequirements(node: ts.Node, requirements: Array<ts.Type>) {
       if (requirements.length === 0) return
-      effectDiagnostics.push({
+      report({
         node,
         category: ts.DiagnosticCategory.Warning,
         messageText: `This Service is leaking the ${
@@ -124,7 +122,5 @@ export const leakingRequirements = LSP.createDiagnostic({
         )
       }
     }
-
-    return effectDiagnostics
   })
 })

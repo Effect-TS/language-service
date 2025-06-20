@@ -8,11 +8,10 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   name: "missingStarInYieldEffectGen",
   code: 4,
-  apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile) {
+  apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const effectDiagnostics: Array<LSP.ApplicableDiagnosticDefinition> = []
     const brokenGenerators = new Set<ts.Node>()
     const brokenYields = new Set<ts.YieldExpression>()
 
@@ -60,7 +59,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
 
     // emit diagnostics
     brokenGenerators.forEach((node) =>
-      effectDiagnostics.push({
+      report({
         node,
         category: ts.DiagnosticCategory.Error,
         messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`,
@@ -87,14 +86,12 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
         }] :
         []
 
-      effectDiagnostics.push({
+      report({
         node,
         category: ts.DiagnosticCategory.Error,
         messageText: `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
         fixes: fix
       })
     })
-
-    return effectDiagnostics
   })
 })
