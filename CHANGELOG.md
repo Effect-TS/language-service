@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.21.6
+
+### Patch Changes
+
+- [#222](https://github.com/Effect-TS/language-service/pull/222) [`f7e9f2c`](https://github.com/Effect-TS/language-service/commit/f7e9f2cacbda4239482aaa0d94ab53f15373641b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix symbol access on some nodes
+
 ## 0.21.5
 
 ### Patch Changes
