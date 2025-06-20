@@ -10,84 +10,89 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingReturnYieldStar = LSP.createDiagnostic({
   name: "missingReturnYieldStar",
   code: 7,
-  apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile, report) {
+  apply: Nano.fn("missingReturnYieldStar.apply")(function*(report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const nodeToVisit: Array<ts.Node> = []
-    const appendNodeToVisit = (node: ts.Node) => {
-      nodeToVisit.push(node)
-      return undefined
-    }
-    ts.forEachChild(sourceFile, appendNodeToVisit)
+    return {
+      [ts.SyntaxKind.SourceFile]: (sourceFile) =>
+        Nano.gen(function*() {
+          const nodeToVisit: Array<ts.Node> = []
+          const appendNodeToVisit = (node: ts.Node) => {
+            nodeToVisit.push(node)
+            return undefined
+          }
+          ts.forEachChild(sourceFile, appendNodeToVisit)
 
-    while (nodeToVisit.length > 0) {
-      const node = nodeToVisit.shift()!
-      ts.forEachChild(node, appendNodeToVisit)
+          while (nodeToVisit.length > 0) {
+            const node = nodeToVisit.shift()!
+            ts.forEachChild(node, appendNodeToVisit)
 
-      // if we yield* an effect with never in success type, maybe we wanted tu return
-      if (
-        ts.isYieldExpression(node) && node.expression &&
-        node.asteriskToken
-      ) {
-        // are we returning an effect with never as success type?
-        const type = typeChecker.getTypeAtLocation(node.expression)
-        const maybeEffect = yield* Nano.option(typeParser.effectType(type, node.expression))
+            // if we yield* an effect with never in success type, maybe we wanted tu return
+            if (
+              ts.isYieldExpression(node) && node.expression &&
+              node.asteriskToken
+            ) {
+              // are we returning an effect with never as success type?
+              const type = typeChecker.getTypeAtLocation(node.expression)
+              const maybeEffect = yield* Nano.option(typeParser.effectType(type, node.expression))
 
-        if (Option.isSome(maybeEffect) && maybeEffect.value.A.flags & ts.TypeFlags.Never) {
-          // go up until we meet the causing generator
-          const generatorFunctionOrReturnStatement = ts.findAncestor(
-            node,
-            (
-              _
-            ) => (ts.isFunctionExpression(_) || ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_) ||
-              ts.isReturnStatement(_))
-          )
-
-          // we already have a return statement
-          if (generatorFunctionOrReturnStatement && !ts.isReturnStatement(generatorFunctionOrReturnStatement)) {
-            // .gen should always be the parent ideally
-            if (generatorFunctionOrReturnStatement && generatorFunctionOrReturnStatement.parent) {
-              const effectGenNode = generatorFunctionOrReturnStatement.parent
-              // continue if we hit effect gen-like
-              const effectGenLike = yield* pipe(
-                typeParser.effectGen(effectGenNode),
-                Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
-                Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
-                Nano.option
-              )
-              if (Option.isSome(effectGenLike)) {
-                // emit diagnostic
-                const fix = node.expression ?
-                  [{
-                    fixName: "missingReturnYieldStar_fix",
-                    description: "Add return statement",
-                    apply: Nano.gen(function*() {
-                      const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-                      changeTracker.replaceNode(
-                        sourceFile,
-                        node,
-                        ts.factory.createReturnStatement(
-                          node
-                        )
-                      )
-                    })
-                  }] :
-                  []
-
-                report({
+              if (Option.isSome(maybeEffect) && maybeEffect.value.A.flags & ts.TypeFlags.Never) {
+                // go up until we meet the causing generator
+                const generatorFunctionOrReturnStatement = ts.findAncestor(
                   node,
-                  category: ts.DiagnosticCategory.Error,
-                  messageText: `Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.`,
-                  fixes: fix
-                })
+                  (
+                    _
+                  ) => (ts.isFunctionExpression(_) || ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_) ||
+                    ts.isReturnStatement(_))
+                )
+
+                // we already have a return statement
+                if (generatorFunctionOrReturnStatement && !ts.isReturnStatement(generatorFunctionOrReturnStatement)) {
+                  // .gen should always be the parent ideally
+                  if (generatorFunctionOrReturnStatement && generatorFunctionOrReturnStatement.parent) {
+                    const effectGenNode = generatorFunctionOrReturnStatement.parent
+                    // continue if we hit effect gen-like
+                    const effectGenLike = yield* pipe(
+                      typeParser.effectGen(effectGenNode),
+                      Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
+                      Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
+                      Nano.option
+                    )
+                    if (Option.isSome(effectGenLike)) {
+                      // emit diagnostic
+                      const fix = node.expression ?
+                        [{
+                          fixName: "missingReturnYieldStar_fix",
+                          description: "Add return statement",
+                          apply: Nano.gen(function*() {
+                            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                            changeTracker.replaceNode(
+                              sourceFile,
+                              node,
+                              ts.factory.createReturnStatement(
+                                node
+                              )
+                            )
+                          })
+                        }] :
+                        []
+
+                      report({
+                        node,
+                        category: ts.DiagnosticCategory.Error,
+                        messageText: `Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.`,
+                        fixes: fix
+                      })
+                    }
+                  }
+                }
               }
             }
           }
-        }
-      }
+        })
     }
   })
 })

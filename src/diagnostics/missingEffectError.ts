@@ -10,10 +10,11 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingEffectError = LSP.createDiagnostic({
   name: "missingEffectError",
   code: 1,
-  apply: Nano.fn("missingEffectError.apply")(function*(sourceFile, report) {
+  apply: Nano.fn("missingEffectError.apply")(function*(report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const typeCheckerCache = yield* Nano.service(TypeCheckerApi.TypeCheckerApiCache)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
     const checkForMissingErrorTypes = (
@@ -28,38 +29,52 @@ export const missingEffectError = LSP.createDiagnostic({
           typeParser.effectType(realType, valueNode)
         ),
         Nano.flatMap(([expectedEffect, realEffect]) =>
-          TypeCheckerApi.getMissingTypeEntriesInTargetType(
-            realEffect.E,
-            expectedEffect.E
+          pipe(
+            TypeCheckerApi.getMissingTypeEntriesInTargetType(
+              realEffect.E,
+              expectedEffect.E
+            ),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
           )
         )
       )
 
     const sortTypes = ReadonlyArray.sort(typeOrder)
 
-    const entries = yield* TypeCheckerApi.expectedAndRealType(sourceFile)
-    for (const [node, expectedType, valueNode, realType] of entries) {
-      const missingContext = yield* pipe(
-        checkForMissingErrorTypes(
-          node,
-          expectedType,
-          valueNode,
-          realType
-        ),
-        Nano.orElse(() => Nano.succeed([]))
-      )
-      if (missingContext.length > 0) {
-        report(
-          {
-            node,
-            category: ts.DiagnosticCategory.Error,
-            messageText: `Missing '${
-              sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
-            }' in the expected Effect errors.`,
-            fixes: []
+    return {
+      [ts.SyntaxKind.SourceFile]: (sourceFile) =>
+        Nano.gen(function*() {
+          const entries = yield* pipe(
+            TypeCheckerApi.expectedAndRealType(sourceFile),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+            Nano.provideService(TypeCheckerApi.TypeCheckerApiCache, typeCheckerCache)
+          )
+          for (const [node, expectedType, valueNode, realType] of entries) {
+            const missingContext = yield* pipe(
+              checkForMissingErrorTypes(
+                node,
+                expectedType,
+                valueNode,
+                realType
+              ),
+              Nano.orElse(() => Nano.succeed([]))
+            )
+            if (missingContext.length > 0) {
+              report(
+                {
+                  node,
+                  category: ts.DiagnosticCategory.Error,
+                  messageText: `Missing '${
+                    sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
+                  }' in the expected Effect errors.`,
+                  fixes: []
+                }
+              )
+            }
           }
-        )
-      }
+        })
     }
   })
 })

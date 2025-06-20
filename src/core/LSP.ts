@@ -39,14 +39,17 @@ export function createRefactor(definition: RefactorDefinition): RefactorDefiniti
   return definition
 }
 
+type KnownNodes = ts.SourceFile | ts.CallExpression | ts.YieldExpression
+
 export interface DiagnosticDefinition {
   name: string
   code: number
   apply: (
-    sourceFile: ts.SourceFile,
     report: (data: ApplicableDiagnosticDefinition) => void
   ) => Nano.Nano<
-    void,
+    {
+      [K in KnownNodes as K["kind"]]?: (node: K) => Nano.Nano<void>
+    },
     never,
     | TypeCheckerApi.TypeCheckerApi
     | TypeParser.TypeParser
@@ -389,13 +392,13 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       }
       // run the executor
       let modifiedDiagnostics: Array<ApplicableDiagnosticDefinition> = []
-      yield* rule.apply(sourceFile, (entry) => {
+      const matchers = yield* rule.apply((entry) => {
         modifiedDiagnostics.push({
           ...entry,
           fixes: entry.fixes.concat([fixByDisableNextLine(entry), fixByDisableEntireFile])
         })
       })
-
+      if (ts.SyntaxKind.SourceFile in matchers) yield* matchers[ts.SyntaxKind.SourceFile](sourceFile)
       // early exit, no customizations of severity
       if (
         !(ruleNameLowered in pluginOptions.diagnosticSeverity || ruleNameLowered in sectionOverrides ||

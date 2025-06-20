@@ -10,7 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
   code: 8,
-  apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile, report) {
+  apply: Nano.fn("leakingRequirements.apply")(function*(report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
@@ -50,7 +50,11 @@ export const leakingRequirements = LSP.createDiagnostic({
             // once we have the type, check the context for shared requirements
             if (effectContextType) {
               effectMembers++
-              const { allIndexes } = yield* TypeCheckerApi.appendToUniqueTypesMap(memory, effectContextType, true)
+              const { allIndexes } = yield* pipe(
+                TypeCheckerApi.appendToUniqueTypesMap(memory, effectContextType, true),
+                Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
+                Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+              )
               if (!sharedRequirementsKeys) {
                 sharedRequirementsKeys = allIndexes
               } else {
@@ -82,45 +86,50 @@ export const leakingRequirements = LSP.createDiagnostic({
       })
     }
 
-    const nodeToVisit: Array<ts.Node> = []
-    const appendNodeToVisit = (node: ts.Node) => {
-      nodeToVisit.push(node)
-      return undefined
-    }
-    ts.forEachChild(sourceFile, appendNodeToVisit)
+    return {
+      [ts.SyntaxKind.SourceFile]: (sourceFile) =>
+        Nano.gen(function*() {
+          const nodeToVisit: Array<ts.Node> = []
+          const appendNodeToVisit = (node: ts.Node) => {
+            nodeToVisit.push(node)
+            return undefined
+          }
+          ts.forEachChild(sourceFile, appendNodeToVisit)
 
-    while (nodeToVisit.length > 0) {
-      const node = nodeToVisit.shift()!
+          while (nodeToVisit.length > 0) {
+            const node = nodeToVisit.shift()!
 
-      // we need to check the type of the class declaration (if any)
-      const typesToCheck: Array<[type: ts.Type, reportNode: ts.Node]> = []
-      if (ts.isCallExpression(node)) {
-        typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
-      } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
-        const classSym = typeChecker.getSymbolAtLocation(node.name)
-        if (classSym) {
-          const type = typeChecker.getTypeOfSymbol(classSym)
-          typesToCheck.push([type, node.name])
-        }
-      } else {
-        ts.forEachChild(node, appendNodeToVisit)
-        continue
-      }
+            // we need to check the type of the class declaration (if any)
+            const typesToCheck: Array<[type: ts.Type, reportNode: ts.Node]> = []
+            if (ts.isCallExpression(node)) {
+              typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
+            } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
+              const classSym = typeChecker.getSymbolAtLocation(node.name)
+              if (classSym) {
+                const type = typeChecker.getTypeOfSymbol(classSym)
+                typesToCheck.push([type, node.name])
+              }
+            } else {
+              ts.forEachChild(node, appendNodeToVisit)
+              continue
+            }
 
-      // check the types
-      for (const [type, reportAt] of typesToCheck) {
-        yield* pipe(
-          typeParser.contextTag(type, node),
-          Nano.flatMap(({ Service }) =>
-            pipe(
-              parseLeakedRequirements(Service, node),
-              Nano.map((requirements) => reportLeakingRequirements(reportAt, Array.sort(requirements, typeOrder)))
-            )
-          ),
-          Nano.orElse(() => Nano.sync(() => ts.forEachChild(node, appendNodeToVisit))),
-          Nano.ignore
-        )
-      }
+            // check the types
+            for (const [type, reportAt] of typesToCheck) {
+              yield* pipe(
+                typeParser.contextTag(type, node),
+                Nano.flatMap(({ Service }) =>
+                  pipe(
+                    parseLeakedRequirements(Service, node),
+                    Nano.map((requirements) => reportLeakingRequirements(reportAt, Array.sort(requirements, typeOrder)))
+                  )
+                ),
+                Nano.orElse(() => Nano.sync(() => ts.forEachChild(node, appendNodeToVisit))),
+                Nano.ignore
+              )
+            }
+          }
+        })
     }
   })
 })

@@ -10,7 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const floatingEffect = LSP.createDiagnostic({
   name: "floatingEffect",
   code: 3,
-  apply: Nano.fn("floatingEffect.apply")(function*(sourceFile, report) {
+  apply: Nano.fn("floatingEffect.apply")(function*(report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
@@ -32,38 +32,43 @@ export const floatingEffect = LSP.createDiagnostic({
       return true
     }
 
-    const nodeToVisit: Array<ts.Node> = []
-    const appendNodeToVisit = (node: ts.Node) => {
-      nodeToVisit.push(node)
-      return undefined
-    }
+    return {
+      [ts.SyntaxKind.SourceFile]: (sourceFile) =>
+        Nano.gen(function*() {
+          const nodeToVisit: Array<ts.Node> = []
+          const appendNodeToVisit = (node: ts.Node) => {
+            nodeToVisit.push(node)
+            return undefined
+          }
 
-    ts.forEachChild(sourceFile, appendNodeToVisit)
-    while (nodeToVisit.length > 0) {
-      const node = nodeToVisit.shift()!
-      ts.forEachChild(node, appendNodeToVisit)
+          ts.forEachChild(sourceFile, appendNodeToVisit)
+          while (nodeToVisit.length > 0) {
+            const node = nodeToVisit.shift()!
+            ts.forEachChild(node, appendNodeToVisit)
 
-      if (!isFloatingExpression(node)) continue
+            if (!isFloatingExpression(node)) continue
 
-      const type = typeChecker.getTypeAtLocation(node.expression)
-      // if type is an effect
-      const effect = yield* Nano.option(typeParser.effectType(type, node.expression))
-      if (Option.isSome(effect)) {
-        // and not a fiber (we consider that a valid operation)
-        const allowedFloatingEffects = yield* pipe(
-          typeParser.fiberType(type, node.expression),
-          Nano.orElse(() => typeParser.effectSubtype(type, node.expression)),
-          Nano.option
-        )
-        if (Option.isNone(allowedFloatingEffects)) {
-          report({
-            node,
-            category: ts.DiagnosticCategory.Error,
-            messageText: `Effect must be yielded or assigned to a variable.`,
-            fixes: []
-          })
-        }
-      }
+            const type = typeChecker.getTypeAtLocation(node.expression)
+            // if type is an effect
+            const effect = yield* Nano.option(typeParser.effectType(type, node.expression))
+            if (Option.isSome(effect)) {
+              // and not a fiber (we consider that a valid operation)
+              const allowedFloatingEffects = yield* pipe(
+                typeParser.fiberType(type, node.expression),
+                Nano.orElse(() => typeParser.effectSubtype(type, node.expression)),
+                Nano.option
+              )
+              if (Option.isNone(allowedFloatingEffects)) {
+                report({
+                  node,
+                  category: ts.DiagnosticCategory.Error,
+                  messageText: `Effect must be yielded or assigned to a variable.`,
+                  fixes: []
+                })
+              }
+            }
+          }
+        })
     }
   })
 })
