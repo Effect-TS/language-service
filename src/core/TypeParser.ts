@@ -257,7 +257,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       atLocation: ts.Node
     ) {
       // symbol name should be Effect
-      if (type.symbol.name !== "Effect" || type.aliasSymbol) {
+      if (!(type.symbol && type.symbol.name === "Effect" && !type.aliasSymbol)) {
         return yield* typeParserIssue("Type name should be Effect with no alias symbol", type, atLocation)
       }
       // should be an effect
