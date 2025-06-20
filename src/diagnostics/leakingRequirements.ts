@@ -74,62 +74,46 @@ export const leakingRequirements = LSP.createDiagnostic({
       (_, service) => service
     )
 
-    function reportLeakingRequirements(node: ts.Node, requirements: Array<ts.Type>) {
-      if (requirements.length === 0) return
-      report({
-        node,
-        category: ts.DiagnosticCategory.Warning,
-        messageText: `This Service is leaking the ${
-          requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
-        } requirement`,
-        fixes: []
-      })
-    }
+    const check = (type: ts.Type, node: ts.Node, reportAt: ts.Node) =>
+      pipe(
+        typeParser.contextTag(type, node),
+        Nano.flatMap(({ Service }) =>
+          pipe(
+            parseLeakedRequirements(Service, node),
+            Nano.map((requirements) => {
+              if (requirements.length > 0) {
+                report({
+                  node: reportAt,
+                  category: ts.DiagnosticCategory.Warning,
+                  messageText: `This Service is leaking the ${
+                    Array.sort(requirements, typeOrder).map((_) => typeChecker.typeToString(_)).join(" | ")
+                  } requirement`,
+                  fixes: []
+                })
+              }
+            })
+          )
+        ),
+        Nano.ignore
+      )
 
     return {
-      [ts.SyntaxKind.SourceFile]: (sourceFile) =>
-        Nano.gen(function*() {
-          const nodeToVisit: Array<ts.Node> = []
-          const appendNodeToVisit = (node: ts.Node) => {
-            nodeToVisit.push(node)
-            return undefined
+      [ts.SyntaxKind.CallExpression]: (node) => {
+        // avoid double-reporting for class X extends Context.Tag(){}
+        const parentHeritage = ts.findAncestor(node, (node) => ts.isHeritageClause(node))
+        if (parentHeritage) return Nano.void_
+        return check(typeChecker.getTypeAtLocation(node), node, node)
+      },
+      [ts.SyntaxKind.ClassDeclaration]: (node) => {
+        if (node.name && node.heritageClauses) {
+          const classSym = typeChecker.getSymbolAtLocation(node.name)
+          if (classSym) {
+            const type = typeChecker.getTypeOfSymbol(classSym)
+            return check(type, node, node.name)
           }
-          ts.forEachChild(sourceFile, appendNodeToVisit)
-
-          while (nodeToVisit.length > 0) {
-            const node = nodeToVisit.shift()!
-
-            // we need to check the type of the class declaration (if any)
-            const typesToCheck: Array<[type: ts.Type, reportNode: ts.Node]> = []
-            if (ts.isCallExpression(node)) {
-              typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
-            } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
-              const classSym = typeChecker.getSymbolAtLocation(node.name)
-              if (classSym) {
-                const type = typeChecker.getTypeOfSymbol(classSym)
-                typesToCheck.push([type, node.name])
-              }
-            } else {
-              ts.forEachChild(node, appendNodeToVisit)
-              continue
-            }
-
-            // check the types
-            for (const [type, reportAt] of typesToCheck) {
-              yield* pipe(
-                typeParser.contextTag(type, node),
-                Nano.flatMap(({ Service }) =>
-                  pipe(
-                    parseLeakedRequirements(Service, node),
-                    Nano.map((requirements) => reportLeakingRequirements(reportAt, Array.sort(requirements, typeOrder)))
-                  )
-                ),
-                Nano.orElse(() => Nano.sync(() => ts.forEachChild(node, appendNodeToVisit))),
-                Nano.ignore
-              )
-            }
-          }
-        })
+        }
+        return Nano.void_
+      }
     }
   })
 })

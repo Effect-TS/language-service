@@ -1,5 +1,4 @@
 import { pipe } from "effect/Function"
-import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -15,49 +14,28 @@ export const genericEffectServices = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
     return {
-      [ts.SyntaxKind.SourceFile]: (sourceFile) =>
-        Nano.gen(function*() {
-          const nodeToVisit: Array<ts.Node> = []
-          const appendNodeToVisit = (node: ts.Node) => {
-            nodeToVisit.push(node)
-            return undefined
+      [ts.SyntaxKind.ClassDeclaration]: (node) => {
+        if (node.name && node.typeParameters && node.heritageClauses) {
+          const classSym = typeChecker.getSymbolAtLocation(node.name)
+          if (classSym) {
+            const type = typeChecker.getTypeOfSymbol(classSym)
+            return pipe(
+              typeParser.contextTag(type, node),
+              Nano.map(() => {
+                report({
+                  node: node.name!,
+                  category: ts.DiagnosticCategory.Warning,
+                  messageText:
+                    `Effect Services with type parameters are not supported because they cannot be properly discriminated at runtime, which may cause unexpected behavior.`,
+                  fixes: []
+                })
+              }),
+              Nano.ignore
+            )
           }
-          ts.forEachChild(sourceFile, appendNodeToVisit)
-
-          while (nodeToVisit.length > 0) {
-            const node = nodeToVisit.shift()!
-            const typesToCheck: Array<[ts.Type, ts.Node]> = []
-
-            if (ts.isClassDeclaration(node) && node.name && node.typeParameters && node.heritageClauses) {
-              const classSym = typeChecker.getSymbolAtLocation(node.name)
-              if (classSym) {
-                const type = typeChecker.getTypeOfSymbol(classSym)
-                typesToCheck.push([type, node.name!])
-              }
-            } else {
-              ts.forEachChild(node, appendNodeToVisit)
-              continue
-            }
-
-            // check the types
-            for (const [type, reportAt] of typesToCheck) {
-              yield* pipe(
-                typeParser.contextTag(type, node),
-                Nano.map(() => {
-                  report({
-                    node: reportAt,
-                    category: ts.DiagnosticCategory.Warning,
-                    messageText:
-                      `Effect Services with type parameters are not supported because they cannot be properly discriminated at runtime, which may cause unexpected behavior.`,
-                    fixes: []
-                  })
-                }),
-                Nano.orElse(() => Nano.sync(() => ts.forEachChild(node, appendNodeToVisit))),
-                Nano.ignore
-              )
-            }
-          }
-        })
+        }
+        return Nano.void_
+      }
     }
   })
 })

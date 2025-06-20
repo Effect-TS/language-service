@@ -38,7 +38,16 @@ export function createRefactor(definition: RefactorDefinition): RefactorDefiniti
   return definition
 }
 
-type KnownNodes = ts.SourceFile | ts.CallExpression | ts.YieldExpression
+type KnownNodes =
+  | ts.SourceFile
+  | ts.CallExpression
+  | ts.YieldExpression
+  | ts.ReturnStatement
+  | ts.ExpressionStatement
+  | ts.ClassDeclaration
+export type DiagnosticMatcher = {
+  [K in KnownNodes as K["kind"]]?: (node: K) => Nano.Nano<void>
+}
 
 export interface DiagnosticDefinition {
   name: string
@@ -46,9 +55,7 @@ export interface DiagnosticDefinition {
   apply: (
     report: (data: ApplicableDiagnosticDefinition) => void
   ) => Nano.Nano<
-    {
-      [K in KnownNodes as K["kind"]]?: (node: K) => Nano.Nano<void>
-    },
+    DiagnosticMatcher,
     never,
     | TypeCheckerApi.TypeCheckerApi
     | TypeParser.TypeParser
@@ -294,9 +301,11 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
     suggestion: ts.DiagnosticCategory.Suggestion
   }
 
+  const allMatcher: Record<string, (node: ts.Node) => Nano.Nano<void>> = {}
   let diagnostics: Array<ts.Diagnostic> = []
   let codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
 
+  // process each rule
   for (const rule of rules) {
     const ruleNameLowered = rule.name.toLowerCase()
     // if file is skipped entirely, do not process the rule
@@ -386,8 +395,26 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
         })
       ))
     })
-    // execute at root
-    if (ts.SyntaxKind.SourceFile in matchers) yield* matchers[ts.SyntaxKind.SourceFile](sourceFile)
+    for (const nodeKind of Object.keys(matchers)) {
+      const prevMatcher = allMatcher[nodeKind]
+      const newMatcher = (matchers as any)[nodeKind]
+      allMatcher[nodeKind] = prevMatcher
+        ? (node) => Nano.flatMap(prevMatcher(node), () => newMatcher(node))
+        : newMatcher
+    }
+  }
+
+  // real execution
+  const nodeToVisit: Array<ts.Node> = [sourceFile]
+  const appendNodeToVisit = (node: ts.Node) => {
+    nodeToVisit.push(node)
+    return undefined
+  }
+
+  while (nodeToVisit.length > 0) {
+    const node = nodeToVisit.shift()!
+    ts.forEachChild(node, appendNodeToVisit)
+    if (node.kind in allMatcher) yield* allMatcher[node.kind](node)
   }
 
   return { diagnostics, codeFixes }
