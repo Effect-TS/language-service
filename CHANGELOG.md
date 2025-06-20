@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.21.5
+
+### Patch Changes
+
+- [#219](https://github.com/Effect-TS/language-service/pull/219) [`346a556`](https://github.com/Effect-TS/language-service/commit/346a556fdcda43b58e9bae8206dbf2e16691ff66) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Switch to emit style for internal diagnostics
+
+- [#221](https://github.com/Effect-TS/language-service/pull/221) [`85def8b`](https://github.com/Effect-TS/language-service/commit/85def8b2b9c091bd22c57bc4da7cd485557b8f88) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Trigger returnEffectInGen only for strict effect type
+
 ## 0.21.4
 
 ### Patch Changes
