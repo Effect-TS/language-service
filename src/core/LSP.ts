@@ -1,5 +1,4 @@
 import * as ReadonlyArray from "effect/Array"
-import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -121,60 +120,6 @@ export class SourceFileNotFoundError {
   ) {}
 }
 
-export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
-  "LSP.getSemanticDiagnosticsWithCodeFixes"
-)(function*(
-  rules: Array<DiagnosticDefinition>,
-  sourceFile: ts.SourceFile
-) {
-  let effectDiagnostics: Array<ts.Diagnostic> = []
-  let effectCodeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
-  const executor = yield* createDiagnosticExecutor(sourceFile)
-  for (const rule of rules) {
-    const result = yield* (
-      Nano.option(executor.execute(rule))
-    )
-    if (Option.isSome(result)) {
-      effectDiagnostics = effectDiagnostics.concat(
-        pipe(
-          result.value,
-          ReadonlyArray.map((_) => ({
-            file: sourceFile,
-            start: _.node.getStart(sourceFile),
-            length: _.node.getEnd() - _.node.getStart(sourceFile),
-            messageText: _.messageText,
-            category: _.category,
-            code: rule.code,
-            source: "effect"
-          }))
-        )
-      )
-      effectCodeFixes = effectCodeFixes.concat(
-        pipe(
-          result.value,
-          ReadonlyArray.map((_) =>
-            ReadonlyArray.map(
-              _.fixes,
-              (fix) => ({
-                ...fix,
-                code: rule.code,
-                start: _.node.getStart(sourceFile),
-                end: _.node.getEnd()
-              })
-            )
-          ),
-          ReadonlyArray.flatten
-        )
-      )
-    }
-  }
-
-  return ({
-    diagnostics: effectDiagnostics,
-    codeFixes: effectCodeFixes
-  })
-})
-
 function refactorNameToFullyQualifiedName(name: string) {
   return `@effect/language-service/refactors/${name}`
 }
@@ -239,203 +184,211 @@ export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(
   return effectCompletions
 })
 
-const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")(
-  function*(sourceFile: ts.SourceFile) {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-    const pluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
+export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
+  "LSP.getSemanticDiagnosticsWithCodeFixes"
+)(function*(
+  rules: Array<DiagnosticDefinition>,
+  sourceFile: ts.SourceFile
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const pluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
-    function findNodeWithLeadingCommentAtPosition(position: number) {
-      const sourceText = sourceFile.text
-      let result: ts.Node | undefined
+  function findNodeWithLeadingCommentAtPosition(position: number) {
+    const sourceText = sourceFile.text
+    let result: ts.Node | undefined
 
-      function find(node: ts.Node) {
-        // Check leading comments
-        const leading = ts.getLeadingCommentRanges(sourceText, node.getFullStart())
-        if (leading) {
-          for (const r of leading) {
-            if (r.pos <= position && position < r.end) {
-              // we found the comment
-              result = node
-              return
-            }
+    function find(node: ts.Node) {
+      // Check leading comments
+      const leading = ts.getLeadingCommentRanges(sourceText, node.getFullStart())
+      if (leading) {
+        for (const r of leading) {
+          if (r.pos <= position && position < r.end) {
+            // we found the comment
+            result = node
+            return
           }
         }
-        // Continue traversing only if the position is within this node
-        if (node.getFullStart() <= position && position < node.getEnd()) {
-          node.forEachChild(find)
-        }
       }
-      find(sourceFile)
-      return result
-    }
-
-    function findParentStatementForDisableNextLine(node: ts.Node) {
-      let result: ts.Node | undefined
-
-      function find(node: ts.Node) {
-        if (ts.isStatement(node)) {
-          result = node
-          return
-        }
-        if (result) return
-        if (node.parent) find(node.parent)
+      // Continue traversing only if the position is within this node
+      if (node.getFullStart() <= position && position < node.getEnd()) {
+        node.forEachChild(find)
       }
-      find(node)
-      return result || node
     }
+    find(sourceFile)
+    return result
+  }
 
-    const lineOverrides: Record<
-      string,
-      Array<{ pos: number; end: number; level: string }>
-    > = {}
-    const sectionOverrides: Record<
-      string,
-      Array<{ pos: number; level: string }>
-    > = {}
-    const skippedRules: Array<string> = []
+  function findParentStatementForDisableNextLine(node: ts.Node) {
+    let result: ts.Node | undefined
 
-    const regex =
-      /@effect-diagnostics(-next-line)?((?:\s[a-zA-Z0-9/]+:(?:off|warning|error|message|suggestion|skip-file))+)?/gm
-    let match: RegExpExecArray | null
-    while ((match = regex.exec(sourceFile.text)) !== null) {
-      const nextLineCaptureGroup = match[1]
-      const rulesCaptureGroup = match[2]
+    function find(node: ts.Node) {
+      if (ts.isStatement(node)) {
+        result = node
+        return
+      }
+      if (result) return
+      if (node.parent) find(node.parent)
+    }
+    find(node)
+    return result || node
+  }
 
-      if (rulesCaptureGroup) {
-        const trimmedRuleString = rulesCaptureGroup.trim()
-        if (trimmedRuleString) {
-          const individualRules = trimmedRuleString.split(/\s+/)
-          for (const rulePair of individualRules) {
-            const [rawRuleName, ruleLevel] = rulePair.toLowerCase().split(":")
-            // NOTE: for backwards compatibility, treat "effect/ruleName" same as "ruleName"
-            const ruleName = rawRuleName.startsWith("effect/")
-              ? rawRuleName.substring("effect/".length)
-              : rawRuleName
-            if (ruleName && ruleLevel) {
-              if (ruleLevel === "skip-file") skippedRules.push(ruleName)
-              const isOverrideNextLine = nextLineCaptureGroup &&
-                nextLineCaptureGroup.trim().toLowerCase() === "-next-line"
-              if (isOverrideNextLine) {
-                const node = findNodeWithLeadingCommentAtPosition(match.index)
-                if (node) {
-                  lineOverrides[ruleName] = lineOverrides[ruleName] || []
-                  lineOverrides[ruleName].unshift({
-                    pos: node.getFullStart(),
-                    end: node.end,
-                    level: ruleLevel
-                  })
-                }
-              } else {
-                sectionOverrides[ruleName] = sectionOverrides[ruleName] || []
-                sectionOverrides[ruleName].unshift({
-                  pos: match.index,
+  const lineOverrides: Record<
+    string,
+    Array<{ pos: number; end: number; level: string }>
+  > = {}
+  const sectionOverrides: Record<
+    string,
+    Array<{ pos: number; level: string }>
+  > = {}
+  const skippedRules: Array<string> = []
+
+  const regex =
+    /@effect-diagnostics(-next-line)?((?:\s[a-zA-Z0-9/]+:(?:off|warning|error|message|suggestion|skip-file))+)?/gm
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(sourceFile.text)) !== null) {
+    const nextLineCaptureGroup = match[1]
+    const rulesCaptureGroup = match[2]
+
+    if (rulesCaptureGroup) {
+      const trimmedRuleString = rulesCaptureGroup.trim()
+      if (trimmedRuleString) {
+        const individualRules = trimmedRuleString.split(/\s+/)
+        for (const rulePair of individualRules) {
+          const [rawRuleName, ruleLevel] = rulePair.toLowerCase().split(":")
+          // NOTE: for backwards compatibility, treat "effect/ruleName" same as "ruleName"
+          const ruleName = rawRuleName.startsWith("effect/")
+            ? rawRuleName.substring("effect/".length)
+            : rawRuleName
+          if (ruleName && ruleLevel) {
+            if (ruleLevel === "skip-file") skippedRules.push(ruleName)
+            const isOverrideNextLine = nextLineCaptureGroup &&
+              nextLineCaptureGroup.trim().toLowerCase() === "-next-line"
+            if (isOverrideNextLine) {
+              const node = findNodeWithLeadingCommentAtPosition(match.index)
+              if (node) {
+                lineOverrides[ruleName] = lineOverrides[ruleName] || []
+                lineOverrides[ruleName].unshift({
+                  pos: node.getFullStart(),
+                  end: node.end,
                   level: ruleLevel
                 })
               }
+            } else {
+              sectionOverrides[ruleName] = sectionOverrides[ruleName] || []
+              sectionOverrides[ruleName].unshift({
+                pos: match.index,
+                level: ruleLevel
+              })
             }
           }
         }
       }
     }
+  }
 
-    const levelToDiagnosticCategory: Record<string, ts.DiagnosticCategory> = {
-      error: ts.DiagnosticCategory.Error,
-      warning: ts.DiagnosticCategory.Warning,
-      message: ts.DiagnosticCategory.Message,
-      suggestion: ts.DiagnosticCategory.Suggestion
-    }
+  const levelToDiagnosticCategory: Record<string, ts.DiagnosticCategory> = {
+    error: ts.DiagnosticCategory.Error,
+    warning: ts.DiagnosticCategory.Warning,
+    message: ts.DiagnosticCategory.Message,
+    suggestion: ts.DiagnosticCategory.Suggestion
+  }
 
-    const execute = Nano.fn("LSP.ruleExecutor")(function*(
-      rule: DiagnosticDefinition
-    ) {
-      const ruleNameLowered = rule.name.toLowerCase()
-      // if file is skipped entirely, do not process the rule
-      if (skippedRules.indexOf(ruleNameLowered) > -1) return []
-      // append a rule fix to disable this check only for next line
-      const fixByDisableNextLine = (
-        _: ApplicableDiagnosticDefinition
-      ): ApplicableDiagnosticDefinitionFix => ({
-        fixName: rule.name + "_skipNextLine",
-        description: "Disable " + rule.name + " for this line",
-        apply: Nano.flatMap(
-          Nano.service(TypeScriptApi.ChangeTracker),
-          (changeTracker) =>
-            Nano.sync(() => {
-              const disableAtNode = findParentStatementForDisableNextLine(_.node)
-              const { line } = ts.getLineAndCharacterOfPosition(sourceFile, disableAtNode.getStart())
+  let diagnostics: Array<ts.Diagnostic> = []
+  let codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
 
-              changeTracker.insertCommentBeforeLine(
-                sourceFile,
-                line,
-                disableAtNode.getStart(),
-                ` @effect-diagnostics-next-line ${rule.name}:off`
-              )
-            })
-        )
-      })
+  for (const rule of rules) {
+    const ruleNameLowered = rule.name.toLowerCase()
+    // if file is skipped entirely, do not process the rule
+    if (skippedRules.indexOf(ruleNameLowered) > -1) continue
+    // append a rule fix to disable this check only for next line
+    const fixByDisableNextLine = (
+      _: ApplicableDiagnosticDefinition
+    ): ApplicableDiagnosticDefinitionFix => ({
+      fixName: rule.name + "_skipNextLine",
+      description: "Disable " + rule.name + " for this line",
+      apply: Nano.flatMap(
+        Nano.service(TypeScriptApi.ChangeTracker),
+        (changeTracker) =>
+          Nano.sync(() => {
+            const disableAtNode = findParentStatementForDisableNextLine(_.node)
+            const { line } = ts.getLineAndCharacterOfPosition(sourceFile, disableAtNode.getStart())
 
-      // append a rule fix to disable this check for the entire file
-      const fixByDisableEntireFile: ApplicableDiagnosticDefinitionFix = {
-        fixName: rule.name + "_skipFile",
-        description: "Disable " + rule.name + " for this entire file",
-        apply: Nano.flatMap(
-          Nano.service(TypeScriptApi.ChangeTracker),
-          (changeTracker) =>
-            Nano.sync(() =>
-              changeTracker.insertText(
-                sourceFile,
-                0,
-                `/** @effect-diagnostics ${rule.name}:skip-file */\n`
-              )
+            changeTracker.insertCommentBeforeLine(
+              sourceFile,
+              line,
+              disableAtNode.getStart(),
+              ` @effect-diagnostics-next-line ${rule.name}:off`
             )
-        )
-      }
-      // run the executor
-      let modifiedDiagnostics: Array<ApplicableDiagnosticDefinition> = []
-      const matchers = yield* rule.apply((entry) => {
-        modifiedDiagnostics.push({
-          ...entry,
-          fixes: entry.fixes.concat([fixByDisableNextLine(entry), fixByDisableEntireFile])
-        })
-      })
-      if (ts.SyntaxKind.SourceFile in matchers) yield* matchers[ts.SyntaxKind.SourceFile](sourceFile)
-      // early exit, no customizations of severity
-      if (
-        !(ruleNameLowered in pluginOptions.diagnosticSeverity || ruleNameLowered in sectionOverrides ||
-          ruleNameLowered in lineOverrides)
-      ) return modifiedDiagnostics
-
-      // loop through rules
-      for (const emitted of modifiedDiagnostics.slice(0)) {
-        // by default, use the overriden level from the plugin options
-        let newLevel: string | undefined = pluginOptions.diagnosticSeverity[ruleNameLowered]
-        // attempt with line overrides
-        const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
-          _.pos < emitted.node.getStart(sourceFile) && _.end >= emitted.node.getEnd()
-        )
-        if (lineOverride) {
-          newLevel = lineOverride.level
-        } else {
-          // then attempt with section overrides
-          const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
-            _.pos < emitted.node.getStart(sourceFile)
-          )
-          if (sectionOverride) newLevel = sectionOverride.level
-        }
-        if (newLevel === "off") {
-          // remove from output those in range
-          modifiedDiagnostics = modifiedDiagnostics.filter((_) => _ !== emitted)
-        } else {
-          // change severity
-          emitted.category = newLevel && newLevel in levelToDiagnosticCategory
-            ? levelToDiagnosticCategory[newLevel]
-            : emitted.category
-        }
-      }
-
-      return modifiedDiagnostics
+          })
+      )
     })
 
-    return { execute }
+    // append a rule fix to disable this check for the entire file
+    const fixByDisableEntireFile: ApplicableDiagnosticDefinitionFix = {
+      fixName: rule.name + "_skipFile",
+      description: "Disable " + rule.name + " for this entire file",
+      apply: Nano.flatMap(
+        Nano.service(TypeScriptApi.ChangeTracker),
+        (changeTracker) =>
+          Nano.sync(() =>
+            changeTracker.insertText(
+              sourceFile,
+              0,
+              `/** @effect-diagnostics ${rule.name}:skip-file */\n`
+            )
+          )
+      )
+    }
+    // run the executor
+    const matchers = yield* rule.apply((entry) => {
+      // by default, use the overriden level from the plugin options
+      let newLevel: string | undefined = pluginOptions.diagnosticSeverity[ruleNameLowered]
+      // attempt with line overrides
+      const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
+        _.pos < entry.node.getStart(sourceFile) && _.end >= entry.node.getEnd()
+      )
+      if (lineOverride) {
+        newLevel = lineOverride.level
+      } else {
+        // then attempt with section overrides
+        const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
+          _.pos < entry.node.getStart(sourceFile)
+        )
+        if (sectionOverride) newLevel = sectionOverride.level
+      }
+      // if off, do not emit the diagnostic
+      if (newLevel === "off") return
+      // final applicable diagnostic
+      const _: ApplicableDiagnosticDefinition = {
+        ...entry,
+        category: newLevel && newLevel in levelToDiagnosticCategory
+          ? levelToDiagnosticCategory[newLevel]
+          : entry.category,
+        fixes: entry.fixes.concat([fixByDisableNextLine(entry), fixByDisableEntireFile])
+      }
+      diagnostics = diagnostics.concat([{
+        file: sourceFile,
+        start: _.node.getStart(sourceFile),
+        length: _.node.getEnd() - _.node.getStart(sourceFile),
+        messageText: _.messageText,
+        category: _.category,
+        code: rule.code,
+        source: "effect"
+      }])
+      codeFixes = codeFixes.concat(ReadonlyArray.map(
+        _.fixes,
+        (fix) => ({
+          ...fix,
+          code: rule.code,
+          start: _.node.getStart(sourceFile),
+          end: _.node.getEnd()
+        })
+      ))
+    })
+    // execute at root
+    if (ts.SyntaxKind.SourceFile in matchers) yield* matchers[ts.SyntaxKind.SourceFile](sourceFile)
   }
-)
+
+  return { diagnostics, codeFixes }
+})
