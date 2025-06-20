@@ -15,8 +15,6 @@ export const returnEffectInGen = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const brokenReturnStatements = new Set<ts.ReturnStatement>()
-
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
       nodeToVisit.push(node)
@@ -51,57 +49,50 @@ export const returnEffectInGen = LSP.createDiagnostic({
 
         // are we returning an effect with never as success type?
         const type = typeChecker.getTypeAtLocation(node.expression)
-        const maybeEffect = yield* Nano.option(typeParser.effectType(type, node.expression))
+        const maybeEffect = yield* Nano.option(typeParser.strictEffectType(type, node.expression))
 
         if (Option.isSome(maybeEffect)) {
-          // ok to return effect subtype
-          const maybeEffectSubtype = yield* Nano.option(typeParser.effectSubtype(type, node.expression))
-          if (Option.isNone(maybeEffectSubtype)) {
-            // .gen should always be the parent ideally
-            if (generatorOrRegularFunction && generatorOrRegularFunction.parent) {
-              const effectGenNode = generatorOrRegularFunction.parent
-              // continue if we hit effect gen-like
-              yield* pipe(
-                typeParser.effectGen(effectGenNode),
-                Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
-                Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
-                Nano.map(() => brokenReturnStatements.add(node)),
-                Nano.ignore
-              )
-            }
+          // .gen should always be the parent ideally
+          if (generatorOrRegularFunction && generatorOrRegularFunction.parent) {
+            const effectGenNode = generatorOrRegularFunction.parent
+            // continue if we hit effect gen-like
+            yield* pipe(
+              typeParser.effectGen(effectGenNode),
+              Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
+              Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
+              Nano.map(() => {
+                const fix = node.expression ?
+                  [{
+                    fixName: "returnEffectInGen_fix",
+                    description: "Add yield* statement",
+                    apply: Nano.gen(function*() {
+                      const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                      changeTracker.replaceNode(
+                        sourceFile,
+                        node.expression!,
+                        ts.factory.createYieldExpression(
+                          ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+                          node.expression!
+                        )
+                      )
+                    })
+                  }] :
+                  []
+
+                report({
+                  node,
+                  category: ts.DiagnosticCategory.Suggestion,
+                  messageText:
+                    `You are returning an Effect-able type inside a generator function, and will result in nested Effect<Effect<...>>. Maybe you wanted to return yield* instead? Nested Effect-able types may be intended if you plan to later manually flatten or unwrap this Effect.`,
+                  fixes: fix
+                })
+              }),
+              Nano.ignore
+            )
           }
         }
       }
     }
-
-    // emit diagnostics
-    brokenReturnStatements.forEach((node) => {
-      const fix = node.expression ?
-        [{
-          fixName: "returnEffectInGen_fix",
-          description: "Add yield* statement",
-          apply: Nano.gen(function*() {
-            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-            changeTracker.replaceNode(
-              sourceFile,
-              node.expression!,
-              ts.factory.createYieldExpression(
-                ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
-                node.expression!
-              )
-            )
-          })
-        }] :
-        []
-
-      report({
-        node,
-        category: ts.DiagnosticCategory.Suggestion,
-        messageText:
-          `You are returning an Effect-able type inside a generator function, and will result in nested Effect<Effect<...>>. Maybe you wanted to return yield* instead? Nested Effect-able types may be intended if you plan to later manually flatten or unwrap this Effect.`,
-        fixes: fix
-      })
-    })
   })
 })

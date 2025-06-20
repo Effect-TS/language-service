@@ -11,6 +11,10 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ A: ts.Type; E: ts.Type; R: ts.Type }, TypeParserIssue>
+  strictEffectType: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<{ A: ts.Type; E: ts.Type; R: ts.Type }, TypeParserIssue>
   layerType: (
     type: ts.Type,
     atLocation: ts.Node
@@ -244,6 +248,22 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
     }),
     "TypeParser.effectType",
+    (type) => type
+  )
+
+  const strictEffectType = Nano.cachedBy(
+    Nano.fn("TypeParser.strictEffectType")(function*(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      // symbol name should be Effect
+      if (type.symbol.name !== "Effect" || type.aliasSymbol) {
+        return yield* typeParserIssue("Type name should be Effect with no alias symbol", type, atLocation)
+      }
+      // should be an effect
+      return yield* effectType(type, atLocation)
+    }),
+    "TypeParser.strictEffectType",
     (type) => type
   )
 
@@ -710,6 +730,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
 
   return {
     effectType,
+    strictEffectType,
     layerType,
     fiberType,
     effectSubtype,
