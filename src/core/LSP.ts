@@ -399,7 +399,7 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
       const prevMatcher = allMatcher[nodeKind]
       const newMatcher = (matchers as any)[nodeKind]
       allMatcher[nodeKind] = prevMatcher
-        ? (node) => Nano.flatMap(prevMatcher(node), () => newMatcher(node))
+        ? (node) => Nano.all(prevMatcher(node), newMatcher(node))
         : newMatcher
     }
   }
