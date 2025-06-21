@@ -77,7 +77,7 @@ export const leakingRequirements = LSP.createDiagnostic({
         category: ts.DiagnosticCategory.Warning,
         messageText: `This Service is leaking the ${
           requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
-        } requirement`,
+        } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
         fixes: []
       })
     }
@@ -94,7 +94,10 @@ export const leakingRequirements = LSP.createDiagnostic({
 
       // we need to check the type of the class declaration (if any)
       const typesToCheck: Array<[type: ts.Type, reportNode: ts.Node]> = []
-      if (ts.isCallExpression(node)) {
+      if (
+        ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.name) && node.expression.name.text === "GenericTag"
+      ) {
         typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
       } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
         const classSym = typeChecker.getSymbolAtLocation(node.name)
