@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.21.7
+
+### Patch Changes
+
+- [#225](https://github.com/Effect-TS/language-service/pull/225) [`b22cc2c`](https://github.com/Effect-TS/language-service/commit/b22cc2c6b200592830aef5b508c0dde016b306ab) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve diagnostics phrasing and link to docs
+
 ## 0.21.6
 
 ### Patch Changes
