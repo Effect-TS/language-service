@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.21.8
+
+### Patch Changes
+
+- [#227](https://github.com/Effect-TS/language-service/pull/227) [`0f2a403`](https://github.com/Effect-TS/language-service/commit/0f2a403d9f9e4c8df92ab4717d5d808ea989a580) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Enable Effect Type Parameters also for returned effects with truncated signatures
+
 ## 0.21.7
 
 ### Patch Changes
