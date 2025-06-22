@@ -44,3 +44,16 @@ export const longSuccessValue = Effect.gen(function*() {
   if (a === 9) return yield* Effect.succeed(new ErrorWithVeryLongName9())
   if (a === 10) return yield* Effect.succeed(new ErrorWithVeryLongName10())
 })
+
+export const asReturnFunction = () => longErrorType
+
+export function testReturnSignature() {
+  return longErrorType
+}
+
+export function withGenerics<A>(value: A) {
+  return Effect.gen(function*() {
+    if (Math.random() > 0.5) return yield* longErrorType
+    return yield* Effect.succeed(value)
+  })
+}

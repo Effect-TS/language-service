@@ -1,26 +1,9 @@
-import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-
-function formatTypeForQuickInfo(channelType: ts.Type, channelName: string) {
-  return Nano.gen(function*() {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-
-    const stringRepresentation = typeChecker.typeToString(
-      channelType,
-      undefined,
-      ts.TypeFormatFlags.NoTruncation
-    )
-    return `type ${channelName} = ${stringRepresentation}`
-  })
-}
 
 export function effectTypeArgs(
   sourceFile: ts.SourceFile,
@@ -33,45 +16,103 @@ export function effectTypeArgs(
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
       const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-      // find the node we are hovering
-      const maybeNode = pipe(
-        yield* AST.getAncestorNodesInRange(sourceFile, AST.toTextRange(position)),
-        Array.head
-      )
-      if (Option.isNone(maybeNode)) return quickInfo
-      const node = maybeNode.value
-
-      const hasTruncationHappened = quickInfo &&
-        ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
-
-      // if we are hovering a "yield*" and there are no quickinfo,
-      // we try to parse the effect type
-      // otherwise if no truncation has happened, do nothing
-      const nodeForType = (!quickInfo && ts.isYieldExpression(node) && node.asteriskToken && node.expression)
-        ? node.expression
-        : (hasTruncationHappened ? node : undefined)
-
-      // we have no node to get type from
-      if (!nodeForType) return quickInfo
-
-      const effectType = yield* typeParser.effectType(
-        typeChecker.getTypeAtLocation(nodeForType),
-        nodeForType
-      )
-
-      const effectTypeArgsDocumentation: Array<ts.SymbolDisplayPart> = [{
-        kind: "text",
-        text: (
-          "```ts\n" +
-          "/* Effect Type Parameters */\n" +
-          (yield* formatTypeForQuickInfo(effectType.A, "Success")) +
-          "\n" +
-          (yield* formatTypeForQuickInfo(effectType.E, "Failure")) +
-          "\n" +
-          (yield* formatTypeForQuickInfo(effectType.R, "Requirements")) +
-          "\n```\n"
+      function formatTypeForQuickInfo(channelType: ts.Type, channelName: string) {
+        const stringRepresentation = typeChecker.typeToString(
+          channelType,
+          undefined,
+          ts.TypeFormatFlags.NoTruncation
         )
-      }]
+        return `type ${channelName} = ${stringRepresentation}`
+      }
+
+      function makeSymbolDisplayParts(title: string, A: ts.Type, E: ts.Type, R: ts.Type): Array<ts.SymbolDisplayPart> {
+        return [{
+          kind: "text",
+          text: (
+            "```ts\n" +
+            "/* " + title + " */\n" +
+            (formatTypeForQuickInfo(A, "Success")) +
+            "\n" +
+            (formatTypeForQuickInfo(E, "Failure")) +
+            "\n" +
+            (formatTypeForQuickInfo(R, "Requirements")) +
+            "\n```\n"
+          )
+        }]
+      }
+
+      function getNodeForQuickInfo(node: ts.Node): ts.Node {
+        if (ts.isNewExpression(node.parent) && node.pos === node.parent.pos) {
+          return node.parent.expression
+        }
+        if (ts.isNamedTupleMember(node.parent) && node.pos === node.parent.pos) {
+          return node.parent
+        }
+        if (ts.isJsxNamespacedName(node.parent)) {
+          return node.parent
+        }
+        return node
+      }
+
+      function getDataForQuickInfo() {
+        // NOTE: non-exposed API
+        if (!("getTouchingPropertyName" in ts && typeof ts.getTouchingPropertyName === "function")) return
+
+        const touchingNode = ts.getTouchingPropertyName(sourceFile, position) as ts.Node
+        // if we are hovering the whole file, we don't do anything
+        if (touchingNode === sourceFile) return
+        const adjustedNode = getNodeForQuickInfo(touchingNode)
+        // hover over a yield keyword
+        if (ts.isToken(adjustedNode) && adjustedNode.kind === ts.SyntaxKind.YieldKeyword) {
+          if (
+            ts.isYieldExpression(adjustedNode.parent) && adjustedNode.parent.asteriskToken &&
+            adjustedNode.parent.expression
+          ) {
+            // if we are hovering a yield keyword, we need to get the expression
+            return {
+              type: typeChecker.getTypeAtLocation(adjustedNode.parent.expression),
+              atLocation: adjustedNode.parent.expression,
+              node: adjustedNode.parent,
+              shouldTry: true
+            }
+          }
+        }
+        // standard case
+        return {
+          type: typeChecker.getTypeAtLocation(adjustedNode),
+          atLocation: adjustedNode,
+          node: adjustedNode,
+          shouldTry: quickInfo &&
+            ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
+        }
+      }
+
+      // check if we should try to get the effect type
+      const data = getDataForQuickInfo()
+      if (!(data && data.shouldTry)) return quickInfo
+      const { atLocation, node, type } = data
+
+      // first try to get the effect type
+      const effectTypeArgsDocumentation = yield* pipe(
+        typeParser.effectType(
+          type,
+          atLocation
+        ),
+        Nano.map((_) => makeSymbolDisplayParts("Effect Type Parameters", _.A, _.E, _.R)),
+        Nano.orElse(() => {
+          // if we have a call signature, we can get the effect type from the return type
+          const callSignatues = type.getCallSignatures()
+          if (callSignatues.length !== 1) return Nano.succeed([])
+          const returnType = callSignatues[0].getReturnType()
+          return pipe(
+            typeParser.effectType(
+              returnType,
+              atLocation
+            ),
+            Nano.map((_) => makeSymbolDisplayParts("Returned Effect Type Parameters", _.A, _.E, _.R))
+          )
+        })
+      )
 
       // there are cases where we create it from scratch
       if (!quickInfo) {
