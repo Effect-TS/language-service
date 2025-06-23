@@ -1,4 +1,4 @@
-import { hasProperty, isObject, isString } from "effect/Predicate"
+import { hasProperty, isFunction, isObject, isString } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 
@@ -191,5 +191,30 @@ export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWi
     hasEffectInPeerDependencies,
     contents: packageJsonContent,
     packageDirectory: packageJsonScope.packageDirectory
+  }
+}
+
+export function makeGetModuleSpecifier(ts: TypeScriptApi) {
+  if (
+    !(hasProperty(ts, "moduleSpecifiers") && hasProperty(ts.moduleSpecifiers, "getModuleSpecifier") &&
+      isFunction(ts.moduleSpecifiers.getModuleSpecifier))
+  ) return
+  const _internal = ts.moduleSpecifiers.getModuleSpecifier
+  return (
+    compilerOptions: ts.CompilerOptions,
+    importingSourceFile: ts.SourceFile,
+    importingSourceFileName: string,
+    toFileName: string,
+    host: any,
+    options?: any
+  ): string => {
+    return _internal(
+      compilerOptions,
+      importingSourceFile,
+      importingSourceFileName,
+      toFileName,
+      host,
+      options
+    )
   }
 }

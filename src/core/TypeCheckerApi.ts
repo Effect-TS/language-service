@@ -1,7 +1,8 @@
 import * as Array from "effect/Array"
-import { pipe } from "effect/Function"
+import { isFunction, pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
+import { hasProperty } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
@@ -326,3 +327,13 @@ export const appendToUniqueTypesMap = Nano.fn(
     }
   }
 )
+
+export function makeResolveExternalModuleName(typeChecker: TypeCheckerApi) {
+  if (!(hasProperty(typeChecker, "resolveExternalModuleName") && isFunction(typeChecker.resolveExternalModuleName))) {
+    return
+  }
+  const _internal = typeChecker.resolveExternalModuleName
+  return (moduleSpecifier: ts.Expression): ts.Symbol | undefined => {
+    return _internal(moduleSpecifier)
+  }
+}

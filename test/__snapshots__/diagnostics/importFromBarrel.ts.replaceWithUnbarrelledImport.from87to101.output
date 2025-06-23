@@ -1,0 +1,11 @@
+// code fix replaceWithUnbarrelledImport  output for range 87 - 101
+// @effect-diagnostics importFromBarrel:error
+import { Effect } from "effect"
+import * as Predicate from "./node_modules/effect/dist/dts/Predicate"
+import * as Schema from "effect/Schema"
+
+export const main = {
+  a: Effect.void,
+  b: P.isNumber,
+  c: Schema.Number
+}

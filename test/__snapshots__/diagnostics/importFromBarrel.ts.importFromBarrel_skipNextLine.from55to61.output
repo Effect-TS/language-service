@@ -1,0 +1,12 @@
+// code fix importFromBarrel_skipNextLine  output for range 55 - 61
+// @effect-diagnostics importFromBarrel:error
+// @effect-diagnostics-next-line importFromBarrel:off
+import { Effect } from "effect"
+import { Predicate as P } from "effect"
+import * as Schema from "effect/Schema"
+
+export const main = {
+  a: Effect.void,
+  b: P.isNumber,
+  c: Schema.Number
+}
