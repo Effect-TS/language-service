@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const genericEffectServices = LSP.createDiagnostic({
   name: "genericEffectServices",
   code: 10,
+  severity: "warning",
   apply: Nano.fn("genericEffectServices.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
@@ -43,7 +44,6 @@ export const genericEffectServices = LSP.createDiagnostic({
           Nano.map(() => {
             report({
               node: reportAt,
-              category: ts.DiagnosticCategory.Warning,
               messageText:
                 `Effect Services with type parameters are not supported because they cannot be properly discriminated at runtime, which may cause unexpected behavior.`,
               fixes: []

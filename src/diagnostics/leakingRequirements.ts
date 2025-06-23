@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
   code: 8,
+  severity: "suggestion",
   apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
@@ -74,7 +75,6 @@ export const leakingRequirements = LSP.createDiagnostic({
       if (requirements.length === 0) return
       report({
         node,
-        category: ts.DiagnosticCategory.Warning,
         messageText: `This Service is leaking the ${
           requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
         } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
