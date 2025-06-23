@@ -297,11 +297,53 @@ const init = (
         ...args
       )
 
+      const getModuleSpecifier = TypeScriptApi.makeGetModuleSpecifier(modules.typescript)
+      const cache = new Map<string, false | { moduleName: string; moduleSpecifier: string }>()
+
       if (languageServicePluginOptions.completions) {
         const program = languageService.getProgram()
         if (program) {
           const sourceFile = program.getSourceFile(fileName)
           if (sourceFile) {
+            if (applicableCompletions && getModuleSpecifier) {
+              const getEffectNamespaceInfo = (entry: ts.CompletionEntry) => {
+                const data = entry.data
+                if (!data) return
+                if (!data.fileName) return
+                if (!data.moduleSpecifier) return
+                if (!data.exportName) return
+                if (cache.has(data.fileName)) return cache.get(data.fileName)!
+                const moduleSpecifier = getModuleSpecifier(
+                  program.getCompilerOptions(),
+                  sourceFile,
+                  sourceFile.fileName,
+                  data.fileName,
+                  program
+                )
+                const lastIndex = moduleSpecifier.lastIndexOf("/")
+                if (lastIndex !== -1) {
+                  const moduleName = moduleSpecifier.slice(lastIndex + 1)
+                  const result = { moduleName, moduleSpecifier }
+                  cache.set(data.fileName, result)
+                  return result
+                }
+                cache.set(data.fileName, false)
+              }
+
+              for (const entry of applicableCompletions.entries) {
+                const info = getEffectNamespaceInfo(entry)
+                if (!info) continue
+                entry.data = {
+                  ...entry.data,
+                  effectModuleName: info.moduleName,
+                  effectModuleSpecifier: info.moduleSpecifier
+                } as any
+                entry.hasAction = true
+                entry.insertText = info.moduleName + "." + entry.name
+                entry.filterText = entry.name
+              }
+            }
+
             return pipe(
               LSP.getCompletionsAtPosition(
                 completions,
@@ -332,6 +374,32 @@ const init = (
       }
 
       return applicableCompletions
+    }
+
+    proxy.getCompletionEntryDetails = (
+      fileName,
+      position,
+      entryName,
+      formatOptions,
+      source,
+      preferences,
+      _data,
+      ...args
+    ) => {
+      const applicableCompletionEntryDetails = languageService.getCompletionEntryDetails(
+        fileName,
+        position,
+        entryName,
+        formatOptions,
+        source,
+        preferences,
+        _data && "effectModuleName" in _data ? undefined : _data,
+        ...args
+      )
+
+      console.log(applicableCompletionEntryDetails)
+
+      return applicableCompletionEntryDetails
     }
 
     proxy.getDefinitionAndBoundSpan = (fileName, position, ...args) => {
