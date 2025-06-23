@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingReturnYieldStar = LSP.createDiagnostic({
   name: "missingReturnYieldStar",
   code: 7,
+  severity: "error",
   apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
@@ -79,7 +80,6 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
 
                 report({
                   node,
-                  category: ts.DiagnosticCategory.Error,
                   messageText: `Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.`,
                   fixes: fix
                 })

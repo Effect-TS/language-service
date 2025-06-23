@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const returnEffectInGen = LSP.createDiagnostic({
   name: "returnEffectInGen",
   code: 11,
+  severity: "suggestion",
   apply: Nano.fn("returnEffectInGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
@@ -82,7 +83,6 @@ export const returnEffectInGen = LSP.createDiagnostic({
 
                 report({
                   node,
-                  category: ts.DiagnosticCategory.Suggestion,
                   messageText:
                     `You are returning an Effect-able type inside a generator function, and will result in nested Effect<Effect<...>>.\nMaybe you wanted to return yield* instead?\nNested Effect-able types may be intended if you plan to later manually flatten or unwrap this Effect, if so you can safely disable this diagnostic for this line through quickfixes.`,
                   fixes: fix

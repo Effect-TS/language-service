@@ -1,5 +1,3 @@
-import * as ReadonlyArray from "effect/Array"
-import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -42,6 +40,7 @@ export function createRefactor(definition: RefactorDefinition): RefactorDefiniti
 export interface DiagnosticDefinition {
   name: string
   code: number
+  severity: LanguageServicePluginOptions.DiagnosticSeverity | "off"
   apply: (
     sourceFile: ts.SourceFile,
     report: (data: ApplicableDiagnosticDefinition) => void
@@ -59,7 +58,6 @@ export interface DiagnosticDefinition {
 
 export interface ApplicableDiagnosticDefinition {
   node: ts.Node
-  category: ts.DiagnosticCategory
   messageText: string
   fixes: Array<ApplicableDiagnosticDefinitionFix>
 }
@@ -128,42 +126,9 @@ export const getSemanticDiagnosticsWithCodeFixes = Nano.fn(
   let effectCodeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
   const executor = yield* createDiagnosticExecutor(sourceFile)
   for (const rule of rules) {
-    const result = yield* (
-      Nano.option(executor.execute(rule))
-    )
-    if (Option.isSome(result)) {
-      effectDiagnostics = effectDiagnostics.concat(
-        pipe(
-          result.value,
-          ReadonlyArray.map((_) => ({
-            file: sourceFile,
-            start: _.node.getStart(sourceFile),
-            length: _.node.getEnd() - _.node.getStart(sourceFile),
-            messageText: _.messageText,
-            category: _.category,
-            code: rule.code,
-            source: "effect"
-          }))
-        )
-      )
-      effectCodeFixes = effectCodeFixes.concat(
-        pipe(
-          result.value,
-          ReadonlyArray.map((_) =>
-            ReadonlyArray.map(
-              _.fixes,
-              (fix) => ({
-                ...fix,
-                code: rule.code,
-                start: _.node.getStart(sourceFile),
-                end: _.node.getEnd()
-              })
-            )
-          ),
-          ReadonlyArray.flatten
-        )
-      )
-    }
+    const { codeFixes, diagnostics } = yield* (executor.execute(rule))
+    effectDiagnostics = effectDiagnostics.concat(diagnostics)
+    effectCodeFixes = effectCodeFixes.concat(codeFixes)
   }
 
   return ({
@@ -345,9 +310,11 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
     const execute = Nano.fn("LSP.ruleExecutor")(function*(
       rule: DiagnosticDefinition
     ) {
+      const diagnostics: Array<ts.Diagnostic> = []
+      const codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
       const ruleNameLowered = rule.name.toLowerCase()
       // if file is skipped entirely, do not process the rule
-      if (skippedRules.indexOf(ruleNameLowered) > -1) return []
+      if (skippedRules.indexOf(ruleNameLowered) > -1) return { diagnostics, codeFixes }
       // append a rule fix to disable this check only for next line
       const fixByDisableNextLine = (
         _: ApplicableDiagnosticDefinition
@@ -388,24 +355,18 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
         )
       }
       // run the executor
-      let modifiedDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+      const applicableDiagnostics: Array<ApplicableDiagnosticDefinition> = []
       yield* rule.apply(sourceFile, (entry) => {
-        modifiedDiagnostics.push({
+        applicableDiagnostics.push({
           ...entry,
           fixes: entry.fixes.concat([fixByDisableNextLine(entry), fixByDisableEntireFile])
         })
       })
 
-      // early exit, no customizations of severity
-      if (
-        !(ruleNameLowered in pluginOptions.diagnosticSeverity || ruleNameLowered in sectionOverrides ||
-          ruleNameLowered in lineOverrides)
-      ) return modifiedDiagnostics
-
       // loop through rules
-      for (const emitted of modifiedDiagnostics.slice(0)) {
+      for (const emitted of applicableDiagnostics.slice(0)) {
         // by default, use the overriden level from the plugin options
-        let newLevel: string | undefined = pluginOptions.diagnosticSeverity[ruleNameLowered]
+        let newLevel: string | undefined = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
         // attempt with line overrides
         const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
           _.pos < emitted.node.getStart(sourceFile) && _.end >= emitted.node.getEnd()
@@ -419,18 +380,30 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           )
           if (sectionOverride) newLevel = sectionOverride.level
         }
-        if (newLevel === "off") {
-          // remove from output those in range
-          modifiedDiagnostics = modifiedDiagnostics.filter((_) => _ !== emitted)
-        } else {
-          // change severity
-          emitted.category = newLevel && newLevel in levelToDiagnosticCategory
-            ? levelToDiagnosticCategory[newLevel]
-            : emitted.category
+        // if level is off or not a valid level, skip and no output
+        if (!(newLevel in levelToDiagnosticCategory)) continue
+        // append both diagnostic and code fix
+        diagnostics.push({
+          file: sourceFile,
+          start: emitted.node.getStart(sourceFile),
+          length: emitted.node.getEnd() - emitted.node.getStart(sourceFile),
+          messageText: emitted.messageText,
+          category: levelToDiagnosticCategory[newLevel],
+          code: rule.code,
+          source: "effect"
+        })
+        // append code fixes
+        for (const fix of emitted.fixes) {
+          codeFixes.push({
+            ...fix,
+            code: rule.code,
+            start: emitted.node.getStart(sourceFile),
+            end: emitted.node.getEnd()
+          })
         }
       }
 
-      return modifiedDiagnostics
+      return { diagnostics, codeFixes }
     })
 
     return { execute }

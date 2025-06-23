@@ -5,13 +5,12 @@ import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
-import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const missingEffectContext = LSP.createDiagnostic({
   name: "missingEffectContext",
   code: 1,
+  severity: "error",
   apply: Nano.fn("missingEffectContext.apply")(function*(sourceFile, report) {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
@@ -52,7 +51,6 @@ export const missingEffectContext = LSP.createDiagnostic({
         report(
           {
             node,
-            category: ts.DiagnosticCategory.Error,
             messageText: `Missing '${
               sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
             }' in the expected Effect context.`,

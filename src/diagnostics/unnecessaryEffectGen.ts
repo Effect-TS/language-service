@@ -8,6 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unnecessaryEffectGen = LSP.createDiagnostic({
   name: "unnecessaryEffectGen",
   code: 5,
+  severity: "suggestion",
   apply: Nano.fn("unnecessaryEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
@@ -29,7 +30,6 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
           Nano.map(({ replacementNode }) =>
             report({
               node,
-              category: ts.DiagnosticCategory.Suggestion,
               messageText: `This Effect.gen contains a single return statement.`,
               fixes: [{
                 fixName: "unnecessaryEffectGen_fix",

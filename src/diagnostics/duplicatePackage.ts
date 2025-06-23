@@ -12,8 +12,8 @@ const programResolvedCacheSize = new Map<string, number>()
 export const duplicatePackage = LSP.createDiagnostic({
   name: "duplicatePackage",
   code: 6,
+  severity: "warning",
   apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile, report) {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
@@ -54,7 +54,6 @@ export const duplicatePackage = LSP.createDiagnostic({
         const versions = Object.keys(resolvedPackages[packageName])
         report({
           node: sourceFile.statements[0],
-          category: ts.DiagnosticCategory.Warning,
           messageText: `Package ${packageName} is referenced multiple times with different versions (${
             versions.join(", ")
           }) and may cause unexpected type errors.\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project.\nIf this is intended set the LSP config "allowedDuplicatedPackages" to ${

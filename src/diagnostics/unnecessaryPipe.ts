@@ -8,6 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unnecessaryPipe = LSP.createDiagnostic({
   name: "unnecessaryPipe",
   code: 9,
+  severity: "suggestion",
   apply: Nano.fn("unnecessaryPipe.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
@@ -30,7 +31,6 @@ export const unnecessaryPipe = LSP.createDiagnostic({
             if (args.length === 0) {
               report({
                 node,
-                category: ts.DiagnosticCategory.Suggestion,
                 messageText: `This pipe call contains no arguments.`,
                 fixes: [{
                   fixName: "unnecessaryPipe_fix",
