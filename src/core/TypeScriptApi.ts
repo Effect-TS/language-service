@@ -3,6 +3,14 @@ import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 
 declare module "typescript" {
+  export function insertImports(
+    changes: textChanges.ChangeTracker,
+    sourceFile: ts.SourceFile,
+    imports: ts.ImportDeclaration,
+    blankLineBetween: boolean,
+    preferences: ts.UserPreferences
+  ): void
+
   const nullTransformationContext: ts.TransformationContext
 
   export namespace formatting {
@@ -140,13 +148,6 @@ declare module "typescript" {
     isTypeAssignableTo(source: ts.Type, target: ts.Type): boolean
     getUnionType(types: ReadonlyArray<ts.Type>): ts.Type
   }
-
-  export function typeToDisplayParts(
-    typechecker: ts.TypeChecker,
-    type: ts.Type,
-    enclosingDeclaration?: ts.Node | undefined,
-    flags?: ts.TypeFormatFlags
-  ): Array<ts.SymbolDisplayPart>
 }
 
 type _TypeScriptApi = typeof ts
