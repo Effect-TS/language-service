@@ -4,38 +4,18 @@ import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
 import * as Gen from "effect/Utils"
 
-const NanoInternalSuccessProto = {
-  _tag: "Right"
-}
-
 interface NanoInternalSuccess<A> {
   _tag: "Right"
   value: A
 }
 
 function makeInternalSuccess<A>(value: A): NanoExit<A, never> {
-  const result = Object.create(NanoInternalSuccessProto)
-  result.value = value
-  return result
-}
-
-const NanoInternalFailureProto = {
-  _tag: "Left"
+  return { _tag: "Right", value }
 }
 
 interface NanoInternalFailure<E> {
   _tag: "Left"
   value: E
-}
-
-function makeInternalFailure<E>(value: E): NanoExit<never, E> {
-  const result = Object.create(NanoInternalFailureProto)
-  result.value = value
-  return result
-}
-
-const NanoInternalDefectProto = {
-  _tag: "Defect"
 }
 
 interface NanoInternalDefect {
@@ -44,9 +24,7 @@ interface NanoInternalDefect {
 }
 
 function makeInternalDefect(value: unknown): NanoExit<never, never> {
-  const result = Object.create(NanoInternalDefectProto)
-  result.value = value
-  return result
+  return { _tag: "Defect", value }
 }
 
 type NanoExit<A, E> =
@@ -105,22 +83,18 @@ export interface Nano<out A = never, out E = never, out R = never> {
   ) => NanoExit<A, E>
 }
 
-const Proto = {
-  run: () => {},
-
-  [Symbol.iterator]() {
-    return new Gen.SingleShotGen(new Gen.YieldWrap(this))
-  }
-}
-
 function make<A, E, R>(
   run: (
     ctx: NanoContext<unknown>
   ) => NanoExit<A, E>
 ): Nano<A, E, R> {
-  const result = Object.create(Proto)
-  result.run = run
-  return result
+  const nano = {
+    run,
+    [Symbol.iterator]() {
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<A, E, R>))
+    }
+  }
+  return nano as any as Nano<A, E, R>
 }
 
 export const unsafeRun = <A, E>(
@@ -146,9 +120,35 @@ export const run = <A, E>(fa: Nano<A, E, never>): Either.Either<A, E | NanoDefec
   }
 }
 
-export const succeed = <A>(value: A) => make<A, never, never>(() => makeInternalSuccess(value))
-export const fail = <E>(value: E) => make<never, E, never>(() => makeInternalFailure(value))
-export const sync = <A>(value: () => A) => make<A, never, never>(() => makeInternalSuccess(value()))
+export const succeed = <A>(value: A): Nano<A, never, never> => {
+  const nano = {
+    run: () => ({ _tag: "Right", value }),
+    [Symbol.iterator]() {
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<A, never, never>))
+    }
+  }
+  return nano as any as Nano<A, never, never>
+}
+
+export const fail = <E>(value: E): Nano<never, E, never> => {
+  const nano = {
+    run: () => ({ _tag: "Left", value }),
+    [Symbol.iterator]() {
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<never, E, never>))
+    }
+  }
+  return nano as any as Nano<never, E, never>
+}
+
+export const sync = <A>(value: () => A): Nano<A, never, never> => {
+  const nano = {
+    run: () => ({ _tag: "Right", value: value() }),
+    [Symbol.iterator]() {
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<A, never, never>))
+    }
+  }
+  return nano as any as Nano<A, never, never>
+}
 export const flatMap: {
   <A, B, E2, R2>(f: (a: A) => Nano<B, E2, R2>): <E, R>(fa: Nano<A, E, R>) => Nano<B, E | E2, R | R2>
   <A, E, R, B, E2, R2>(fa: Nano<A, E, R>, f: (a: A) => Nano<B, E2, R2>): Nano<B, E | E2, R | R2>
@@ -355,11 +355,15 @@ export function cachedBy<P extends Array<any>, A, E, R>(
   return (...args: P) =>
     make<A, E, R>((ctx) => {
       const cacheObj = ctx.value[internalNanoCache.key] as Record<string, Map<any, NanoExit<any, any>>>
-      const cache = cacheObj[key] || new Map<any, NanoExit<any, any>>()
-      cacheObj[key] = cache
+      let cache = cacheObj[key]
+      if (!cache) {
+        cache = new Map<any, NanoExit<any, any>>()
+        cacheObj[key] = cache
+      }
       const lookup = lookupKey(...args)
-      if (cache.has(lookup)) {
-        return cache.get(lookup)!
+      const cached = cache.get(lookup)
+      if (cached !== undefined) {
+        return cached
       }
       const result = fa(...args).run(ctx)
       cache.set(lookup, result)
