@@ -18,10 +18,6 @@ interface NanoInternalFailure<E> {
   value: E
 }
 
-function makeInternalFailure<E>(value: E): NanoExit<never, E> {
-  return { _tag: "Left", value }
-}
-
 interface NanoInternalDefect {
   _tag: "Defect"
   value: unknown
@@ -95,10 +91,10 @@ function make<A, E, R>(
   const nano = {
     run,
     [Symbol.iterator]() {
-      return new Gen.SingleShotGen(new Gen.YieldWrap(this as Nano<A, E, R>))
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<A, E, R>))
     }
   }
-  return nano as Nano<A, E, R>
+  return nano as any as Nano<A, E, R>
 }
 
 export const unsafeRun = <A, E>(
@@ -128,30 +124,30 @@ export const succeed = <A>(value: A): Nano<A, never, never> => {
   const nano = {
     run: () => ({ _tag: "Right", value }),
     [Symbol.iterator]() {
-      return new Gen.SingleShotGen(new Gen.YieldWrap(this as Nano<A, never, never>))
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<A, never, never>))
     }
   }
-  return nano as Nano<A, never, never>
+  return nano as any as Nano<A, never, never>
 }
 
 export const fail = <E>(value: E): Nano<never, E, never> => {
   const nano = {
     run: () => ({ _tag: "Left", value }),
     [Symbol.iterator]() {
-      return new Gen.SingleShotGen(new Gen.YieldWrap(this as Nano<never, E, never>))
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<never, E, never>))
     }
   }
-  return nano as Nano<never, E, never>
+  return nano as any as Nano<never, E, never>
 }
 
 export const sync = <A>(value: () => A): Nano<A, never, never> => {
   const nano = {
     run: () => ({ _tag: "Right", value: value() }),
     [Symbol.iterator]() {
-      return new Gen.SingleShotGen(new Gen.YieldWrap(this as Nano<A, never, never>))
+      return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<A, never, never>))
     }
   }
-  return nano as Nano<A, never, never>
+  return nano as any as Nano<A, never, never>
 }
 export const flatMap: {
   <A, B, E2, R2>(f: (a: A) => Nano<B, E2, R2>): <E, R>(fa: Nano<A, E, R>) => Nano<B, E | E2, R | R2>
