@@ -32,7 +32,7 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 ### Quickinfo
 
 - Show the extended type of the current Effect
-- Hovering yield\* of Effect.gen will show the Effect type parameters
+- Hovering `yield\*` of `Effect.gen` will show the Effect type parameters
 - Hovering a variable assignment of a type Layer, will show info on how each service got involve
 - Hovering a layer, will attempt to produce a graph
 
@@ -40,15 +40,18 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 
 - Better error readability when you're missing errors or service types in your Effect definitions
 - Floating Effects that are not yielded or run
-- Wrong usage of yield inside Effect.gen
+- Wrong usage of yield inside `Effect.gen`
 - Multiple versions of Effect in your project
 - Warn on leaking requirements in Effect services
-- Unnecessary usages of Effect.gen or pipe()
+- Unnecessary usages of `Effect.gen` or `pipe()`
+- Warn when importing from a barrel file instead of from the module directly
 
 ### Completions
 
-- Autocomplete 'Self' in Effect.Service, Context.Tag, Schema.TaggedClass, Schema.TaggedRequest and family
-- Autocomplete Effect.gen with `function*(){}`
+- Autocomplete 'Self' in `Effect.Service`, `Context.Tag`, `Schema.TaggedClass`, `Schema.TaggedRequest` and family
+- Autocomplete `Effect.gen` with `function*(){}`
+- Autocomplete `Effect.fn` with the span name given by the exported member
+- Allow to configure packages to be imported with namespace style `import * as Effect from "effect"`
 
 ### Refactors
 
@@ -80,7 +83,8 @@ Few options can be provided alongside the initialization of the Language Service
         },
         "quickinfo": true, // controls quickinfo over Effect (default: true)
         "completions": true, // controls Effect completions (default: true)
-        "allowedDuplicatedPackages": [] // list of package names that has effect in peer dependencies and are allowed to be duplicated (default: [])
+        "allowedDuplicatedPackages": [], // list of package names that has effect in peer dependencies and are allowed to be duplicated (default: [])
+        "namespaceImportPackages": [] // list of package names that should be preferred as imported with namespace imports e.g. ["effect"] (default: [])
       }
     ]
   }

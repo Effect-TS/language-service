@@ -43,7 +43,13 @@
     ],
     "plugins": [
       {
-        "name": "@effect/language-service"
+        "name": "@effect/language-service",
+        "namespaceImportPackages": [
+          "effect"
+        ],
+        "diagnosticSeverity": {
+          "importFromBarrel": "error"
+        }
       }
     ]
   }

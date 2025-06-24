@@ -1,7 +1,11 @@
-import { Either } from "effect"
+import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import type ts from "typescript"
 import { completions } from "./completions.js"
+import {
+  appendEffectCompletionEntryData,
+  postprocessCompletionEntryDetails
+} from "./completions/middlewareNamespaceImports.js"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions.js"
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
@@ -303,28 +307,33 @@ const init = (
           const sourceFile = program.getSourceFile(fileName)
           if (sourceFile) {
             return pipe(
-              LSP.getCompletionsAtPosition(
-                completions,
-                sourceFile,
-                position,
-                options,
-                formattingSettings
+              appendEffectCompletionEntryData(sourceFile, applicableCompletions),
+              Nano.flatMap((augmentedCompletions) =>
+                pipe(
+                  LSP.getCompletionsAtPosition(
+                    completions,
+                    sourceFile,
+                    position,
+                    options,
+                    formattingSettings
+                  ),
+                  Nano.map((effectCompletions) => (augmentedCompletions
+                    ? {
+                      ...augmentedCompletions,
+                      entries: effectCompletions.concat(augmentedCompletions.entries)
+                    }
+                    : (effectCompletions.length > 0 ?
+                      ({
+                        entries: effectCompletions,
+                        isGlobalCompletion: false,
+                        isMemberCompletion: false,
+                        isNewIdentifierLocation: false
+                      }) satisfies ts.CompletionInfo :
+                      undefined))
+                  )
+                )
               ),
               runNano(program),
-              Either.map((effectCompletions) => (applicableCompletions
-                ? {
-                  ...applicableCompletions,
-                  entries: effectCompletions.concat(applicableCompletions.entries)
-                }
-                : (effectCompletions.length > 0 ?
-                  ({
-                    entries: effectCompletions,
-                    isGlobalCompletion: false,
-                    isMemberCompletion: false,
-                    isNewIdentifierLocation: false
-                  }) satisfies ts.CompletionInfo :
-                  undefined))
-              ),
               Either.getOrElse(() => applicableCompletions)
             )
           }
@@ -332,6 +341,51 @@ const init = (
       }
 
       return applicableCompletions
+    }
+
+    proxy.getCompletionEntryDetails = (
+      fileName,
+      position,
+      entryName,
+      formatOptions,
+      source,
+      preferences,
+      _data,
+      ...args
+    ) => {
+      const applicableCompletionEntryDetails = languageService.getCompletionEntryDetails(
+        fileName,
+        position,
+        entryName,
+        formatOptions,
+        source,
+        preferences,
+        _data,
+        ...args
+      )
+
+      if (languageServicePluginOptions.completions) {
+        const program = languageService.getProgram()
+        if (program) {
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              postprocessCompletionEntryDetails(
+                sourceFile,
+                _data,
+                applicableCompletionEntryDetails,
+                formatOptions,
+                preferences,
+                info.languageServiceHost
+              ),
+              runNano(program),
+              Either.getOrElse(() => applicableCompletionEntryDetails)
+            )
+          }
+        }
+      }
+
+      return applicableCompletionEntryDetails
     }
 
     proxy.getDefinitionAndBoundSpan = (fileName, position, ...args) => {
