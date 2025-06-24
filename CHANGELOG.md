@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.22.0
+
+### Minor Changes
+
+- [#231](https://github.com/Effect-TS/language-service/pull/231) [`c31ab93`](https://github.com/Effect-TS/language-service/commit/c31ab932bdc3c9d4d580fb674e350acfdc385ba0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add ability to prefer namespace imports for a package
+
+### Patch Changes
+
+- [#229](https://github.com/Effect-TS/language-service/pull/229) [`d2b6b31`](https://github.com/Effect-TS/language-service/commit/d2b6b3158085ff2a8f55631b30e0625f4f74865c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Move default diagnostic severity to rule definition
+
 ## 0.21.8
 
 ### Patch Changes
