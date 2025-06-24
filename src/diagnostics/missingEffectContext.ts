@@ -38,24 +38,29 @@ export const missingEffectContext = LSP.createDiagnostic({
 
     const entries = yield* TypeCheckerApi.expectedAndRealType(sourceFile)
     for (const [node, expectedType, valueNode, realType] of entries) {
-      const missingContext = yield* pipe(
-        checkForMissingContextTypes(
-          node,
-          expectedType,
-          valueNode,
-          realType
-        ),
-        Nano.orElse(() => Nano.succeed([]))
-      )
-      if (missingContext.length > 0) {
-        report(
-          {
+      // if the types are different, check for missing context types
+      if (expectedType !== realType) {
+        yield* pipe(
+          checkForMissingContextTypes(
             node,
-            messageText: `Missing '${
-              sortTypes(missingContext).map((_) => typeChecker.typeToString(_)).join(" | ")
-            }' in the expected Effect context.`,
-            fixes: []
-          }
+            expectedType,
+            valueNode,
+            realType
+          ),
+          Nano.map((missingTypes) =>
+            missingTypes.length > 0 ?
+              report(
+                {
+                  node,
+                  messageText: `Missing '${
+                    sortTypes(missingTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
+                  }' in the expected Effect context.`,
+                  fixes: []
+                }
+              )
+              : undefined
+          ),
+          Nano.ignore
         )
       }
     }

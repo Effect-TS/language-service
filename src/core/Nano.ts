@@ -355,11 +355,8 @@ export function cachedBy<P extends Array<any>, A, E, R>(
   return (...args: P) =>
     make<A, E, R>((ctx) => {
       const cacheObj = ctx.value[internalNanoCache.key] as Record<string, Map<any, NanoExit<any, any>>>
-      let cache = cacheObj[key]
-      if (!cache) {
-        cache = new Map<any, NanoExit<any, any>>()
-        cacheObj[key] = cache
-      }
+      const cache = cacheObj[key] || new Map<any, NanoExit<any, any>>()
+      cacheObj[key] = cache
       const lookup = lookupKey(...args)
       if (cache.has(lookup)) {
         return cache.get(lookup)!
