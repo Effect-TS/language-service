@@ -1,5 +1,6 @@
 import { contextSelfInClasses } from "./completions/contextSelfInClasses.js"
 import { effectDataClasses } from "./completions/effectDataClasses.js"
+import { effectDiagnosticsComment } from "./completions/effectDiagnosticsComment.js"
 import { effectSchemaSelfInClasses } from "./completions/effectSchemaSelfInClasses.js"
 import { effectSelfInClasses } from "./completions/effectSelfInClasses.js"
 import { fnFunctionStar } from "./completions/fnFunctionStar.js"
@@ -13,5 +14,6 @@ export const completions = [
   rpcMakeClasses,
   genFunctionStar,
   fnFunctionStar,
-  effectDataClasses
+  effectDataClasses,
+  effectDiagnosticsComment
 ]
