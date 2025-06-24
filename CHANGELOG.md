@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.22.1
+
+### Patch Changes
+
+- [#234](https://github.com/Effect-TS/language-service/pull/234) [`6183db0`](https://github.com/Effect-TS/language-service/commit/6183db079cb56eb299bb762ed162fc1bc761e24d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Micro perf opt
+
+- [#232](https://github.com/Effect-TS/language-service/pull/232) [`fc603bd`](https://github.com/Effect-TS/language-service/commit/fc603bd5e5d26d893e6fdf7ad396f36392bb0484) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Perf: skip checking missing services/context for the same type
+
 ## 0.22.0
 
 ### Minor Changes
