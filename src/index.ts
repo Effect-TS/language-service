@@ -1,4 +1,4 @@
-import { Either } from "effect"
+import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import type ts from "typescript"
 import { completions } from "./completions.js"

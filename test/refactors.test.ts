@@ -84,7 +84,8 @@ function testRefactorOnExample(
       quickinfo: false,
       completions: false,
       goto: false,
-      allowedDuplicatedPackages: []
+      allowedDuplicatedPackages: [],
+      namespaceImportPackages: []
     }),
     Nano.unsafeRun
   )
@@ -110,7 +111,8 @@ function testRefactorOnExample(
       quickinfo: false,
       completions: false,
       goto: false,
-      allowedDuplicatedPackages: []
+      allowedDuplicatedPackages: [],
+      namespaceImportPackages: []
     }),
     Nano.unsafeRun
   )

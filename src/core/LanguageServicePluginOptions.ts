@@ -13,6 +13,7 @@ export interface LanguageServicePluginOptions {
   completions: boolean
   goto: boolean
   allowedDuplicatedPackages: Array<string>
+  namespaceImportPackages: Array<string>
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -52,6 +53,10 @@ export function parse(config: any): LanguageServicePluginOptions {
     allowedDuplicatedPackages: isObject(config) && hasProperty(config, "allowedDuplicatedPackages") &&
         isArray(config.allowedDuplicatedPackages) && config.allowedDuplicatedPackages.every(isString)
       ? config.allowedDuplicatedPackages.map((_) => _.toLowerCase())
+      : [],
+    namespaceImportPackages: isObject(config) && hasProperty(config, "namespaceImportPackages") &&
+        isArray(config.namespaceImportPackages) && config.namespaceImportPackages.every(isString)
+      ? config.namespaceImportPackages.map((_) => _.toLowerCase())
       : []
   }
 }

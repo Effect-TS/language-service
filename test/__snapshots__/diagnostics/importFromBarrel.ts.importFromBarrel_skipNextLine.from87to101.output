@@ -3,6 +3,7 @@
 import { Effect } from "effect"
 // @effect-diagnostics-next-line importFromBarrel:off
 import { Predicate as P } from "effect"
+import { pipe } from "effect"
 import * as Schema from "effect/Schema"
 
 export const main = {

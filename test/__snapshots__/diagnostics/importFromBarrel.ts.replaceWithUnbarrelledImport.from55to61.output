@@ -2,6 +2,7 @@
 // @effect-diagnostics importFromBarrel:error
 import * as Effect from "./node_modules/effect/dist/dts/Effect"
 import { Predicate as P } from "effect"
+import { pipe } from "effect"
 import * as Schema from "effect/Schema"
 
 export const main = {
