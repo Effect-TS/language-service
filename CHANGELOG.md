@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.22.2
+
+### Patch Changes
+
+- [#235](https://github.com/Effect-TS/language-service/pull/235) [`0888757`](https://github.com/Effect-TS/language-service/commit/0888757b1d5e3c68548d0dfd590e18f374ab86af) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add auto-completion for effect directives
+
 ## 0.22.1
 
 ### Patch Changes
