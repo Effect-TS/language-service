@@ -8,6 +8,7 @@ interface ImportablePackagesMetadata {
   getImportNamespaceByFileName: (fileName: string) => string | undefined
   isExcludedFromNamespaceImport: (fileName: string, exportName: string) => boolean
   getUnbarreledModulePath: (fileName: string, exportName: string) => string | undefined
+  getBarreledModulePath: (fileName: string) => { fileName: string; exportName: string } | undefined
 }
 
 const importablePackagesMetadataCache = new Map<string, ImportablePackagesMetadata>()
@@ -19,7 +20,8 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
   const host: ts.ModuleResolutionHost = program as any
   const namespaceByFileName = new Map<string, string>()
   const excludedByFileName = new Map<string, Array<string>>()
-  const unbarreledModulePathByFileName = new Map<string, Array<[exportName: string, unbarreledModulePath: string]>>()
+  const unbarreledModulePathByFileName = new Map<string, Array<{ fileName: string; exportName: string }>>()
+  const barreledModulePathByFileName = new Map<string, { fileName: string; exportName: string }>()
 
   for (const packageName of languageServicePluginOptions.namespaceImportPackages) {
     // resolve to the index of the package
@@ -50,8 +52,15 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
                 if (exportClause && ts.isNamespaceExport(exportClause) && ts.isIdentifier(exportClause.name)) {
                   namespaceByFileName.set(unbarreledModulePath, exportClause.name.text)
                   const existingUnbarreledModulePath = unbarreledModulePathByFileName.get(barrelSource.fileName) || []
-                  existingUnbarreledModulePath.push([exportClause.name.text, unbarreledModulePath])
+                  existingUnbarreledModulePath.push({
+                    fileName: unbarreledModulePath,
+                    exportName: exportClause.name.text
+                  })
                   unbarreledModulePathByFileName.set(barrelSource.fileName, existingUnbarreledModulePath)
+                  barreledModulePathByFileName.set(unbarreledModulePath, {
+                    fileName: barrelSource.fileName,
+                    exportName: exportClause.name.text
+                  })
                 }
                 // add the excluded methods to the list
                 if (exportClause && ts.isNamedExports(exportClause)) {
@@ -76,61 +85,32 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
     isExcludedFromNamespaceImport: (fileName: string, exportName: string) =>
       (excludedByFileName.get(exportName) || []).includes(fileName),
     getUnbarreledModulePath: (fileName: string, exportName: string) =>
-      unbarreledModulePathByFileName.get(fileName)?.find(([name]) => name === exportName)?.[1]
+      unbarreledModulePathByFileName.get(fileName)?.find((_) => _.exportName === exportName)?.fileName,
+    getBarreledModulePath: (fileName: string) => barreledModulePathByFileName.get(fileName)
   } satisfies ImportablePackagesMetadata
 })
 
-export const appendEffectCompletionEntryData = Nano.fn("collectNamespaceImports")(
-  function*(sourceFile: ts.SourceFile, applicableCompletions: ts.WithMetadata<ts.CompletionInfo> | undefined) {
+export const appendEffectCompletionEntryData = Nano.fn("appendEffectCompletionEntryData")(
+  function*(_sourceFile: ts.SourceFile, applicableCompletions: ts.WithMetadata<ts.CompletionInfo> | undefined) {
     // exit if not enabled
     const languageServicePluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
     if (languageServicePluginOptions.namespaceImportPackages.length === 0) return applicableCompletions
 
-    // get or create the namespace cache info
-    const packagesMetadata = importablePackagesMetadataCache.get(sourceFile.fileName) ||
-      (yield* makeImportablePackagesMetadata(sourceFile))
-    importablePackagesMetadataCache.set(sourceFile.fileName, packagesMetadata)
-
-    // alter the entries to add the effect namespace name and the unbarreled module path
+    // we basically just add the effectReplaceSpan to the data that will be used in the postprocessCompletionEntryDetails
     if (applicableCompletions) {
       return {
         ...applicableCompletions,
-        entries: applicableCompletions.entries.map((entry) => {
-          if (
-            entry.data && entry.data.fileName && !entry.insertText && !entry.filterText && entry.data.exportName &&
-            entry.data.moduleSpecifier
-          ) {
-            // do not touch named exports like pipe etc...
-            const isExcluded = packagesMetadata.isExcludedFromNamespaceImport(
-              entry.data.fileName,
-              entry.data.exportName
-            )
-            if (isExcluded) return entry
-            // maybe this is an import from a barrel file?!?!
-            const unbarreledModulePath = packagesMetadata.getUnbarreledModulePath(
-              entry.data.fileName,
-              entry.data.exportName
-            )
-            const namespaceName = packagesMetadata.getImportNamespaceByFileName(
-              unbarreledModulePath || entry.data.fileName
-            )
-            if (namespaceName) {
-              // ok touch the entry
-              return {
-                ...entry,
-                // insertText: unbarreledModulePath ? namespaceName : namespaceName + "." + entry.name,
-                // filterText: entry.name,
-                data: {
-                  ...entry.data,
-                  effectNamespaceName: namespaceName,
-                  effectUnbarreledModulePath: unbarreledModulePath || "",
-                  effectReplaceSpan: entry.replacementSpan || applicableCompletions.optionalReplacementSpan
-                }
+        entries: applicableCompletions.entries.map((entry) =>
+          entry.data ?
+            ({
+              ...entry,
+              data: {
+                ...entry.data,
+                effectReplaceSpan: entry.replacementSpan || applicableCompletions.optionalReplacementSpan
               }
-            }
-          }
-          return entry
-        })
+            }) :
+            entry
+        )
       }
     }
 
@@ -151,6 +131,43 @@ export const postprocessCompletionEntryDetails = Nano.fn("postprocessCompletionE
     const languageServicePluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
     if (languageServicePluginOptions.namespaceImportPackages.length === 0) return applicableCompletionEntryDetails
 
+    const isAutoImportOnlyCodeActions = Nano.fn("isAutoImportOnlyCodeActions")(
+      function*(codeActions: Array<ts.CodeAction> | undefined, exportName: string) {
+        if (!codeActions) return
+        // we expect a single entry, either add the entire import, or a single name
+        if (codeActions.length !== 1) return
+        const action = codeActions[0]
+        const changes = action.changes
+        if (changes.length !== 1) return
+        const fileTextChanges = action.changes[0]
+        if (fileTextChanges.fileName !== sourceFile.fileName) return
+        const textChanges = fileTextChanges.textChanges
+        if (textChanges.length !== 1) return
+        const change = textChanges[0]
+        // could be either adding an entire import { X } from "module/Name"
+        if (
+          change.newText.trim().toLowerCase().startsWith("import") && change.newText.indexOf(exportName) > -1
+        ) {
+          return {
+            type: "create" as const
+          }
+        }
+        // or adding just "X" inside the import that already exists
+        if (change.newText.indexOf(exportName) > -1) {
+          const ancestorNodes = yield* AST.getAncestorNodesInRange(sourceFile, {
+            pos: change.span.start,
+            end: change.span.start
+          })
+          const importNodes = ancestorNodes.filter((node) => ts.isImportDeclaration(node))
+          if (importNodes.length > 0) {
+            return {
+              type: "update" as const
+            }
+          }
+        }
+      }
+    )
+
     // we rely on some internal typescript api to get the module specifier
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
@@ -161,99 +178,98 @@ export const postprocessCompletionEntryDetails = Nano.fn("postprocessCompletionE
     if (!applicableCompletionEntryDetails) return applicableCompletionEntryDetails
     // if we have no data, we return early
     if (!data) return applicableCompletionEntryDetails
-    // if we have no effect namespace name or unbarreled module path, we return early
-    if (!("effectNamespaceName" in data && "effectUnbarreledModulePath" in data && "effectReplaceSpan" in data)) {
-      return applicableCompletionEntryDetails
-    }
+    // we need fileName and exportName and moduleSpecifier
+    const { exportName, fileName, moduleSpecifier } = data
+    if (!fileName) return applicableCompletionEntryDetails
+    if (!exportName) return applicableCompletionEntryDetails
+    if (!moduleSpecifier) return applicableCompletionEntryDetails
+    // if we have no effect replace span, we return early
+    if (!("effectReplaceSpan" in data)) return applicableCompletionEntryDetails
     const effectReplaceSpan = data.effectReplaceSpan as ts.TextSpan
-    const codeActions = applicableCompletionEntryDetails.codeActions
-    if (codeActions && codeActions.length === 1) {
-      const action = codeActions[0]
-      if (action.changes.length === 1) {
-        const fileTextChanges = action.changes[0]
-        if (fileTextChanges.fileName === sourceFile.fileName && fileTextChanges.textChanges.length === 1) {
-          const change = fileTextChanges.textChanges[0]
-          let hasImportActions = false
-          // could be either adding an entier import { X } from "module/Name"
-          if (
-            change.newText.trim().toLowerCase().startsWith("import") && change.newText.indexOf(data.exportName) > -1
-          ) {
-            hasImportActions = true
-          }
-          // or adding just "X" inside the import that already exists
-          if (!hasImportActions && change.newText.indexOf(data.exportName) > -1) {
-            const ancestorNodes = yield* AST.getAncestorNodesInRange(sourceFile, {
-              pos: change.span.start,
-              end: change.span.start
-            })
-            const importNodes = ancestorNodes.filter((node) => ts.isImportDeclaration(node))
-            hasImportActions = importNodes.length > 0
-          }
-          if (!hasImportActions) return applicableCompletionEntryDetails
+    // we only intervene if we have auto-import only code actions
+    const result = yield* isAutoImportOnlyCodeActions(applicableCompletionEntryDetails.codeActions, exportName)
+    if (!result) return applicableCompletionEntryDetails
 
-          // ok we have proven that the code actions are auto-import actions.
-          const formatContext = ts.formatting.getFormatContext(
-            formatOptions || {},
-            languageServiceHost
+    // get or create the namespace cache info
+    const packagesMetadata = importablePackagesMetadataCache.get(sourceFile.fileName) ||
+      (yield* makeImportablePackagesMetadata(sourceFile))
+    importablePackagesMetadataCache.set(sourceFile.fileName, packagesMetadata)
+
+    // ok we have proven that the code actions are auto-import actions.
+    const formatContext = ts.formatting.getFormatContext(
+      formatOptions || {},
+      languageServiceHost
+    )
+    // do not touch named exports like pipe etc...
+    const isExcluded = packagesMetadata.isExcludedFromNamespaceImport(
+      fileName,
+      exportName
+    )
+    if (isExcluded) return applicableCompletionEntryDetails
+    // maybe this is an import from a barrel file?!?!
+    const effectUnbarreledModulePath = packagesMetadata.getUnbarreledModulePath(
+      fileName,
+      exportName
+    )
+
+    const effectNamespaceName = packagesMetadata.getImportNamespaceByFileName(
+      effectUnbarreledModulePath || fileName
+    )
+    if (!effectNamespaceName) return applicableCompletionEntryDetails
+
+    // resolve the module
+    const newModuleSpecifier = effectUnbarreledModulePath ?
+      getModuleSpecifier(
+        program.getCompilerOptions(),
+        sourceFile,
+        sourceFile.fileName,
+        String(effectUnbarreledModulePath || fileName),
+        program
+      ) :
+      moduleSpecifier
+
+    const changes = ts.textChanges.ChangeTracker.with(
+      {
+        formatContext,
+        host: languageServiceHost,
+        preferences: preferences || {}
+      },
+      (changeTracker) => {
+        // add the import
+        ts.insertImports(
+          changeTracker,
+          sourceFile,
+          ts.factory.createImportDeclaration(
+            undefined,
+            ts.factory.createImportClause(
+              false,
+              undefined,
+              ts.factory.createNamespaceImport(ts.factory.createIdentifier(effectNamespaceName))
+            ),
+            ts.factory.createStringLiteral(newModuleSpecifier)
+          ),
+          true,
+          preferences || {}
+        )
+        // if this is a barrel redirect, we need to add the namespace import
+        if (!effectUnbarreledModulePath) {
+          changeTracker.insertText(
+            sourceFile,
+            effectReplaceSpan.start,
+            effectNamespaceName + "."
           )
-
-          const changes = ts.textChanges.ChangeTracker.with(
-            {
-              formatContext,
-              host: languageServiceHost,
-              preferences: preferences || {}
-            },
-            (changeTracker) => {
-              // resolve the module
-              const isBarrelRedirect = String(data.effectUnbarreledModulePath).length > 0
-              const moduleSpecifier = isBarrelRedirect ?
-                getModuleSpecifier(
-                  program.getCompilerOptions(),
-                  sourceFile,
-                  sourceFile.fileName,
-                  String(data.effectUnbarreledModulePath),
-                  program
-                ) :
-                String(data.moduleSpecifier)
-              // add the import
-              ts.insertImports(
-                changeTracker,
-                sourceFile,
-                ts.factory.createImportDeclaration(
-                  undefined,
-                  ts.factory.createImportClause(
-                    false,
-                    undefined,
-                    ts.factory.createNamespaceImport(ts.factory.createIdentifier(String(data.effectNamespaceName)))
-                  ),
-                  ts.factory.createStringLiteral(moduleSpecifier)
-                ),
-                true,
-                preferences || {}
-              )
-              // if this is a barrel redirect, we need to add the namespace import
-              if (!isBarrelRedirect) {
-                changeTracker.insertText(
-                  sourceFile,
-                  effectReplaceSpan.start,
-                  String(data.effectNamespaceName) + "."
-                )
-              }
-            }
-          )
-
-          return {
-            ...applicableCompletionEntryDetails,
-            codeActions: [
-              {
-                description: "Import * as " + data.effectNamespaceName + " from " + data.effectUnbarreledModulePath,
-                changes
-              }
-            ]
-          }
         }
       }
+    )
+
+    return {
+      ...applicableCompletionEntryDetails,
+      codeActions: [
+        {
+          description: "Import * as " + effectNamespaceName + " from " + newModuleSpecifier,
+          changes
+        }
+      ]
     }
-    return applicableCompletionEntryDetails
   }
 )
