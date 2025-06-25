@@ -57,7 +57,8 @@ function testCompletionOnExample(
       completions: false,
       goto: false,
       allowedDuplicatedPackages: [],
-      namespaceImportPackages: []
+      namespaceImportPackages: [],
+      barrelImportPackages: []
     }),
     Nano.unsafeRun
   )

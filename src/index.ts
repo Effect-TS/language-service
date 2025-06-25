@@ -5,7 +5,7 @@ import { completions } from "./completions.js"
 import {
   appendEffectCompletionEntryData,
   postprocessCompletionEntryDetails
-} from "./completions/middlewareNamespaceImports.js"
+} from "./completions/middlewareAutoImports.js"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions.js"
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
