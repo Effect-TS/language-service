@@ -6,7 +6,7 @@ This package implements a TypeScript language service plugin that allows additio
 
 1. `npm install @effect/language-service --save-dev` in your project
 2. inside your tsconfig.json, you should add the plugin configuration as follows:
-```json
+```jsonc
 {
   "compilerOptions": {
     "plugins": [
@@ -72,7 +72,7 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 
 Few options can be provided alongside the initialization of the Language Service Plugin.
 
-```json
+```jsonc
 {
   "compilerOptions": {
     "plugins": [
@@ -101,7 +101,7 @@ TypeScript LSP are loaded only while editing your files. That means that if you 
 HOWEVER, if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
 Your `tsconfig.json` should look like this:
 
-```json
+```jsonc
 {
   "compilerOptions": {
     "plugins": [
@@ -143,7 +143,7 @@ Effect.succeed(1); // This will be reported as a floating effect
 
 or you can set the severity for the entire project in the global plugin configuration
 
-```json
+```jsonc
 {
   "compilerOptions": {
     "plugins": [
@@ -169,7 +169,7 @@ If you did not installed the Svelte LSP into your local project but instead thro
 
 Your tsconfig should look like this:
 
-```json
+```jsonc
 {
   "compilerOptions": {
     "plugins": [
