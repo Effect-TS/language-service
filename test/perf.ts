@@ -48,7 +48,8 @@ function testAllDagnostics() {
           completions: false,
           goto: false,
           allowedDuplicatedPackages: [],
-          namespaceImportPackages: []
+          namespaceImportPackages: [],
+          barrelImportPackages: []
         }),
         Nano.unsafeRun,
         Either.getOrElse(() => "// no diagnostics")
