@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.23.0
+
+### Minor Changes
+
+- [#239](https://github.com/Effect-TS/language-service/pull/239) [`712a52f`](https://github.com/Effect-TS/language-service/commit/712a52f0fbd11b03197727e2d17672d569988c44) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for barrel imports suggestions
+
 ## 0.22.3
 
 ### Patch Changes
