@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.22.3
+
+### Patch Changes
+
+- [#237](https://github.com/Effect-TS/language-service/pull/237) [`40f2c7c`](https://github.com/Effect-TS/language-service/commit/40f2c7ceb68ccd261a55aa8d3b49e8770562b061) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Delay completions computations to completionEntryDetails where possible
+
 ## 0.22.2
 
 ### Patch Changes
