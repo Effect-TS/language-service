@@ -273,6 +273,14 @@ const getImportFromBarrelCodeActions = Nano.fn("getImportFromBarrelCodeActions")
             const importClause = statement.importClause
             if (importClause && importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
               const namedImports = importClause.namedBindings
+              const existingImportSpecifier = namedImports.elements.find((element) =>
+                element.name.text.toLowerCase() === barrelExportName.toLowerCase()
+              )
+              // the import already exists, we can exit
+              if (existingImportSpecifier) {
+                foundImportDeclaration = true
+                break
+              }
               // we have found the import declaration that is importing the barrel file
               changeTracker.replaceNode(
                 sourceFile,
