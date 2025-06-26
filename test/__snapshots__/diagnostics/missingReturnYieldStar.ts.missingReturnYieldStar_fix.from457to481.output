@@ -20,3 +20,8 @@ export const shouldComplainOther = (n: number) =>
     return yield* Effect.die("lol")
     return n / 1
   })
+
+export const shouldNotComplainThrows = Effect.gen(function*() {
+  throw yield* Effect.fail(42)
+  return 42
+})
