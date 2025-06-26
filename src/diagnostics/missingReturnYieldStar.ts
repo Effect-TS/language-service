@@ -43,11 +43,14 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
             (
               _
             ) => (ts.isFunctionExpression(_) || ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_) ||
-              ts.isReturnStatement(_))
+              ts.isReturnStatement(_) || ts.isThrowStatement(_))
           )
 
           // we already have a return statement
-          if (generatorFunctionOrReturnStatement && !ts.isReturnStatement(generatorFunctionOrReturnStatement)) {
+          if (
+            generatorFunctionOrReturnStatement && !ts.isReturnStatement(generatorFunctionOrReturnStatement) &&
+            !ts.isThrowStatement(generatorFunctionOrReturnStatement)
+          ) {
             // .gen should always be the parent ideally
             if (generatorFunctionOrReturnStatement && generatorFunctionOrReturnStatement.parent) {
               const effectGenNode = generatorFunctionOrReturnStatement.parent
