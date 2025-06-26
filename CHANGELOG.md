@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.23.1
+
+### Patch Changes
+
+- [#242](https://github.com/Effect-TS/language-service/pull/242) [`df1e16b`](https://github.com/Effect-TS/language-service/commit/df1e16b6dd59e611b6cbaeda00d9b468c0be4b46) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix barrelImportPackages duplicate imports
+
 ## 0.23.0
 
 ### Minor Changes
