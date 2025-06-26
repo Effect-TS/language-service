@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.23.2
+
+### Patch Changes
+
+- [#245](https://github.com/Effect-TS/language-service/pull/245) [`dca2e6f`](https://github.com/Effect-TS/language-service/commit/dca2e6f0617e4de917f052301ce466e56c209f71) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow throw as way to break gen control flow
+
 ## 0.23.1
 
 ### Patch Changes
