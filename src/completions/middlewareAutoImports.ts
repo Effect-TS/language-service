@@ -8,6 +8,11 @@ interface ImportablePackagesMetadata {
   getImportNamespaceByFileName: (fileName: string) => string | undefined
   isExcludedFromNamespaceImport: (fileName: string, exportName: string) => boolean
   getUnbarreledModulePath: (fileName: string, exportName: string) => string | undefined
+
+  getBarreledFunctionPath: (
+    fileName: string,
+    exportName: string
+  ) => { fileName: string; exportName: string; packageName: string } | undefined
   getBarreledModulePath: (fileName: string) => { fileName: string; exportName: string; packageName: string } | undefined
 }
 
@@ -22,6 +27,10 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
   const excludedByFileName = new Map<string, Array<string>>()
   const unbarreledModulePathByFileName = new Map<string, Array<{ fileName: string; exportName: string }>>()
   const barreledModulePathByFileName = new Map<string, { fileName: string; exportName: string; packageName: string }>()
+  const barreledFunctionPathByFileName = new Map<
+    string,
+    Array<{ fileName: string; exportName: string; packageName: string }>
+  >()
 
   const packages = [
     ...languageServicePluginOptions.namespaceImportPackages.map((packageName) => ({
@@ -88,6 +97,16 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
                       excludedMethods.push(unbarreledModulePath)
                       excludedByFileName.set(methodName, excludedMethods)
                     }
+                    if (kind === "barrel") {
+                      const previousBarreledFunctionPath = barreledFunctionPathByFileName.get(unbarreledModulePath) ||
+                        []
+                      previousBarreledFunctionPath.push({
+                        fileName: barrelSource.fileName,
+                        exportName: methodName,
+                        packageName
+                      })
+                      barreledFunctionPathByFileName.set(unbarreledModulePath, previousBarreledFunctionPath)
+                    }
                   }
                 }
               }
@@ -104,7 +123,9 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
       (excludedByFileName.get(exportName) || []).includes(fileName),
     getUnbarreledModulePath: (fileName: string, exportName: string) =>
       unbarreledModulePathByFileName.get(fileName)?.find((_) => _.exportName === exportName)?.fileName,
-    getBarreledModulePath: (fileName: string) => barreledModulePathByFileName.get(fileName)
+    getBarreledModulePath: (fileName: string) => barreledModulePathByFileName.get(fileName),
+    getBarreledFunctionPath: (fileName: string, exportName: string) =>
+      barreledFunctionPathByFileName.get(fileName)?.find((_) => _.exportName === exportName)
   } satisfies ImportablePackagesMetadata
 })
 
@@ -245,7 +266,8 @@ const getImportFromBarrelCodeActions = Nano.fn("getImportFromBarrelCodeActions")
   sourceFile: ts.SourceFile,
   effectReplaceSpan: ts.TextSpan,
   newModuleSpecifier: string,
-  barrelExportName: string
+  barrelExportName: string,
+  shouldPrependExportName: boolean
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
@@ -322,11 +344,13 @@ const getImportFromBarrelCodeActions = Nano.fn("getImportFromBarrelCodeActions")
       }
 
       // since this is a barrel redirect, we need to prefix with the name from the barrel file
-      changeTracker.insertText(
-        sourceFile,
-        effectReplaceSpan.start,
-        barrelExportName + "."
-      )
+      if (shouldPrependExportName) {
+        changeTracker.insertText(
+          sourceFile,
+          effectReplaceSpan.start,
+          barrelExportName + "."
+        )
+      }
     }
   )
 
@@ -392,17 +416,37 @@ export const postprocessCompletionEntryDetails = Nano.fn("postprocessCompletionE
     )
     if (isExcluded) return applicableCompletionEntryDetails
 
-    // get the corresponding barrel module path and export name (only present if the package is set from a barrel file)
-    const asBarrelImport = packagesMetadata.getBarreledModulePath(fileName)
-    if (asBarrelImport) {
+    // pipe function and friends that are re-exported directly from barrel
+    const asBarrelFunctionImport = packagesMetadata.getBarreledFunctionPath(fileName, exportName)
+    if (asBarrelFunctionImport) {
       const codeActions = yield* getImportFromBarrelCodeActions(
         formatOptions,
         preferences,
         languageServiceHost,
         sourceFile,
         effectReplaceSpan,
-        asBarrelImport.packageName,
-        asBarrelImport.exportName
+        asBarrelFunctionImport.packageName,
+        asBarrelFunctionImport.exportName,
+        false
+      )
+      return {
+        ...applicableCompletionEntryDetails,
+        codeActions
+      }
+    }
+
+    // get the corresponding barrel module path and export name (only present if the package is set from a barrel file)
+    const asBarrelModuleImport = packagesMetadata.getBarreledModulePath(fileName)
+    if (asBarrelModuleImport) {
+      const codeActions = yield* getImportFromBarrelCodeActions(
+        formatOptions,
+        preferences,
+        languageServiceHost,
+        sourceFile,
+        effectReplaceSpan,
+        asBarrelModuleImport.packageName,
+        asBarrelModuleImport.exportName,
+        true
       )
       return {
         ...applicableCompletionEntryDetails,
