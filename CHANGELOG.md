@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.23.3
+
+### Patch Changes
+
+- [#247](https://github.com/Effect-TS/language-service/pull/247) [`b7abbdf`](https://github.com/Effect-TS/language-service/commit/b7abbdf32da0b1e1c2aa5dfd9c81bc8da15670fa) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add exclusion rules for barrel style so pipe will be imported from "effect" instead of "effect/Function"
+
 ## 0.23.2
 
 ### Patch Changes
