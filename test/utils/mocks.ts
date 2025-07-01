@@ -4,8 +4,9 @@ import * as ts from "typescript"
 export function createMockLanguageServiceHost(
   fileName: string,
   sourceText: string
-): ts.LanguageServiceHost {
-  return {
+) {
+  let lastLoadTime = new Date()
+  const languageServiceHost: ts.LanguageServiceHost = {
     getCompilationSettings() {
       return {
         ...ts.getDefaultCompilerOptions(),
@@ -26,6 +27,7 @@ export function createMockLanguageServiceHost(
       return ""
     },
     getScriptSnapshot(_fileName) {
+      lastLoadTime = new Date()
       if (_fileName === fileName) {
         return ts.ScriptSnapshot.fromString(sourceText)
       }
@@ -36,21 +38,25 @@ export function createMockLanguageServiceHost(
       return ts.getDefaultLibFilePath(options)
     },
     fileExists: (_fileName) => {
+      lastLoadTime = new Date()
       if (_fileName === fileName) return true
       return fs.existsSync(_fileName)
     },
     readFile: (_fileName) => {
+      lastLoadTime = new Date()
       if (_fileName === fileName) return sourceText
       return fs.readFileSync(_fileName).toString()
     }
   }
+
+  return { languageServiceHost, getLastLoadTime: () => lastLoadTime }
 }
 
 export function createServicesWithMockedVFS(
   fileName: string,
   sourceText: string
 ) {
-  const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
+  const { getLastLoadTime, languageServiceHost } = createMockLanguageServiceHost(fileName, sourceText)
   const languageService = ts.createLanguageService(
     languageServiceHost,
     undefined,
@@ -61,7 +67,7 @@ export function createServicesWithMockedVFS(
   const sourceFile = program.getSourceFile(fileName)
   if (!sourceFile) throw new Error("No source file " + fileName + " in VFS")
 
-  return { languageService, program, sourceFile, languageServiceHost }
+  return { languageService, program, sourceFile, languageServiceHost, getLastLoadTime }
 }
 
 /**

@@ -1,0 +1,6 @@
+// 'pipe' from effect
+// code action Add import from "effect":
+// Result of running e2e {"type":"completions","position":"3:1","name":"pipe","config":{"barrelImportPackages":["effect"]}}
+import "effect"
+import { pipe } from "effect";
+
