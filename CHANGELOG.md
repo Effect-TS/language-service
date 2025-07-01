@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.23.4
+
+### Patch Changes
+
+- [#251](https://github.com/Effect-TS/language-service/pull/251) [`19dcecf`](https://github.com/Effect-TS/language-service/commit/19dcecf88d6256f71a4a9b7b0984a4ae69ca872e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow wildcard \* at end of ImportPackages settings to match all packages starting with a prefix
+
 ## 0.23.3
 
 ### Patch Changes
