@@ -1,3 +1,4 @@
+import * as Array from "effect/Array"
 import type ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
@@ -17,10 +18,16 @@ export const importFromBarrel = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
+    const packageNamesToCheck = Array.flatten(
+      yield* Nano.all(
+        ...languageServicePluginOptions.namespaceImportPackages.map((packageName) =>
+          TypeScriptApi.resolveModulePattern(sourceFile, packageName)
+        )
+      )
+    )
 
     const isImportedFromBarrelExport = (
-      element: ts.ImportSpecifier,
-      languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions
+      element: ts.ImportSpecifier
     ) => {
       const getModuleSpecifier = TypeScriptApi.makeGetModuleSpecifier(ts)
       const resolveExternalModuleName = TypeCheckerApi.makeResolveExternalModuleName(typeChecker)
@@ -37,7 +44,7 @@ export const importFromBarrel = LSP.createDiagnostic({
       if (!ts.isNamedImports(namedBindings)) return
 
       const barrelModuleName = importDeclaration.moduleSpecifier.text
-      if (languageServicePluginOptions.namespaceImportPackages.indexOf(barrelModuleName.toLowerCase()) === -1) return
+      if (packageNamesToCheck.indexOf(barrelModuleName.toLowerCase()) === -1) return
       const moduleSymbol = resolveExternalModuleName(importDeclaration.moduleSpecifier)
       if (!moduleSymbol) return
       if (!moduleSymbol.exports) return
@@ -94,7 +101,7 @@ export const importFromBarrel = LSP.createDiagnostic({
         continue
       }
 
-      const result = isImportedFromBarrelExport(node, languageServicePluginOptions)
+      const result = isImportedFromBarrelExport(node)
       if (!result) continue
       const { barrelModuleName, importClause, importDeclaration, importedName, namedBindings, unbarrelledFileName } =
         result

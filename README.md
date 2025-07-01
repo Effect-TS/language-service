@@ -87,7 +87,7 @@ Few options can be provided alongside the initialization of the Language Service
         "goto": true, // controls Effect goto references (default: true)
         "allowedDuplicatedPackages": [], // list of package names that has effect in peer dependencies and are allowed to be duplicated (default: [])
         "barrelImportPackages": [], // package names that should be preferred as imported from the top level barrel file (default: [])
-        "namespaceImportPackages": [] // package names that should be preferred as imported with namespace imports e.g. ["effect"] (default: [])
+        "namespaceImportPackages": [] // package names that should be preferred as imported with namespace imports e.g. ["effect", "@effect/*"] (default: [])
       }
     ]
   }

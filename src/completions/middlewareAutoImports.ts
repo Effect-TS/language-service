@@ -33,79 +33,82 @@ const makeImportablePackagesMetadata = Nano.fn("makeImportablePackagesMetadata")
   >()
 
   const packages = [
-    ...languageServicePluginOptions.namespaceImportPackages.map((packageName) => ({
-      packageName,
+    ...languageServicePluginOptions.namespaceImportPackages.map((packagePattern) => ({
+      packagePattern,
       kind: "namespace" as const
     })),
-    ...languageServicePluginOptions.barrelImportPackages.map((packageName) => ({
-      packageName,
+    ...languageServicePluginOptions.barrelImportPackages.map((packagePattern) => ({
+      packagePattern,
       kind: "barrel" as const
     }))
   ]
 
-  for (const { kind, packageName } of packages) {
-    // resolve to the index of the package
-    const barrelModule = ts.resolveModuleName(packageName, sourceFile.fileName, program.getCompilerOptions(), host)
-    if (barrelModule.resolvedModule) {
-      const barrelPath = barrelModule.resolvedModule.resolvedFileName
-      // get the index barrel source file
-      const barrelSource = program.getSourceFile(barrelPath) ||
-        ts.createSourceFile(barrelPath, host.readFile(barrelPath) || "", sourceFile.languageVersion, true)
-      if (barrelSource) {
-        // loop through the export declarations
-        for (const statement of barrelSource.statements) {
-          if (ts.isExportDeclaration(statement)) {
-            const exportClause = statement.exportClause
-            const moduleSpecifier = statement.moduleSpecifier
-            // we handle only string literal package names
-            if (moduleSpecifier && ts.isStringLiteral(moduleSpecifier)) {
-              // now we attempt to resolve the re-exported filename
-              const unbarreledModulePathResolved = ts.resolveModuleName(
-                moduleSpecifier.text,
-                barrelSource.fileName,
-                program.getCompilerOptions(),
-                host
-              )
-              if (unbarreledModulePathResolved.resolvedModule) {
-                const unbarreledModulePath = unbarreledModulePathResolved.resolvedModule.resolvedFileName
-                // add the unbarreled module to the list
-                if (exportClause && ts.isNamespaceExport(exportClause) && ts.isIdentifier(exportClause.name)) {
-                  if (kind === "namespace") {
-                    namespaceByFileName.set(unbarreledModulePath, exportClause.name.text)
-                    const existingUnbarreledModulePath = unbarreledModulePathByFileName.get(barrelSource.fileName) || []
-                    existingUnbarreledModulePath.push({
-                      fileName: unbarreledModulePath,
-                      exportName: exportClause.name.text
-                    })
-                    unbarreledModulePathByFileName.set(barrelSource.fileName, existingUnbarreledModulePath)
-                  }
-                  if (kind === "barrel") {
-                    barreledModulePathByFileName.set(unbarreledModulePath, {
-                      fileName: barrelSource.fileName,
-                      exportName: exportClause.name.text,
-                      packageName
-                    })
-                  }
-                }
-                // add the excluded methods to the list
-                if (exportClause && ts.isNamedExports(exportClause)) {
-                  for (const element of exportClause.elements) {
-                    if (!ts.isIdentifier(element.name)) continue
-                    const methodName = element.name.text
+  for (const { kind, packagePattern } of packages) {
+    for (const packageName of yield* TypeScriptApi.resolveModulePattern(sourceFile, packagePattern)) {
+      // resolve to the index of the package
+      const barrelModule = ts.resolveModuleName(packageName, sourceFile.fileName, program.getCompilerOptions(), host)
+      if (barrelModule.resolvedModule) {
+        const barrelPath = barrelModule.resolvedModule.resolvedFileName
+        // get the index barrel source file
+        const barrelSource = program.getSourceFile(barrelPath) ||
+          ts.createSourceFile(barrelPath, host.readFile(barrelPath) || "", sourceFile.languageVersion, true)
+        if (barrelSource) {
+          // loop through the export declarations
+          for (const statement of barrelSource.statements) {
+            if (ts.isExportDeclaration(statement)) {
+              const exportClause = statement.exportClause
+              const moduleSpecifier = statement.moduleSpecifier
+              // we handle only string literal package names
+              if (moduleSpecifier && ts.isStringLiteral(moduleSpecifier)) {
+                // now we attempt to resolve the re-exported filename
+                const unbarreledModulePathResolved = ts.resolveModuleName(
+                  moduleSpecifier.text,
+                  barrelSource.fileName,
+                  program.getCompilerOptions(),
+                  host
+                )
+                if (unbarreledModulePathResolved.resolvedModule) {
+                  const unbarreledModulePath = unbarreledModulePathResolved.resolvedModule.resolvedFileName
+                  // add the unbarreled module to the list
+                  if (exportClause && ts.isNamespaceExport(exportClause) && ts.isIdentifier(exportClause.name)) {
                     if (kind === "namespace") {
-                      const excludedMethods = excludedByFileName.get(methodName) || []
-                      excludedMethods.push(unbarreledModulePath)
-                      excludedByFileName.set(methodName, excludedMethods)
+                      namespaceByFileName.set(unbarreledModulePath, exportClause.name.text)
+                      const existingUnbarreledModulePath = unbarreledModulePathByFileName.get(barrelSource.fileName) ||
+                        []
+                      existingUnbarreledModulePath.push({
+                        fileName: unbarreledModulePath,
+                        exportName: exportClause.name.text
+                      })
+                      unbarreledModulePathByFileName.set(barrelSource.fileName, existingUnbarreledModulePath)
                     }
                     if (kind === "barrel") {
-                      const previousBarreledFunctionPath = barreledFunctionPathByFileName.get(unbarreledModulePath) ||
-                        []
-                      previousBarreledFunctionPath.push({
+                      barreledModulePathByFileName.set(unbarreledModulePath, {
                         fileName: barrelSource.fileName,
-                        exportName: methodName,
+                        exportName: exportClause.name.text,
                         packageName
                       })
-                      barreledFunctionPathByFileName.set(unbarreledModulePath, previousBarreledFunctionPath)
+                    }
+                  }
+                  // add the excluded methods to the list
+                  if (exportClause && ts.isNamedExports(exportClause)) {
+                    for (const element of exportClause.elements) {
+                      if (!ts.isIdentifier(element.name)) continue
+                      const methodName = element.name.text
+                      if (kind === "namespace") {
+                        const excludedMethods = excludedByFileName.get(methodName) || []
+                        excludedMethods.push(unbarreledModulePath)
+                        excludedByFileName.set(methodName, excludedMethods)
+                      }
+                      if (kind === "barrel") {
+                        const previousBarreledFunctionPath = barreledFunctionPathByFileName.get(unbarreledModulePath) ||
+                          []
+                        previousBarreledFunctionPath.push({
+                          fileName: barrelSource.fileName,
+                          exportName: methodName,
+                          packageName
+                        })
+                        barreledFunctionPathByFileName.set(unbarreledModulePath, previousBarreledFunctionPath)
+                      }
                     }
                   }
                 }

@@ -1,3 +1,5 @@
+import * as Array from "effect/Array"
+import { pipe } from "effect/Function"
 import { hasProperty, isFunction, isObject, isString } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
@@ -166,6 +168,7 @@ interface ModuleWithPackageInfo {
   hasEffectInPeerDependencies: boolean
   contents: any
   packageDirectory: string
+  referencedPackages: Array<string>
 }
 
 export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWithPackageInfo | undefined {
@@ -186,14 +189,55 @@ export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWi
   const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
     isObject(packageJsonContent.peerDependencies) &&
     hasProperty(packageJsonContent.peerDependencies, "effect")
+
+  const referencedPackages = Object.keys({
+    ...(hasProperty(packageJsonContent, "dependencies") && isObject(packageJsonContent.dependencies)
+      ? packageJsonContent.dependencies
+      : {}),
+    ...(hasProperty(packageJsonContent, "peerDependencies") && isObject(packageJsonContent.peerDependencies)
+      ? packageJsonContent.peerDependencies
+      : {}),
+    ...(hasProperty(packageJsonContent, "devDependencies") && isObject(packageJsonContent.devDependencies)
+      ? packageJsonContent.devDependencies
+      : {})
+  })
+
   return {
     name: name.toLowerCase(),
     version: version.toLowerCase(),
     hasEffectInPeerDependencies,
     contents: packageJsonContent,
-    packageDirectory: packageJsonScope.packageDirectory
+    packageDirectory: packageJsonScope.packageDirectory,
+    referencedPackages
   }
 }
+
+export const resolveModulePattern = Nano.fn("resolveModulePattern")(
+  function*(sourceFile: ts.SourceFile, pattern: string) {
+    if (pattern.indexOf("*") === -1) return [pattern.toLowerCase()]
+    const ts = yield* Nano.service(TypeScriptApi)
+    const packageJsonScope = parsePackageContentNameAndVersionFromScope(sourceFile)
+    const referencedPackages: Array<string> = []
+    for (const statement of sourceFile.statements) {
+      if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
+        const moduleSpecifier = statement.moduleSpecifier.text.toLowerCase()
+        const packageName = moduleSpecifier.startsWith("@")
+          ? moduleSpecifier.split("/", 2).join("/")
+          : moduleSpecifier.split("/", 1).join("/")
+        referencedPackages.push(packageName)
+      }
+    }
+    return pipe(
+      referencedPackages.concat(packageJsonScope?.referencedPackages || []),
+      Array.dedupe,
+      Array.map((packageName) => packageName.toLowerCase()),
+      Array.filter((packageName) =>
+        pattern.endsWith("*") &&
+        packageName.startsWith(pattern.toLowerCase().substring(0, pattern.length - 1))
+      )
+    )
+  }
+)
 
 export function makeGetModuleSpecifier(ts: TypeScriptApi) {
   if (
