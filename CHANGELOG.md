@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.23.5
+
+### Patch Changes
+
+- [#254](https://github.com/Effect-TS/language-service/pull/254) [`3f9c0c0`](https://github.com/Effect-TS/language-service/commit/3f9c0c05be4a3c8b2cfbcdb8dc8dca8ec1d73364) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix codefix importFromBarrel when alias involved
+
 ## 0.23.4
 
 ### Patch Changes
