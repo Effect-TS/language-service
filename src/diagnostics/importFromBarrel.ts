@@ -51,6 +51,8 @@ export const importFromBarrel = LSP.createDiagnostic({
       const sourceFile = importDeclaration.getSourceFile()
 
       const nodeForSymbol = element.propertyName || element.name
+      const aliasSymbol = element.name || element.propertyName
+      const aliasedName = aliasSymbol.text
 
       // we can only check for identifiers
       if (!ts.isIdentifier(nodeForSymbol)) return
@@ -82,7 +84,15 @@ export const importFromBarrel = LSP.createDiagnostic({
       )
       // need to start with the barrel module name, otherwise its not the same package
       if (unbarrelledFileName.toLowerCase().indexOf(barrelModuleName.toLowerCase() + "/") === -1) return
-      return { unbarrelledFileName, importedName, barrelModuleName, importClause, namedBindings, importDeclaration }
+      return {
+        unbarrelledFileName,
+        importedName,
+        barrelModuleName,
+        importClause,
+        namedBindings,
+        importDeclaration,
+        aliasedName
+      }
     }
 
     const nodeToVisit: Array<ts.Node> = []
@@ -103,8 +113,14 @@ export const importFromBarrel = LSP.createDiagnostic({
 
       const result = isImportedFromBarrelExport(node)
       if (!result) continue
-      const { barrelModuleName, importClause, importDeclaration, importedName, namedBindings, unbarrelledFileName } =
-        result
+      const {
+        aliasedName,
+        barrelModuleName,
+        importClause,
+        importDeclaration,
+        namedBindings,
+        unbarrelledFileName
+      } = result
       // ok, I think now we can report the error
       report({
         node,
@@ -112,7 +128,7 @@ export const importFromBarrel = LSP.createDiagnostic({
         fixes: [
           {
             fixName: "replaceWithUnbarrelledImport",
-            description: `Import * as ${importedName} from ${unbarrelledFileName}`,
+            description: `Import * as ${aliasedName} from ${unbarrelledFileName}`,
             apply: Nano.gen(function*() {
               const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
@@ -121,7 +137,7 @@ export const importFromBarrel = LSP.createDiagnostic({
                 ts.factory.createImportClause(
                   importClause.isTypeOnly || node.isTypeOnly,
                   undefined,
-                  ts.factory.createNamespaceImport(ts.factory.createIdentifier(importedName))
+                  ts.factory.createNamespaceImport(ts.factory.createIdentifier(aliasedName))
                 ),
                 ts.factory.createStringLiteral(unbarrelledFileName)
               )
