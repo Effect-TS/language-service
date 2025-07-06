@@ -5,7 +5,7 @@ This package implements a TypeScript language service plugin that allows additio
 ## Installation
 
 1. `npm install @effect/language-service --save-dev` in your project
-2. inside your tsconfig.json, you should add the plugin configuration as follows:
+2. Inside your tsconfig.json, you should add the plugin configuration as follows:
 ```jsonc
 {
   "compilerOptions": {
@@ -22,10 +22,10 @@ This package implements a TypeScript language service plugin that allows additio
 3. Ensure that you have installed TypeScript locally in your project and set your editor to use your workspace TypeScript version.
 
    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version". If that option does not appear, TypeScript is not installed locally in your node_modules.
-   - In JetBrains you may have to disable the Vue language service, and chose the workspace version of TypeScript in the settings from the dropdown.
-   - In NVim with nvim-vtsls you should refer to [how to enable TypeScript plugins in vstls](https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated)
+   - In JetBrains you may have to disable the Vue language service, and choose the workspace version of TypeScript in the settings from the dropdown.
+   - In NVim with nvim-vtsls you should refer to [how to enable TypeScript plugins in vtsls](https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated)
 
-And you're done! You'll now be able to use a set of refactor and diagnostics that targets Effect!
+And you're done! You'll now be able to use a set of refactors and diagnostics that target Effect!
 
 ## Provided functionalities
 
@@ -33,7 +33,7 @@ And you're done! You'll now be able to use a set of refactor and diagnostics tha
 
 - Show the extended type of the current Effect
 - Hovering `yield\*` of `Effect.gen` will show the Effect type parameters
-- Hovering a variable assignment of a type Layer, will show info on how each service got involve
+- Hovering a variable assignment of a type Layer, will show info on how each service got involved
 - Hovering a layer, will attempt to produce a graph
 
 ### Diagnostics
@@ -85,7 +85,7 @@ Few options can be provided alongside the initialization of the Language Service
         "quickinfo": true, // controls quickinfo over Effect (default: true)
         "completions": true, // controls Effect completions (default: true)
         "goto": true, // controls Effect goto references (default: true)
-        "allowedDuplicatedPackages": [], // list of package names that has effect in peer dependencies and are allowed to be duplicated (default: [])
+        "allowedDuplicatedPackages": [], // list of package names that have effect in peer dependencies and are allowed to be duplicated (default: [])
         "barrelImportPackages": [], // package names that should be preferred as imported from the top level barrel file (default: [])
         "namespaceImportPackages": [] // package names that should be preferred as imported with namespace imports e.g. ["effect", "@effect/*"] (default: [])
       }
@@ -94,9 +94,9 @@ Few options can be provided alongside the initialization of the Language Service
 }
 ```
 
-## Why diagnostics does not appear at compile time?
+## Why do diagnostics not appear at compile time?
 
-TypeScript LSP are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
+TypeScript LSPs are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
 
 HOWEVER, if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
 Your `tsconfig.json` should look like this:
@@ -117,7 +117,7 @@ Your `tsconfig.json` should look like this:
 To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
 
 Running `tspc` in your project will now also run the plugin and give you the diagnostics at compile time.
-Effect diagnostics will be shown only after standard TypeScript diagnostics has been satisfied.
+Effect diagnostics will be shown only after standard TypeScript diagnostics have been satisfied.
 
 ```ts
 $ npx tspc
@@ -165,9 +165,9 @@ or you can set the severity for the entire project in the global plugin configur
 
 The Svelte LSP does not properly compose with other LSPs when using SvelteKit. So the Effect LSP should be loaded as last entry to ensure proper composition.
 
-If you did not installed the Svelte LSP into your local project but instead through the Svelte VSCode extension, we recommend instead to install locally and add it as first entry. That way it won't be applied by the VSCode extension.
+If you did not install the Svelte LSP into your local project but instead through the Svelte VSCode extension, we recommend instead to install it locally and add it as the first entry. That way it won't be applied by the VSCode extension.
 
-Your tsconfig should look like this:
+Your tsconfig.json should look like this:
 
 ```jsonc
 {
