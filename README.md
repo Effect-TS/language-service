@@ -43,6 +43,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Wrong usage of yield inside `Effect.gen`
 - Multiple versions of Effect in your project
 - Warn on leaking requirements in Effect services
+- Warn on Scope as requirement of a Layer
 - Unnecessary usages of `Effect.gen` or `pipe()`
 - Warn when importing from a barrel file instead of from the module directly
 
