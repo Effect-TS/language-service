@@ -1,0 +1,5 @@
+effectWithErrors
+19:62 - 19:78 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.
+
+effectWithErrors
+22:71 - 22:87 | 1 | Missing 'ErrorA | ErrorC' in the expected Effect errors.
