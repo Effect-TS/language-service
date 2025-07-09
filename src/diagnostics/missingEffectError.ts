@@ -1,19 +1,43 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
+import * as Order from "effect/Order"
 import type ts from "typescript"
+import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const missingEffectError = LSP.createDiagnostic({
   name: "missingEffectError",
   code: 1,
   severity: "error",
   apply: Nano.fn("missingEffectError.apply")(function*(sourceFile, report) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
+
+    const effectModuleIdentifier = yield* pipe(
+      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+        sourceFile,
+        "effect",
+        "Effect"
+      ),
+      Nano.map((_) => _.text),
+      Nano.orElse(() => Nano.succeed("Effect"))
+    )
+
+    const createDieMessage = (message: string) =>
+      ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier(effectModuleIdentifier),
+          "dieMessage"
+        ),
+        undefined,
+        [ts.factory.createStringLiteral(message)]
+      )
 
     const checkForMissingErrorTypes = (
       node: ts.Node,
@@ -27,9 +51,12 @@ export const missingEffectError = LSP.createDiagnostic({
           typeParser.effectType(realType, valueNode)
         ),
         Nano.flatMap(([expectedEffect, realEffect]) =>
-          TypeCheckerApi.getMissingTypeEntriesInTargetType(
-            realEffect.E,
-            expectedEffect.E
+          pipe(
+            TypeCheckerApi.getMissingTypeEntriesInTargetType(
+              realEffect.E,
+              expectedEffect.E
+            ),
+            Nano.map((missingErrorTypes) => ({ missingErrorTypes, expectedErrorType: expectedEffect.E }))
           )
         )
       )
@@ -47,19 +74,86 @@ export const missingEffectError = LSP.createDiagnostic({
             valueNode,
             realType
           ),
-          Nano.map((missingTypes) =>
-            missingTypes.length > 0 ?
-              report(
-                {
-                  node,
-                  messageText: `Missing '${
-                    sortTypes(missingTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
-                  }' in the expected Effect errors.`,
-                  fixes: []
-                }
-              ) :
-              undefined
-          ),
+          Nano.map((result) => {
+            if (result.missingErrorTypes.length === 0) return
+            const fixes: Array<LSP.ApplicableDiagnosticDefinitionFix> = []
+
+            if (ts.isExpression(valueNode) && result.expectedErrorType.flags & ts.TypeFlags.Never) {
+              fixes.push({
+                fixName: "missingEffectError_catchAll",
+                description: "Catch all errors with Effect.catchAll",
+                apply: Nano.gen(function*() {
+                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                  changeTracker.insertText(sourceFile, valueNode.getStart(), effectModuleIdentifier + ".catchAll(")
+                  changeTracker.insertText(sourceFile, valueNode.getEnd(), ", () => ")
+                  changeTracker.insertNodeAt(
+                    sourceFile,
+                    valueNode.getEnd(),
+                    createDieMessage("TODO: catchAll not implemented")
+                  )
+                  changeTracker.insertText(sourceFile, valueNode.getEnd(), ")")
+                })
+              })
+            }
+
+            if (ts.isExpression(valueNode)) {
+              const propertyAssignments = pipe(
+                result.missingErrorTypes,
+                ReadonlyArray.map((_) => typeChecker.getPropertyOfType(_, "_tag")),
+                ReadonlyArray.filter((_) => !!_),
+                ReadonlyArray.map((_) => typeChecker.getTypeOfSymbolAtLocation(_, valueNode)),
+                ReadonlyArray.filter((_) => !!(_.flags & ts.TypeFlags.Literal)),
+                ReadonlyArray.map((_) => typeChecker.typeToTypeNode(_, undefined, ts.NodeBuilderFlags.NoTruncation)),
+                ReadonlyArray.filter((_) => !!_ && ts.isLiteralTypeNode(_)),
+                ReadonlyArray.map((_) => _.literal),
+                ReadonlyArray.filter((_) => ts.isLiteralExpression(_)),
+                ReadonlyArray.map((_) => _.text),
+                ReadonlyArray.sort(Order.string),
+                ReadonlyArray.map((_) =>
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createIdentifier(_),
+                    ts.factory.createArrowFunction(
+                      undefined,
+                      undefined,
+                      [],
+                      undefined,
+                      undefined,
+                      createDieMessage(`TODO: catchTags() not implemented for ${_}`)
+                    )
+                  )
+                )
+              )
+              if (propertyAssignments.length === result.missingErrorTypes.length) {
+                fixes.push({
+                  fixName: "missingEffectError_tagged",
+                  description: "Catch unexpected errors with Effect.catchTag",
+                  apply: Nano.gen(function*() {
+                    const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                    changeTracker.insertText(sourceFile, valueNode.getStart(), effectModuleIdentifier + ".catchTags(")
+                    changeTracker.insertText(sourceFile, valueNode.getEnd(), ", ")
+                    changeTracker.insertNodeAt(
+                      sourceFile,
+                      valueNode.getEnd(),
+                      ts.factory.createObjectLiteralExpression(propertyAssignments)
+                    )
+                    changeTracker.insertText(sourceFile, valueNode.getEnd(), ")")
+                  })
+                })
+              }
+            }
+
+            report(
+              {
+                node,
+                messageText: `Missing '${
+                  sortTypes(result.missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
+                }' in the expected Effect errors.`,
+                fixes
+              }
+            )
+          }),
           Nano.ignore
         )
       }
