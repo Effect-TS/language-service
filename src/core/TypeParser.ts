@@ -87,6 +87,10 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  scopeType: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<ts.Type, TypeParserIssue>
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -226,26 +230,28 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       type: ts.Type,
       atLocation: ts.Node
     ) {
-      // should be pipeable
-      yield* pipeableType(type, atLocation)
+      let result: Nano.Nano<
+        {
+          A: ts.Type
+          E: ts.Type
+          R: ts.Type
+        },
+        TypeParserIssue,
+        never
+      > = typeParserIssue("Type has no effect variance struct", type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
+        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) => b.name.indexOf("EffectTypeId") - a.name.indexOf("EffectTypeId"))
       // has a property symbol which is an effect variance struct
       for (const propertySymbol of propertiesSymbols) {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        const varianceArgs = yield* Nano.option(effectVarianceStruct(
-          propertyType,
-          atLocation
-        ))
-        if (Option.isSome(varianceArgs)) {
-          return varianceArgs.value
-        }
+        result = pipe(result, Nano.orElse(() => effectVarianceStruct(propertyType, atLocation)))
       }
-      return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+      return yield* result
     }),
     "TypeParser.effectType",
     (type) => type
@@ -277,7 +283,8 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
 
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
+        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) => b.name.indexOf("LayerTypeId") - a.name.indexOf("LayerTypeId"))
@@ -633,7 +640,8 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       if (!ast) return yield* typeParserIssue("Has no 'ast' property", type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
+        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) => b.name.indexOf("TypeId") - a.name.indexOf("TypeId"))
@@ -675,7 +683,8 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
       yield* pipeableType(type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
+        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) => b.name.indexOf("TypeId") - a.name.indexOf("TypeId"))
@@ -728,6 +737,34 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     (node) => node
   )
 
+  const scopeType = Nano.cachedBy(
+    Nano.fn("TypeParser.scopeType")(function*(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      // should be pipeable
+      yield* pipeableType(type, atLocation)
+      // get the properties to check (exclude non-property and optional properties)
+      const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
+        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
+      )
+      // try to put typeid first (heuristic to optimize hot path)
+      propertiesSymbols.sort((a, b) => b.name.indexOf("ScopeTypeId") - a.name.indexOf("ScopeTypeId"))
+      // has a property scope type id
+      for (const propertySymbol of propertiesSymbols) {
+        const computedPropertyExpression: ts.ComputedPropertyName = (propertySymbol.valueDeclaration as any).name
+        const symbol = typeChecker.getSymbolAtLocation(computedPropertyExpression.expression)
+        if (symbol && symbol.name === "ScopeTypeId") {
+          return type
+        }
+      }
+      return yield* typeParserIssue("Type has no scope type id", type, atLocation)
+    }),
+    "TypeParser.scopeType",
+    (type) => type
+  )
+
   return {
     effectType,
     strictEffectType,
@@ -741,6 +778,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     unnecessaryEffectGen,
     effectSchemaType,
     contextTag,
-    pipeCall
+    pipeCall,
+    scopeType
   }
 }

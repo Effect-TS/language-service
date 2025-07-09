@@ -1,0 +1,39 @@
+export class MyService2 extends Effect.Service<MyService2>()("MyService2", {
+  effect: Effect.gen(function*() {
+    yield* Effect.addFinalizer(() => Effect.log("finalizer"))
+    return { a: 1 }
+  })
+}) {}
+13:0 - 18:5 | 0 | Seems like you are constructing a layer with a scope in the requirements.
+Consider using "scoped" instead to get ride of the scope in the requirements.
+
+export class MyService3 extends Effect.Service<MyService2>()("MyService2", {
+  effect: Effect.gen(function*() {
+    const _ = yield* OtherService
+    yield* Effect.addFinalizer(() => Effect.log("finalizer"))
+    return { a: 1 }
+  })
+}) {}
+20:0 - 26:5 | 0 | Seems like you are constructing a layer with a scope in the requirements.
+Consider using "scoped" instead to get ride of the scope in the requirements.
+
+Layer.effect(
+  MyService,
+  Effect.gen(function*() {
+    yield* Effect.addFinalizer(() => Effect.log("finalizer"))
+    return { a: 1 }
+  })
+)
+36:23 - 42:1 | 0 | Seems like you are constructing a layer with a scope in the requirements.
+Consider using "scoped" instead to get ride of the scope in the requirements.
+
+Layer.effect(
+  MyService,
+  Effect.gen(function*() {
+    const _otherService = yield* OtherService
+    yield* Effect.addFinalizer(() => Effect.log("finalizer"))
+    return { a: 1 }
+  })
+)
+44:24 - 51:1 | 0 | Seems like you are constructing a layer with a scope in the requirements.
+Consider using "scoped" instead to get ride of the scope in the requirements.
