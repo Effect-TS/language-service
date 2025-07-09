@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.24.0
+
+### Minor Changes
+
+- [#259](https://github.com/Effect-TS/language-service/pull/259) [`77b25ae`](https://github.com/Effect-TS/language-service/commit/77b25ae48c8edaac45acae1e0a7e5f1550ba4c1c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add rule that reports Layer with scope
+
+### Patch Changes
+
+- [#257](https://github.com/Effect-TS/language-service/pull/257) [`d875f85`](https://github.com/Effect-TS/language-service/commit/d875f85fa6d7616f80804cfeea4fc75da7b261df) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add quickfixes to missingEffectError to implement catchAll or catchTags based on the missing errors context
+
 ## 0.23.5
 
 ### Patch Changes
