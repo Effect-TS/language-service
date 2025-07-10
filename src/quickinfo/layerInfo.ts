@@ -1,6 +1,8 @@
 import * as Array from "effect/Array"
+import * as Encoding from "effect/Encoding"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as pako from "pako"
 import type * as ts from "typescript"
 import * as AST from "../core/AST"
 import * as Nano from "../core/Nano"
@@ -268,8 +270,9 @@ function processNodeMermaid(
         ]
       }
 
+      const nodeText = graph.node.getText().trim().replace(/\n/g, " ").substr(0, 50)
       subgraphDefs = [
-        "subgraph " + graph.id + " [\"`" + escapeMermaid(graph.node.getText()) + " _at ln " + (line + 1) + " col " +
+        "subgraph " + graph.id + " [\"`" + escapeMermaid(nodeText) + " _at ln " + (line + 1) + " col " +
         character +
         "_`\"]",
         ...subgraphDefs,
@@ -325,8 +328,11 @@ function generateMarmaidUri(
     }
     const lines = yield* processNodeMermaid(graph, ctx, ctxL)
     const code = "flowchart TB\n" + lines.join("\n")
-    const state = btoa(JSON.stringify({ code }))
-    return "https://www.mermaidchart.com/play#" + state
+    const state = JSON.stringify({ code })
+    const data = new TextEncoder().encode(state)
+    const compressed = pako.deflate(data, { level: 9 })
+    const pakoString = "pako:" + Encoding.encodeBase64Url(compressed)
+    return "https://www.mermaidchart.com/play#" + pakoString
   })
 }
 
@@ -384,7 +390,7 @@ export function layerInfo(
               const positions = providesNode.map((_) => {
                 const nodePosition = _.node.getStart(sourceFile, false)
                 const { character, line } = ts.getLineAndCharacterOfPosition(sourceFile, nodePosition)
-                const nodeText = _.node.getText().trim().substr(0, 100)
+                const nodeText = _.node.getText().trim().replace(/\n/g, " ").substr(0, 50)
                 return "ln " + (line + 1) + " col " + character + " by `" + nodeText + "`"
               })
 
