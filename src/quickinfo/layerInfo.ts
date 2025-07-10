@@ -188,7 +188,8 @@ function processLayerGraphNode(
       }
     }
 
-    return yield* Nano.fail(new UnableToProduceLayerGraphError(node.getText()))
+    const nodeText = node.getText().trim().substr(0, 20)
+    return yield* Nano.fail(new UnableToProduceLayerGraphError(nodeText))
   })
 }
 
