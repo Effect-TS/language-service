@@ -1,11 +1,15 @@
+import * as Command from "@effect/cli/Command"
+import * as NodeContext from "@effect/platform-node/NodeContext"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
-import * as NodeTerminal from "@effect/platform-node/NodeTerminal"
 import * as Terminal from "@effect/platform/Terminal"
 import * as Ansi from "@effect/printer-ansi/Ansi"
 import * as Doc from "@effect/printer-ansi/AnsiDoc"
+import * as Array from "effect/Array"
+import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Predicate from "effect/Predicate"
 import * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -65,7 +69,7 @@ const printCodeSnippet = (sourceFile: ts.SourceFile, showStartPosition: number, 
     return Doc.vcat(out)
   })
 
-const withColor = (severity: ts.DiagnosticCategory) => (doc: Doc.Doc<Ansi.Ansi>) => {
+const applyColorBasedOnCategory = (severity: ts.DiagnosticCategory) => (doc: Doc.Doc<Ansi.Ansi>) => {
   switch (severity) {
     case ts.DiagnosticCategory.Error:
       return Doc.annotate(doc, Ansi.redBright)
@@ -78,7 +82,7 @@ const withColor = (severity: ts.DiagnosticCategory) => (doc: Doc.Doc<Ansi.Ansi>)
   }
 }
 
-const printDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts.Diagnostic) =>
+const formatDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts.Diagnostic) =>
   Effect.gen(function*() {
     const terminal = yield* Terminal.Terminal
     const terminalColumns = yield* terminal.columns
@@ -90,7 +94,7 @@ const printDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts.
       : diagnostic.messageText.messageText
 
     const ruleMessages = Doc.vcat(splitLinesMaxLength(messageText.split("\n"), terminalColumns - 4).map(Doc.text)).pipe(
-      withColor(diagnostic.category)
+      applyColorBasedOnCategory(diagnostic.category)
     )
 
     const titleWidth = pathWithLineCharacter.length + ruleName.length + 2
@@ -126,7 +130,7 @@ const printDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts.
     console.log(Doc.render(doc, { style: "pretty", options: { lineWidth: terminalColumns } }))
   })
 
-export const main = Effect.gen(function*() {
+const checkEffect = Effect.gen(function*() {
   // hack to disable emit
   ;((ts as unknown) as any).commonOptionsWithBuild.push(
     { name: "noEmit" }
@@ -153,6 +157,11 @@ export const main = Effect.gen(function*() {
   while (project) {
     // grab the program main files
     const program: ts.Program = (project as any).getProgram()!
+    const compilerOptions = program.getCompilerOptions()
+    const pluginOptions = Predicate.hasProperty(compilerOptions, "plugins") && Array.isArray(compilerOptions.plugins) &&
+        compilerOptions.plugins.find((_) =>
+          Predicate.hasProperty(_, "name") && _.name === "@effect/language-service"
+        ) || {}
     const rootNames = program.getRootFileNames()
     const sourceFiles = program.getSourceFiles().filter((_) => rootNames.indexOf(_.fileName) !== -1)
     for (const sourceFile of sourceFiles) {
@@ -169,17 +178,30 @@ export const main = Effect.gen(function*() {
         ),
         Nano.provideService(
           LanguageServicePluginOptions.LanguageServicePluginOptions,
-          LanguageServicePluginOptions.parse({})
+          LanguageServicePluginOptions.parse(pluginOptions)
         ),
         Nano.run,
         Either.map((_) => _.diagnostics),
         Either.getOrElse(() => [])
       )
-      yield* Effect.forEach(outputDiagnostics, (diagnostic) => printDiagnostic(cwd, sourceFile, diagnostic))
+      yield* Effect.forEach(outputDiagnostics, (diagnostic) => formatDiagnostic(cwd, sourceFile, diagnostic))
     }
     project.done(undefined, () => {})
     project = solution.getNextInvalidatedProject()
   }
 })
 
-main.pipe(Effect.provide(NodeTerminal.layer), NodeRuntime.runMain())
+const checkCommand = Command.make("check", {}, () => checkEffect)
+
+const cliCommand = Command.make(
+  "effect-language-service",
+  {},
+  () => Console.log("Please select a command or run --help.")
+).pipe(Command.withSubcommands([checkCommand]))
+
+const main = Command.run(cliCommand, {
+  name: "effect-language-service",
+  version: "0.0.1"
+})
+
+main(process.argv).pipe(Effect.provide(NodeContext.layer), NodeRuntime.runMain())
