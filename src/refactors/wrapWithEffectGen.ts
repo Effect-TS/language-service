@@ -66,11 +66,9 @@ export const wrapWithEffectGen = LSP.createRefactor({
         Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-          const effectGen = yield* pipe(
-            AST.createEffectGenCallExpressionWithBlock(
-              effectModuleIdentifier,
-              yield* AST.createReturnYieldStarStatement(maybeNode.value)
-            )
+          const effectGen = yield* AST.createEffectGenCallExpressionWithBlock(
+            effectModuleIdentifier,
+            yield* AST.createReturnYieldStarStatement(maybeNode.value)
           )
 
           changeTracker.replaceNode(sourceFile, maybeNode.value, effectGen)
