@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.24.1
+
+### Patch Changes
+
+- [#262](https://github.com/Effect-TS/language-service/pull/262) [`401701f`](https://github.com/Effect-TS/language-service/commit/401701f56f0fe59708d1238c2c193dcadb124ecb) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Use pako for mermaid url generation
+
 ## 0.24.0
 
 ### Minor Changes
