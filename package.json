@@ -1,6 +1,6 @@
 {
   "name": "@effect/language-service",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "packageManager": "pnpm@8.11.0",
   "publishConfig": {
     "access": "public",
@@ -68,7 +68,7 @@
     "eslint-plugin-sort-destructure-keys": "^2.0.0",
     "madge": "^8.0.0",
     "pako": "^2.1.0",
-    "@types/pako":"^2.0.3",
+    "@types/pako": "^2.0.3",
     "rimraf": "^6.0.1",
     "ts-patch": "^3.3.0",
     "tsup": "^8.5.0",
