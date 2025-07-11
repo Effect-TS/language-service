@@ -10,6 +10,7 @@ import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as Predicate from "effect/Predicate"
+import * as Runtime from "effect/Runtime"
 import * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -63,8 +64,14 @@ const printCodeSnippet = (sourceFile: ts.SourceFile, showStartPosition: number, 
     const out: Array<Doc.Doc<Ansi.Ansi>> = []
     for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
       const lineNumber = (startLine + 1 + lineIdx).toFixed(0)
-      const lineCounterText = " ".repeat(lineNumberMaxLength - lineNumber.length) + lineNumber + " | "
-      out.push(Doc.hcat([Doc.string(lineCounterText), Doc.space, Doc.string(lines[lineIdx])]))
+      const lineCounterText = " ".repeat(lineNumberMaxLength - lineNumber.length) + lineNumber + "  "
+      out.push(
+        Doc.hcat([
+          Doc.string(lineCounterText),
+          Doc.space,
+          Doc.string(lines[lineIdx])
+        ]).pipe(Doc.annotate(Ansi.blackBright))
+      )
     }
     return Doc.vcat(out)
   })
@@ -74,7 +81,7 @@ const applyColorBasedOnCategory = (severity: ts.DiagnosticCategory) => (doc: Doc
     case ts.DiagnosticCategory.Error:
       return Doc.annotate(doc, Ansi.redBright)
     case ts.DiagnosticCategory.Warning:
-      return Doc.annotate(doc, Ansi.yellowBright)
+      return Doc.annotate(doc, Ansi.yellow)
     case ts.DiagnosticCategory.Suggestion:
       return doc
     case ts.DiagnosticCategory.Message:
@@ -131,32 +138,16 @@ const formatDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts
   })
 
 const checkEffect = Effect.gen(function*() {
-  // hack to disable emit
-  ;((ts as unknown) as any).commonOptionsWithBuild.push(
-    { name: "noEmit" }
-  )
-
   // create a solution builder host
   const host = ts.createSolutionBuilderHost(
     ts.sys,
-    ts.createSemanticDiagnosticsBuilderProgram,
-    () => {},
-    () => {},
-    () => {}
+    ts.createSemanticDiagnosticsBuilderProgram
   )
   const cwd = host.getCurrentDirectory()
 
-  // create a solution builder
-  const solution = ts.createSolutionBuilder(host, ["./tsconfig.json"], {
-    force: true,
-    noEmit: true
-  })
-
-  // loop through all the projects
-  let project = solution.getNextInvalidatedProject()
-  while (project) {
-    // grab the program main files
-    const program: ts.Program = (project as any).getProgram()!
+  const runtime = yield* Effect.runtime<Terminal.Terminal>()
+  host.afterProgramEmitAndDiagnostics = (_) => {
+    const program = _.getProgram()
     const compilerOptions = program.getCompilerOptions()
     const pluginOptions = Predicate.hasProperty(compilerOptions, "plugins") && Array.isArray(compilerOptions.plugins) &&
         compilerOptions.plugins.find((_) =>
@@ -184,11 +175,27 @@ const checkEffect = Effect.gen(function*() {
         Either.map((_) => _.diagnostics),
         Either.getOrElse(() => [])
       )
-      yield* Effect.forEach(outputDiagnostics, (diagnostic) => formatDiagnostic(cwd, sourceFile, diagnostic))
+      Runtime.runSync(
+        runtime,
+        Effect.forEach(outputDiagnostics, (diagnostic) => formatDiagnostic(cwd, sourceFile, diagnostic))
+      )
     }
-    project.done(undefined, () => {})
-    project = solution.getNextInvalidatedProject()
   }
+
+  // create a solution builder
+  const solution = ts.createSolutionBuilder(host, ["./tsconfig.json"], {
+    force: true,
+    emitDeclarationOnly: true
+  })
+
+  solution.build(
+    undefined,
+    undefined,
+    (fileName, text, bom) => {
+      if (fileName.endsWith(".d.ts") || fileName.endsWith(".map")) return
+      return ts.sys.writeFile(fileName, text, bom)
+    }
+  )
 })
 
 const checkCommand = Command.make("check", {}, () => checkEffect)
