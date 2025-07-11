@@ -5,7 +5,7 @@ export class MyService2 extends Effect.Service<MyService2>()("MyService2", {
   })
 }) {}
 13:0 - 18:5 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get ride of the scope in the requirements.
+Consider using "scoped" instead to get rid of the scope in the requirements.
 
 export class MyService3 extends Effect.Service<MyService2>()("MyService2", {
   effect: Effect.gen(function*() {
@@ -15,7 +15,7 @@ export class MyService3 extends Effect.Service<MyService2>()("MyService2", {
   })
 }) {}
 20:0 - 26:5 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get ride of the scope in the requirements.
+Consider using "scoped" instead to get rid of the scope in the requirements.
 
 Layer.effect(
   MyService,
@@ -25,7 +25,7 @@ Layer.effect(
   })
 )
 36:23 - 42:1 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get ride of the scope in the requirements.
+Consider using "scoped" instead to get rid of the scope in the requirements.
 
 Layer.effect(
   MyService,
@@ -36,4 +36,4 @@ Layer.effect(
   })
 )
 44:24 - 51:1 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get ride of the scope in the requirements.
+Consider using "scoped" instead to get rid of the scope in the requirements.
