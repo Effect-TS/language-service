@@ -59,7 +59,7 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
           report({
             node,
             messageText:
-              `Seems like you are constructing a layer with a scope in the requirements.\nConsider using "scoped" instead to get ride of the scope in the requirements.`,
+              `Seems like you are constructing a layer with a scope in the requirements.\nConsider using "scoped" instead to get rid of the scope in the requirements.`,
             fixes: methodIdentifier ?
               [{
                 fixName: "scopeInLayerEffect_scoped",
