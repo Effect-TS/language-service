@@ -350,14 +350,14 @@ const internalNanoCache = Tag<Record<string, Map<any, NanoExit<any, any>>>>(
 export function cachedBy<P extends Array<any>, A, E, R>(
   fa: (...args: P) => Nano<A, E, R>,
   key: string,
-  lookupKey: (...args: P) => any
+  lookupKey: (...args: P) => object
 ) {
   return (...args: P) =>
     make<A, E, R>((ctx) => {
-      const cacheObj = ctx.value[internalNanoCache.key] as Record<string, Map<any, NanoExit<any, any>>>
+      const cacheObj = ctx.value[internalNanoCache.key] as Record<string, WeakMap<any, NanoExit<any, any>>>
       let cache = cacheObj[key]
       if (!cache) {
-        cache = new Map<any, NanoExit<any, any>>()
+        cache = new WeakMap<any, NanoExit<any, any>>()
         cacheObj[key] = cache
       }
       const lookup = lookupKey(...args)

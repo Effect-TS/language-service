@@ -280,6 +280,20 @@ export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")
   return result
 })
 
+export const unrollUnionMembers = (type: ts.Type) => {
+  const result: Array<ts.Type> = []
+  let toTest: Array<ts.Type> = [type]
+  while (toTest.length > 0) {
+    const type = toTest.pop()!
+    if (type.isUnion()) {
+      toTest = toTest.concat(type.types)
+    } else {
+      result.push(type)
+    }
+  }
+  return result
+}
+
 export const appendToUniqueTypesMap = Nano.fn(
   "TypeCheckerApi.appendToUniqueTypesMap"
 )(

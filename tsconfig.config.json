@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": ["tsup.config.ts", "vitest.config.ts"],
+  "files": [
+    "tsup.config.ts",
+    "vitest.config.mts"
+  ],
   "compilerOptions": {
     "tsBuildInfoFile": ".tsbuildinfo/config.tsbuildinfo",
     "noEmit": true
