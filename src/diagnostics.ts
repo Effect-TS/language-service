@@ -1,4 +1,5 @@
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
+import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
@@ -25,5 +26,6 @@ export const diagnostics = [
   genericEffectServices,
   returnEffectInGen,
   importFromBarrel,
-  scopeInLayerEffect
+  scopeInLayerEffect,
+  effectInVoidSuccess
 ]
