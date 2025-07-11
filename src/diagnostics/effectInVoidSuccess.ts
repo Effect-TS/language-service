@@ -26,7 +26,7 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
       if (expectedEffect.A.flags & ts.TypeFlags.Void) {
         const voidValueTypes = TypeCheckerApi.unrollUnionMembers(realEffect.A)
         const voidedEffect = yield* Nano.firstSuccessOf(
-          voidValueTypes.map((_) => Nano.map(typeParser.effectType(_, node), () => _))
+          voidValueTypes.map((_) => Nano.map(typeParser.strictEffectType(_, node), () => _))
         )
         return { voidedEffect }
       }
