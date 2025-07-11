@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.24.2
+
+### Patch Changes
+
+- [#264](https://github.com/Effect-TS/language-service/pull/264) [`280a16e`](https://github.com/Effect-TS/language-service/commit/280a16e6448779eb3969248b54de8d4b242fc511) Thanks [@johtso](https://github.com/johtso)! - Fix typo
+
 ## 0.24.1
 
 ### Patch Changes
