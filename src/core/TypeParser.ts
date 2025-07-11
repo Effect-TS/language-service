@@ -99,15 +99,15 @@ export class TypeParserIssue {
   static issue = Nano.fail(new TypeParserIssue())
 }
 
-export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerApi.TypeCheckerApi): TypeParser {
-  function typeParserIssue(
-    _message: string,
-    _type?: ts.Type | undefined,
-    _node?: ts.Node | undefined
-  ): Nano.Nano<never, TypeParserIssue, never> {
-    return TypeParserIssue.issue
-  }
+export function typeParserIssue(
+  _message: string,
+  _type?: ts.Type | undefined,
+  _node?: ts.Node | undefined
+): Nano.Nano<never, TypeParserIssue, never> {
+  return TypeParserIssue.issue
+}
 
+export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerApi.TypeCheckerApi): TypeParser {
   function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
     const signatures = type.getCallSignatures()
     // Covariant<A> has only 1 type signature

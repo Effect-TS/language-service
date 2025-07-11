@@ -2,7 +2,6 @@
   "include": [],
   "compilerOptions": {
     "strict": true,
-    "allowSyntheticDefaultImports": true,
     "exactOptionalPropertyTypes": true,
     "moduleDetection": "force",
     "composite": true,
@@ -16,7 +15,8 @@
     "moduleResolution": "NodeNext",
     "lib": [
       "ES2022",
-      "DOM"
+      "DOM",
+      "DOM.Iterable"
     ],
     "isolatedModules": true,
     "sourceMap": true,
@@ -41,6 +41,7 @@
     "types": [
       "node"
     ],
+    "allowSyntheticDefaultImports": true,
     "plugins": [
       {
         "name": "@effect/language-service",

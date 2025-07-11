@@ -16,20 +16,18 @@ const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "
 
 function testAllDagnostics() {
   // read all filenames
+  console.log("reading all example files")
   const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir()).filter((fileName) => fileName.endsWith(".ts"))
-    .map(
-      (fileName) => {
-        const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), fileName))
-          .toString("utf8")
-        return createServicesWithMockedVFS(fileName, sourceText)
-      }
-    )
   // run a couple of times
+  console.log("running a couple of times")
   const totalSamples = 1000
   let totalTime = 0
   const cache = TypeCheckerApi.makeTypeCheckerApiCache()
-  for (let i = -1; i < totalSamples; i++) {
-    for (const example of allExampleFiles) {
+  for (const exampleFileName of allExampleFiles) {
+    const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), exampleFileName))
+      .toString("utf8")
+    const example = createServicesWithMockedVFS(exampleFileName, sourceText)
+    for (let i = -1; i < totalSamples; i++) {
       const start = performance.now()
       pipe(
         LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, example.sourceFile),
