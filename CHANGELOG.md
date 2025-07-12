@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.25.0
+
+### Minor Changes
+
+- [#266](https://github.com/Effect-TS/language-service/pull/266) [`e416045`](https://github.com/Effect-TS/language-service/commit/e416045cc240a1fcdc899c5674f8d1f74cb1c398) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Rule that warns about effect's inside the void channel
+
 ## 0.24.2
 
 ### Patch Changes
