@@ -16,6 +16,128 @@ exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] =
 ]
 `;
 
+exports[`Completion durationInput > durationInput.ts at 4:38 1`] = `
+[
+  {
+    "insertText": "\${0} nanos",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "nanos",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} micros",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "micros",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} millis",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "millis",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} seconds",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "seconds",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} minutes",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "minutes",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} hours",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "hours",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} days",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "days",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} weeks",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "weeks",
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion durationInput > durationInput_props.ts at 5:14 1`] = `
+[
+  {
+    "insertText": "\${0} nanos",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "nanos",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} micros",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "micros",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} millis",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "millis",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} seconds",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "seconds",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} minutes",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "minutes",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} hours",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "hours",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} days",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "days",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} weeks",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "weeks",
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
 [
   {
