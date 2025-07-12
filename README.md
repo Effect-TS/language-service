@@ -52,6 +52,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Autocomplete 'Self' in `Effect.Service`, `Context.Tag`, `Schema.TaggedClass`, `Schema.TaggedRequest` and family
 - Autocomplete `Effect.gen` with `function*(){}`
 - Autocomplete `Effect.fn` with the span name given by the exported member
+- Completions for DurationInput string millis/seconds/etc...
 - Allow to configure packages to be imported with namespace style `import * as Effect from "effect"`
 - Effect comment directives
 

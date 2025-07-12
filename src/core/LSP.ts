@@ -102,7 +102,7 @@ export interface CompletionEntryDefinition {
   kind: ts.ScriptElementKind
   insertText: string
   isSnippet: true
-  replacementSpan: ts.TextSpan
+  replacementSpan?: ts.TextSpan
 }
 
 export function createCompletion(definition: CompletionDefinition): CompletionDefinition {
