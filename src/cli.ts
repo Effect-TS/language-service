@@ -1,4 +1,5 @@
 import * as Command from "@effect/cli/Command"
+import * as Options from "@effect/cli/Options"
 import * as NodeContext from "@effect/platform-node/NodeContext"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
 import * as Terminal from "@effect/platform/Terminal"
@@ -137,68 +138,132 @@ const formatDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts
     console.log(Doc.render(doc, { style: "pretty", options: { lineWidth: terminalColumns } }))
   })
 
-const checkEffect = Effect.gen(function*() {
-  // create a solution builder host
-  const host = ts.createSolutionBuilderHost(
-    ts.sys,
-    ts.createSemanticDiagnosticsBuilderProgram
-  )
-  const cwd = host.getCurrentDirectory()
+interface JsonDiagnostic {
+  file: string
+  line: number
+  column: number
+  severity: "error" | "warning" | "suggestion" | "message"
+  code: number
+  rule: string
+  message: string
+}
 
-  const runtime = yield* Effect.runtime<Terminal.Terminal>()
-  host.afterProgramEmitAndDiagnostics = (_) => {
-    const program = _.getProgram()
-    const compilerOptions = program.getCompilerOptions()
-    const pluginOptions = Predicate.hasProperty(compilerOptions, "plugins") && Array.isArray(compilerOptions.plugins) &&
-        compilerOptions.plugins.find((_) =>
-          Predicate.hasProperty(_, "name") && _.name === "@effect/language-service"
-        ) || {}
-    const rootNames = program.getRootFileNames()
-    const sourceFiles = program.getSourceFiles().filter((_) => rootNames.indexOf(_.fileName) !== -1)
-    for (const sourceFile of sourceFiles) {
-      // run the diagnostics and pipe them into addDiagnostic
-      const outputDiagnostics = pipe(
-        LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
-        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-        Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-        Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-        Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
-        Nano.provideService(
-          TypeCheckerApi.TypeCheckerApiCache,
-          TypeCheckerApi.makeTypeCheckerApiCache()
-        ),
-        Nano.provideService(
-          LanguageServicePluginOptions.LanguageServicePluginOptions,
-          LanguageServicePluginOptions.parse(pluginOptions)
-        ),
-        Nano.run,
-        Either.map((_) => _.diagnostics),
-        Either.getOrElse(() => [])
-      )
-      Runtime.runSync(
-        runtime,
-        Effect.forEach(outputDiagnostics, (diagnostic) => formatDiagnostic(cwd, sourceFile, diagnostic))
-      )
-    }
+const formatDiagnosticAsJson = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts.Diagnostic): JsonDiagnostic => {
+  const ruleName = Object.values(diagnostics).find((_) => _.code === diagnostic.code)?.name || "unknown"
+  const messageText = typeof diagnostic.messageText === "string"
+    ? diagnostic.messageText
+    : diagnostic.messageText.messageText
+
+  const relativePath = sourceFile.fileName.startsWith(cwd)
+    ? "." + sourceFile.fileName.slice(cwd.length)
+    : sourceFile.fileName
+
+  const { character, line } = diagnostic.start
+    ? ts.getLineAndCharacterOfPosition(sourceFile, diagnostic.start)
+    : { character: 0, line: 0 }
+
+  const severityMap: Record<ts.DiagnosticCategory, JsonDiagnostic["severity"]> = {
+    [ts.DiagnosticCategory.Error]: "error",
+    [ts.DiagnosticCategory.Warning]: "warning",
+    [ts.DiagnosticCategory.Suggestion]: "suggestion",
+    [ts.DiagnosticCategory.Message]: "message"
   }
 
-  // create a solution builder
-  const solution = ts.createSolutionBuilder(host, ["./tsconfig.json"], {
-    force: true,
-    emitDeclarationOnly: true
+  return {
+    file: relativePath,
+    line: line + 1,
+    column: character + 1,
+    severity: severityMap[diagnostic.category],
+    code: diagnostic.code,
+    rule: ruleName,
+    message: messageText
+  }
+}
+
+const checkEffect = (format: "default" | "json") =>
+  Effect.gen(function*() {
+    // create a solution builder host
+    const host = ts.createSolutionBuilderHost(
+      ts.sys,
+      ts.createSemanticDiagnosticsBuilderProgram
+    )
+    const cwd = host.getCurrentDirectory()
+
+    // track the emitted diagnostics
+    const runtime = yield* Effect.runtime<Terminal.Terminal>()
+    host.afterProgramEmitAndDiagnostics = (_) => {
+      const program = _.getProgram()
+      const compilerOptions = program.getCompilerOptions()
+      const pluginOptions =
+        Predicate.hasProperty(compilerOptions, "plugins") && Array.isArray(compilerOptions.plugins) &&
+          compilerOptions.plugins.find((_) =>
+            Predicate.hasProperty(_, "name") && _.name === "@effect/language-service"
+          ) || {}
+
+      // loop through all source files in the program
+      const rootNames = program.getRootFileNames()
+      const sourceFiles = program.getSourceFiles().filter((_) => rootNames.indexOf(_.fileName) !== -1)
+      for (const sourceFile of sourceFiles) {
+        // run the diagnostics and pipe them into addDiagnostic
+        const outputDiagnostics = pipe(
+          LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+          Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+          Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
+          Nano.provideService(
+            TypeCheckerApi.TypeCheckerApiCache,
+            TypeCheckerApi.makeTypeCheckerApiCache()
+          ),
+          Nano.provideService(
+            LanguageServicePluginOptions.LanguageServicePluginOptions,
+            LanguageServicePluginOptions.parse(pluginOptions)
+          ),
+          Nano.run,
+          Either.map((_) => _.diagnostics),
+          Either.getOrElse(() => [])
+        )
+
+        if (format === "json") {
+          for (const diagnostic of outputDiagnostics) {
+            allDiagnostics.push(formatDiagnosticAsJson(cwd, sourceFile, diagnostic))
+          }
+        } else {
+          Runtime.runSync(
+            runtime,
+            Effect.forEach(outputDiagnostics, (diagnostic) => formatDiagnostic(cwd, sourceFile, diagnostic))
+          )
+        }
+      }
+    }
+
+    const allDiagnostics: Array<JsonDiagnostic> = []
+
+    // create a solution builder
+    const solution = ts.createSolutionBuilder(host, ["./tsconfig.json"], {
+      force: true,
+      emitDeclarationOnly: true
+    })
+
+    let project = solution.getNextInvalidatedProject()
+    while (project) {
+      project.done(
+        undefined,
+        (fileName, text, bom) => {
+          if (fileName.endsWith(".d.ts") || fileName.endsWith(".map")) return
+          return ts.sys.writeFile(fileName, text, bom)
+        }
+      )
+      project = solution.getNextInvalidatedProject()
+    }
   })
 
-  solution.build(
-    undefined,
-    undefined,
-    (fileName, text, bom) => {
-      if (fileName.endsWith(".d.ts") || fileName.endsWith(".map")) return
-      return ts.sys.writeFile(fileName, text, bom)
-    }
-  )
-})
+const formatOption = Options.choice("format", ["default", "json"]).pipe(
+  Options.withDefault("default" as const),
+  Options.withDescription("Output format for diagnostics (default or json)")
+)
 
-const checkCommand = Command.make("check", {}, () => checkEffect)
+const checkCommand = Command.make("check", { format: formatOption }, ({ format }) => checkEffect(format))
 
 const cliCommand = Command.make(
   "effect-language-service",
