@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.25.0
+
+### Minor Changes
+
+- [#271](https://github.com/Effect-TS/language-service/pull/271) [`010498c`](https://github.com/Effect-TS/language-service/commit/010498c60c6c0970e1f40c0fc4e23e7cc9ce4d78) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Warn on usage of try/catch inside `Effect.gen`
+
+- [#266](https://github.com/Effect-TS/language-service/pull/266) [`e416045`](https://github.com/Effect-TS/language-service/commit/e416045cc240a1fcdc899c5674f8d1f74cb1c398) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Rule that warns about effect's inside the void channel
+
+### Patch Changes
+
+- [#270](https://github.com/Effect-TS/language-service/pull/270) [`441123e`](https://github.com/Effect-TS/language-service/commit/441123eaadb724f98b06de3c22a05360dd221898) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add completions suggestions for DurationInput values
+
 ## 0.24.2
 
 ### Patch Changes
