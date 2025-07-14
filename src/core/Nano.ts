@@ -132,6 +132,7 @@ class NanoFiber {
   readonly _stack: Array<NanoPrimitive> = []
   _yielded: NanoExit | undefined = undefined
   _services: Record<string, any> = {}
+  _cache: Record<string, WeakMap<any, any>> = {}
 
   runLoop(nano: Nano<any, any, any>) {
     let current: NanoPrimitive | NanoYield = nano
@@ -368,12 +369,37 @@ export const service = <I extends NanoTag<any>>(
   return nano
 }
 
+const CachedProto: NanoPrimitive = {
+  ...PrimitiveProto,
+  [evaluate](fiber) {
+    const [fa, type, key]: [Nano<any, any, any>, string, any] = this[args]
+    const cache = fiber._cache[type] || new WeakMap<any, any>()
+    fiber._cache[type] = cache
+    const cached = cache.get(key)
+    if (cached) return cached
+    return match(fa, {
+      onSuccess: (_) => {
+        cache.set(key, succeed(_))
+        return succeed(_)
+      },
+      onFailure: (_) => {
+        cache.set(key, fail(_))
+        return fail(_)
+      }
+    })
+  }
+}
+
 export function cachedBy<P extends Array<any>, A, E, R>(
-  fa: (...args: P) => Nano<A, E, R>,
-  _key: string,
-  _lookupKey: (...args: P) => object
+  fa: (...p: P) => Nano<A, E, R>,
+  type: string,
+  lookupKey: (...p: P) => object
 ) {
-  return (...args: P): Nano<A, E, R> => fa(...args)
+  return (...p: P): Nano<A, E, R> => {
+    const nano = Object.create(CachedProto)
+    nano[args] = [fa(...p), type, lookupKey(...p)]
+    return nano
+  }
 }
 
 export const option = <A, E, R>(fa: Nano<A, E, R>): Nano<Option.Option<A>, never, R> => {

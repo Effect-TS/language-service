@@ -51,7 +51,20 @@ export const leakingRequirements = LSP.createDiagnostic({
             // once we have the type, check the context for shared requirements
             if (effectContextType) {
               effectMembers++
-              const { allIndexes } = yield* TypeCheckerApi.appendToUniqueTypesMap(memory, effectContextType, true)
+              const { allIndexes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+                memory,
+                effectContextType,
+                (type) => {
+                  // exclude never
+                  if (type.flags & ts.TypeFlags.Never) return Nano.succeed(true)
+                  // exclude scope
+                  return pipe(
+                    typeParser.scopeType(type, atLocation),
+                    Nano.map(() => true),
+                    Nano.orElse(() => Nano.succeed(false))
+                  )
+                }
+              )
               if (!sharedRequirementsKeys) {
                 sharedRequirementsKeys = allIndexes
               } else {
