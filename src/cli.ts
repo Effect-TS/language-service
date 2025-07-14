@@ -10,8 +10,10 @@ import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Option from "effect/Option"
 import * as Predicate from "effect/Predicate"
 import * as Runtime from "effect/Runtime"
+import { minimatch } from "minimatch"
 import * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -65,7 +67,7 @@ const printCodeSnippet = (sourceFile: ts.SourceFile, showStartPosition: number, 
     const out: Array<Doc.Doc<Ansi.Ansi>> = []
     for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
       const lineNumber = (startLine + 1 + lineIdx).toFixed(0)
-      const lineCounterText = " ".repeat(lineNumberMaxLength - lineNumber.length) + lineNumber + "  "
+      const lineCounterText = " ".repeat(Math.max(0, lineNumberMaxLength - lineNumber.length)) + lineNumber + "  "
       out.push(
         Doc.hcat([
           Doc.string(lineCounterText),
@@ -115,7 +117,7 @@ const formatDiagnostic = (cwd: string, sourceFile: ts.SourceFile, diagnostic: ts
         Doc.annotate(Ansi.italicized)
       ),
       Doc.space,
-      Doc.string("━".repeat(terminalColumns - titleWidth))
+      Doc.string("━".repeat(Math.max(0, terminalColumns - titleWidth)))
     ])
 
     const codeSnippet = yield* printCodeSnippet(
@@ -180,7 +182,7 @@ const formatDiagnosticAsJson = (cwd: string, sourceFile: ts.SourceFile, diagnost
   }
 }
 
-const checkEffect = (format: "default" | "json") =>
+const checkEffect = (format: "default" | "json", filter: Option.Option<string>) =>
   Effect.gen(function*() {
     // create a solution builder host
     const host = ts.createSolutionBuilderHost(
@@ -202,7 +204,19 @@ const checkEffect = (format: "default" | "json") =>
 
       // loop through all source files in the program
       const rootNames = program.getRootFileNames()
-      const sourceFiles = program.getSourceFiles().filter((_) => rootNames.indexOf(_.fileName) !== -1)
+      let sourceFiles = program.getSourceFiles().filter((_) => rootNames.indexOf(_.fileName) !== -1)
+
+      // Apply filter if provided
+      if (Option.isSome(filter)) {
+        const filterPattern = filter.value
+        sourceFiles = sourceFiles.filter((sourceFile) => {
+          const relativePath = sourceFile.fileName.startsWith(cwd)
+            ? sourceFile.fileName.slice(cwd.length + 1)
+            : sourceFile.fileName
+
+          return minimatch(relativePath, filterPattern)
+        })
+      }
       for (const sourceFile of sourceFiles) {
         // run the diagnostics and pipe them into addDiagnostic
         const outputDiagnostics = pipe(
@@ -263,7 +277,16 @@ const formatOption = Options.choice("format", ["default", "json"]).pipe(
   Options.withDescription("Output format for diagnostics (default or json)")
 )
 
-const checkCommand = Command.make("check", { format: formatOption }, ({ format }) => checkEffect(format))
+const filterOption = Options.text("filter").pipe(
+  Options.optional,
+  Options.withDescription("Filter files by pattern (e.g., '**/*.test.ts', 'src/**/*.ts')")
+)
+
+const checkCommand = Command.make(
+  "check",
+  { format: formatOption, filter: filterOption },
+  ({ filter, format }) => checkEffect(format, filter)
+)
 
 const cliCommand = Command.make(
   "effect-language-service",
