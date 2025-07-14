@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.25.1
+
+### Patch Changes
+
+- [#274](https://github.com/Effect-TS/language-service/pull/274) [`82b79e6`](https://github.com/Effect-TS/language-service/commit/82b79e6f5620a417ae48210c116fc2466c80b6b7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow scope to be a leaking service
+
 ## 0.25.0
 
 ### Minor Changes
