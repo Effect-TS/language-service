@@ -47,6 +47,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Unnecessary usages of `Effect.gen` or `pipe()`
 - Warn when importing from a barrel file instead of from the module directly
 - Warn on usage of try/catch inside `Effect.gen` and family
+- Detect unnecessary pipe chains like `X.pipe(Y).pipe(Z)`
 
 ### Completions
 
@@ -67,6 +68,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Toggle return type signature: With a single refactor, adds or removes type annotations from the definition.
 - Remove unnecessary `Effect.gen` definitions that contains a single `yield` statement.
 - Wrap an `Effect` expression with `Effect.gen`
+- Toggle between pipe styles `X.pipe(Y)` and `pipe(X, Y)`
 
 ### Miscellaneous
 - "Go to definition" for RpcClient will resolve to the Rpc definition
@@ -119,8 +121,9 @@ Your `tsconfig.json` should look like this:
 
 To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
 
-Running `tspc` in your project will now also run the plugin and give you the diagnostics at compile time.
-Effect diagnostics will be shown only after standard TypeScript diagnostics have been satisfied.
+Running `tspc` in your project will now also run the plugin and give you the error diagnostics at compile time.
+Effect error diagnostics will be shown only after standard TypeScript diagnostics have been satisfied.
+Beware that setting noEmit will completely skip the effect diagnostics.
 
 ```ts
 $ npx tspc

@@ -13,6 +13,7 @@ import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
+import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
 
 export const diagnostics = [
   duplicatePackage,
@@ -29,5 +30,6 @@ export const diagnostics = [
   tryCatchInEffectGen,
   importFromBarrel,
   scopeInLayerEffect,
-  effectInVoidSuccess
+  effectInVoidSuccess,
+  unnecessaryPipeChain
 ]
