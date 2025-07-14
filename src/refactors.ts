@@ -7,6 +7,7 @@ import { makeSchemaOpaqueWithNs } from "./refactors/makeSchemaOpaqueWithNs.js"
 import { pipeableToDatafirst } from "./refactors/pipeableToDatafirst.js"
 import { removeUnnecessaryEffectGen } from "./refactors/removeUnnecessaryEffectGen.js"
 import { toggleLazyConst } from "./refactors/toggleLazyConst.js"
+import { togglePipeStyle } from "./refactors/togglePipeStyle.js"
 import { toggleReturnTypeAnnotation } from "./refactors/toggleReturnTypeAnnotation.js"
 import { toggleTypeAnnotation } from "./refactors/toggleTypeAnnotation.js"
 import { typeToEffectSchema } from "./refactors/typeToEffectSchema.js"
@@ -29,5 +30,6 @@ export const refactors = [
   toggleTypeAnnotation,
   wrapWithEffectGen,
   wrapWithPipe,
-  effectGenToFn
+  effectGenToFn,
+  togglePipeStyle
 ]
