@@ -297,8 +297,7 @@ export const unrollUnionMembers = (type: ts.Type) => {
 export const appendToUniqueTypesMap = Nano.fn(
   "TypeCheckerApi.appendToUniqueTypesMap"
 )(
-  function*(memory: Map<string, ts.Type>, initialType: ts.Type, excludeNever: boolean) {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  function*(memory: Map<string, ts.Type>, initialType: ts.Type, shouldExclude: (type: ts.Type) => Nano.Nano<boolean>) {
     const typeChecker = yield* Nano.service(TypeCheckerApi)
 
     const newIndexes: Set<string> = new Set()
@@ -307,7 +306,7 @@ export const appendToUniqueTypesMap = Nano.fn(
     while (toTest.length > 0) {
       const type = toTest.pop()
       if (!type) break
-      if (excludeNever && type.flags & ts.TypeFlags.Never) {
+      if (yield* shouldExclude(type)) {
         continue
       }
       if (type.isUnion()) {

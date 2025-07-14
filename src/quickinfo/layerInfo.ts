@@ -64,6 +64,7 @@ function processLayerGraphNode(
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const excludeNever = (type: ts.Type) => Nano.succeed((type.flags & ts.TypeFlags.Never) !== 0)
 
     // expression.pipe(.....)
     // pipe(A, B, ...)
@@ -93,12 +94,12 @@ function processLayerGraphNode(
           const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
             ctx.services,
             maybeLayer.value.ROut,
-            true
+            excludeNever
           )
           const { allIndexes: inTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
             ctx.services,
             maybeLayer.value.RIn,
-            true
+            excludeNever
           )
           return new GraphNodeCompoundTransform(
             ctx.nextId(),
@@ -124,12 +125,12 @@ function processLayerGraphNode(
             const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
               ctx.services,
               maybeLayer.value.ROut,
-              true
+              excludeNever
             )
             const { allIndexes: inTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
               ctx.services,
               maybeLayer.value.RIn,
-              true
+              excludeNever
             )
             // A.pipe(Layer.merge(B))
             if (ts.isCallExpression(node)) {
@@ -177,12 +178,12 @@ function processLayerGraphNode(
         const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
           ctx.services,
           maybeLayer.value.ROut,
-          true
+          excludeNever
         )
         const { allIndexes: inTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
           ctx.services,
           maybeLayer.value.RIn,
-          true
+          excludeNever
         )
         return new GraphNodeLeaf(ctx.nextId(), node, outTypes, inTypes)
       }
