@@ -80,10 +80,11 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ Identifier: ts.Type; Service: ts.Type }, TypeParserIssue>
+  pipeableType: (type: ts.Type, atLocation: ts.Node) => Nano.Nano<ts.Type, TypeParserIssue, never>
   pipeCall: (
     node: ts.Node
   ) => Nano.Nano<
-    { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression> },
+    { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression>; kind: "pipe" | "pipeable" },
     TypeParserIssue,
     never
   >
@@ -709,7 +710,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     function(
       node: ts.Node
     ): Nano.Nano<
-      { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression> },
+      { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression>; kind: "pipe" | "pipeable" },
       TypeParserIssue,
       never
     > {
@@ -719,7 +720,12 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
         ts.isIdentifier(node.expression.name) &&
         node.expression.name.text === "pipe"
       ) {
-        return Nano.succeed({ node, subject: node.expression.expression, args: Array.from(node.arguments) })
+        return Nano.succeed({
+          node,
+          subject: node.expression.expression,
+          args: Array.from(node.arguments),
+          kind: "pipeable"
+        })
       }
 
       // pipe(A, B, ...)
@@ -728,7 +734,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
         node.arguments.length > 0
       ) {
         const [subject, ...args] = node.arguments
-        return Nano.succeed({ node, subject, args })
+        return Nano.succeed({ node, subject, args, kind: "pipe" })
       }
 
       return typeParserIssue("Node is not a pipe call", undefined, node)
@@ -778,6 +784,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     unnecessaryEffectGen,
     effectSchemaType,
     contextTag,
+    pipeableType,
     pipeCall,
     scopeType
   }
