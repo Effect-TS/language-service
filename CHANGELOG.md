@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.26.0
+
+### Minor Changes
+
+- [#278](https://github.com/Effect-TS/language-service/pull/278) [`b7f5580`](https://github.com/Effect-TS/language-service/commit/b7f55804a9e220fd7d972a8255369a0b7cb1ce6b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add warning for unnecessary pipe chains
+
+- [#276](https://github.com/Effect-TS/language-service/pull/276) [`133c88e`](https://github.com/Effect-TS/language-service/commit/133c88e8da86f1ffea25ccddaab1c910b34c7d7a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add refactor to toggle pipe style
+
 ## 0.25.1
 
 ### Patch Changes
