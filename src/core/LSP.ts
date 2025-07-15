@@ -313,8 +313,16 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       const diagnostics: Array<ts.Diagnostic> = []
       const codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
       const ruleNameLowered = rule.name.toLowerCase()
+      const defaultLevel = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
       // if file is skipped entirely, do not process the rule
       if (skippedRules.indexOf(ruleNameLowered) > -1) return { diagnostics, codeFixes }
+      // if the default level is off, and there are no overrides, do not process the rule
+      if (
+        defaultLevel === "off" &&
+        ((lineOverrides[ruleNameLowered] || sectionOverrides[ruleNameLowered] || []).length === 0)
+      ) {
+        return { diagnostics, codeFixes }
+      }
       // append a rule fix to disable this check only for next line
       const fixByDisableNextLine = (
         _: ApplicableDiagnosticDefinition
@@ -366,7 +374,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       // loop through rules
       for (const emitted of applicableDiagnostics.slice(0)) {
         // by default, use the overriden level from the plugin options
-        let newLevel: string | undefined = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
+        let newLevel: string | undefined = defaultLevel
         // attempt with line overrides
         const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
           _.pos < emitted.node.getStart(sourceFile) && _.end >= emitted.node.getEnd()
