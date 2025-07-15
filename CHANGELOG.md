@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.27.0
+
+### Minor Changes
+
+- [#280](https://github.com/Effect-TS/language-service/pull/280) [`fe779e2`](https://github.com/Effect-TS/language-service/commit/fe779e28f635cede8a1814cfaed8679e6a4e94f3) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add strict boolean expressions rule
+
 ## 0.26.0
 
 ### Minor Changes
