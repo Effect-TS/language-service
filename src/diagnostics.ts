@@ -10,6 +10,7 @@ import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
+import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
 import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
@@ -31,5 +32,6 @@ export const diagnostics = [
   importFromBarrel,
   scopeInLayerEffect,
   effectInVoidSuccess,
-  unnecessaryPipeChain
+  unnecessaryPipeChain,
+  strictBooleanExpressions
 ]
