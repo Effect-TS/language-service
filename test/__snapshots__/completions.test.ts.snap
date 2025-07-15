@@ -168,7 +168,7 @@ exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
 exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:5 1`] = `
 [
   {
-    "insertText": "@effect-diagnostics \${1|duplicatePackage,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingReturnYieldStar,missingStarInYieldEffectGen,returnEffectInGen,scopeInLayerEffect,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain|}:\${2|off,warning,error,message,suggestion|}$0",
+    "insertText": "@effect-diagnostics \${1|duplicatePackage,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingReturnYieldStar,missingStarInYieldEffectGen,returnEffectInGen,scopeInLayerEffect,strictBooleanExpressions,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain|}:\${2|off,warning,error,message,suggestion|}$0",
     "isSnippet": true,
     "kind": "string",
     "name": "@effect-diagnostics",
@@ -179,7 +179,7 @@ exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:
     "sortText": "11",
   },
   {
-    "insertText": "@effect-diagnostics-next-line \${1|duplicatePackage,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingReturnYieldStar,missingStarInYieldEffectGen,returnEffectInGen,scopeInLayerEffect,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain|}:\${2|off,warning,error,message,suggestion|}$0",
+    "insertText": "@effect-diagnostics-next-line \${1|duplicatePackage,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingReturnYieldStar,missingStarInYieldEffectGen,returnEffectInGen,scopeInLayerEffect,strictBooleanExpressions,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain|}:\${2|off,warning,error,message,suggestion|}$0",
     "isSnippet": true,
     "kind": "string",
     "name": "@effect-diagnostics-next-line",

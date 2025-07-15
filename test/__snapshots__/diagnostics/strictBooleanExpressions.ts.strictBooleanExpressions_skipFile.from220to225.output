@@ -1,0 +1,43 @@
+// code fix strictBooleanExpressions_skipFile  output for range 220 - 225
+/** @effect-diagnostics strictBooleanExpressions:skip-file */
+// @effect-diagnostics strictBooleanExpressions:error
+declare const testString: string
+export const shouldWarnGotString = !testString
+
+declare const myVar: boolean | undefined
+export const shouldWarnPossiblyUndefined = !myVar
+
+declare const myVar3: true | null
+export const shouldWarnIncludesNull = !myVar3
+
+declare const myVar4: true | undefined
+export const shouldWarnIncludesUndefined = !myVar4
+
+export const shouldWarnTernaryCodition = myVar4 ? true : false
+
+export const shouldWarnNestedStringCheck = myVar5 || !testString
+
+declare const myVar8: boolean
+declare const myVar9: boolean
+declare const fn: () => boolean | undefined
+export const nestedTernary = (myVar8 || (myVar9 && fn())) ? true : false
+export const nestedTernary3 = (myVar8 || (myVar9 && !testString)) ? true : false
+
+if (myVar3 || myVar4) {
+  // warn because members not strictly boolean
+}
+
+// all fine because true is strictly boolean
+export const shouldNotWarn = !true
+
+declare const myVar2: true | false
+export const shouldNotWarn2 = !myVar2
+
+declare const myVar5: undefined | boolean
+declare const myVar6: { id: number }
+declare const myVar7: boolean
+export const isFineOutsideCondition = myVar5 || myVar6 || myVar7
+
+if (myVar2 || shouldNotWarn) {
+  // yay!
+}
