@@ -375,3 +375,19 @@ exports[`Completion rpcMakeClasses > rpcMakeClasses.ts at 4:36 1`] = `
   },
 ]
 `;
+
+exports[`Completion schemaBrand > schemaBrand.ts at 4:60 1`] = `
+[
+  {
+    "insertText": "brand("ProductId")",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "brand("ProductId")",
+    "replacementSpan": {
+      "length": 0,
+      "start": 161,
+    },
+    "sortText": "11",
+  },
+]
+`;
