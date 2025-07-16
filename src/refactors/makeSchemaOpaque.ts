@@ -76,7 +76,7 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
       ts.factory.createIdentifier(inferFromName)
     )]
   )
-  const opaqueType = typeA.isUnion() ?
+  const opaqueType = !(typeA.flags & ts.TypeFlags.Object) ?
     ts.factory.createTypeAliasDeclaration(
       [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       opaqueTypeName,
@@ -106,7 +106,7 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
       ts.factory.createIdentifier(inferFromName)
     )]
   )
-  const encodedType = typeE.isUnion() ?
+  const encodedType = !(typeE.flags & ts.TypeFlags.Object) ?
     ts.factory.createTypeAliasDeclaration(
       [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       opaqueEncodedName,
