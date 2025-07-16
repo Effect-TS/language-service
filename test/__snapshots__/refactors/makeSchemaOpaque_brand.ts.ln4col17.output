@@ -1,0 +1,9 @@
+// Result of running refactor makeSchemaOpaque at position 4:17
+import * as Schema from "effect/Schema"
+
+export const ProductId_ = Schema.NonEmptyString.pipe(Schema.brand("ProductId"))
+
+export type ProductId = Schema.Schema.Type<typeof ProductId_>
+export type ProductIdEncoded = Schema.Schema.Encoded<typeof ProductId_>
+export type ProductIdContext = Schema.Schema.Context<typeof ProductId_>
+export const ProductId: Schema.Schema<ProductId, ProductIdEncoded, ProductIdContext> = ProductId_
