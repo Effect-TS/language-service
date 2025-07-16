@@ -32,7 +32,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 ### Quickinfo
 
 - Show the extended type of the current Effect
-- Hovering `yield\*` of `Effect.gen` will show the Effect type parameters
+- Hovering `yield*` of `Effect.gen` will show the Effect type parameters
 - Hovering a variable assignment of a type Layer, will show info on how each service got involved
 - Hovering a layer, will attempt to produce a graph
 
@@ -56,6 +56,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Autocomplete `Effect.fn` with the span name given by the exported member
 - Completions for DurationInput string millis/seconds/etc...
 - Allow to configure packages to be imported with namespace style `import * as Effect from "effect"`
+- Suggest brand when using `Schema.brand`
 - Effect comment directives
 
 ### Refactors

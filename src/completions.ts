@@ -7,6 +7,7 @@ import { effectSelfInClasses } from "./completions/effectSelfInClasses.js"
 import { fnFunctionStar } from "./completions/fnFunctionStar.js"
 import { genFunctionStar } from "./completions/genFunctionStar.js"
 import { rpcMakeClasses } from "./completions/rpcMakeClasses.js"
+import { schemaBrand } from "./completions/schemaBrand.js"
 
 export const completions = [
   effectSchemaSelfInClasses,
@@ -17,5 +18,6 @@ export const completions = [
   fnFunctionStar,
   effectDataClasses,
   effectDiagnosticsComment,
-  durationInput
+  durationInput,
+  schemaBrand
 ]
