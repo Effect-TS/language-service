@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.27.1
+
+### Patch Changes
+
+- [#284](https://github.com/Effect-TS/language-service/pull/284) [`0d9842b`](https://github.com/Effect-TS/language-service/commit/0d9842b384d854b3be292eda8166b463360fd3c5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix make schema opaque for non-object and non-union schemas
+
+- [#282](https://github.com/Effect-TS/language-service/pull/282) [`3a3bedf`](https://github.com/Effect-TS/language-service/commit/3a3bedfda91c97845225a1513e641a051a872dda) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Skip entirely execution of disabled rules
+
+- [#285](https://github.com/Effect-TS/language-service/pull/285) [`c4ac535`](https://github.com/Effect-TS/language-service/commit/c4ac5357bc5573baffdc652f3524140eb5a3a888) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add autocompletion for Schema.brand
+
 ## 0.27.0
 
 ### Minor Changes
