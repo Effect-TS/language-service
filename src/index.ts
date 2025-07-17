@@ -24,6 +24,19 @@ const init = (
     typescript: typeof ts
   }
 ) => {
+  // this is nothing more than an hack. Seems like vscode and other editors do not
+  // support new error codes in diagnostics. Because they somehow rely on looking into
+  // typescript.codefixes object. SO ONLY OPTION here is to register fake codefix.
+  // by hooking into the codefixes object and registering a fake codefix.
+  const diagnosticsErrorCodes = diagnostics.map((diagnostic) => diagnostic.code)
+  try {
+    ;(modules.typescript as any).codefix.registerCodeFix({
+      errorCodes: diagnosticsErrorCodes,
+      getCodeActions: () => undefined
+    })
+    // eslint-disable-next-line no-empty, @typescript-eslint/no-unused-vars
+  } catch (_) {}
+
   let languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions =
     LanguageServicePluginOptions.parse({})
 
@@ -39,20 +52,6 @@ const init = (
     if ((languageService as any)[LSP_INJECTED_URI]) return languageService
 
     info.project.log("[@effect/language-service] Started!")
-
-    // this is nothing more than an hack. Seems like vscode and other editors do not
-    // support new error codes in diagnostics. Because they somehow rely on looking into
-    // typescript.codefixes object. SO ONLY OPTION here is to register fake codefix.
-    // by hooking into the codefixes object and registering a fake codefix.
-
-    const diagnosticsErrorCodes = diagnostics.map((diagnostic) => diagnostic.code)
-    try {
-      ;(modules.typescript as any).codefix.registerCodeFix({
-        errorCodes: diagnosticsErrorCodes,
-        getCodeActions: () => undefined
-      })
-      // eslint-disable-next-line no-empty, @typescript-eslint/no-unused-vars
-    } catch (_) {}
 
     // create the proxy and mark it as injected (to avoid double-applies)
     const proxy: ts.LanguageService = Object.create(null)
