@@ -98,10 +98,8 @@ const init = (
       string,
       Array<LSP.ApplicableDiagnosticDefinitionFixWithPositionAndCode>
     >()
-    proxy.getSemanticDiagnostics = (fileName, ...args) => {
-      const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
+    const runDiagnosticsAndCacheCodeFixes = (fileName: string) => {
       const program = languageService.getProgram()
-
       if (languageServicePluginOptions.diagnostics && program) {
         effectCodeFixesForFile.delete(fileName)
         const sourceFile = program.getSourceFile(fileName)
@@ -112,14 +110,18 @@ const init = (
             runNano(program),
             Either.map(({ codeFixes, diagnostics }) => {
               effectCodeFixesForFile.set(fileName, codeFixes)
-              return diagnostics.concat(applicableDiagnostics)
+              return diagnostics
             }),
-            Either.getOrElse(() => applicableDiagnostics)
+            Either.getOrElse(() => [])
           )
         }
       }
+      return []
+    }
 
-      return applicableDiagnostics
+    proxy.getSemanticDiagnostics = (fileName, ...args) => {
+      const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
+      return runDiagnosticsAndCacheCodeFixes(fileName).concat(applicableDiagnostics)
     }
 
     proxy.getSupportedCodeFixes = (...args) =>
@@ -146,45 +148,54 @@ const init = (
         ...args
       )
 
-      return pipe(
-        Nano.sync(() => {
-          const effectCodeFixes: Array<ts.CodeFixAction> = []
-          const applicableFixes = (effectCodeFixesForFile.get(fileName) || []).filter((_) =>
-            _.start === start && _.end === end && errorCodes.indexOf(_.code) > -1
-          )
+      if (languageServicePluginOptions.diagnostics) {
+        return pipe(
+          Nano.sync(() => {
+            const effectCodeFixes: Array<ts.CodeFixAction> = []
 
-          const formatContext = modules.typescript.formatting.getFormatContext(
-            formatOptions,
-            info.languageServiceHost
-          )
-
-          for (const applicableFix of applicableFixes) {
-            const changes = modules.typescript.textChanges.ChangeTracker.with(
-              {
-                formatContext,
-                host: info.languageServiceHost,
-                preferences: preferences || {}
-              },
-              (changeTracker) =>
-                pipe(
-                  applicableFix.apply,
-                  Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-                  Nano.run
-                )
+            // ensure that diagnostics are run before code fixes
+            if (!effectCodeFixesForFile.has(fileName)) {
+              runDiagnosticsAndCacheCodeFixes(fileName)
+            }
+            const applicableFixes = (effectCodeFixesForFile.get(fileName) || []).filter((_) =>
+              _.start === start && _.end === end && errorCodes.indexOf(_.code) > -1
             )
-            effectCodeFixes.push({
-              fixName: applicableFix.fixName,
-              description: applicableFix.description,
-              changes
-            })
-          }
 
-          return effectCodeFixes
-        }),
-        Nano.run,
-        Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
-        Either.getOrElse(() => applicableCodeFixes)
-      )
+            const formatContext = modules.typescript.formatting.getFormatContext(
+              formatOptions,
+              info.languageServiceHost
+            )
+
+            for (const applicableFix of applicableFixes) {
+              const changes = modules.typescript.textChanges.ChangeTracker.with(
+                {
+                  formatContext,
+                  host: info.languageServiceHost,
+                  preferences: preferences || {}
+                },
+                (changeTracker) =>
+                  pipe(
+                    applicableFix.apply,
+                    Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                    Nano.run
+                  )
+              )
+              effectCodeFixes.push({
+                fixName: applicableFix.fixName,
+                description: applicableFix.description,
+                changes
+              })
+            }
+
+            return effectCodeFixes
+          }),
+          Nano.run,
+          Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
+          Either.getOrElse(() => applicableCodeFixes)
+        )
+      }
+
+      return applicableCodeFixes
     }
 
     proxy.getApplicableRefactors = (...args) => {
