@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.27.2
+
+### Patch Changes
+
+- [#287](https://github.com/Effect-TS/language-service/pull/287) [`aae4cab`](https://github.com/Effect-TS/language-service/commit/aae4cab2511f0fb2c19e74a54658370a5ee4516a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Move codefixes registration hack into init phase
+
 ## 0.27.1
 
 ### Patch Changes
