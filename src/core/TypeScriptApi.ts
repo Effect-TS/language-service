@@ -162,13 +162,14 @@ export const TypeScriptProgram = Nano.Tag<TypeScriptProgram>("TypeScriptProgram"
 
 export const ChangeTracker = Nano.Tag<ts.textChanges.ChangeTracker>("ChangeTracker")
 
-interface ModuleWithPackageInfo {
+export interface ModuleWithPackageInfo {
   name: string
   version: string
   hasEffectInPeerDependencies: boolean
   contents: any
   packageDirectory: string
   referencedPackages: Array<string>
+  exportsKeys: Array<string>
 }
 
 export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWithPackageInfo | undefined {
@@ -202,13 +203,20 @@ export function parsePackageContentNameAndVersionFromScope(v: unknown): ModuleWi
       : {})
   })
 
+  const exportsKeys = Object.keys(
+    hasProperty(packageJsonContent, "exports") && isObject(packageJsonContent.exports)
+      ? packageJsonContent.exports
+      : {}
+  )
+
   return {
     name: name.toLowerCase(),
     version: version.toLowerCase(),
     hasEffectInPeerDependencies,
     contents: packageJsonContent,
     packageDirectory: packageJsonScope.packageDirectory,
-    referencedPackages
+    referencedPackages,
+    exportsKeys
   }
 }
 
