@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.28.0
+
+### Minor Changes
+
+- [#291](https://github.com/Effect-TS/language-service/pull/291) [`ec52012`](https://github.com/Effect-TS/language-service/commit/ec5201258f13a88fa7aa72d77acf2aac2dba803b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor auto-imports to support multiple entrypoints
+
+### Patch Changes
+
+- [#289](https://github.com/Effect-TS/language-service/pull/289) [`0f98a54`](https://github.com/Effect-TS/language-service/commit/0f98a5401addd64ab25881108d0fa3f5e6c497ec) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Ensure that diagnostics are collected before codefixes
+
 ## 0.27.2
 
 ### Patch Changes
