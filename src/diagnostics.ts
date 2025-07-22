@@ -8,6 +8,7 @@ import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
 import { missingEffectError } from "./diagnostics/missingEffectError.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
+import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
@@ -33,5 +34,6 @@ export const diagnostics = [
   scopeInLayerEffect,
   effectInVoidSuccess,
   unnecessaryPipeChain,
-  strictBooleanExpressions
+  strictBooleanExpressions,
+  multipleEffectProvide
 ]

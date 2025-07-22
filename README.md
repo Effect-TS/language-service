@@ -45,6 +45,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Multiple versions of Effect in your project
 - Warn on leaking requirements in Effect services
 - Warn on Scope as requirement of a Layer
+- Warn on subsequent `Effect.provide` anti-pattern
 - Unnecessary usages of `Effect.gen` or `pipe()`
 - Warn when importing from a barrel file instead of from the module directly
 - Warn on usage of try/catch inside `Effect.gen` and family
