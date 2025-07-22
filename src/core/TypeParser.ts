@@ -92,6 +92,10 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<ts.Type, TypeParserIssue>
+  promiseLike: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<{ type: ts.Type }, TypeParserIssue>
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -771,6 +775,55 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     (type) => type
   )
 
+  const promiseLike = Nano.cachedBy(
+    function(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      // maybe it is a Promise<A>?
+      const thenProperty = type.getProperty("then")
+      if (!thenProperty) return typeParserIssue("not a promise - missing then property", type, atLocation)
+      const thenType = typeChecker.getTypeOfSymbolAtLocation(thenProperty, atLocation)
+      if (!thenType) return typeParserIssue("not a promise - missing then property", type, atLocation)
+      // .then should be callable
+      for (const callSignature of thenType.getCallSignatures()) {
+        // take the callback argument of then
+        const parameter = callSignature.parameters[0]
+        if (!parameter) continue
+        const parameterType = callSignature.getTypeParameterAtPosition(0)
+        if (!parameterType) continue
+        // it can be an union with many types
+        let callbackCallSignatures: Array<ts.Signature> = []
+        let toTest = [parameterType]
+        while (toTest.length > 0) {
+          const type = toTest.shift()
+          if (!type) continue
+          const callSignatures = type.getCallSignatures()
+          callbackCallSignatures = callbackCallSignatures.concat(callSignatures)
+          if (type.isUnion()) {
+            toTest = toTest.concat(type.types)
+          }
+        }
+        for (const callableType of callbackCallSignatures) {
+          const callbackParameter = callableType.parameters[0]
+          if (!callbackParameter) {
+            continue
+          }
+          const callbackParameterType = callableType.getTypeParameterAtPosition(0)
+          if (!callbackParameterType) {
+            continue
+          }
+          return Nano.succeed({
+            type: callbackParameterType
+          })
+        }
+      }
+      return typeParserIssue("not a promise", type, atLocation)
+    },
+    "TypeParser.promiseLike",
+    (type) => type
+  )
+
   return {
     effectType,
     strictEffectType,
@@ -786,6 +839,7 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
     contextTag,
     pipeableType,
     pipeCall,
-    scopeType
+    scopeType,
+    promiseLike
   }
 }
