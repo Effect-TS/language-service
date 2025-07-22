@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.28.1
+
+### Patch Changes
+
+- [#297](https://github.com/Effect-TS/language-service/pull/297) [`df95896`](https://github.com/Effect-TS/language-service/commit/df95896c566d9c93aa4b39230964dd12839fbbf5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - add Implement Service accessors refactor
+
 ## 0.28.0
 
 ### Minor Changes
