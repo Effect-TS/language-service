@@ -1,4 +1,5 @@
 import { pipe } from "effect/Function"
+import * as Option from "effect/Option"
 import type * as ts from "typescript"
 import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
@@ -15,6 +16,16 @@ export const writeTagClassAccessors = LSP.createRefactor({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
+    const effectIdentifier = pipe(
+      yield* Nano.option(
+        AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Effect")
+      ),
+      Option.match({
+        onNone: () => "Effect",
+        onSome: (_) => _.text
+      })
+    )
+
     const createConstantProperty = (className: ts.Identifier, propertyName: string, type: ts.TypeNode) =>
       ts.factory.createPropertyDeclaration(
         [ts.factory.createModifier(ts.SyntaxKind.StaticKeyword)],
@@ -23,7 +34,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
         type,
         ts.factory.createCallExpression(
           ts.factory.createPropertyAccessExpression(
-            ts.factory.createIdentifier("Effect"),
+            ts.factory.createIdentifier(effectIdentifier),
             "andThen"
           ),
           undefined,
@@ -56,7 +67,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
     ) => {
       const arrowBody = ts.factory.createCallExpression(
         ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("Effect"),
+          ts.factory.createIdentifier(effectIdentifier),
           "andThen"
         ),
         undefined,
@@ -139,7 +150,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
 
           const typeNode = ts.factory.createTypeReferenceNode(
             ts.factory.createQualifiedName(
-              ts.factory.createIdentifier("Effect"),
+              ts.factory.createIdentifier(effectIdentifier),
               ts.factory.createIdentifier("Effect")
             ),
             [successType, failureType, contextType]
@@ -158,7 +169,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
               if (!successType) return Nano.fail("error generating success type")
               return Nano.succeed(ts.factory.createTypeReferenceNode(
                 ts.factory.createQualifiedName(
-                  ts.factory.createIdentifier("Effect"),
+                  ts.factory.createIdentifier(effectIdentifier),
                   ts.factory.createIdentifier("Effect")
                 ),
                 [
@@ -181,7 +192,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
           if (!successType) return Nano.fail("error generating success type")
           const typeNode = ts.factory.createTypeReferenceNode(
             ts.factory.createQualifiedName(
-              ts.factory.createIdentifier("Effect"),
+              ts.factory.createIdentifier(effectIdentifier),
               ts.factory.createIdentifier("Effect")
             ),
             [
