@@ -14,6 +14,7 @@ import { typeToEffectSchema } from "./refactors/typeToEffectSchema.js"
 import { typeToEffectSchemaClass } from "./refactors/typeToEffectSchemaClass.js"
 import { wrapWithEffectGen } from "./refactors/wrapWithEffectGen.js"
 import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
+import { writeTagClassAccessors } from "./refactors/writeTagClassAccessors.js"
 
 export const refactors = [
   asyncAwaitToGen,
@@ -31,5 +32,6 @@ export const refactors = [
   wrapWithEffectGen,
   wrapWithPipe,
   effectGenToFn,
-  togglePipeStyle
+  togglePipeStyle,
+  writeTagClassAccessors
 ]
