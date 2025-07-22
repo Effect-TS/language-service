@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.28.2
+
+### Patch Changes
+
+- [#299](https://github.com/Effect-TS/language-service/pull/299) [`03e69b5`](https://github.com/Effect-TS/language-service/commit/03e69b53b870c6c3e51e609fdc433586a39a0121) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Warn about subsequent Effect.provide
+
 ## 0.28.1
 
 ### Patch Changes
