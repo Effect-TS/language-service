@@ -1,0 +1,11 @@
+Effect.provide(MyService1.Default)
+17:2 - 17:36 | 0 | Calling multiple subsequent times Effect.provide is an anti-pattern and can lead to service lifecycle issues. You should combine the layers and provide them once instead.
+
+Effect.provide(MyService1.Default)
+22:2 - 22:36 | 0 | Calling multiple subsequent times Effect.provide is an anti-pattern and can lead to service lifecycle issues. You should combine the layers and provide them once instead.
+
+Effect.provide(MyService1.Default)
+25:2 - 25:36 | 0 | Calling multiple subsequent times Effect.provide is an anti-pattern and can lead to service lifecycle issues. You should combine the layers and provide them once instead.
+
+Effect.provide(MyService1.Default)
+30:2 - 30:36 | 0 | Calling multiple subsequent times Effect.provide is an anti-pattern and can lead to service lifecycle issues. You should combine the layers and provide them once instead.
