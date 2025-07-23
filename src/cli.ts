@@ -13,7 +13,6 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Predicate from "effect/Predicate"
 import * as Runtime from "effect/Runtime"
-import { minimatch } from "minimatch"
 import * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -182,7 +181,7 @@ const formatDiagnosticAsJson = (cwd: string, sourceFile: ts.SourceFile, diagnost
   }
 }
 
-const checkEffect = (format: "default" | "json", filter: Option.Option<string>) =>
+const checkEffect = (format: "default" | "json", file: Option.Option<string>) =>
   Effect.gen(function*() {
     // create a solution builder host
     const host = ts.createSolutionBuilderHost(
@@ -206,17 +205,13 @@ const checkEffect = (format: "default" | "json", filter: Option.Option<string>) 
       const rootNames = program.getRootFileNames()
       let sourceFiles = program.getSourceFiles().filter((_) => rootNames.indexOf(_.fileName) !== -1)
 
-      // Apply filter if provided
-      if (Option.isSome(filter)) {
-        const filterPattern = filter.value
+      // Apply file filter if provided
+      if (Option.isSome(file)) {
         sourceFiles = sourceFiles.filter((sourceFile) => {
-          const relativePath = sourceFile.fileName.startsWith(cwd)
-            ? sourceFile.fileName.slice(cwd.length + 1)
-            : sourceFile.fileName
-
-          return minimatch(relativePath, filterPattern)
+          return sourceFile.fileName.indexOf(file.value) !== -1
         })
       }
+
       for (const sourceFile of sourceFiles) {
         // run the diagnostics and pipe them into addDiagnostic
         const outputDiagnostics = pipe(
@@ -256,7 +251,8 @@ const checkEffect = (format: "default" | "json", filter: Option.Option<string>) 
     // create a solution builder
     const solution = ts.createSolutionBuilder(host, ["./tsconfig.json"], {
       force: true,
-      emitDeclarationOnly: true
+      emitDeclarationOnly: true,
+      stopBuildOnErrors: false
     })
 
     let project = solution.getNextInvalidatedProject()
@@ -277,15 +273,15 @@ const formatOption = Options.choice("format", ["default", "json"]).pipe(
   Options.withDescription("Output format for diagnostics (default or json)")
 )
 
-const filterOption = Options.text("filter").pipe(
+const fileOption = Options.text("file").pipe(
   Options.optional,
-  Options.withDescription("Filter files by pattern (e.g., '**/*.test.ts', 'src/**/*.ts')")
+  Options.withDescription("Check diagnostics for a specific file (must exist)")
 )
 
 const checkCommand = Command.make(
   "check",
-  { format: formatOption, filter: filterOption },
-  ({ filter, format }) => checkEffect(format, filter)
+  { format: formatOption, file: fileOption },
+  ({ file, format }) => checkEffect(format, file)
 )
 
 const cliCommand = Command.make(
