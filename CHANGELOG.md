@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.28.3
+
+### Patch Changes
+
+- [#303](https://github.com/Effect-TS/language-service/pull/303) [`e603a89`](https://github.com/Effect-TS/language-service/commit/e603a8967770d74e63000ea2214edc006a5d4991) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor AutoImport provider and add sortText support
+
+- [#304](https://github.com/Effect-TS/language-service/pull/304) [`5885afe`](https://github.com/Effect-TS/language-service/commit/5885afe0da37b3ffc80602c2f5fa5cbedd7e3fb2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add middleware for auto-import quickfixes
+
+  - Extracted auto-import logic into a reusable `AutoImport` core module
+  - Refactored existing middleware auto-import completion to use the new shared `AutoImport` provider
+  - This enables consistent auto-import behavior across both completions and quickfixes
+
+- [#301](https://github.com/Effect-TS/language-service/pull/301) [`d6b36f8`](https://github.com/Effect-TS/language-service/commit/d6b36f82f43cc98de733210148da9973d199c34b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update message for multiple Effect.provide diagnostic
+
 ## 0.28.2
 
 ### Patch Changes
