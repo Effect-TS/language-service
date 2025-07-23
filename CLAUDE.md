@@ -9,5 +9,7 @@
 - The remote origin/main branch is not writeable, so anytime you are asked to push commits, ensure you are in a non-origin/main branch.
 - Provide a description of what changed
 - If the change involve refactors or diagnostic, provide an example of the feature added/changed
-- Run "pnpm test" before pushing
+- Before pushing ensure:
+  - Run "pnpm test" to ensure that all test passes
+  - Ensure a changeset exists, if new features are added bump by a minor, otherwise patch; do not bump major
 - If all checks pass, create a github PR

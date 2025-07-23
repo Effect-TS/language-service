@@ -28,7 +28,7 @@ function testAutoImport(
 
   const test = pipe(
     AutoImport.makeAutoImportProvider(sourceFile),
-    Nano.map((_) => _(exportFileName, exportName)),
+    Nano.map((_) => _.resolve(exportFileName, exportName)),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(

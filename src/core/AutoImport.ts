@@ -1,5 +1,5 @@
-import { Predicate } from "effect"
 import * as Array from "effect/Array"
+import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./LanguageServicePluginOptions"
 import * as Nano from "./Nano"
@@ -24,7 +24,8 @@ interface ImportKindNamespace {
 export type ImportKind = ImportKindNamed | ImportKindNamespace
 
 export interface AutoImportProvider {
-  (exportFileName: string, exportName: string): ImportKind | undefined
+  resolve(exportFileName: string, exportName: string): ImportKind | undefined
+  sortText(exportFileName: string, exportName: string): string | undefined
 }
 
 export const makeAutoImportProvider: (
@@ -229,7 +230,7 @@ export const makeAutoImportProvider: (
     return moduleSpecifier
   }
 
-  return (exportFileName: string, exportName: string): ImportKindNamed | ImportKindNamespace | undefined => {
+  const resolve = (exportFileName: string, exportName: string): ImportKindNamed | ImportKindNamespace | undefined => {
     // case 0) excluded
     const excludedExports = mapFilenameToExportExcludes.get(exportFileName)
     if (excludedExports && excludedExports.includes(exportName)) return
@@ -273,4 +274,26 @@ export const makeAutoImportProvider: (
       })
     }
   }
+
+  const sortText = (exportFileName: string, exportName: string) => {
+    // case 0) excluded
+    const excludedExports = mapFilenameToExportExcludes.get(exportFileName)
+    if (excludedExports && excludedExports.includes(exportName)) return
+    // case 1) namespace import { Effect } from "effect" we need to move it to the bottom
+    const mapToNamespace = mapFromBarrelToNamespace.get(exportFileName)
+    if (mapToNamespace && exportName in mapToNamespace) return "99"
+  }
+
+  return { resolve, sortText }
+})
+
+const importProvidersCache = new Map<string, AutoImportProvider>()
+
+export const getOrMakeAutoImportProvider = Nano.fn("getOrMakeAutoImportProvider")(function*(
+  sourceFile: ts.SourceFile
+) {
+  const autoImportProvider = importProvidersCache.get(sourceFile.fileName) ||
+    (yield* makeAutoImportProvider(sourceFile))
+  importProvidersCache.set(sourceFile.fileName, autoImportProvider)
+  return autoImportProvider
 })

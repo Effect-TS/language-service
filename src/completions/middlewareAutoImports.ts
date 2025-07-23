@@ -5,8 +5,6 @@ import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOpti
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 
-const importProvidersCache = new Map<string, AutoImport.AutoImportProvider>()
-
 export const appendEffectCompletionEntryData = Nano.fn("appendEffectCompletionEntryData")(
   function*(_sourceFile: ts.SourceFile, applicableCompletions: ts.WithMetadata<ts.CompletionInfo> | undefined) {
     // exit if not enabled
@@ -252,12 +250,10 @@ export const postprocessCompletionEntryDetails = Nano.fn("postprocessCompletionE
     if (!result) return applicableCompletionEntryDetails
 
     // get or create the namespace cache info
-    const packagesMetadata = importProvidersCache.get(sourceFile.fileName) ||
-      (yield* AutoImport.makeAutoImportProvider(sourceFile))
-    importProvidersCache.set(sourceFile.fileName, packagesMetadata)
+    const autoImportProvider = yield* AutoImport.getOrMakeAutoImportProvider(sourceFile)
 
     // get the expected auto-import
-    const effectAutoImport = packagesMetadata(fileName, exportName)
+    const effectAutoImport = autoImportProvider.resolve(fileName, exportName)
     if (!effectAutoImport) return applicableCompletionEntryDetails
 
     // create the code action
