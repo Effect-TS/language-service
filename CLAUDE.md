@@ -11,5 +11,14 @@
 - If the change involve refactors or diagnostic, provide an example of the feature added/changed
 - Before pushing ensure:
   - Run "pnpm test" to ensure that all test passes
-  - Ensure a changeset exists, if new features are added bump by a minor, otherwise patch; do not bump major
+  - If in the git changes does not exists a new changeset file to be added, create a new one in the .changeset folder, the pattern is something like this:
+  ```
+---
+"@effect/language-service": ${patchType}
+---
+
+Description of the change with examples
+```
+"${patchType}" should be replaced by "patch" if the PR contains only bugfixes or small changes; or "minor" if new diagnostics, refactors or features are added.
+
 - If all checks pass, create a github PR

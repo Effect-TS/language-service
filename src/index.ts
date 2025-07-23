@@ -13,6 +13,7 @@ import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import * as TypeParser from "./core/TypeParser.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import { diagnostics } from "./diagnostics.js"
+import { middlewareAutoImportQuickfixes } from "./diagnostics/middlewareAutoImportQuickfixes.js"
 import { goto } from "./goto.js"
 import { quickInfo } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
@@ -147,52 +148,68 @@ const init = (
         preferences,
         ...args
       )
+      const program = languageService.getProgram()
 
-      if (languageServicePluginOptions.diagnostics) {
-        return pipe(
-          Nano.sync(() => {
-            const effectCodeFixes: Array<ts.CodeFixAction> = []
+      if (languageServicePluginOptions.diagnostics && program) {
+        const sourceFile = program.getSourceFile(fileName)
 
-            // ensure that diagnostics are run before code fixes
-            if (!effectCodeFixesForFile.has(fileName)) {
-              runDiagnosticsAndCacheCodeFixes(fileName)
-            }
-            const applicableFixes = (effectCodeFixesForFile.get(fileName) || []).filter((_) =>
-              _.start === start && _.end === end && errorCodes.indexOf(_.code) > -1
-            )
+        if (sourceFile) {
+          return pipe(
+            Nano.sync(() => {
+              const effectCodeFixes: Array<ts.CodeFixAction> = []
 
-            const formatContext = modules.typescript.formatting.getFormatContext(
-              formatOptions,
-              info.languageServiceHost
-            )
-
-            for (const applicableFix of applicableFixes) {
-              const changes = modules.typescript.textChanges.ChangeTracker.with(
-                {
-                  formatContext,
-                  host: info.languageServiceHost,
-                  preferences: preferences || {}
-                },
-                (changeTracker) =>
-                  pipe(
-                    applicableFix.apply,
-                    Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
-                    Nano.run
-                  )
+              // ensure that diagnostics are run before code fixes
+              if (!effectCodeFixesForFile.has(fileName)) {
+                runDiagnosticsAndCacheCodeFixes(fileName)
+              }
+              const applicableFixes = (effectCodeFixesForFile.get(fileName) || []).filter((_) =>
+                _.start === start && _.end === end && errorCodes.indexOf(_.code) > -1
               )
-              effectCodeFixes.push({
-                fixName: applicableFix.fixName,
-                description: applicableFix.description,
-                changes
-              })
-            }
 
-            return effectCodeFixes
-          }),
-          Nano.run,
-          Either.map((effectCodeFixes) => applicableCodeFixes.concat(effectCodeFixes)),
-          Either.getOrElse(() => applicableCodeFixes)
-        )
+              const formatContext = modules.typescript.formatting.getFormatContext(
+                formatOptions,
+                info.languageServiceHost
+              )
+
+              for (const applicableFix of applicableFixes) {
+                const changes = modules.typescript.textChanges.ChangeTracker.with(
+                  {
+                    formatContext,
+                    host: info.languageServiceHost,
+                    preferences: preferences || {}
+                  },
+                  (changeTracker) =>
+                    pipe(
+                      applicableFix.apply,
+                      Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
+                      Nano.run
+                    )
+                )
+                effectCodeFixes.push({
+                  fixName: applicableFix.fixName,
+                  description: applicableFix.description,
+                  changes
+                })
+              }
+
+              return effectCodeFixes
+            }),
+            Nano.flatMap((effectCodeFixes) =>
+              pipe(
+                middlewareAutoImportQuickfixes(
+                  sourceFile,
+                  info.languageServiceHost,
+                  formatOptions,
+                  preferences,
+                  applicableCodeFixes
+                ),
+                Nano.map((modifiedCodeFixes) => effectCodeFixes.concat(modifiedCodeFixes))
+              )
+            ),
+            runNano(program),
+            Either.getOrElse(() => applicableCodeFixes)
+          )
+        }
       }
 
       return applicableCodeFixes

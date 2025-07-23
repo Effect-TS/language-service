@@ -1,6 +1,7 @@
 import * as Array from "effect/Array"
 import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
+import * as AST from "./AST"
 import * as LanguageServicePluginOptions from "./LanguageServicePluginOptions"
 import * as Nano from "./Nano"
 import * as TypeScriptApi from "./TypeScriptApi"
@@ -26,6 +27,11 @@ export type ImportKind = ImportKindNamed | ImportKindNamespace
 export interface AutoImportProvider {
   resolve(exportFileName: string, exportName: string): ImportKind | undefined
   sortText(exportFileName: string, exportName: string): string | undefined
+}
+
+export interface ParsedImportFromTextChange {
+  moduleName: string
+  exportName: string | undefined
 }
 
 export const makeAutoImportProvider: (
@@ -297,3 +303,174 @@ export const getOrMakeAutoImportProvider = Nano.fn("getOrMakeAutoImportProvider"
   importProvidersCache.set(sourceFile.fileName, autoImportProvider)
   return autoImportProvider
 })
+
+export const parseImportOnlyChanges = Nano.fn("parseImportOnlyChanges")(function*(
+  sourceFile: ts.SourceFile,
+  changes: ReadonlyArray<ts.TextChange>
+) {
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const deletions: Array<ts.TextChange> = []
+  const imports: Array<ParsedImportFromTextChange> = []
+
+  for (const change of changes) {
+    // deletions are fine
+    if (change.newText.length === 0) {
+      deletions.push(change)
+      continue
+    }
+    // is this an import? We try to parse it
+    if (change.newText.trim().startsWith("import") && change.newText.trim().includes("from")) {
+      try {
+        const parsedImport = ts.createSourceFile("test.ts", change.newText, sourceFile.languageVersion, false)
+        for (const statement of parsedImport.statements) {
+          if (!ts.isImportDeclaration(statement)) return
+          const moduleSpecifier = statement.moduleSpecifier
+          if (!ts.isStringLiteral(moduleSpecifier)) return
+          const moduleName = moduleSpecifier.text
+          const importClause = statement.importClause
+          if (!importClause) return
+          const namedBindings = importClause.namedBindings
+          if (!namedBindings) return
+          if (ts.isNamedImports(namedBindings)) {
+            for (const importSpecifier of namedBindings.elements) {
+              if (!ts.isIdentifier(importSpecifier.name)) return
+              const exportName = importSpecifier.name.text
+              imports.push({ moduleName, exportName })
+              continue
+            }
+          } else if (ts.isNamespaceImport(namedBindings)) {
+            imports.push({ moduleName, exportName: undefined })
+            continue
+          }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {
+        return
+      }
+    } else {
+      // this may be an addition to an existing import
+      const ancestorNodes = yield* AST.getAncestorNodesInRange(sourceFile, {
+        pos: change.span.start,
+        end: change.span.start
+      })
+      const importNodes = ancestorNodes.filter((node) => ts.isImportDeclaration(node))
+      const importNode = importNodes[0]
+      if (!importNode) return
+      const moduleSpecifier = importNode.moduleSpecifier
+      if (!ts.isStringLiteral(moduleSpecifier)) return
+      const moduleName = moduleSpecifier.text
+      const exportName = change.newText.replace(/,/ig, "").trim()
+      if (exportName.length === 0) return
+      imports.push({ moduleName, exportName })
+    }
+  }
+
+  return { deletions, imports }
+})
+
+export const addImport = (
+  ts: TypeScriptApi.TypeScriptApi,
+  sourceFile: ts.SourceFile,
+  changeTracker: ts.textChanges.ChangeTracker,
+  preferences: ts.UserPreferences | undefined,
+  effectAutoImport: ImportKind
+) => {
+  let description = ""
+
+  // add the import based on the style
+  switch (effectAutoImport._tag) {
+    case "NamespaceImport": {
+      const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
+      description = `Import * as ${effectAutoImport.name} from "${importModule}"`
+      ts.insertImports(
+        changeTracker,
+        sourceFile,
+        ts.factory.createImportDeclaration(
+          undefined,
+          ts.factory.createImportClause(
+            false,
+            undefined,
+            ts.factory.createNamespaceImport(ts.factory.createIdentifier(effectAutoImport.name))
+          ),
+          ts.factory.createStringLiteral(importModule)
+        ),
+        true,
+        preferences || {}
+      )
+      break
+    }
+    case "NamedImport": {
+      const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
+      description = `Import { ${effectAutoImport.name} } from "${importModule}"`
+      // loop through the import declarations of the source file
+      // and see if we can find the import declaration that is importing the barrel file
+      let foundImportDeclaration = false
+      for (const statement of sourceFile.statements) {
+        if (ts.isImportDeclaration(statement)) {
+          const moduleSpecifier = statement.moduleSpecifier
+          if (
+            moduleSpecifier && ts.isStringLiteral(moduleSpecifier) && moduleSpecifier.text === importModule
+          ) {
+            // we have found the import declaration that is importing the barrel file
+            const importClause = statement.importClause
+            if (importClause && importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
+              const namedImports = importClause.namedBindings
+              const existingImportSpecifier = namedImports.elements.find((element) =>
+                element.name.text === effectAutoImport.name
+              )
+              // the import already exists, we can exit
+              if (existingImportSpecifier) {
+                foundImportDeclaration = true
+                break
+              }
+              // we have found the import declaration that is importing the barrel file
+              changeTracker.replaceNode(
+                sourceFile,
+                namedImports,
+                ts.factory.createNamedImports(
+                  namedImports.elements.concat([
+                    ts.factory.createImportSpecifier(
+                      false,
+                      undefined,
+                      ts.factory.createIdentifier(effectAutoImport.name)
+                    )
+                  ])
+                )
+              )
+              foundImportDeclaration = true
+              break
+            }
+          }
+        }
+      }
+      if (!foundImportDeclaration) {
+        ts.insertImports(
+          changeTracker,
+          sourceFile,
+          ts.factory.createImportDeclaration(
+            undefined,
+            ts.factory.createImportClause(
+              false,
+              undefined,
+              ts.factory.createNamedImports(
+                [
+                  ts.factory.createImportSpecifier(
+                    false,
+                    undefined,
+                    ts.factory.createIdentifier(effectAutoImport.name)
+                  )
+                ]
+              )
+            ),
+            ts.factory.createStringLiteral(importModule)
+          ),
+          true,
+          preferences || {}
+        )
+      }
+      break
+    }
+  }
+
+  return { description }
+}

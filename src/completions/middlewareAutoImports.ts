@@ -1,5 +1,4 @@
 import type ts from "typescript"
-import * as AST from "../core/AST"
 import * as AutoImport from "../core/AutoImport"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as Nano from "../core/Nano"
@@ -38,7 +37,6 @@ export const appendEffectCompletionEntryData = Nano.fn("appendEffectCompletionEn
 
 const isAutoImportOnlyCodeActions = Nano.fn("isAutoImportOnlyCodeActions")(
   function*(sourceFile: ts.SourceFile, codeActions: Array<ts.CodeAction> | undefined, exportName: string) {
-    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     // we should have existing code actions
     if (!codeActions) return
     // we expect a single entry, either add the entire import, or a single name
@@ -49,29 +47,12 @@ const isAutoImportOnlyCodeActions = Nano.fn("isAutoImportOnlyCodeActions")(
     const fileTextChanges = action.changes[0]
     if (fileTextChanges.fileName !== sourceFile.fileName) return
     const textChanges = fileTextChanges.textChanges
-    if (textChanges.length !== 1) return
-    const change = textChanges[0]
-    // could be either adding an entire import { X } from "module/Name"
-    if (
-      change.newText.trim().toLowerCase().startsWith("import") && change.newText.indexOf(exportName) > -1
-    ) {
-      return {
-        type: "create" as const
-      }
-    }
-    // or adding just "X" inside the import that already exists
-    if (change.newText.indexOf(exportName) > -1) {
-      const ancestorNodes = yield* AST.getAncestorNodesInRange(sourceFile, {
-        pos: change.span.start,
-        end: change.span.start
-      })
-      const importNodes = ancestorNodes.filter((node) => ts.isImportDeclaration(node))
-      if (importNodes.length > 0) {
-        return {
-          type: "update" as const
-        }
-      }
-    }
+    const parsedImportChanges = yield* AutoImport.parseImportOnlyChanges(sourceFile, textChanges)
+    if (!parsedImportChanges) return
+    if (parsedImportChanges.deletions.length !== 0) return
+    if (parsedImportChanges.imports.length !== 1) return
+    if (parsedImportChanges.imports[0].exportName !== exportName) return
+    return parsedImportChanges.imports[0]
   }
 )
 
@@ -108,100 +89,14 @@ const addImportCodeAction = Nano.fn("getImportFromNamespaceCodeActions")(functio
         )
       }
 
-      // add the import based on the style
-      switch (effectAutoImport._tag) {
-        case "NamespaceImport": {
-          const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
-          description = `Import * as ${effectAutoImport.name} from "${importModule}"`
-          ts.insertImports(
-            changeTracker,
-            sourceFile,
-            ts.factory.createImportDeclaration(
-              undefined,
-              ts.factory.createImportClause(
-                false,
-                undefined,
-                ts.factory.createNamespaceImport(ts.factory.createIdentifier(effectAutoImport.name))
-              ),
-              ts.factory.createStringLiteral(importModule)
-            ),
-            true,
-            preferences || {}
-          )
-          break
-        }
-        case "NamedImport": {
-          const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
-          description = `Import { ${effectAutoImport.name} } from "${importModule}"`
-          // loop through the import declarations of the source file
-          // and see if we can find the import declaration that is importing the barrel file
-          let foundImportDeclaration = false
-          for (const statement of sourceFile.statements) {
-            if (ts.isImportDeclaration(statement)) {
-              const moduleSpecifier = statement.moduleSpecifier
-              if (
-                moduleSpecifier && ts.isStringLiteral(moduleSpecifier) && moduleSpecifier.text === importModule
-              ) {
-                // we have found the import declaration that is importing the barrel file
-                const importClause = statement.importClause
-                if (importClause && importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
-                  const namedImports = importClause.namedBindings
-                  const existingImportSpecifier = namedImports.elements.find((element) =>
-                    element.name.text === effectAutoImport.name
-                  )
-                  // the import already exists, we can exit
-                  if (existingImportSpecifier) {
-                    foundImportDeclaration = true
-                    break
-                  }
-                  // we have found the import declaration that is importing the barrel file
-                  changeTracker.replaceNode(
-                    sourceFile,
-                    namedImports,
-                    ts.factory.createNamedImports(
-                      namedImports.elements.concat([
-                        ts.factory.createImportSpecifier(
-                          false,
-                          undefined,
-                          ts.factory.createIdentifier(effectAutoImport.name)
-                        )
-                      ])
-                    )
-                  )
-                  foundImportDeclaration = true
-                  break
-                }
-              }
-            }
-          }
-          if (!foundImportDeclaration) {
-            ts.insertImports(
-              changeTracker,
-              sourceFile,
-              ts.factory.createImportDeclaration(
-                undefined,
-                ts.factory.createImportClause(
-                  false,
-                  undefined,
-                  ts.factory.createNamedImports(
-                    [
-                      ts.factory.createImportSpecifier(
-                        false,
-                        undefined,
-                        ts.factory.createIdentifier(effectAutoImport.name)
-                      )
-                    ]
-                  )
-                ),
-                ts.factory.createStringLiteral(importModule)
-              ),
-              true,
-              preferences || {}
-            )
-          }
-          break
-        }
-      }
+      // add the import statement
+      description = AutoImport.addImport(
+        ts,
+        sourceFile,
+        changeTracker,
+        preferences,
+        effectAutoImport
+      ).description
     }
   )
 
