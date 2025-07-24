@@ -1,18 +1,19 @@
-import * as ReadonlyArray from "effect/Array"
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const effectGenToFn = LSP.createRefactor({
   name: "effectGenToFn",
   description: "Convert to Effect.fn",
   apply: Nano.fn("effectGenToFn.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const parseEffectGenNode = Nano.fn("asyncAwaitToGen.apply")(function*(node: ts.Node) {
@@ -74,8 +75,8 @@ export const effectGenToFn = LSP.createRefactor({
     })
 
     const maybeNode = yield* pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.map(parseEffectGenNode),
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
+      Array.map(parseEffectGenNode),
       Nano.firstSuccessOf,
       Nano.option
     )
@@ -122,7 +123,7 @@ export const effectGenToFn = LSP.createRefactor({
           changeTracker.replaceNode(
             sourceFile,
             nodeToReplace,
-            yield* AST.tryPreserveDeclarationSemantics(nodeToReplace, effectFnCallWithGenerator)
+            tsUtils.tryPreserveDeclarationSemantics(nodeToReplace, effectFnCallWithGenerator)
           )
         }),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts)

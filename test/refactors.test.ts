@@ -4,6 +4,7 @@ import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
+import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { refactors } from "@effect/language-service/refactors"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
@@ -70,14 +71,11 @@ function testRefactorOnExample(
   // check and assert the refactor is executable
   const canApply = pipe(
     LSP.getApplicableRefactors([refactor], sourceFile, textRange),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    TypeParser.nanoLayer,
+    TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(
-      TypeCheckerApi.TypeCheckerApiCache,
-      TypeCheckerApi.makeTypeCheckerApiCache()
-    ),
-    Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
       diagnosticSeverity: {},
@@ -98,14 +96,11 @@ function testRefactorOnExample(
   // then get the actual edits to run it
   const applicableRefactor = pipe(
     LSP.getEditsForRefactor([refactor], sourceFile, textRange, canApply.right[0].name),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    TypeParser.nanoLayer,
+    TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(
-      TypeCheckerApi.TypeCheckerApiCache,
-      TypeCheckerApi.makeTypeCheckerApiCache()
-    ),
-    Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
       diagnosticSeverity: {},

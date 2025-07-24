@@ -1,10 +1,10 @@
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "./AST.js"
 import * as Nano from "./Nano.js"
-import type * as TypeCheckerApi from "./TypeCheckerApi.js"
+import * as TypeCheckerApi from "./TypeCheckerApi.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
+import * as TypeScriptUtils from "./TypeScriptUtils.js"
 
 export interface TypeParser {
   effectType: (
@@ -99,6 +99,20 @@ export interface TypeParser {
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
+export const nanoLayer = <A, E, R>(
+  fa: Nano.Nano<A, E, R>
+) =>
+  Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+
+    return yield* pipe(
+      fa,
+      Nano.provideService(TypeParser, make(ts, tsUtils, typeChecker))
+    )
+  })
+
 export class TypeParserIssue {
   readonly _tag = "@effect/language-service/TypeParserIssue"
   static issue = Nano.fail(new TypeParserIssue())
@@ -112,7 +126,11 @@ export function typeParserIssue(
   return TypeParserIssue.issue
 }
 
-export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerApi.TypeCheckerApi): TypeParser {
+export function make(
+  ts: TypeScriptApi.TypeScriptApi,
+  tsUtils: TypeScriptUtils.TypeScriptUtils,
+  typeChecker: TypeCheckerApi.TypeCheckerApi
+): TypeParser {
   function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
     const signatures = type.getCallSignatures()
     // Covariant<A> has only 1 type signature
@@ -579,15 +597,11 @@ export function make(ts: TypeScriptApi.TypeScriptApi, typeChecker: TypeCheckerAp
           if (!explicitReturn && !(successType.flags & ts.TypeFlags.VoidLike)) {
             replacementNode = pipe(
               Nano.gen(function*() {
-                const effectIdentifier = pipe(
-                  yield* Nano.option(
-                    AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(node.getSourceFile(), "effect", "Effect")
-                  ),
-                  Option.match({
-                    onNone: () => "Effect",
-                    onSome: (_) => _.text
-                  })
-                )
+                const effectIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+                  node.getSourceFile(),
+                  "effect",
+                  "Effect"
+                ) || "Effect"
 
                 return ts.factory.createCallExpression(
                   ts.factory.createPropertyAccessExpression(

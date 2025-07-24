@@ -1,11 +1,11 @@
 import { pipe } from "effect/Function"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const togglePipeStyle = LSP.createRefactor({
   name: "togglePipeStyle",
@@ -14,6 +14,7 @@ export const togglePipeStyle = LSP.createRefactor({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     const togglePipeStyle = (node: ts.Node) =>
       Nano.gen(function*() {
@@ -61,7 +62,7 @@ export const togglePipeStyle = LSP.createRefactor({
         }
       })
 
-    const ancestorNodes = yield* AST.getAncestorNodesInRange(sourceFile, textRange)
+    const ancestorNodes = tsUtils.getAncestorNodesInRange(sourceFile, textRange)
 
     return yield* pipe(
       Nano.firstSuccessOf(ancestorNodes.map(togglePipeStyle)),

@@ -1,8 +1,8 @@
 import type * as ts from "typescript"
-import * as AST from "../core/AST"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export function effectRpcDefinition(
   applicableGotoDefinition: ts.DefinitionInfoAndBoundSpan | undefined,
@@ -11,20 +11,24 @@ export function effectRpcDefinition(
 ): Nano.Nano<
   ts.DefinitionInfoAndBoundSpan | undefined,
   never,
-  TypeScriptApi.TypeScriptApi | TypeScriptApi.TypeScriptProgram | TypeCheckerApi.TypeCheckerApi
+  | TypeScriptApi.TypeScriptApi
+  | TypeScriptUtils.TypeScriptUtils
+  | TypeScriptApi.TypeScriptProgram
+  | TypeCheckerApi.TypeCheckerApi
 > {
   return Nano.gen(function*() {
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-    const textRange = AST.toTextRange(position)
+    const textRange = tsUtils.toTextRange(position)
 
     function isSymbolFromEffectRpcModule(symbol: ts.Symbol) {
       if (symbol.valueDeclaration) {
         const sourceFile = symbol.valueDeclaration.getSourceFile()
 
-        const packageInfo = TypeScriptApi.parsePackageContentNameAndVersionFromScope(sourceFile)
+        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(sourceFile)
         if (packageInfo && packageInfo.name === "@effect/rpc") {
           const fileSymbol = typeChecker.getSymbolAtLocation(sourceFile)
           return fileSymbol && fileSymbol.exports && fileSymbol.exports.has("isRpc" as any) &&
@@ -39,7 +43,7 @@ export function effectRpcDefinition(
       if (symbol.valueDeclaration) {
         const sourceFile = symbol.valueDeclaration.getSourceFile()
 
-        const packageInfo = TypeScriptApi.parsePackageContentNameAndVersionFromScope(sourceFile)
+        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(sourceFile)
         if (packageInfo && packageInfo.name === "@effect/rpc") {
           const fileSymbol = typeChecker.getSymbolAtLocation(sourceFile)
           return fileSymbol && fileSymbol.exports && fileSymbol.exports.has("RpcClient" as any) &&
@@ -52,11 +56,11 @@ export function effectRpcDefinition(
     // first find the rpc client method and object (if any)
     let rpcName: string | null = null
     let callNode: ts.Node | null = null
-    for (const node of yield* AST.getAncestorNodesInRange(sourceFile, textRange)) {
+    for (const node of tsUtils.getAncestorNodesInRange(sourceFile, textRange)) {
       if (
         ts.isPropertyAccessExpression(node) &&
         ts.isIdentifier(node.name) &&
-        AST.isNodeInRange(textRange)(node.name)
+        tsUtils.isNodeInRange(textRange)(node.name)
       ) {
         const type = typeChecker.getTypeAtLocation(node)
         for (const callSig of type.getCallSignatures()) {

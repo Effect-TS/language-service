@@ -1,10 +1,10 @@
 import * as Array from "effect/Array"
 import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
-import * as AST from "./AST"
 import * as LanguageServicePluginOptions from "./LanguageServicePluginOptions"
 import * as Nano from "./Nano"
 import * as TypeScriptApi from "./TypeScriptApi"
+import * as TypeScriptUtils from "./TypeScriptUtils"
 
 interface ImportKindNamed {
   _tag: "NamedImport"
@@ -40,16 +40,18 @@ export const makeAutoImportProvider: (
   AutoImportProvider,
   never,
   | TypeScriptApi.TypeScriptApi
+  | TypeScriptUtils.TypeScriptUtils
   | TypeScriptApi.TypeScriptProgram
   | LanguageServicePluginOptions.LanguageServicePluginOptions
 > = Nano.fn("TypeScriptApi")(function*(
   fromSourceFile: ts.SourceFile
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
   const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
   const languageServicePluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
   const host = program as any as ts.ProgramHost<ts.BuilderProgram>
-  const getModuleSpecifier = TypeScriptApi.makeGetModuleSpecifier(ts)
+  const getModuleSpecifier = tsUtils.makeGetModuleSpecifier()
 
   function collectSourceFileReexports(
     sourceFile: ts.SourceFile
@@ -119,7 +121,7 @@ export const makeAutoImportProvider: (
       if (!Array.isArray(_entrypoints)) return
       if (!Array.every(Predicate.isString)) return
       const entrypoints = _entrypoints.map((_) => String(_))
-      const info = TypeScriptApi.parsePackageContentNameAndVersionFromScope({ packageJsonScope: packageJsonInfo })
+      const info = tsUtils.parsePackageContentNameAndVersionFromScope({ packageJsonScope: packageJsonInfo })
       if (!info) return { entrypoints, exportedKeys: [] }
       return { entrypoints, exportedKeys: info.exportsKeys }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -155,7 +157,7 @@ export const makeAutoImportProvider: (
   const collectImportCache = Nano.fn("TypeScriptApi")(
     function*(packagePatterns: Array<string>, kind: "namespace" | "barrel") {
       for (const packagePattern of packagePatterns) {
-        const packageNames = yield* TypeScriptApi.resolveModulePattern(fromSourceFile, packagePattern)
+        const packageNames = tsUtils.resolveModulePattern(fromSourceFile, packagePattern)
         for (const packageName of packageNames) {
           const packageInfo = getPackageInfo(fromSourceFile.fileName, packageName)
           if (!packageInfo) continue
@@ -309,6 +311,7 @@ export const parseImportOnlyChanges = Nano.fn("parseImportOnlyChanges")(function
   changes: ReadonlyArray<ts.TextChange>
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
   const deletions: Array<ts.TextChange> = []
   const imports: Array<ParsedImportFromTextChange> = []
 
@@ -349,7 +352,7 @@ export const parseImportOnlyChanges = Nano.fn("parseImportOnlyChanges")(function
       }
     } else {
       // this may be an addition to an existing import
-      const ancestorNodes = yield* AST.getAncestorNodesInRange(sourceFile, {
+      const ancestorNodes = tsUtils.getAncestorNodesInRange(sourceFile, {
         pos: change.span.start,
         end: change.span.start
       })

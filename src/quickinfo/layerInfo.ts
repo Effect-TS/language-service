@@ -4,11 +4,11 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as pako from "pako"
 import type * as ts from "typescript"
-import * as AST from "../core/AST"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 interface LayerGraphContext {
   services: Map<string, ts.Type>
@@ -346,15 +346,16 @@ export function layerInfo(
   return pipe(
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
       const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
       // find the node we are hovering
-      const range = AST.toTextRange(position)
+      const range = tsUtils.toTextRange(position)
       const maybeNode = pipe(
-        yield* AST.getAncestorNodesInRange(sourceFile, range),
+        tsUtils.getAncestorNodesInRange(sourceFile, range),
         Array.filter((_) => ts.isVariableDeclaration(_) || ts.isPropertyDeclaration(_)),
-        Array.filter((_) => AST.isNodeInRange(range)(_.name)),
+        Array.filter((_) => tsUtils.isNodeInRange(range)(_.name)),
         Array.head
       )
       if (Option.isNone(maybeNode)) return quickInfo

@@ -1,11 +1,11 @@
 import { pipe } from "effect/Function"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const scopeInLayerEffect = LSP.createDiagnostic({
   name: "scopeInLayerEffect",
@@ -13,18 +13,15 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
   severity: "warning",
   apply: Nano.fn("scopeInLayerEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const layerModuleIdentifier = yield* pipe(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Layer"
-      ),
-      Nano.map((_) => _.text),
-      Nano.orElse(() => Nano.succeed("Layer"))
-    )
+    const layerModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Layer"
+    ) || "Layer"
 
     function parseLayerEffectApiCall(node: ts.Node): { methodIdentifier: ts.Identifier } | undefined {
       // should be a call expression of a property access like Layer.effect

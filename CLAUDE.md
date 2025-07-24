@@ -20,5 +20,6 @@
 Description of the change with examples
 ```
 "${patchType}" should be replaced by "patch" if the PR contains only bugfixes or small changes; or "minor" if new diagnostics, refactors or features are added.
+If you end up creating a changeset, ask the user if it seems ok.
 
 - If all checks pass, create a github PR

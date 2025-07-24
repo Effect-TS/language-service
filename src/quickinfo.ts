@@ -3,6 +3,7 @@ import * as Nano from "./core/Nano.js"
 import type * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import type * as TypeParser from "./core/TypeParser.js"
 import type * as TypeScriptApi from "./core/TypeScriptApi.js"
+import type * as TypeScriptUtils from "./core/TypeScriptUtils.js"
 import { dedupeJsDocs } from "./quickinfo/dedupeJsDocs.js"
 import { effectTypeArgs } from "./quickinfo/effectTypeArgs.js"
 import { layerInfo } from "./quickinfo/layerInfo.js"
@@ -14,7 +15,7 @@ export function quickInfo(
 ): Nano.Nano<
   ts.QuickInfo | undefined,
   never,
-  TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | TypeParser.TypeParser
+  TypeScriptApi.TypeScriptApi | TypeScriptUtils.TypeScriptUtils | TypeCheckerApi.TypeCheckerApi | TypeParser.TypeParser
 > {
   return Nano.gen(function*() {
     const deduped = yield* dedupeJsDocs(quickInfo)

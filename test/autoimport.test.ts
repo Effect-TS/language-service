@@ -2,6 +2,7 @@ import * as AutoImport from "@effect/language-service/core/AutoImport"
 import * as LanguageServicePluginOptions from "@effect/language-service/core/LanguageServicePluginOptions"
 import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
+import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { pipe } from "effect/Function"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
@@ -29,6 +30,7 @@ function testAutoImport(
   const test = pipe(
     AutoImport.makeAutoImportProvider(sourceFile),
     Nano.map((_) => _.resolve(exportFileName, exportName)),
+    TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(

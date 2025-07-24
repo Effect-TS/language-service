@@ -1,32 +1,24 @@
-import * as Option from "effect/Option"
-import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export const effectSchemaSelfInClasses = LSP.createCompletion({
   name: "effectSchemaSelfInClasses",
   apply: Nano.fn("effectSchemaSelfInClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
-    const maybeInfos = yield* Nano.option(
-      AST.parseDataForExtendsClassCompletion(sourceFile, position)
-    )
-    if (Option.isNone(maybeInfos)) return []
-    const { accessedObject, className, replacementSpan } = maybeInfos.value
+    const maybeInfos = tsUtils.parseDataForExtendsClassCompletion(sourceFile, position)
+    if (!maybeInfos) return []
+    const { accessedObject, className, replacementSpan } = maybeInfos
 
     // first, given the position, we go back
-    const effectSchemaName = yield* Nano.option(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Schema"
-      )
-    )
-    const schemaIdentifier = Option.match(effectSchemaName, {
-      onNone: () => "Schema",
-      onSome: (_) => _.text
-    })
+    const schemaIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Schema"
+    ) || "Schema"
 
     // ensure accessed is an identifier
     if (schemaIdentifier !== accessedObject.text) return []

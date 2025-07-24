@@ -2,10 +2,10 @@ import * as Array from "effect/Array"
 import { identity, pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "../core/AST"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export class TypeParametersNotSupportedError {
   readonly _tag = "@effect/language-service/TypeParametersNotSupportedError"
@@ -65,22 +65,18 @@ const SchemaGenContext = Nano.Tag<SchemaGenContext>("SchemaGenContext")
 export const makeSchemaGenContext = Nano.fn("SchemaGen.makeSchemaGenContext")(function*(
   sourceFile: ts.SourceFile
 ) {
-  const effectSchemaIdentifier = pipe(
-    yield* Nano.option(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Schema")
-    ),
-    Option.match({
-      onNone: () => "Schema",
-      onSome: (_) => _.text
-    })
-  )
+  const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+
+  const effectSchemaIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+    sourceFile,
+    "effect",
+    "Schema"
+  ) || "Schema"
 
   const moduleToImportedName: Record<string, string> = {}
   for (const moduleName of ["Option", "Either", "Chunk", "Duration"]) {
-    const importedName = yield* Nano.option(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", moduleName)
-    )
-    if (Option.isSome(importedName)) moduleToImportedName[moduleName] = importedName.value.text
+    const importedName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", moduleName)
+    if (importedName) moduleToImportedName[moduleName] = importedName
   }
 
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
@@ -559,11 +555,12 @@ export const process = Nano.fn("SchemaGen.process")(
 export const findNodeToProcess = Nano.fn("SchemaGen.findNodeToProcess")(
   function*(sourceFile: ts.SourceFile, textRange: ts.TextRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     return pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
       Array.filter((node) => ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)),
-      Array.filter((node) => AST.isNodeInRange(textRange)(node.name)),
+      Array.filter((node) => tsUtils.isNodeInRange(textRange)(node.name)),
       Array.filter((node) => (node.typeParameters || []).length === 0),
       Array.head
     )

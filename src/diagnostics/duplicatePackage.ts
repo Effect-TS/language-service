@@ -3,6 +3,7 @@ import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOpti
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 type ResolvedPackagesCache = Record<string, Record<string, any>>
 
@@ -15,6 +16,7 @@ export const duplicatePackage = LSP.createDiagnostic({
   severity: "warning",
   apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile, report) {
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
     if (sourceFile.statements.length < 1) return
@@ -33,7 +35,7 @@ export const duplicatePackage = LSP.createDiagnostic({
       const seenPackages = new Set<string>()
       resolvedPackages = {}
       program.getSourceFiles().map((_) => {
-        const packageInfo = TypeScriptApi.parsePackageContentNameAndVersionFromScope(_)
+        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(_)
         if (!packageInfo) return
         const packageNameAndVersion = packageInfo.name + "@" + packageInfo.version
         if (seenPackages.has(packageNameAndVersion)) return

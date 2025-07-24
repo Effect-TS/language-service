@@ -1,12 +1,12 @@
-import * as ReadonlyArray from "effect/Array"
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const pipeableToDatafirst = LSP.createRefactor({
   name: "pipeableToDatafirst",
@@ -14,6 +14,7 @@ export const pipeableToDatafirst = LSP.createRefactor({
   apply: Nano.fn("pipeableToDatafirst.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     function isPipeCall(node: ts.Node): node is ts.CallExpression {
       if (!ts.isCallExpression(node)) return false
@@ -47,13 +48,13 @@ export const pipeableToDatafirst = LSP.createRefactor({
     }
 
     const maybeNode = pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.filter(isPipeCall),
-      ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.expression)),
-      ReadonlyArray.filter(
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
+      Array.filter(isPipeCall),
+      Array.filter((node) => tsUtils.isNodeInRange(textRange)(node.expression)),
+      Array.filter(
         (node) => node.arguments.length > 0
       ),
-      ReadonlyArray.map((node) => {
+      Array.map((node) => {
         let newNode = node.arguments[0]
         let didSomething = false
         for (let i = 1; i < node.arguments.length; i++) {
@@ -82,9 +83,9 @@ export const pipeableToDatafirst = LSP.createRefactor({
         }
         return didSomething ? Option.some([node, newNode] as const) : Option.none()
       }),
-      ReadonlyArray.filter(Option.isSome),
-      ReadonlyArray.map((_) => _.value),
-      ReadonlyArray.head
+      Array.filter(Option.isSome),
+      Array.map((_) => _.value),
+      Array.head
     )
 
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())

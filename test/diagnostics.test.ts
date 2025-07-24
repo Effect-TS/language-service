@@ -4,6 +4,7 @@ import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
+import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { diagnostics } from "@effect/language-service/diagnostics"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
@@ -55,14 +56,11 @@ function testDiagnosticOnExample(
   // attempt to run the diagnostic and get the output
   return pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    TypeParser.nanoLayer,
+    TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(
-      TypeCheckerApi.TypeCheckerApiCache,
-      TypeCheckerApi.makeTypeCheckerApiCache()
-    ),
-    Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: true,
       diagnosticSeverity: {},
@@ -164,14 +162,11 @@ function testDiagnosticQuickfixesOnExample(
           : codeFixes.map((_) => _.fixName + " from " + _.start + " to " + _.end).join("\n")
       })
     ),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    TypeParser.nanoLayer,
+    TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(
-      TypeCheckerApi.TypeCheckerApiCache,
-      TypeCheckerApi.makeTypeCheckerApiCache()
-    ),
-    Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
+    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: true,
       diagnosticSeverity: {},

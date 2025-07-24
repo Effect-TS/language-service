@@ -10,17 +10,6 @@ import * as TypeScriptApi from "./TypeScriptApi.js"
 export interface TypeCheckerApi extends ts.TypeChecker {}
 export const TypeCheckerApi = Nano.Tag<TypeCheckerApi>("TypeChecker")
 
-export type TypeCheckerApiCache = {
-  expectedAndRealType: WeakMap<ts.SourceFile, Array<ExpectedAndRealType>>
-}
-export const TypeCheckerApiCache = Nano.Tag<TypeCheckerApiCache>("TypeCheckerApiCache")
-
-export function makeTypeCheckerApiCache(): TypeCheckerApiCache {
-  return {
-    expectedAndRealType: new WeakMap()
-  }
-}
-
 export const deterministicTypeOrder = Nano.gen(function*() {
   const typeChecker = yield* Nano.service(TypeCheckerApi)
   return Order.make((a: ts.Type, b: ts.Type) => {
@@ -152,133 +141,132 @@ type ExpectedAndRealType = [
   realType: ts.Type
 ]
 
-export const expectedAndRealType = Nano.fn("TypeCheckerApi.expectedAndRealType")(function*(
-  sourceFile: ts.SourceFile
-) {
-  const cache = yield* Nano.service(TypeCheckerApiCache)
-  const resultCached = cache.expectedAndRealType.get(sourceFile)
-  if (resultCached) return resultCached
+export const expectedAndRealType = Nano.cachedBy(
+  Nano.fn("TypeCheckerApi.expectedAndRealType")(function*(
+    sourceFile: ts.SourceFile
+  ) {
+    const typeChecker = yield* Nano.service(TypeCheckerApi)
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const result: Array<ExpectedAndRealType> = []
 
-  const typeChecker = yield* Nano.service(TypeCheckerApi)
-  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-  const result: Array<ExpectedAndRealType> = []
+    const nodeToVisit: Array<ts.Node> = [sourceFile]
+    const appendNodeToVisit = (node: ts.Node) => {
+      nodeToVisit.push(node)
+      return undefined
+    }
 
-  const nodeToVisit: Array<ts.Node> = [sourceFile]
-  const appendNodeToVisit = (node: ts.Node) => {
-    nodeToVisit.push(node)
-    return undefined
-  }
+    while (nodeToVisit.length > 0) {
+      const node = nodeToVisit.shift()!
 
-  while (nodeToVisit.length > 0) {
-    const node = nodeToVisit.shift()!
-
-    if (ts.isVariableDeclaration(node) && node.initializer) {
-      // const a: Effect<...> = node
-      const expectedType = typeChecker.getTypeAtLocation(node.name)
-      const realType = typeChecker.getTypeAtLocation(node.initializer)
-      result.push([node.name, expectedType, node.initializer, realType])
-      appendNodeToVisit(node.initializer)
-      continue
-    } else if (ts.isCallExpression(node)) {
-      // fn(a)
-      const resolvedSignature = typeChecker.getResolvedSignature(node)
-      if (resolvedSignature) {
-        resolvedSignature.getParameters().map((parameter, index) => {
-          const expectedType = typeChecker.getTypeOfSymbolAtLocation(parameter, node)
-          const realType = typeChecker.getTypeAtLocation(node.arguments[index])
-          result.push([
-            node.arguments[index] as ts.Node,
-            expectedType,
-            node.arguments[index],
-            realType
-          ])
-        })
-      }
-      ts.forEachChild(node, appendNodeToVisit)
-      continue
-    } else if (
-      ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
-      ts.isNoSubstitutionTemplateLiteral(node)
-    ) {
-      // { key: node } as { key: Effect<...> }
-      const parent = node.parent
-      if (ts.isObjectLiteralElement(parent)) {
-        if (ts.isObjectLiteralExpression(parent.parent) && parent.name === node) {
-          const type = typeChecker.getContextualType(parent.parent)
-          if (type) {
-            const symbol = typeChecker.getPropertyOfType(type, node.text)
-            if (symbol) {
-              const expectedType = typeChecker.getTypeOfSymbolAtLocation(symbol, node)
-              const realType = typeChecker.getTypeAtLocation(node)
-              result.push([node, expectedType, node, realType])
+      if (ts.isVariableDeclaration(node) && node.initializer) {
+        // const a: Effect<...> = node
+        const expectedType = typeChecker.getTypeAtLocation(node.name)
+        const realType = typeChecker.getTypeAtLocation(node.initializer)
+        result.push([node.name, expectedType, node.initializer, realType])
+        appendNodeToVisit(node.initializer)
+        continue
+      } else if (ts.isCallExpression(node)) {
+        // fn(a)
+        const resolvedSignature = typeChecker.getResolvedSignature(node)
+        if (resolvedSignature) {
+          resolvedSignature.getParameters().map((parameter, index) => {
+            const expectedType = typeChecker.getTypeOfSymbolAtLocation(parameter, node)
+            const realType = typeChecker.getTypeAtLocation(node.arguments[index])
+            result.push([
+              node.arguments[index] as ts.Node,
+              expectedType,
+              node.arguments[index],
+              realType
+            ])
+          })
+        }
+        ts.forEachChild(node, appendNodeToVisit)
+        continue
+      } else if (
+        ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node) ||
+        ts.isNoSubstitutionTemplateLiteral(node)
+      ) {
+        // { key: node } as { key: Effect<...> }
+        const parent = node.parent
+        if (ts.isObjectLiteralElement(parent)) {
+          if (ts.isObjectLiteralExpression(parent.parent) && parent.name === node) {
+            const type = typeChecker.getContextualType(parent.parent)
+            if (type) {
+              const symbol = typeChecker.getPropertyOfType(type, node.text)
+              if (symbol) {
+                const expectedType = typeChecker.getTypeOfSymbolAtLocation(symbol, node)
+                const realType = typeChecker.getTypeAtLocation(node)
+                result.push([node, expectedType, node, realType])
+              }
             }
           }
         }
-      }
-      ts.forEachChild(node, appendNodeToVisit)
-      continue
-    } else if (
-      ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
-    ) {
-      // var a: Effect<...> = node
-      const expectedType = typeChecker.getTypeAtLocation(node.left)
-      const realType = typeChecker.getTypeAtLocation(node.right)
-      result.push([node.left, expectedType, node.right, realType])
-      appendNodeToVisit(node.right)
-      continue
-    } else if (ts.isReturnStatement(node) && node.expression) {
-      // function(): Effect<...> { return a }
-      const parentDeclaration = yield* Nano.option(getAncestorConvertibleDeclaration(node))
-      if (Option.isSome(parentDeclaration)) {
-        const expectedType = yield* Nano.option(getInferredReturnType(parentDeclaration.value))
-        const realType = typeChecker.getTypeAtLocation(node.expression)
-        if (Option.isSome(expectedType)) {
-          result.push([node, expectedType.value, node, realType])
+        ts.forEachChild(node, appendNodeToVisit)
+        continue
+      } else if (
+        ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
+      ) {
+        // var a: Effect<...> = node
+        const expectedType = typeChecker.getTypeAtLocation(node.left)
+        const realType = typeChecker.getTypeAtLocation(node.right)
+        result.push([node.left, expectedType, node.right, realType])
+        appendNodeToVisit(node.right)
+        continue
+      } else if (ts.isReturnStatement(node) && node.expression) {
+        // function(): Effect<...> { return a }
+        const parentDeclaration = yield* Nano.option(getAncestorConvertibleDeclaration(node))
+        if (Option.isSome(parentDeclaration)) {
+          const expectedType = yield* Nano.option(getInferredReturnType(parentDeclaration.value))
+          const realType = typeChecker.getTypeAtLocation(node.expression)
+          if (Option.isSome(expectedType)) {
+            result.push([node, expectedType.value, node, realType])
+          }
         }
+        ts.forEachChild(node, appendNodeToVisit)
+        continue
+      } else if (
+        ts.isArrowFunction(node) && (node.typeParameters || []).length === 0 &&
+        ts.isExpression(node.body)
+      ) {
+        // (): Effect<...> => node
+        const body = node.body
+        const expectedType = typeChecker.getContextualType(body)
+        const realType = typeChecker.getTypeAtLocation(body)
+        if (expectedType) {
+          result.push([body, expectedType, body, realType])
+        }
+        ts.forEachChild(body, appendNodeToVisit)
+        continue
+      } else if (
+        ts.isArrowFunction(node) && (node.typeParameters || []).length > 0 &&
+        ts.isExpression(node.body)
+      ) {
+        // <A>(): Effect<...> => node
+        const body = node.body
+        const expectedType = yield* Nano.option(getInferredReturnType(node))
+        const realType = typeChecker.getTypeAtLocation(body)
+        if (Option.isSome(expectedType)) {
+          result.push([body, expectedType.value, body, realType])
+        }
+        ts.forEachChild(body, appendNodeToVisit)
+        continue
+      } else if (ts.isSatisfiesExpression(node)) {
+        // node as Effect<....>
+        const expectedType = typeChecker.getTypeAtLocation(node.type)
+        const realType = typeChecker.getTypeAtLocation(node.expression)
+        result.push([node.expression as ts.Node, expectedType, node.expression, realType])
+        appendNodeToVisit(node.expression)
+        continue
       }
-      ts.forEachChild(node, appendNodeToVisit)
-      continue
-    } else if (
-      ts.isArrowFunction(node) && (node.typeParameters || []).length === 0 &&
-      ts.isExpression(node.body)
-    ) {
-      // (): Effect<...> => node
-      const body = node.body
-      const expectedType = typeChecker.getContextualType(body)
-      const realType = typeChecker.getTypeAtLocation(body)
-      if (expectedType) {
-        result.push([body, expectedType, body, realType])
-      }
-      ts.forEachChild(body, appendNodeToVisit)
-      continue
-    } else if (
-      ts.isArrowFunction(node) && (node.typeParameters || []).length > 0 &&
-      ts.isExpression(node.body)
-    ) {
-      // <A>(): Effect<...> => node
-      const body = node.body
-      const expectedType = yield* Nano.option(getInferredReturnType(node))
-      const realType = typeChecker.getTypeAtLocation(body)
-      if (Option.isSome(expectedType)) {
-        result.push([body, expectedType.value, body, realType])
-      }
-      ts.forEachChild(body, appendNodeToVisit)
-      continue
-    } else if (ts.isSatisfiesExpression(node)) {
-      // node as Effect<....>
-      const expectedType = typeChecker.getTypeAtLocation(node.type)
-      const realType = typeChecker.getTypeAtLocation(node.expression)
-      result.push([node.expression as ts.Node, expectedType, node.expression, realType])
-      appendNodeToVisit(node.expression)
-      continue
-    }
 
-    // no previous case has been hit, continue with childs
-    ts.forEachChild(node, appendNodeToVisit)
-  }
-  cache.expectedAndRealType.set(sourceFile, result)
-  return result
-})
+      // no previous case has been hit, continue with childs
+      ts.forEachChild(node, appendNodeToVisit)
+    }
+    return result
+  }),
+  "TypeCheckerApi.expectedAndRealType",
+  (sourceFile) => sourceFile
+)
 
 export const unrollUnionMembers = (type: ts.Type) => {
   const result: Array<ts.Type> = []
