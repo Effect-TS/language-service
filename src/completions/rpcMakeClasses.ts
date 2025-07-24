@@ -1,32 +1,24 @@
-import * as Option from "effect/Option"
-import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export const rpcMakeClasses = LSP.createCompletion({
   name: "rpcMakeClasses",
   apply: Nano.fn("rpcMakeClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
-    const maybeInfos = yield* Nano.option(
-      AST.parseDataForExtendsClassCompletion(sourceFile, position)
-    )
-    if (Option.isNone(maybeInfos)) return []
-    const { accessedObject, className, replacementSpan } = maybeInfos.value
+    const maybeInfos = tsUtils.parseDataForExtendsClassCompletion(sourceFile, position)
+    if (!maybeInfos) return []
+    const { accessedObject, className, replacementSpan } = maybeInfos
 
     // first, given the position, we go back
-    const rpcName = yield* Nano.option(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "@effect/rpc",
-        "Rpc"
-      )
-    )
-    const rpcIdentifier = Option.match(rpcName, {
-      onNone: () => "Rpc",
-      onSome: (_) => _.text
-    })
+    const rpcIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "@effect/rpc",
+      "Rpc"
+    ) || "Rpc"
 
     // ensure accessed is an identifier
     if (rpcIdentifier !== accessedObject.text) return []

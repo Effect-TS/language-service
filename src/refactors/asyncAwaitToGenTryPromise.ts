@@ -1,31 +1,30 @@
-import * as ReadonlyArray from "effect/Array"
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
-import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const asyncAwaitToGenTryPromise = LSP.createRefactor({
   name: "asyncAwaitToGenTryPromise",
   description: "Convert to Effect.gen with failures",
   apply: Nano.fn("asyncAwaitToGenTryPromise.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const maybeNode = pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.filter(
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
+      Array.filter(
         (node) =>
           ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) ||
           ts.isFunctionExpression(node)
       ),
-      ReadonlyArray.filter((node) => !!node.body),
-      ReadonlyArray.filter((node) => !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)),
-      ReadonlyArray.head
+      Array.filter((node) => !!node.body),
+      Array.filter((node) => !!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Async)),
+      Array.head
     )
 
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
@@ -38,23 +37,11 @@ export const asyncAwaitToGenTryPromise = LSP.createRefactor({
         Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-          const effectModuleIdentifierName = Option.match(
-            yield* Nano.option(
-              AST.findImportedModuleIdentifier(
-                sourceFile,
-                (node) =>
-                  pipe(
-                    typeParser.importedEffectModule(node),
-                    Nano.option,
-                    Nano.map(Option.isSome)
-                  )
-              )
-            ),
-            {
-              onNone: () => "Effect",
-              onSome: (node) => node.text
-            }
-          )
+          const effectModuleIdentifierName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+            sourceFile,
+            "effect",
+            "Effect"
+          ) || "Effect"
 
           let errorCount = 0
 
@@ -72,7 +59,7 @@ export const asyncAwaitToGenTryPromise = LSP.createRefactor({
             ])
           }
 
-          const newDeclaration = yield* AST.transformAsyncAwaitToEffectGen(
+          const newDeclaration = tsUtils.transformAsyncAwaitToEffectGen(
             node,
             effectModuleIdentifierName,
             (expression) =>

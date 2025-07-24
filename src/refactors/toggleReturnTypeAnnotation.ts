@@ -1,21 +1,70 @@
 import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as AST from "../core/AST.js"
+import type * as ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const toggleReturnTypeAnnotation = LSP.createRefactor({
   name: "toggleReturnTypeAnnotation",
   description: "Toggle return type annotation",
   apply: Nano.fn("toggleReturnTypeAnnotation.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
+    function addReturnTypeAnnotation(
+      sourceFile: ts.SourceFile,
+      changeTracker: ts.textChanges.ChangeTracker,
+      declaration:
+        | ts.FunctionDeclaration
+        | ts.FunctionExpression
+        | ts.ArrowFunction
+        | ts.MethodDeclaration,
+      typeNode: ts.TypeNode
+    ) {
+      const closeParen = ts.findChildOfKind(declaration, ts.SyntaxKind.CloseParenToken, sourceFile)
+      const needParens = ts.isArrowFunction(declaration) && closeParen === undefined
+      const endNode = needParens ? declaration.parameters[0] : closeParen
+      if (endNode) {
+        if (needParens) {
+          changeTracker.insertNodeBefore(
+            sourceFile,
+            endNode,
+            ts.factory.createToken(ts.SyntaxKind.OpenParenToken)
+          )
+          changeTracker.insertNodeAfter(
+            sourceFile,
+            endNode,
+            ts.factory.createToken(ts.SyntaxKind.CloseParenToken)
+          )
+        }
+        changeTracker.insertNodeAt(sourceFile, endNode.end, typeNode, { prefix: ": " })
+      }
+    }
+
+    function removeReturnTypeAnnotation(
+      sourceFile: ts.SourceFile,
+      changeTracker: ts.textChanges.ChangeTracker,
+      declaration:
+        | ts.FunctionDeclaration
+        | ts.FunctionExpression
+        | ts.ArrowFunction
+        | ts.MethodDeclaration
+    ) {
+      const closeParen = ts.findChildOfKind(declaration, ts.SyntaxKind.CloseParenToken, sourceFile)
+      const needParens = ts.isArrowFunction(declaration) && closeParen === undefined
+      const endNode = needParens ? declaration.parameters[0] : closeParen
+      if (endNode && declaration.type) {
+        changeTracker.deleteRange(sourceFile, { pos: endNode.end, end: declaration.type.end })
+      }
+    }
+
     const maybeNode = pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
       ReadonlyArray.filter((node) =>
         ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) ||
         ts.isArrowFunction(node) || ts.isMethodDeclaration(node)
@@ -31,8 +80,8 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
         kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",
         description: "Toggle return type annotation",
         apply: pipe(
-          AST.removeReturnTypeAnnotation(sourceFile, node),
-          Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+          Nano.service(TypeScriptApi.ChangeTracker),
+          Nano.map((changeTracker) => removeReturnTypeAnnotation(sourceFile, changeTracker, node))
         )
       })
     }
@@ -52,13 +101,10 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
       kind: "refactor.rewrite.effect.toggleReturnTypeAnnotation",
       description: "Toggle return type annotation",
       apply: pipe(
-        AST.addReturnTypeAnnotation(
-          sourceFile,
-          node,
-          yield* AST.simplifyTypeNode(returnTypeNode)
-        ),
-        Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
-        Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        Nano.service(TypeScriptApi.ChangeTracker),
+        Nano.map((changeTracker) =>
+          addReturnTypeAnnotation(sourceFile, changeTracker, node, tsUtils.simplifyTypeNode(returnTypeNode))
+        )
       )
     })
   })

@@ -1,19 +1,20 @@
-import * as ReadonlyArray from "effect/Array"
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const _findSchemaVariableDeclaration = Nano.fn(
   "makeSchemaOpaque._findSchemaVariableDeclaration"
 )(
   function*(sourceFile: ts.SourceFile, textRange: ts.TextRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
@@ -45,8 +46,8 @@ export const _findSchemaVariableDeclaration = Nano.fn(
     )
 
     return yield* pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.map(findSchema),
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
+      Array.map(findSchema),
       Nano.firstSuccessOf,
       Nano.option
     )
@@ -152,6 +153,7 @@ export const makeSchemaOpaque = LSP.createRefactor({
   description: "Make Schema opaque",
   apply: Nano.fn("makeSchemaOpaque.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     const maybeNode = yield* _findSchemaVariableDeclaration(sourceFile, textRange)
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
@@ -164,19 +166,12 @@ export const makeSchemaOpaque = LSP.createRefactor({
       apply: pipe(
         Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          const effectSchemaName = Option.match(
-            yield* Nano.option(
-              AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-                sourceFile,
-                "effect",
-                "Schema"
-              )
-            ),
-            {
-              onNone: () => "Schema",
-              onSome: (_) => _.text
-            }
-          )
+          const effectSchemaName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+            sourceFile,
+            "effect",
+            "Schema"
+          ) || "Schema"
+
           const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
           const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,

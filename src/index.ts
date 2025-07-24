@@ -12,6 +12,7 @@ import * as Nano from "./core/Nano.js"
 import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import * as TypeParser from "./core/TypeParser.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
+import * as TypeScriptUtils from "./core/TypeScriptUtils.js"
 import { diagnostics } from "./diagnostics.js"
 import { middlewareAutoImportQuickfixes } from "./diagnostics/middlewareAutoImportQuickfixes.js"
 import { goto } from "./goto.js"
@@ -72,20 +73,17 @@ const init = (
           | TypeCheckerApi.TypeCheckerApi
           | TypeScriptApi.TypeScriptProgram
           | TypeScriptApi.TypeScriptApi
+          | TypeScriptUtils.TypeScriptUtils
           | TypeParser.TypeParser
           | LanguageServicePluginOptions.LanguageServicePluginOptions
-          | TypeCheckerApi.TypeCheckerApiCache
         >
       ) =>
         pipe(
           fa,
-          Nano.provideService(TypeParser.TypeParser, TypeParser.make(modules.typescript, program.getTypeChecker())),
-          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+          TypeParser.nanoLayer,
+          TypeScriptUtils.nanoLayer,
           Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-          Nano.provideService(
-            TypeCheckerApi.TypeCheckerApiCache,
-            TypeCheckerApi.makeTypeCheckerApiCache()
-          ),
+          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
           Nano.provideService(TypeScriptApi.TypeScriptApi, modules.typescript),
           Nano.provideService(
             LanguageServicePluginOptions.LanguageServicePluginOptions,

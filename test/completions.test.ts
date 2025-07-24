@@ -5,6 +5,7 @@ import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
+import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as fs from "fs"
@@ -42,14 +43,11 @@ function testCompletionOnExample(
       undefined,
       ts.getDefaultFormatCodeSettings("\n")
     ),
+    TypeParser.nanoLayer,
+    TypeScriptUtils.nanoLayer,
+    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(
-      TypeCheckerApi.TypeCheckerApiCache,
-      TypeCheckerApi.makeTypeCheckerApiCache()
-    ),
-    Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
       diagnostics: false,
       diagnosticSeverity: {},

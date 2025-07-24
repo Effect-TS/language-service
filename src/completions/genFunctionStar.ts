@@ -1,21 +1,19 @@
-import * as Option from "effect/Option"
-import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export const genFunctionStar = LSP.createCompletion({
   name: "genFunctionStar",
   apply: Nano.fn("genFunctionStar")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-    const maybeInfos = yield* Nano.option(
-      AST.parseAccessedExpressionForCompletion(sourceFile, position)
-    )
-    if (Option.isNone(maybeInfos)) return []
-    const { accessedObject } = maybeInfos.value
+    const maybeInfos = tsUtils.parseAccessedExpressionForCompletion(sourceFile, position)
+    if (!maybeInfos) return []
+    const { accessedObject } = maybeInfos
 
     const type = typeChecker.getTypeAtLocation(accessedObject)
     const genMemberSymbol = type.getProperty("gen")

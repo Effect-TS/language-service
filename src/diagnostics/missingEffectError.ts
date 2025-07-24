@@ -2,12 +2,12 @@ import * as ReadonlyArray from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Order from "effect/Order"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const missingEffectError = LSP.createDiagnostic({
   name: "missingEffectError",
@@ -15,19 +15,16 @@ export const missingEffectError = LSP.createDiagnostic({
   severity: "error",
   apply: Nano.fn("missingEffectError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
-    const effectModuleIdentifier = yield* pipe(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Effect"
-      ),
-      Nano.map((_) => _.text),
-      Nano.orElse(() => Nano.succeed("Effect"))
-    )
+    const effectModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Effect"
+    ) || "Effect"
 
     const createDieMessage = (message: string) =>
       ts.factory.createCallExpression(

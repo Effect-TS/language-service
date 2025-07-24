@@ -1,23 +1,22 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export const fnFunctionStar = LSP.createCompletion({
   name: "fnFunctionStar",
   apply: Nano.fn("fnFunctionStar")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const maybeInfos = yield* Nano.option(
-      AST.parseAccessedExpressionForCompletion(sourceFile, position)
-    )
-    if (Option.isNone(maybeInfos)) return []
-    const { accessedObject } = maybeInfos.value
+    const maybeInfos = tsUtils.parseAccessedExpressionForCompletion(sourceFile, position)
+    if (!maybeInfos) return []
+    const { accessedObject } = maybeInfos
 
     // we check if it is an effect
     const isEffectModule = yield* Nano.option(typeParser.importedEffectModule(accessedObject))
@@ -29,7 +28,7 @@ export const fnFunctionStar = LSP.createCompletion({
     )
 
     const maybeFnName: Array<LSP.CompletionEntryDefinition> = pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, AST.toTextRange(accessedObject.pos)),
+      tsUtils.getAncestorNodesInRange(sourceFile, tsUtils.toTextRange(accessedObject.pos)),
       Array.filter(ts.isVariableDeclaration),
       Array.map((_) => _.name && ts.isIdentifier(_.name) ? _.name.text : ""),
       Array.filter((_) => _.length > 0),

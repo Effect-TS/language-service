@@ -20,6 +20,7 @@ import * as Nano from "./core/Nano"
 import * as TypeCheckerApi from "./core/TypeCheckerApi"
 import * as TypeParser from "./core/TypeParser"
 import * as TypeScriptApi from "./core/TypeScriptApi"
+import * as TypeScriptUtils from "./core/TypeScriptUtils"
 import { diagnostics } from "./diagnostics"
 
 const makePathWithLineCharacter = (
@@ -216,14 +217,11 @@ const checkEffect = (format: "default" | "json", file: Option.Option<string>) =>
         // run the diagnostics and pipe them into addDiagnostic
         const outputDiagnostics = pipe(
           LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
-          Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+          TypeParser.nanoLayer,
           Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-          Nano.provideService(TypeParser.TypeParser, TypeParser.make(ts, program.getTypeChecker())),
-          Nano.provideService(
-            TypeCheckerApi.TypeCheckerApiCache,
-            TypeCheckerApi.makeTypeCheckerApiCache()
-          ),
+          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+          TypeScriptUtils.nanoLayer,
+          Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
           Nano.provideService(
             LanguageServicePluginOptions.LanguageServicePluginOptions,
             LanguageServicePluginOptions.parse(pluginOptions)

@@ -1,30 +1,26 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type * as ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const writeTagClassAccessors = LSP.createRefactor({
   name: "writeTagClassAccessors",
   description: "Implement Service accessors",
   apply: Nano.fn("writeTagClassAccessors.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const effectIdentifier = pipe(
-      yield* Nano.option(
-        AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Effect")
-      ),
-      Option.match({
-        onNone: () => "Effect",
-        onSome: (_) => _.text
-      })
-    )
+    const effectIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Effect"
+    ) || "Effect"
 
     const createConstantProperty = (className: ts.Identifier, propertyName: string, type: ts.TypeNode) =>
       ts.factory.createPropertyDeclaration(
@@ -262,7 +258,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
             // this is a call signature:
             // static method: <A>(value: A) => Effect<A, never, Service> = (value) => Effect.andThen(Service, _ => _.method(value))
             const allSignatures = ts.factory.createIntersectionTypeNode(callSignatures)
-            const type = yield* AST.simplifyTypeNode(allSignatures)
+            const type = tsUtils.simplifyTypeNode(allSignatures)
             propertyDeclaration = createFunctionProperty(className, property.getName(), type, callSignatures.length > 1)
           }
 
@@ -312,7 +308,7 @@ export const writeTagClassAccessors = LSP.createRefactor({
         })
       })
 
-    const parentNodes = yield* AST.getAncestorNodesInRange(sourceFile, textRange)
+    const parentNodes = tsUtils.getAncestorNodesInRange(sourceFile, textRange)
 
     return yield* Nano.firstSuccessOf(parentNodes.map(writeTagClassAccessors))
   })

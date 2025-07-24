@@ -1,37 +1,28 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export const schemaBrand = LSP.createCompletion({
   name: "schemaBrand",
   apply: Nano.fn("schemaBrand")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
-    const maybeInfos = yield* Nano.option(
-      AST.parseAccessedExpressionForCompletion(sourceFile, position)
-    )
-    if (Option.isNone(maybeInfos)) return []
-    const { accessedObject } = maybeInfos.value
+    const maybeInfos = tsUtils.parseAccessedExpressionForCompletion(sourceFile, position)
+    if (!maybeInfos) return []
+    const { accessedObject } = maybeInfos
 
     if (!ts.isIdentifier(accessedObject)) return []
 
-    const schemaName = Option.match(
-      yield* Nano.option(
-        AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-          sourceFile,
-          "effect",
-          "Schema"
-        )
-      ),
-      {
-        onNone: () => "Schema",
-        onSome: (_) => _.text
-      }
-    )
+    const schemaName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Schema"
+    ) || "Schema"
 
     if (schemaName !== accessedObject.text) return []
 
@@ -41,7 +32,7 @@ export const schemaBrand = LSP.createCompletion({
     )
 
     return pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, AST.toTextRange(accessedObject.pos)),
+      tsUtils.getAncestorNodesInRange(sourceFile, tsUtils.toTextRange(accessedObject.pos)),
       Array.filter(ts.isVariableDeclaration),
       Array.map((_) => _.name && ts.isIdentifier(_.name) ? _.name.text : ""),
       Array.filter((_) => _.length > 0),

@@ -1,9 +1,9 @@
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 import { _createOpaqueTypes, _findSchemaVariableDeclaration } from "./makeSchemaOpaque.js"
 
 export const makeSchemaOpaqueWithNs = LSP.createRefactor({
@@ -11,7 +11,7 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
   description: "Make Schema opaque with namespace",
   apply: Nano.fn("makeSchemaOpaqueWithNs.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const maybeNode = yield* _findSchemaVariableDeclaration(sourceFile, textRange)
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
@@ -23,19 +23,12 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
       apply: pipe(
         Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          const effectSchemaName = Option.match(
-            yield* Nano.option(
-              AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-                sourceFile,
-                "effect",
-                "Schema"
-              )
-            ),
-            {
-              onNone: () => "Schema",
-              onSome: (_) => _.text
-            }
-          )
+          const effectSchemaName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+            sourceFile,
+            "effect",
+            "Schema"
+          ) || "Schema"
+
           const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
           const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,

@@ -1,24 +1,25 @@
-import * as ReadonlyArray from "effect/Array"
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const functionToArrow = LSP.createRefactor({
   name: "functionToArrow",
   description: "Convert to arrow",
   apply: Nano.fn("functionToArrow.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     const maybeNode = pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.filter((_) => ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_)),
-      ReadonlyArray.filter((_) => !!_.body),
-      ReadonlyArray.filter((_) => !!_.name && AST.isNodeInRange(textRange)(_.name)),
-      ReadonlyArray.head
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
+      Array.filter((_) => ts.isFunctionDeclaration(_) || ts.isMethodDeclaration(_)),
+      Array.filter((_) => !!_.body),
+      Array.filter((_) => !!_.name && tsUtils.isNodeInRange(textRange)(_.name)),
+      Array.head
     )
 
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
@@ -54,7 +55,7 @@ export const functionToArrow = LSP.createRefactor({
             newBody
           )
 
-          const newDeclaration: ts.Node = yield* AST.tryPreserveDeclarationSemantics(
+          const newDeclaration: ts.Node = tsUtils.tryPreserveDeclarationSemantics(
             node,
             arrowFunction
           )

@@ -1,26 +1,27 @@
-import * as ReadonlyArray from "effect/Array"
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as AST from "../core/AST.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const toggleLazyConst = LSP.createRefactor({
   name: "toggleLazyConst",
   description: "Toggle lazy const",
   apply: Nano.fn("toggleLazyConst.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     const maybeNode = pipe(
-      yield* AST.getAncestorNodesInRange(sourceFile, textRange),
-      ReadonlyArray.filter(ts.isVariableDeclaration),
-      ReadonlyArray.filter((node) => AST.isNodeInRange(textRange)(node.name)),
-      ReadonlyArray.filter((node) =>
+      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
+      Array.filter(ts.isVariableDeclaration),
+      Array.filter((node) => tsUtils.isNodeInRange(textRange)(node.name)),
+      Array.filter((node) =>
         !!node.initializer &&
         !(ts.isArrowFunction(node.initializer) && ts.isBlock(node.initializer.body))
       ),
-      ReadonlyArray.head
+      Array.head
     )
 
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())

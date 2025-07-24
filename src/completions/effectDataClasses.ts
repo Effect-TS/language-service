@@ -1,32 +1,24 @@
-import * as Option from "effect/Option"
-import * as AST from "../core/AST"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 export const effectDataClasses = LSP.createCompletion({
   name: "effectDataClasses",
   apply: Nano.fn("effectDataClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
-    const maybeInfos = yield* Nano.option(
-      AST.parseDataForExtendsClassCompletion(sourceFile, position)
-    )
-    if (Option.isNone(maybeInfos)) return []
-    const { accessedObject, className, replacementSpan } = maybeInfos.value
+    const maybeInfos = tsUtils.parseDataForExtendsClassCompletion(sourceFile, position)
+    if (!maybeInfos) return []
+    const { accessedObject, className, replacementSpan } = maybeInfos
 
     // first, given the position, we go back
-    const dataName = yield* Nano.option(
-      AST.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Data"
-      )
-    )
-    const effectDataIdentifier = Option.match(dataName, {
-      onNone: () => "Data",
-      onSome: (_) => _.text
-    })
+    const effectDataIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Data"
+    ) || "Data"
 
     // ensure accessed is an identifier
     if (effectDataIdentifier !== accessedObject.text) return []
