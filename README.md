@@ -103,6 +103,34 @@ Few options can be provided alongside the initialization of the Language Service
 }
 ```
 
+### DiagnosticSeverty properties list
+
+The full list can be found in the [diagnostics](https://github.com/Effect-TS/language-service/tree/main/src/diagnostics) folder.
+Here is the current list of diagnostics you can use to override severity:
+
+
+```bash
+duplicatePackage 
+effectInVoidSuccess
+floatingEffect
+genericEffectServices
+importFromBarrel
+leakingRequirements
+middlewareAutoImportQuickfixes
+missingEffectContext
+missingEffectError
+missingReturnYieldStar
+missingStarInYieldEffectGen
+multipleEffectProvide
+returnEffectInGen
+scopeInLayerEffect
+strictBooleanExpressions
+tryCatchInEffectGen
+unnecessaryEffectGen
+unnecessaryPipe
+unnecessaryPipeChain
+```
+
 ## Why do diagnostics not appear at compile time?
 
 TypeScript LSPs are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
