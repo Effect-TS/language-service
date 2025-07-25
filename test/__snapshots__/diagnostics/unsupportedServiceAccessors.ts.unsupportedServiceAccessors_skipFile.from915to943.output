@@ -1,0 +1,66 @@
+// code fix unsupportedServiceAccessors_skipFile  output for range 915 - 943
+/** @effect-diagnostics unsupportedServiceAccessors:skip-file */
+import * as Effect from "effect/Effect"
+
+export class ValidService extends Effect.Service<ValidService>()("ValidService", {
+  accessors: true,
+  effect: Effect.gen(function*() {
+    return {
+      constant: Effect.succeed("Hello, world!"),
+      method: (value: string) => Effect.succeed(value)
+    }
+  })
+}) {
+}
+
+export class ValidServiceBecauseManuallyDefined
+  extends Effect.Service<ValidServiceBecauseManuallyDefined>()("ValidServiceBecauseManuallyDefined", {
+    accessors: true,
+    effect: Effect.gen(function*() {
+      return {
+        constant: Effect.succeed("Hello, world!"),
+        method: <A>(value: A) => Effect.succeed(value)
+      }
+    })
+  })
+{
+  static method: <A>(value: A) => Effect.Effect<A, never, ValidServiceBecauseManuallyDefined> = (...args) =>
+    Effect.andThen(ValidServiceBecauseManuallyDefined, (_) => _.method(...args))
+}
+
+// should warn because method has generics
+export class ShouldWarnMethodWithGenerics
+  extends Effect.Service<ShouldWarnMethodWithGenerics>()("ShouldWarnMethodWithGenerics", {
+    accessors: true,
+    effect: Effect.gen(function*() {
+      return {
+        constant: Effect.succeed("Hello, world!"),
+        method: <A>(value: A, _test: string) => Effect.succeed(value)
+      }
+    })
+  })
+{
+}
+
+// should warn because method has multiple signatures with different return types
+export class ShouldWarnMethodWithMultipleSignatures
+  extends Effect.Service<ShouldWarnMethodWithMultipleSignatures>()("ShouldWarnMethodWithMultipleSignatures", {
+    accessors: true,
+    effect: Effect.gen(function*() {
+      function methodWithMultipleSignaturesNoGenerics(value: string): Effect.Effect<string>
+      function methodWithMultipleSignaturesNoGenerics(value: string, opts: { discard: true }): Effect.Effect<void>
+      function methodWithMultipleSignaturesNoGenerics(
+        value: string,
+        opts?: { discard: true }
+      ): Effect.Effect<string | void> {
+        return opts && opts.discard ? Effect.void : Effect.succeed(value)
+      }
+
+      return {
+        constant: Effect.succeed("Hello, world!"),
+        methodWithMultipleSignaturesNoGenerics
+      }
+    })
+  })
+{
+}

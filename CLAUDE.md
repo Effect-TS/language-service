@@ -1,8 +1,10 @@
-## Validation workflow
+## MANDATORY Validation workflow
 This step should happen after any change to ensure they are valid.
 - run "pnpm lint-fix" to fix code formatting
 - run "pnpm check" to see if you should fix some type errors
 - run "pnpm test" to validate that changes did not broke anything
+- if new diagnostics, completions or refactor are added, ensure they are already mentioned in the README.md
+- when you think that you have finished it all, drop all the files from test/__snapshots__ and run "pnpm test". Look at the git changes in snapshot files and ensure that they are expected changes and there are no side effects.
 
 ## Repo structure
 - Tests for diagnostics are placed inside the examples/diagnostic folder, and the name should start with the rule name
@@ -13,7 +15,7 @@ This step should happen after any change to ensure they are valid.
 - Provide a description of what changed
 - If the change involve refactors or diagnostic, provide an example of the feature added/changed
 - Before pushing ensure:
-  - Run "pnpm test" to ensure that all test passes
+  - The validation workflow MUST pass
   - If in the git changes does not exists a new changeset file to be added, create a new one in the .changeset folder, the pattern is something like this:
   ```
 ---
