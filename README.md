@@ -46,10 +46,12 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn on leaking requirements in Effect services
 - Warn on Scope as requirement of a Layer
 - Warn on subsequent `Effect.provide` anti-pattern
+- Detect wrong `Self` type parameter for APIs like `Effect.Service` or `Schema.TaggedError` and similar 
 - Unnecessary usages of `Effect.gen` or `pipe()`
 - Warn when importing from a barrel file instead of from the module directly
 - Warn on usage of try/catch inside `Effect.gen` and family
 - Detect unnecessary pipe chains like `X.pipe(Y).pipe(Z)`
+- Warn when using `Effect.Service` with `accessors: true` but methods have generics or multiple signatures
 
 ### Completions
 
@@ -106,30 +108,6 @@ Few options can be provided alongside the initialization of the Language Service
 ### DiagnosticSeverty properties list
 
 The full list can be found in the [diagnostics](https://github.com/Effect-TS/language-service/tree/main/src/diagnostics) folder.
-Here is the current list of diagnostics you can use to override severity:
-
-
-```bash
-duplicatePackage 
-effectInVoidSuccess
-floatingEffect
-genericEffectServices
-importFromBarrel
-leakingRequirements
-middlewareAutoImportQuickfixes
-missingEffectContext
-missingEffectError
-missingReturnYieldStar
-missingStarInYieldEffectGen
-multipleEffectProvide
-returnEffectInGen
-scopeInLayerEffect
-strictBooleanExpressions
-tryCatchInEffectGen
-unnecessaryEffectGen
-unnecessaryPipe
-unnecessaryPipeChain
-```
 
 ## Why do diagnostics not appear at compile time?
 

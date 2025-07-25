@@ -18,6 +18,7 @@ import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
+import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAccessors.js"
 
 export const diagnostics = [
   classSelfMismatch,
@@ -39,5 +40,6 @@ export const diagnostics = [
   unnecessaryPipeChain,
   strictBooleanExpressions,
   multipleEffectProvide,
-  outdatedEffectCodegen
+  outdatedEffectCodegen,
+  unsupportedServiceAccessors
 ]
