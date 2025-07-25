@@ -1,5 +1,31 @@
 # @effect/language-service
 
+## 0.30.0
+
+### Minor Changes
+
+- [#311](https://github.com/Effect-TS/language-service/pull/311) [`f2dc3c4`](https://github.com/Effect-TS/language-service/commit/f2dc3c4f6c46f11f11c778bfb200989f286501cc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `unsupportedServiceAccessors` diagnostic that warns when using `Effect.Service` with `accessors: true` but methods have generics or multiple signatures
+
+- [#309](https://github.com/Effect-TS/language-service/pull/309) [`949d5eb`](https://github.com/Effect-TS/language-service/commit/949d5eb409ffa79d73cbe77d13274549137708c2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `classSelfMismatch` diagnostic rule
+
+  This new diagnostic rule checks that the Self type parameter in Effect.Service, Context.Tag, and Schema classes matches the actual class name.
+
+  Example:
+
+  ```typescript
+  // ❌ Error: Self type parameter should be 'MyService'
+  class MyService extends Effect.Service<WrongName>()("MyService", {
+    succeed: { value: 1 },
+  }) {}
+
+  // ✅ Correct
+  class MyService extends Effect.Service<MyService>()("MyService", {
+    succeed: { value: 1 },
+  }) {}
+  ```
+
+  The diagnostic includes a quick fix to automatically correct the mismatch.
+
 ## 0.29.0
 
 ### Minor Changes
