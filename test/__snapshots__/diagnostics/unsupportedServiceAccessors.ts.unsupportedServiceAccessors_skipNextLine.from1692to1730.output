@@ -1,4 +1,4 @@
-// code fix unsupportedServiceAccessors_skipNextLine  output for range 1349 - 1387
+// code fix unsupportedServiceAccessors_skipNextLine  output for range 1692 - 1730
 import * as Effect from "effect/Effect"
 
 export class ValidService extends Effect.Service<ValidService>()("ValidService", {
@@ -25,6 +25,18 @@ export class ValidServiceBecauseManuallyDefined
 {
   static method: <A>(value: A) => Effect.Effect<A, never, ValidServiceBecauseManuallyDefined> = (...args) =>
     Effect.andThen(ValidServiceBecauseManuallyDefined, (_) => _.method(...args))
+}
+
+export class ValidBecauseAccessorsAreDisabled
+  extends Effect.Service<ValidBecauseAccessorsAreDisabled>()("ValidBecauseAccessorsAreDisabled", {
+    effect: Effect.gen(function*() {
+      return {
+        constant: Effect.succeed("Hello, world!"),
+        method: <A>(value: A, _test: string) => Effect.succeed(value)
+      }
+    })
+  })
+{
 }
 
 // should warn because method has generics

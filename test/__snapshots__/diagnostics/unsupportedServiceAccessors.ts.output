@@ -1,5 +1,5 @@
 ShouldWarnMethodWithGenerics
-30:13 - 30:41 | 0 | Even if accessors are enabled, accessors for 'method' won't be available because the signature have generic type parameters or multiple call signatures.
+42:13 - 42:41 | 0 | Even if accessors are enabled, accessors for 'method' won't be available because the signature have generic type parameters or multiple call signatures.
 
 ShouldWarnMethodWithMultipleSignatures
-44:13 - 44:51 | 0 | Even if accessors are enabled, accessors for 'methodWithMultipleSignaturesNoGenerics' won't be available because the signature have generic type parameters or multiple call signatures.
+56:13 - 56:51 | 0 | Even if accessors are enabled, accessors for 'methodWithMultipleSignaturesNoGenerics' won't be available because the signature have generic type parameters or multiple call signatures.

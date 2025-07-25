@@ -26,6 +26,18 @@ export class ValidServiceBecauseManuallyDefined
     Effect.andThen(ValidServiceBecauseManuallyDefined, (_) => _.method(...args))
 }
 
+export class ValidBecauseAccessorsAreDisabled
+  extends Effect.Service<ValidBecauseAccessorsAreDisabled>()("ValidBecauseAccessorsAreDisabled", {
+    effect: Effect.gen(function*() {
+      return {
+        constant: Effect.succeed("Hello, world!"),
+        method: <A>(value: A, _test: string) => Effect.succeed(value)
+      }
+    })
+  })
+{
+}
+
 // should warn because method has generics
 export class ShouldWarnMethodWithGenerics
   extends Effect.Service<ShouldWarnMethodWithGenerics>()("ShouldWarnMethodWithGenerics", {

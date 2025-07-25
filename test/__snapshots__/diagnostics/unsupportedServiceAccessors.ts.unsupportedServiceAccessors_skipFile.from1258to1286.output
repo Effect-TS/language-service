@@ -1,4 +1,5 @@
-// code fix unsupportedServiceAccessors_skipNextLine  output for range 915 - 943
+// code fix unsupportedServiceAccessors_skipFile  output for range 1258 - 1286
+/** @effect-diagnostics unsupportedServiceAccessors:skip-file */
 import * as Effect from "effect/Effect"
 
 export class ValidService extends Effect.Service<ValidService>()("ValidService", {
@@ -27,8 +28,19 @@ export class ValidServiceBecauseManuallyDefined
     Effect.andThen(ValidServiceBecauseManuallyDefined, (_) => _.method(...args))
 }
 
+export class ValidBecauseAccessorsAreDisabled
+  extends Effect.Service<ValidBecauseAccessorsAreDisabled>()("ValidBecauseAccessorsAreDisabled", {
+    effect: Effect.gen(function*() {
+      return {
+        constant: Effect.succeed("Hello, world!"),
+        method: <A>(value: A, _test: string) => Effect.succeed(value)
+      }
+    })
+  })
+{
+}
+
 // should warn because method has generics
-// @effect-diagnostics-next-line unsupportedServiceAccessors:off
 export class ShouldWarnMethodWithGenerics
   extends Effect.Service<ShouldWarnMethodWithGenerics>()("ShouldWarnMethodWithGenerics", {
     accessors: true,
