@@ -1,5 +1,8 @@
-## MANDATORY STEPS
-- After any write to a TypeScript .ts file, run "pnpm lint-fix"
+## Validation workflow
+This step should happen after any change to ensure they are valid.
+- run "pnpm lint-fix" to fix code formatting
+- run "pnpm check" to see if you should fix some type errors
+- run "pnpm test" to validate that changes did not broke anything
 
 ## Repo structure
 - Tests for diagnostics are placed inside the examples/diagnostic folder, and the name should start with the rule name

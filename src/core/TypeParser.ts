@@ -108,6 +108,53 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  extendsContextTag: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      args: ts.NodeArray<ts.Expression>
+      Identifier: ts.Type
+      Tag: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsSchemaClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      Schema: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsSchemaTaggedClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      Schema: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsSchemaTaggedError: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      Schema: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsSchemaTaggedRequest: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      Schema: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -386,6 +433,48 @@ export function make(
     }),
     "TypeParser.effectSubtype",
     (type) => type
+  )
+
+  const importedSchemaModule = Nano.cachedBy(
+    Nano.fn("TypeParser.importedSchemaModule")(function*(
+      node: ts.Node
+    ) {
+      const type = typeChecker.getTypeAtLocation(node)
+      // if the type has a property "Class" that is a function
+      const propertySymbol = typeChecker.getPropertyOfType(type, "Class")
+      if (!propertySymbol) {
+        return yield* typeParserIssue("Type has no 'Class' property", type, node)
+      }
+      // should be an expression
+      if (!ts.isExpression(node)) {
+        return yield* typeParserIssue("Node is not an expression", type, node)
+      }
+      // return the node itself
+      return node
+    }),
+    "TypeParser.importedSchemaModule",
+    (node) => node
+  )
+
+  const importedContextModule = Nano.cachedBy(
+    Nano.fn("TypeParser.importedContextModule")(function*(
+      node: ts.Node
+    ) {
+      const type = typeChecker.getTypeAtLocation(node)
+      // if the type has a property "Tag" that is a function
+      const propertySymbol = typeChecker.getPropertyOfType(type, "Tag")
+      if (!propertySymbol) {
+        return yield* typeParserIssue("Type has no 'Tag' property", type, node)
+      }
+      // should be an expression
+      if (!ts.isExpression(node)) {
+        return yield* typeParserIssue("Node is not an expression", type, node)
+      }
+      // return the node itself
+      return node
+    }),
+    "TypeParser.importedContextModule",
+    (node) => node
   )
 
   const importedEffectModule = Nano.cachedBy(
@@ -850,6 +939,269 @@ export function make(
     (type) => type
   )
 
+  const extendsSchemaClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.Class<T>("name")({})
+              const schemaCall = expression.expression
+              if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
+                const selfTypeNode = schemaCall.typeArguments[0]!
+                const schemaIdentifier = schemaCall.expression
+                if (
+                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                  schemaIdentifier.name.text === "Class"
+                ) {
+                  const parsedSchemaModule = yield* pipe(
+                    importedSchemaModule(schemaIdentifier.expression),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedSchemaModule)) {
+                    return {
+                      className: atLocation.name,
+                      selfTypeNode,
+                      Schema: parsedSchemaModule.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.Class", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaClass",
+    (atLocation) => atLocation
+  )
+
+  const extendsSchemaTaggedClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaTaggedClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.TaggedClass<T>("name")("tag", {})
+              const tagCall = expression.expression
+              if (ts.isCallExpression(tagCall)) {
+                const schemaCall = tagCall.expression
+                if (
+                  ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0
+                ) {
+                  const selfTypeNode = schemaCall.typeArguments[0]!
+                  const schemaIdentifier = schemaCall.expression
+                  if (
+                    ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                    schemaIdentifier.name.text === "TaggedClass"
+                  ) {
+                    const parsedSchemaModule = yield* pipe(
+                      importedSchemaModule(schemaIdentifier.expression),
+                      Nano.option
+                    )
+                    if (Option.isSome(parsedSchemaModule)) {
+                      return {
+                        className: atLocation.name,
+                        selfTypeNode,
+                        Schema: parsedSchemaModule.value
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.TaggedClass", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaTaggedClass",
+    (atLocation) => atLocation
+  )
+
+  const extendsSchemaTaggedError = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaTaggedError")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.TaggedError<T>("name")("tag", {})
+              const tagCall = expression.expression
+              if (ts.isCallExpression(tagCall)) {
+                const schemaCall = tagCall.expression
+                if (
+                  ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0
+                ) {
+                  const selfTypeNode = schemaCall.typeArguments[0]!
+                  const schemaIdentifier = schemaCall.expression
+                  if (
+                    ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                    schemaIdentifier.name.text === "TaggedError"
+                  ) {
+                    const parsedSchemaModule = yield* pipe(
+                      importedSchemaModule(schemaIdentifier.expression),
+                      Nano.option
+                    )
+                    if (Option.isSome(parsedSchemaModule)) {
+                      return {
+                        className: atLocation.name,
+                        selfTypeNode,
+                        Schema: parsedSchemaModule.value
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.TaggedError", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaTaggedError",
+    (atLocation) => atLocation
+  )
+
+  const extendsSchemaTaggedRequest = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaTaggedRequest")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.TaggedRequest<T>("name")("tag", {})
+              const tagCall = expression.expression
+              if (ts.isCallExpression(tagCall)) {
+                const schemaCall = tagCall.expression
+                if (
+                  ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0
+                ) {
+                  const selfTypeNode = schemaCall.typeArguments[0]!
+                  const schemaIdentifier = schemaCall.expression
+                  if (
+                    ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                    schemaIdentifier.name.text === "TaggedRequest"
+                  ) {
+                    const parsedSchemaModule = yield* pipe(
+                      importedSchemaModule(schemaIdentifier.expression),
+                      Nano.option
+                    )
+                    if (Option.isSome(parsedSchemaModule)) {
+                      return {
+                        className: atLocation.name,
+                        selfTypeNode,
+                        Schema: parsedSchemaModule.value
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.TaggedRequest", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaTaggedRequest",
+    (atLocation) => atLocation
+  )
+
+  const extendsContextTag = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsContextTag")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+      if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+      const type = typeChecker.getTypeOfSymbol(classSym)
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const wholeCall = typeX.expression
+            if (ts.isCallExpression(wholeCall)) {
+              const contextTagCall = wholeCall.expression
+              if (
+                ts.isCallExpression(contextTagCall) &&
+                wholeCall.typeArguments && wholeCall.typeArguments.length > 0
+              ) {
+                const contextTagIdentifier = contextTagCall.expression
+                const selfTypeNode = wholeCall.typeArguments[0]!
+                if (
+                  ts.isPropertyAccessExpression(contextTagIdentifier) &&
+                  ts.isIdentifier(contextTagIdentifier.name) && contextTagIdentifier.name.text === "Tag"
+                ) {
+                  const parsedContextModule = yield* pipe(
+                    importedContextModule(contextTagIdentifier.expression),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedContextModule)) {
+                    const tagType = yield* contextTag(type, atLocation)
+                    return {
+                      className: atLocation.name,
+                      selfTypeNode,
+                      args: contextTagCall.arguments,
+                      Identifier: tagType.Identifier,
+                      Tag: parsedContextModule.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Context.Tag", undefined, atLocation)
+    }),
+    "TypeParser.extendsContextTag",
+    (atLocation) => atLocation
+  )
+
   const extendsEffectService = Nano.cachedBy(
     Nano.fn("TypeParser.extendsEffectService")(function*(
       atLocation: ts.ClassDeclaration
@@ -940,6 +1292,11 @@ export function make(
     pipeCall,
     scopeType,
     promiseLike,
-    extendsEffectService
+    extendsEffectService,
+    extendsContextTag,
+    extendsSchemaClass,
+    extendsSchemaTaggedClass,
+    extendsSchemaTaggedError,
+    extendsSchemaTaggedRequest
   }
 }
