@@ -1,3 +1,4 @@
+import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
@@ -19,6 +20,7 @@ import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
 
 export const diagnostics = [
+  classSelfMismatch,
   duplicatePackage,
   missingEffectContext,
   missingEffectError,
