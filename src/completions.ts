@@ -1,5 +1,6 @@
 import { contextSelfInClasses } from "./completions/contextSelfInClasses.js"
 import { durationInput } from "./completions/durationInput.js"
+import { effectCodegensComment } from "./completions/effectCodegensComment.js"
 import { effectDataClasses } from "./completions/effectDataClasses.js"
 import { effectDiagnosticsComment } from "./completions/effectDiagnosticsComment.js"
 import { effectSchemaSelfInClasses } from "./completions/effectSchemaSelfInClasses.js"
@@ -18,6 +19,7 @@ export const completions = [
   fnFunctionStar,
   effectDataClasses,
   effectDiagnosticsComment,
+  effectCodegensComment,
   durationInput,
   schemaBrand
 ]

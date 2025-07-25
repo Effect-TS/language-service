@@ -72,7 +72,7 @@ export const strictBooleanExpressions = LSP.createDiagnostic({
           // report the error
           const typeName = typeChecker.typeToString(type)
           report({
-            node: nodeToCheck,
+            location: nodeToCheck,
             messageText: `Unexpected \`${typeName}\` type in condition, expected strictly a boolean instead.`,
             fixes: []
           })

@@ -96,6 +96,18 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ type: ts.Type }, TypeParserIssue>
+  extendsEffectService: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      args: ts.NodeArray<ts.Expression>
+      Identifier: ts.Type
+      Service: ts.Type
+      accessors: boolean | undefined
+    },
+    TypeParserIssue,
+    never
+  >
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -838,6 +850,79 @@ export function make(
     (type) => type
   )
 
+  const extendsEffectService = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsEffectService")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+      if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+      const type = typeChecker.getTypeOfSymbol(classSym)
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const wholeCall = typeX.expression
+            if (ts.isCallExpression(wholeCall)) {
+              const effectServiceCall = wholeCall.expression
+              if (
+                ts.isCallExpression(effectServiceCall) &&
+                effectServiceCall.typeArguments && effectServiceCall.typeArguments.length > 0
+              ) {
+                const effectServiceIdentifier = effectServiceCall.expression
+                const selfTypeNode = effectServiceCall.typeArguments[0]!
+                if (
+                  ts.isPropertyAccessExpression(effectServiceIdentifier) &&
+                  ts.isIdentifier(effectServiceIdentifier.name) && effectServiceIdentifier.name.text === "Service"
+                ) {
+                  const parsedContextTag = yield* pipe(
+                    importedEffectModule(effectServiceIdentifier.expression),
+                    Nano.flatMap(() => contextTag(type, atLocation)),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedContextTag)) {
+                    // try to parse some settings
+                    let accessors: boolean | undefined = undefined
+                    if (wholeCall.arguments.length >= 2) {
+                      const args = wholeCall.arguments[1]
+                      if (ts.isObjectLiteralExpression(args)) {
+                        for (const property of args.properties) {
+                          if (
+                            ts.isPropertyAssignment(property) && property.name && ts.isIdentifier(property.name) &&
+                            property.name.text === "accessors" && property.initializer &&
+                            property.initializer.kind === ts.SyntaxKind.TrueKeyword
+                          ) {
+                            accessors = true
+                          }
+                        }
+                      }
+                    }
+                    return ({
+                      ...parsedContextTag.value,
+                      className: atLocation.name,
+                      selfTypeNode,
+                      args: wholeCall.arguments,
+                      accessors
+                    })
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return yield* typeParserIssue("Class does not extend Effect.Service", undefined, atLocation)
+    }),
+    "TypeParser.extendsEffectService",
+    (atLocation) => atLocation
+  )
+
   return {
     effectType,
     strictEffectType,
@@ -854,6 +939,7 @@ export function make(
     pipeableType,
     pipeCall,
     scopeType,
-    promiseLike
+    promiseLike,
+    extendsEffectService
   }
 }

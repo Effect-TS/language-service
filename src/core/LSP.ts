@@ -1,3 +1,4 @@
+import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -44,7 +45,11 @@ export interface DiagnosticDefinition {
   severity: LanguageServicePluginOptions.DiagnosticSeverity | "off"
   apply: (
     sourceFile: ts.SourceFile,
-    report: (data: ApplicableDiagnosticDefinition) => void
+    report: (data: {
+      location: ts.TextRange | ts.Node
+      messageText: string
+      fixes: Array<ApplicableDiagnosticDefinitionFix>
+    }) => void
   ) => Nano.Nano<
     void,
     never,
@@ -58,7 +63,7 @@ export interface DiagnosticDefinition {
 }
 
 export interface ApplicableDiagnosticDefinition {
-  node: ts.Node
+  range: ts.TextRange
   messageText: string
   fixes: Array<ApplicableDiagnosticDefinitionFix>
 }
@@ -303,7 +308,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
         }
         // append a rule fix to disable this check only for next line
         const fixByDisableNextLine = (
-          _: ApplicableDiagnosticDefinition
+          node: ts.Node
         ): ApplicableDiagnosticDefinitionFix => ({
           fixName: rule.name + "_skipNextLine",
           description: "Disable " + rule.name + " for this line",
@@ -311,7 +316,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
             Nano.service(TypeScriptApi.ChangeTracker),
             (changeTracker) =>
               Nano.gen(function*() {
-                const disableAtNode = findParentStatementForDisableNextLine(_.node)
+                const disableAtNode = findParentStatementForDisableNextLine(node)
                 const { line } = ts.getLineAndCharacterOfPosition(sourceFile, disableAtNode.getStart())
 
                 changeTracker.insertCommentBeforeLine(
@@ -343,9 +348,16 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
         // run the executor
         const applicableDiagnostics: Array<ApplicableDiagnosticDefinition> = []
         yield* rule.apply(sourceFile, (entry) => {
+          const range = "getEnd" in entry.location
+            ? { pos: entry.location.getStart(sourceFile), end: entry.location.getEnd() }
+            : entry.location
+          const node = "getEnd" in entry.location
+            ? entry.location
+            : tsUtils.findNodeAtPositionIncludingTrivia(sourceFile, entry.location.pos)
           applicableDiagnostics.push({
-            ...entry,
-            fixes: entry.fixes.concat([fixByDisableNextLine(entry), fixByDisableEntireFile])
+            range,
+            messageText: entry.messageText,
+            fixes: entry.fixes.concat(node ? [fixByDisableNextLine(node)] : []).concat([fixByDisableEntireFile])
           })
         })
 
@@ -355,15 +367,13 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           let newLevel: string | undefined = defaultLevel
           // attempt with line overrides
           const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
-            _.pos < emitted.node.getStart(sourceFile) && _.end >= emitted.node.getEnd()
+            _.pos < emitted.range.pos && _.end >= emitted.range.end
           )
           if (lineOverride) {
             newLevel = lineOverride.level
           } else {
             // then attempt with section overrides
-            const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
-              _.pos < emitted.node.getStart(sourceFile)
-            )
+            const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) => _.pos < emitted.range.pos)
             if (sectionOverride) newLevel = sectionOverride.level
           }
           // if level is off or not a valid level, skip and no output
@@ -371,8 +381,8 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           // append both diagnostic and code fix
           diagnostics.push({
             file: sourceFile,
-            start: emitted.node.getStart(sourceFile),
-            length: emitted.node.getEnd() - emitted.node.getStart(sourceFile),
+            start: emitted.range.pos,
+            length: emitted.range.end - emitted.range.pos,
             messageText: emitted.messageText,
             category: levelToDiagnosticCategory[newLevel],
             code: rule.code,
@@ -383,8 +393,8 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
             codeFixes.push({
               ...fix,
               code: rule.code,
-              start: emitted.node.getStart(sourceFile),
-              end: emitted.node.getEnd()
+              start: emitted.range.pos,
+              end: emitted.range.end
             })
           }
         }
@@ -395,3 +405,116 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
     return { execute }
   }
 )
+
+export const cyrb53 = (str: string, seed = 0) => {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed
+  for (let i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507)
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507)
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+
+  // return 4294967296 * (2097151 & h2) + (h1 >>> 0)
+  return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0")
+}
+
+export class CodegenNotApplicableError {
+  readonly _tag = "@effect/language-service/CodegenNotApplicableError"
+  constructor(
+    readonly cause: string
+  ) {}
+}
+
+export interface CodegenDefinition {
+  name: string
+  apply: (
+    sourceFile: ts.SourceFile,
+    commentRange: ts.TextRange
+  ) => Nano.Nano<
+    ApplicableCodegenDefinition,
+    CodegenNotApplicableError,
+    | TypeScriptApi.TypeScriptApi
+    | TypeScriptUtils.TypeScriptUtils
+    | TypeCheckerApi.TypeCheckerApi
+    | TypeParser.TypeParser
+    | LanguageServicePluginOptions.LanguageServicePluginOptions
+  >
+}
+
+export interface ApplicableCodegenDefinition {
+  hash: string
+  description: string
+  apply: Nano.Nano<void, never, ts.textChanges.ChangeTracker>
+}
+
+export function createCodegen(definition: CodegenDefinition): CodegenDefinition {
+  return definition
+}
+
+export const getCodegensForSourceFile = Nano.fn("LSP.getApplicableCodegens")(function*(
+  codegens: Array<CodegenDefinition>,
+  sourceFile: ts.SourceFile
+) {
+  const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+  const result: Array<{ codegen: CodegenDefinition; hash: string; range: ts.TextRange }> = []
+
+  const regex = /@effect-codegens((?:\s[a-zA-Z0-9]+(?::(?:[a-zA-Z0-9]+))?)+)+/gmid
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(sourceFile.text)) !== null) {
+    const pos = match.indices?.[0]?.[0]
+    if (!pos) continue
+    const commentRange = tsUtils.getCommentAtPosition(sourceFile, pos)
+    if (!commentRange) continue
+    const commentText = sourceFile.text.slice(pos, commentRange.end)
+    const codegenRegex = /(\s+)(\w+)(?::(\w+))?/gmi
+    let codegenMatch: RegExpExecArray | null
+    while ((codegenMatch = codegenRegex.exec(commentText)) !== null) {
+      const whitespace = codegenMatch[1] || ""
+      const codegenName = codegenMatch[2] || ""
+      const codegenHash = codegenMatch[3] || ""
+      const range: ts.TextRange = {
+        pos: codegenMatch.index + pos + whitespace.length,
+        end: codegenMatch.index + pos + codegenMatch[0].length
+      }
+      const codegen = codegens.find((codegen) => codegen.name === codegenName)
+      if (!codegen) continue
+      result.push({ codegen, hash: codegenHash, range })
+    }
+  }
+  return result
+})
+
+export const getEditsForCodegen = Nano.fn("LSP.getEditsForCodegen")(function*(
+  codegens: Array<CodegenDefinition>,
+  sourceFile: ts.SourceFile,
+  textRange: ts.TextRange
+) {
+  const applicableCodegens = yield* getCodegensForSourceFile(codegens, sourceFile)
+  const inRangeCodegens = applicableCodegens.filter((codegen) =>
+    codegen.range.pos <= textRange.pos && codegen.range.end >= textRange.end
+  )
+  if (inRangeCodegens.length !== 1) {
+    return yield* Nano.fail(new CodegenNotApplicableError("zero or multiple codegens in range"))
+  }
+  const { codegen, range } = inRangeCodegens[0]
+  const edit = yield* codegen.apply(sourceFile, range)
+  const updateHashComment = pipe(
+    Nano.service(TypeScriptApi.ChangeTracker),
+    Nano.map((changeTracker) => {
+      changeTracker.deleteRange(sourceFile, range)
+      changeTracker.insertText(sourceFile, range.pos, `${codegen.name}:${edit.hash}`)
+    })
+  )
+  return {
+    ...edit,
+    apply: pipe(
+      edit.apply,
+      Nano.flatMap(() => updateHashComment)
+    ),
+    ignore: updateHashComment
+  } satisfies ApplicableCodegenDefinition & { ignore: Nano.Nano<void, never, ts.textChanges.ChangeTracker> }
+})

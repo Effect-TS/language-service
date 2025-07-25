@@ -82,7 +82,7 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
                   []
 
                 report({
-                  node,
+                  location: node,
                   messageText: `Yielded Effect never succeeds, so it is best to use a 'return yield*' instead.`,
                   fixes: fix
                 })

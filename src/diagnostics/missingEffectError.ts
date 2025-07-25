@@ -143,7 +143,7 @@ export const missingEffectError = LSP.createDiagnostic({
 
             report(
               {
-                node,
+                location: node,
                 messageText: `Missing '${
                   sortTypes(result.missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
                 }' in the expected Effect errors.`,

@@ -87,7 +87,7 @@ export const leakingRequirements = LSP.createDiagnostic({
     function reportLeakingRequirements(node: ts.Node, requirements: Array<ts.Type>) {
       if (requirements.length === 0) return
       report({
-        node,
+        location: node,
         messageText: `This Service is leaking the ${
           requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
         } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,

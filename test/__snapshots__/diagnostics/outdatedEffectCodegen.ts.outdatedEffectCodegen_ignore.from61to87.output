@@ -1,0 +1,15 @@
+// code fix outdatedEffectCodegen_ignore  output for range 61 - 87
+import * as Effect from "effect/Effect"
+
+// @effect-codegens accessors:c9a2c8e8112b9d74
+export class MyService extends Effect.Service<MyService>()("MyService", {
+  accessors: true,
+  effect: Effect.gen(function*() {
+    return {
+      constant: Effect.succeed("Hello, world!"),
+      method: <A>(value: A, _test: string) => Effect.succeed(value)
+    }
+  })
+}) {
+  static myOtherStuff = 42
+}

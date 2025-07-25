@@ -54,7 +54,7 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
             Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
             Nano.map(() => {
               report({
-                node,
+                location: node,
                 messageText:
                   "Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g., Effect.try, Effect.tryPromise, Effect.catchAll, Effect.catchTag).",
                 fixes: []

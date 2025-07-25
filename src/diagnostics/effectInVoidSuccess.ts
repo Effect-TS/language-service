@@ -46,7 +46,7 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
           Nano.map(({ voidedEffect }) => {
             report(
               {
-                node,
+                location: node,
                 messageText: `There is a nested '${
                   typeChecker.typeToString(voidedEffect)
                 }' in the 'void' success channel, beware that this could lead to nested Effect<Effect<...>> that won't be executed.`,

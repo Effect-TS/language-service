@@ -29,7 +29,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
           typeParser.unnecessaryEffectGen(node),
           Nano.map(({ replacementNode }) =>
             report({
-              node,
+              location: node,
               messageText: `This Effect.gen contains a single return statement.`,
               fixes: [{
                 fixName: "unnecessaryEffectGen_fix",

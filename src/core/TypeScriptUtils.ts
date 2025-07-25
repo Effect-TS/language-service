@@ -70,6 +70,10 @@ export interface TypeScriptUtils {
     outerNode: ts.Node
     replacementSpan: ts.TextSpan
   } | undefined
+  findNodeAtPositionIncludingTrivia: (
+    sourceFile: ts.SourceFile,
+    position: number
+  ) => ts.Node | undefined
 }
 export const TypeScriptUtils = Nano.Tag<TypeScriptUtils>("TypeScriptUtils")
 
@@ -249,6 +253,21 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     return find(sourceFile)
   }
 
+  function findNodeAtPositionIncludingTrivia(
+    sourceFile: ts.SourceFile,
+    position: number
+  ) {
+    function find(node: ts.Node): ts.Node | undefined {
+      if (position >= node.pos && position < node.end) {
+        // If the position is within this node, keep traversing its children
+        return ts.forEachChild(node, find) || node
+      }
+      return undefined
+    }
+
+    return find(sourceFile)
+  }
+
   /**
    * Collects the node at the given position and all its ancestor nodes
    * that fully contain the specified TextRange.
@@ -273,7 +292,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     sourceFile: ts.SourceFile,
     pos: number
   ) {
-    const token = findNodeAtPosition(sourceFile, pos)
+    const token = findNodeAtPositionIncludingTrivia(sourceFile, pos)
 
     if (
       token === undefined || token.kind === ts.SyntaxKind.JsxText ||
@@ -628,6 +647,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
   }
 
   return {
+    findNodeAtPositionIncludingTrivia,
     parsePackageContentNameAndVersionFromScope,
     resolveModulePattern,
     findNodeWithLeadingCommentAtPosition,

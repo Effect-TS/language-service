@@ -61,7 +61,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
     // emit diagnostics
     brokenGenerators.forEach((node) =>
       report({
-        node,
+        location: node,
         messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`,
         fixes: []
       })
@@ -87,7 +87,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
         []
 
       report({
-        node,
+        location: node,
         messageText: `When yielding Effects inside Effect.gen, you should use yield* instead of yield.`,
         fixes: fix
       })
