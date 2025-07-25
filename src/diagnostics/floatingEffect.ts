@@ -58,7 +58,7 @@ export const floatingEffect = LSP.createDiagnostic({
         )
         if (Option.isNone(allowedFloatingEffects)) {
           report({
-            node,
+            location: node,
             messageText: `Effect must be yielded or assigned to a variable.`,
             fixes: []
           })

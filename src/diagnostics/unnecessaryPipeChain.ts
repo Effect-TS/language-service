@@ -32,7 +32,7 @@ export const unnecessaryPipeChain = LSP.createDiagnostic({
           ),
           Nano.map(({ innerCall, pipeCall }) => {
             report({
-              node,
+              location: node,
               messageText: `Chained pipe calls can be simplified to a single pipe call`,
               fixes: [{
                 fixName: "unnecessaryPipeChain_fix",

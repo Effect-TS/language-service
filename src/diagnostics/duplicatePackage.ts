@@ -55,7 +55,7 @@ export const duplicatePackage = LSP.createDiagnostic({
       if (Object.keys(resolvedPackages[packageName]).length > 1) {
         const versions = Object.keys(resolvedPackages[packageName])
         report({
-          node: sourceFile.statements[0],
+          location: sourceFile.statements[0],
           messageText: `Package ${packageName} is referenced multiple times with different versions (${
             versions.join(", ")
           }) and may cause unexpected type errors.\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project.\nIf this is intended set the LSP config "allowedDuplicatedPackages" to ${

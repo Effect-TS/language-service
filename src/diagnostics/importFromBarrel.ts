@@ -123,7 +123,7 @@ export const importFromBarrel = LSP.createDiagnostic({
       } = result
       // ok, I think now we can report the error
       report({
-        node,
+        location: node,
         messageText: `Importing from barrel module ${barrelModuleName} is not allowed.`,
         fixes: [
           {

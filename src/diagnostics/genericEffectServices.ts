@@ -43,7 +43,7 @@ export const genericEffectServices = LSP.createDiagnostic({
           typeParser.contextTag(type, node),
           Nano.map(() => {
             report({
-              node: reportAt,
+              location: reportAt,
               messageText:
                 `Effect Services with type parameters are not supported because they cannot be properly discriminated at runtime, which may cause unexpected behavior.`,
               fixes: []

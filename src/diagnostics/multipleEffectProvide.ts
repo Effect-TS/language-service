@@ -67,7 +67,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
         for (const chunk of previousLayers) {
           if (chunk.length < 2) continue
           report({
-            node: chunk[0].node,
+            location: chunk[0].node,
             messageText:
               "Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.",
             fixes: [{

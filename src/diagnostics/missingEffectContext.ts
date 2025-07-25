@@ -51,7 +51,7 @@ export const missingEffectContext = LSP.createDiagnostic({
             missingTypes.length > 0 ?
               report(
                 {
-                  node,
+                  location: node,
                   messageText: `Missing '${
                     sortTypes(missingTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
                   }' in the expected Effect context.`,

@@ -3,23 +3,27 @@ import type * as Cause from "effect/Cause"
 import * as Effect from "effect/Effect"
 
 export class MyService extends Effect.Service<MyService>()("MyService", {
+  accessors: true,
   effect: Effect.gen(function*() {
-    /**
-     * This is a test
-     * @param value doc 1
-     * @param other doc 2
-     */
-    function withOverrides<A>(value: A, other: (value: A) => string): Effect.Effect<A>
-    function withOverrides<A>(value: A, force: boolean): Effect.Effect<A | boolean>
-    function withOverrides<A>(value: A, arg: boolean | ((value: A) => string)): Effect.Effect<A | boolean> {
-      return Effect.succeed(arg ? value : false)
+    function methodWithOverridesNoGenerics(value: string): Effect.Effect<string>
+    function methodWithOverridesNoGenerics(value: string, opts: { discard: true }): Effect.Effect<void>
+    function methodWithOverridesNoGenerics(value: string, opts?: { discard: true }): Effect.Effect<string | void> {
+      return opts && opts.discard ? Effect.void : Effect.succeed(value)
+    }
+
+    function methodWithOverridesAndGenerics<A>(value: A): Effect.Effect<A>
+    function methodWithOverridesAndGenerics<A>(value: A, opts: { discard: true }): Effect.Effect<void>
+    function methodWithOverridesAndGenerics<A>(value: A, opts?: { discard: true }): Effect.Effect<A | void> {
+      return opts && opts.discard ? Effect.void : Effect.succeed(value)
     }
 
     return {
       constant: Effect.succeed("Hello, world!"),
-      method: <A>(value: A, _test: string) => Effect.succeed(value),
-      returnsPromise: () => Promise.resolve(42),
-      withOverrides
+      methodReturnsPromise: () => Promise.resolve(42),
+      methodWithGeneric: <A>(value: A, _test: string) => Effect.succeed(value),
+      methodNoGenerics: (value: string) => Effect.succeed(value),
+      methodWithOverridesAndGenerics,
+      methodWithOverridesNoGenerics
     }
   })
 }) {

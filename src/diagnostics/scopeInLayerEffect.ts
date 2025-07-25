@@ -54,7 +54,7 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
         Nano.firstSuccessOf(entries.map((type) => typeParser.scopeType(type, node))),
         Nano.map(() =>
           report({
-            node,
+            location: node,
             messageText:
               `Seems like you are constructing a layer with a scope in the requirements.\nConsider using "scoped" instead to get rid of the scope in the requirements.`,
             fixes: methodIdentifier ?

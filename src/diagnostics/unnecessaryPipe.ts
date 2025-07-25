@@ -30,7 +30,7 @@ export const unnecessaryPipe = LSP.createDiagnostic({
           Nano.map(({ args, subject }) => {
             if (args.length === 0) {
               report({
-                node,
+                location: node,
                 messageText: `This pipe call contains no arguments.`,
                 fixes: [{
                   fixName: "unnecessaryPipe_fix",
