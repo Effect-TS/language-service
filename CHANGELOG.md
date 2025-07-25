@@ -1,5 +1,27 @@
 # @effect/language-service
 
+## 0.29.0
+
+### Minor Changes
+
+- [#306](https://github.com/Effect-TS/language-service/pull/306) [`7f3facc`](https://github.com/Effect-TS/language-service/commit/7f3faccce5eea2381398a2a0671bf4f057a4281a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Extract TypeScript utilities into a dedicated TypeScriptUtils module
+
+  This refactoring improves code organization by consolidating TypeScript-related utilities into a separate `TypeScriptUtils` module. The changes include:
+
+  - Created new `src/core/TypeScriptUtils.ts` module containing all TypeScript utility functions
+  - Removed the old `src/core/AST.ts` file which contained scattered utilities
+  - Updated all imports across the codebase to use the new module structure
+  - Improved type safety and consistency in TypeScript API interactions
+  - Enhanced modularity by using the Nano dependency injection pattern
+
+  This change maintains backward compatibility while providing better separation of concerns and easier maintenance of TypeScript-related functionality.
+
+- [#308](https://github.com/Effect-TS/language-service/pull/308) [`e649978`](https://github.com/Effect-TS/language-service/commit/e649978541cb44a238261a8cda0699227cca760a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add codegen functionality including:
+  - New completion provider for Effect codegens via comments
+  - New diagnostic for outdated Effect codegen with quickfixes
+  - Improved tag class accessors refactor with better formatting
+  - Enhanced TypeScript utilities and type parsing capabilities
+
 ## 0.28.3
 
 ### Patch Changes
