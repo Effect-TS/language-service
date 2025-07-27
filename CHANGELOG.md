@@ -1,5 +1,31 @@
 # @effect/language-service
 
+## 0.31.0
+
+### Minor Changes
+
+- [#312](https://github.com/Effect-TS/language-service/pull/312) [`5d4f5c6`](https://github.com/Effect-TS/language-service/commit/5d4f5c66b820ede8d836f99c7d6617aa5f70347d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add missingEffectServiceDependency diagnostic
+
+  This diagnostic warns when an `Effect.Service` declaration has missing service dependencies. It checks if all services used within the service's effect are properly declared in the dependencies array.
+
+  Example:
+
+  ```ts
+  // This will show a warning because SampleService1 is used but not declared in dependencies
+  export class InvalidService extends Effect.Service<InvalidService>()(
+    "InvalidService",
+    {
+      effect: Effect.gen(function* () {
+        const sampleService1 = yield* SampleService1;
+        return {
+          constant: Effect.succeed(sampleService1.value),
+        };
+      }),
+      // Missing: dependencies: [SampleService1.Default]
+    }
+  ) {}
+  ```
+
 ## 0.30.0
 
 ### Minor Changes
