@@ -282,6 +282,17 @@ export const unrollUnionMembers = (type: ts.Type) => {
   return result
 }
 
+/**
+ * Appends a type to a map of unique types, ensuring that the type is not already in the map.
+ *
+ * @param memory - The map that will be used as memory and updated as new types are encountered.
+ * @param initialType - The type to start with, unions will be unrolled.
+ * @param shouldExclude - A function that determines if a type should be excluded from the checking
+ * @returns An object with the following properties:
+ * - newIndexes: A set of new indexes that were added to the memory.
+ * - knownIndexes: A set of indexes that were already in the memory.
+ * - allIndexes: A set of all indexes that were encountered.
+ */
 export const appendToUniqueTypesMap = Nano.fn(
   "TypeCheckerApi.appendToUniqueTypesMap"
 )(

@@ -7,6 +7,7 @@ import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
 import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
 import { missingEffectError } from "./diagnostics/missingEffectError.js"
+import { missingEffectServiceDependency } from "./diagnostics/missingEffectServiceDependency.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
@@ -25,6 +26,7 @@ export const diagnostics = [
   duplicatePackage,
   missingEffectContext,
   missingEffectError,
+  missingEffectServiceDependency,
   floatingEffect,
   missingStarInYieldEffectGen,
   unnecessaryEffectGen,
