@@ -40,7 +40,7 @@
     "coverage": "vitest run --coverage",
     "code-debug": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/",
     "perf": "tsx test/perf.ts",
-    "pr-ai": "claude 'perform the actions described in CLAUDE.md under the section PR'"
+    "pr-ai": "claude 'perform the actions described in CLAUDE.md under the section push PR to github workflow'"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
