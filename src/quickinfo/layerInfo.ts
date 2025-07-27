@@ -404,7 +404,7 @@ export function layerInfo(
               const providesNode = findInnermostGraphEdge(rootNode, "rout", providesKey)
               appendInfo(providesNode, graphCtx.services.get(providesKey)!, "provided")
             }
-            lines.push("")
+            if (lines.length > 0) lines.push("")
             for (const requiresKey of rootNode.rin) {
               const requiresNode = findInnermostGraphEdge(rootNode, "rin", requiresKey)
               appendInfo(requiresNode, graphCtx.services.get(requiresKey)!, "required")
@@ -418,6 +418,7 @@ export function layerInfo(
               linkParts.push({ kind: "link", text: "}" })
               linkParts.push({ kind: "space", text: "\n" })
             }
+            if (lines.length === 0) return linkParts
             return [
               {
                 kind: "text",
