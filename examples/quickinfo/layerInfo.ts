@@ -23,3 +23,5 @@ export const liveWithPipeable = UserRepository.Default.pipe(
   Layer.provideMerge(Cache.Default),
   Layer.merge(DbConnection.Default)
 )
+
+export const NoComment = Layer.empty
