@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.31.1
+
+### Patch Changes
+
+- [#317](https://github.com/Effect-TS/language-service/pull/317) [`a5810a7`](https://github.com/Effect-TS/language-service/commit/a5810a7c8835978aaf122fd3d75100032cb0e740) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Avoid adding comment for layers with no deps requires no provides
+
+- [#314](https://github.com/Effect-TS/language-service/pull/314) [`2aaa6e1`](https://github.com/Effect-TS/language-service/commit/2aaa6e1fef0ab943a9952303ecc7158e1deba795) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update development workflow documentation in CLAUDE.md and fix pr-ai script command
+
 ## 0.31.0
 
 ### Minor Changes
