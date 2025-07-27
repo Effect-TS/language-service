@@ -104,6 +104,7 @@ export interface TypeParser {
       Identifier: ts.Type
       Service: ts.Type
       accessors: boolean | undefined
+      dependencies: ts.NodeArray<ts.Expression> | undefined
     },
     TypeParserIssue,
     never
@@ -1240,6 +1241,7 @@ export function make(
                   if (Option.isSome(parsedContextTag)) {
                     // try to parse some settings
                     let accessors: boolean | undefined = undefined
+                    let dependencies: ts.NodeArray<ts.Expression> | undefined = undefined
                     if (wholeCall.arguments.length >= 2) {
                       const args = wholeCall.arguments[1]
                       if (ts.isObjectLiteralExpression(args)) {
@@ -1251,6 +1253,13 @@ export function make(
                           ) {
                             accessors = true
                           }
+                          if (
+                            ts.isPropertyAssignment(property) && property.name && ts.isIdentifier(property.name) &&
+                            property.name.text === "dependencies" && property.initializer &&
+                            ts.isArrayLiteralExpression(property.initializer)
+                          ) {
+                            dependencies = property.initializer.elements
+                          }
                         }
                       }
                     }
@@ -1259,7 +1268,8 @@ export function make(
                       className: atLocation.name,
                       selfTypeNode,
                       args: wholeCall.arguments,
-                      accessors
+                      accessors,
+                      dependencies
                     })
                   }
                 }

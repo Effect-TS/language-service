@@ -1,0 +1,56 @@
+// code fix missingEffectServiceDependency_skipFile  output for range 1006 - 1021
+/** @effect-diagnostics missingEffectServiceDependency:skip-file */
+// @effect-diagnostics missingEffectServiceDependency:error
+import * as Effect from "effect/Effect"
+
+export class SampleService1 extends Effect.Service<SampleService1>()("SampleService1", {
+  succeed: { value: 1 }
+}) {
+}
+
+export class SampleService2 extends Effect.Service<SampleService2>()("SampleService2", {
+  succeed: { value: 2 }
+}) {
+}
+
+// this is valid because depends on SampleService1 and is defined in the dependencies array
+export class ValidService extends Effect.Service<ValidService>()("ValidService", {
+  effect: Effect.gen(function*() {
+    const sampleService1 = yield* SampleService1
+    return {
+      constant: Effect.succeed(sampleService1.value)
+    }
+  }),
+  dependencies: [SampleService1.Default]
+}) {
+}
+
+// this is valid because it has no dependencies
+export class ValidService2 extends Effect.Service<ValidService2>()("ValidService2", {
+  succeed: { value: 3 }
+}) {
+}
+
+// this is invalid because depends on SampleService1 and is not defined in the dependencies array
+export class InvalidService2 extends Effect.Service<InvalidService2>()("InvalidService2", {
+  effect: Effect.gen(function*() {
+    const sampleService1 = yield* SampleService1
+    return {
+      constant: Effect.succeed(sampleService1.value)
+    }
+  })
+}) {
+}
+
+// this is invalid because depends on both SampleService1 and SampleService2 and only SampleService1 is defined in the dependencies array
+export class InvalidService3 extends Effect.Service<InvalidService3>()("InvalidService3", {
+  effect: Effect.gen(function*() {
+    const sampleService1 = yield* SampleService1
+    const sampleService2 = yield* SampleService2
+    return {
+      constant: Effect.succeed(sampleService1.value + sampleService2.value)
+    }
+  }),
+  dependencies: [SampleService1.Default]
+}) {
+}
