@@ -105,6 +105,7 @@ export interface TypeParser {
       Service: ts.Type
       accessors: boolean | undefined
       dependencies: ts.NodeArray<ts.Expression> | undefined
+      options: ts.Expression
     },
     TypeParserIssue,
     never
@@ -1268,6 +1269,7 @@ export function make(
                       className: atLocation.name,
                       selfTypeNode,
                       args: wholeCall.arguments,
+                      options: wholeCall.arguments[1],
                       accessors,
                       dependencies
                     })
