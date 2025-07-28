@@ -59,7 +59,7 @@ export class ValidService5 extends Effect.Service<ValidService5>()("ValidService
   effect: Effect.gen(function*() {
     const sampleService1 = yield* SampleService1
     return {
-      constant: Effect.succeed(sampleService1.value + sampleService2.value)
+      constant: Effect.succeed(sampleService1.value)
     }
   }),
   dependencies: dependencies1
