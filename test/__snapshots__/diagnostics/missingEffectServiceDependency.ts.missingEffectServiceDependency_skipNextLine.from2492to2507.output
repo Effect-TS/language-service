@@ -1,4 +1,4 @@
-// code fix missingEffectServiceDependency_skipNextLine  output for range 2515 - 2530
+// code fix missingEffectServiceDependency_skipNextLine  output for range 2492 - 2507
 // @effect-diagnostics missingEffectServiceDependency:error
 import * as Effect from "effect/Effect"
 
@@ -60,7 +60,7 @@ export class ValidService5 extends Effect.Service<ValidService5>()("ValidService
   effect: Effect.gen(function*() {
     const sampleService1 = yield* SampleService1
     return {
-      constant: Effect.succeed(sampleService1.value + sampleService2.value)
+      constant: Effect.succeed(sampleService1.value)
     }
   }),
   dependencies: dependencies1
