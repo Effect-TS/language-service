@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.31.2
+
+### Patch Changes
+
+- [#318](https://github.com/Effect-TS/language-service/pull/318) [`9928704`](https://github.com/Effect-TS/language-service/commit/9928704d88a38bba9d42d813cd3e3464a6e1b0c4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve missing Effect service dependency diagnostic
+
+  - Enhanced TypeParser to better handle service dependencies detection
+  - Fixed ValidService5 example in test files to properly demonstrate valid service usage
+  - Updated test snapshots to reflect the corrected behavior
+
 ## 0.31.1
 
 ### Patch Changes
