@@ -1,4 +1,5 @@
-// code fix missingEffectServiceDependency_skipNextLine  output for range 1006 - 1021
+// code fix missingEffectServiceDependency_skipFile  output for range 2515 - 2530
+/** @effect-diagnostics missingEffectServiceDependency:skip-file */
 // @effect-diagnostics missingEffectServiceDependency:error
 import * as Effect from "effect/Effect"
 
@@ -31,7 +32,6 @@ export class ValidService2 extends Effect.Service<ValidService2>()("ValidService
 }
 
 // this is invalid because depends on SampleService1 and is not defined in the dependencies array
-// @effect-diagnostics-next-line missingEffectServiceDependency:off
 export class InvalidService2 extends Effect.Service<InvalidService2>()("InvalidService2", {
   effect: Effect.gen(function*() {
     const sampleService1 = yield* SampleService1

@@ -33,7 +33,7 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
         )
 
         if (serviceResult) {
-          const { className, dependencies } = serviceResult
+          const { className, options } = serviceResult
 
           // Get the class symbol and its type
           const classSymbol = typeChecker.getSymbolAtLocation(className)
@@ -67,15 +67,22 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
 
                 // Process dependencies (treat undefined/null as empty array)
                 const providedIndexes = new Set<string>()
-                const dependenciesToProcess = dependencies || []
+
+                const optionsType = typeChecker.getTypeAtLocation(options)
+                const dependenciesProperty = typeChecker.getPropertyOfType(optionsType, "dependencies")
+                let types: Array<ts.Type> = []
+
+                if (dependenciesProperty) {
+                  const dependenciesTypes = typeChecker.getTypeOfSymbolAtLocation(dependenciesProperty, options)
+                  const numberIndexType = dependenciesTypes.getNumberIndexType()
+                  types = numberIndexType ? TypeCheckerApi.unrollUnionMembers(numberIndexType) : []
+                }
 
                 // Process each dependency to get what services they provide
-                for (const depExpression of dependenciesToProcess) {
-                  const depType = typeChecker.getTypeAtLocation(depExpression)
-
+                for (const depType of types) {
                   // Try to parse as layer type
                   const depLayerResult = yield* pipe(
-                    typeParser.layerType(depType, depExpression),
+                    typeParser.layerType(depType, options),
                     Nano.orElse(() => Nano.void_)
                   )
 
