@@ -57,9 +57,12 @@ export const floatingEffect = LSP.createDiagnostic({
           Nano.option
         )
         if (Option.isNone(allowedFloatingEffects)) {
+          // check if strictly an effect or a subtype to change the error message
+          const isStrictEffect = yield* Nano.option(typeParser.strictEffectType(type, node.expression))
+          const name = Option.isSome(isStrictEffect) ? "Effect" : "Effect-able " + typeChecker.typeToString(type)
           report({
             location: node,
-            messageText: `Effect must be yielded or assigned to a variable.`,
+            messageText: `${name} must be yielded or assigned to a variable.`,
             fixes: []
           })
         }
