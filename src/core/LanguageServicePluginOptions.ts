@@ -14,6 +14,7 @@ export interface LanguageServicePluginOptions {
   goto: boolean
   allowedDuplicatedPackages: Array<string>
   namespaceImportPackages: Array<string>
+  topLevelNamedReexports: "ignore" | "follow"
   barrelImportPackages: Array<string>
 }
 
@@ -62,6 +63,12 @@ export function parse(config: any): LanguageServicePluginOptions {
     barrelImportPackages: isObject(config) && hasProperty(config, "barrelImportPackages") &&
         isArray(config.barrelImportPackages) && config.barrelImportPackages.every(isString)
       ? config.barrelImportPackages.map((_) => _.toLowerCase())
-      : []
+      : [],
+    topLevelNamedReexports: isObject(config) && hasProperty(config, "topLevelNamedReexports") &&
+        isString(config.topLevelNamedReexports) &&
+        (config.topLevelNamedReexports.toLowerCase() === "ignore" ||
+          config.topLevelNamedReexports.toLowerCase() === "follow")
+      ? config.topLevelNamedReexports.toLowerCase() as "ignore" | "follow"
+      : "ignore"
   }
 }

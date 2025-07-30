@@ -56,7 +56,8 @@ function testCompletionOnExample(
       goto: false,
       allowedDuplicatedPackages: [],
       namespaceImportPackages: [],
-      barrelImportPackages: []
+      barrelImportPackages: [],
+      topLevelNamedReexports: "ignore"
     }),
     Nano.unsafeRun
   )

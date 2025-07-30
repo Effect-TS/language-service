@@ -83,6 +83,19 @@ describe("autoimport", () => {
       const { result } = testAutoImport("pipe", "effect", { namespaceImportPackages: ["effect"] })
       expect(result).toBeUndefined()
     })
+    it("import { pipe } from 'effect' with topLevelNamedReexports: follow", () => {
+      const { result, toFilename } = testAutoImport("pipe", "effect", {
+        namespaceImportPackages: ["effect"],
+        topLevelNamedReexports: "follow"
+      })
+      expect(result).toEqual({
+        _tag: "NamedImport",
+        fileName: toFilename("effect/Function"),
+        moduleName: "effect/Function",
+        name: "pipe",
+        introducedPrefix: undefined
+      })
+    })
     it("import { pipe } from 'effect/Function'", () => {
       const { result, toFilename } = testAutoImport("pipe", "effect/Function", { namespaceImportPackages: ["effect"] })
       expect(result).toEqual({
@@ -104,6 +117,17 @@ describe("autoimport", () => {
         name: "Effect",
         introducedPrefix: "Effect"
       })
+    })
+    it("import { pipe } from 'effect'", () => {
+      const { result } = testAutoImport("pipe", "effect", { barrelImportPackages: ["effect"] })
+      expect(result).toBeUndefined()
+    })
+    it("import { pipe } from 'effect'", () => {
+      const { result } = testAutoImport("pipe", "effect", {
+        barrelImportPackages: ["effect"],
+        topLevelNamedReexports: "follow"
+      })
+      expect(result).toBeUndefined()
     })
   })
 })

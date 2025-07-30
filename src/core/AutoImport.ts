@@ -131,6 +131,7 @@ export const makeAutoImportProvider: (
   }
 
   const mapFromBarrelToNamespace = new Map<string, Record<string, string>>() // barrelFile => Record<exportName, reexportedFile>
+  const mapFromBarrelToBarrel = new Map<string, Record<string, { fileName: string; exportName: string }>>() // barrelFile => Record<exportName, { fileName: reexportedFile, exportName: exportName }>
   const mapFromNamespaceToBarrel = new Map<string, { fileName: string; alias: string }>() // namespaceFile => { fileName: barrelFile, alias: exportName }
   const mapFilenameToModuleAlias = new Map<string, string>() // fileName => moduleAlias
   const mapFilenameToExportExcludes = new Map<string, Array<string>>() // fileName => Array<exportName>
@@ -155,7 +156,11 @@ export const makeAutoImportProvider: (
   }
 
   const collectImportCache = Nano.fn("TypeScriptApi")(
-    function*(packagePatterns: Array<string>, kind: "namespace" | "barrel") {
+    function*(
+      packagePatterns: Array<string>,
+      kind: "namespace" | "barrel",
+      topLevelNamedReexports: "ignore" | "follow"
+    ) {
       for (const packagePattern of packagePatterns) {
         const packageNames = tsUtils.resolveModulePattern(fromSourceFile, packagePattern)
         for (const packageName of packageNames) {
@@ -207,11 +212,28 @@ export const makeAutoImportProvider: (
             }
             if (isPackageRoot) {
               for (const namedExport of reExports.namedExports) {
-                mapFilenameToExportExcludes.set(barrelSourceFile.fileName, [
-                  ...(mapFilenameToExportExcludes.get(barrelSourceFile.fileName) || []),
-                  namedExport.name
-                ])
-                break
+                if (topLevelNamedReexports === "ignore") {
+                  mapFilenameToExportExcludes.set(barrelSourceFile.fileName, [
+                    ...(mapFilenameToExportExcludes.get(barrelSourceFile.fileName) || []),
+                    namedExport.name
+                  ])
+                } else if (topLevelNamedReexports === "follow") {
+                  const reexportedFile = ts.resolveModuleName(
+                    namedExport.moduleSpecifier.text,
+                    barrelSourceFile.fileName,
+                    program.getCompilerOptions(),
+                    host
+                  )
+                  if (!reexportedFile) continue
+                  if (!reexportedFile.resolvedModule) continue
+                  mapFromBarrelToBarrel.set(barrelSourceFile.fileName, {
+                    ...(mapFromBarrelToBarrel.get(barrelSourceFile.fileName) || {}),
+                    [namedExport.name]: {
+                      fileName: reexportedFile.resolvedModule.resolvedFileName,
+                      exportName: namedExport.name
+                    }
+                  })
+                }
               }
             }
           }
@@ -220,8 +242,12 @@ export const makeAutoImportProvider: (
     }
   )
 
-  yield* collectImportCache(languageServicePluginOptions.namespaceImportPackages, "namespace")
-  yield* collectImportCache(languageServicePluginOptions.barrelImportPackages, "barrel")
+  yield* collectImportCache(
+    languageServicePluginOptions.namespaceImportPackages,
+    "namespace",
+    languageServicePluginOptions.topLevelNamedReexports
+  )
+  yield* collectImportCache(languageServicePluginOptions.barrelImportPackages, "barrel", "ignore")
 
   const resolveModuleName = (fileName: string) => {
     const fixedModuleName = mapFilenameToModuleName.get(fileName)
@@ -242,7 +268,20 @@ export const makeAutoImportProvider: (
     // case 0) excluded
     const excludedExports = mapFilenameToExportExcludes.get(exportFileName)
     if (excludedExports && excludedExports.includes(exportName)) return
-    // case 1) namespace import { Effect } from "effect" we need to change both file and introduce alias name
+    // case 1) need to rewrite the import as a barrel import from another module
+    const mapToBarrelRewritten = mapFromBarrelToBarrel.get(exportFileName)
+    if (mapToBarrelRewritten && exportName in mapToBarrelRewritten) {
+      const reexportedFile = mapToBarrelRewritten[exportName]
+      if (reexportedFile) {
+        return ({
+          _tag: "NamedImport",
+          fileName: reexportedFile.fileName,
+          moduleName: resolveModuleName(reexportedFile.fileName),
+          name: exportName
+        })
+      }
+    }
+    // case 2) namespace import { Effect } from "effect" we need to change both file and introduce alias name
     const mapToNamespace = mapFromBarrelToNamespace.get(exportFileName)
     if (mapToNamespace && exportName in mapToNamespace) {
       const namespacedFileName = mapToNamespace[exportName]!
@@ -259,7 +298,7 @@ export const makeAutoImportProvider: (
         }
       }
     }
-    // case 2) namespace import { intoDeferred } from "effect/Effect" filename is already ok, need to add "Effect."
+    // case 3) namespace import { intoDeferred } from "effect/Effect" filename is already ok, need to add "Effect."
     const introducedAlias = mapFilenameToModuleAlias.get(exportFileName)
     if (introducedAlias) {
       return ({
@@ -270,7 +309,7 @@ export const makeAutoImportProvider: (
         introducedPrefix: introducedAlias
       })
     }
-    // case 3) barrel import { succeed } from "effect/Effect"
+    // case 4) barrel import { succeed } from "effect/Effect"
     const mapToBarrel = mapFromNamespaceToBarrel.get(exportFileName)
     if (mapToBarrel) {
       return ({
