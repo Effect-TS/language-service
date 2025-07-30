@@ -1,0 +1,8 @@
+// code fix floatingEffect_skipFile  output for range 134 - 152
+/** @effect-diagnostics floatingEffect:skip-file */
+import * as Effect from "effect/Effect"
+import * as Stream from "effect/Stream"
+
+export const shouldWarn = Effect.gen(function*() {
+  Stream.succeed(42)
+})
