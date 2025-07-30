@@ -1,5 +1,22 @@
 # @effect/language-service
 
+## 0.32.0
+
+### Minor Changes
+
+- [#323](https://github.com/Effect-TS/language-service/pull/323) [`b584cde`](https://github.com/Effect-TS/language-service/commit/b584cde5a83e8eb2042f02ba4f346416e37528b9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Added support for `topLevelNamedReexports` configuration option to control how top-level named re-exports are handled when using `namespaceImportPackages`.
+
+  - `"ignore"` (default): Named re-exports like `import { pipe } from "effect"` are left as-is
+  - `"follow"`: Named re-exports are rewritten to their original module, e.g., `import { pipe } from "effect/Function"`
+
+  This allows users to have more control over their import style preferences when using namespace imports.
+
+### Patch Changes
+
+- [#321](https://github.com/Effect-TS/language-service/pull/321) [`022956a`](https://github.com/Effect-TS/language-service/commit/022956a80203e694078b3b3a38fe8fda9ac35b3a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve diagnostic message for missingReturnYieldStar to better explain why return yield\* is recommended for Effects that never succeed
+
+- [#324](https://github.com/Effect-TS/language-service/pull/324) [`8271284`](https://github.com/Effect-TS/language-service/commit/8271284dacd021d7d332d2e8e1623846f7535ffa) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve floating effect diagnostic message to specify the actual type being flagged. When detecting floating Stream or other Effect subtypes, the error message now shows "Effect-able Stream<...>" instead of just "Effect", making it clearer what type needs to be handled.
+
 ## 0.31.2
 
 ### Patch Changes
