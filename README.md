@@ -90,11 +90,13 @@ Few options can be provided alongside the initialization of the Language Service
     "plugins": [
       {
         "name": "@effect/language-service",
+        "refactors": true, // controls Effect refactors (default: true)
         "diagnostics": true, // controls Effect diagnostics (default: true)
         "diagnosticSeverity": { // allows to change per-rule default severity of the diagnostic in the whole project
           "floatingEffect": "warning" // example for a rule, allowed values are off,error,warning,message,suggestion
         },
-        "quickinfo": true, // controls quickinfo over Effect (default: true)
+        "quickinfo": true, // controls Effect quickinfo (default: true)
+        "quickinfoEffectParameters": "whenTruncated", // (default: "whenTruncated") controls when to display effect type parameters always,never,whenTruncated
         "completions": true, // controls Effect completions (default: true)
         "goto": true, // controls Effect goto references (default: true)
         "allowedDuplicatedPackages": [], // list of package names that have effect in peer dependencies and are allowed to be duplicated (default: [])

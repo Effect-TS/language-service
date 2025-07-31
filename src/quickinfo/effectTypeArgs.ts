@@ -1,5 +1,6 @@
 import { pipe } from "effect/Function"
 import type ts from "typescript"
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeParser from "../core/TypeParser.js"
@@ -15,6 +16,10 @@ export function effectTypeArgs(
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
       const typeParser = yield* Nano.service(TypeParser.TypeParser)
+      const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
+
+      // early exit
+      if (options.quickinfoEffectParameters === "never") return quickInfo
 
       function formatTypeForQuickInfo(channelType: ts.Type, channelName: string) {
         const stringRepresentation = typeChecker.typeToString(
@@ -82,7 +87,7 @@ export function effectTypeArgs(
           type: typeChecker.getTypeAtLocation(adjustedNode),
           atLocation: adjustedNode,
           node: adjustedNode,
-          shouldTry: quickInfo &&
+          shouldTry: options.quickinfoEffectParameters === "always" && quickInfo ? true : quickInfo &&
             ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
         }
       }

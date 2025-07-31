@@ -62,15 +62,13 @@ function testDiagnosticOnExample(
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
+      ...LanguageServicePluginOptions.defaults,
       diagnostics: true,
-      diagnosticSeverity: {},
+      refactors: false,
       quickinfo: false,
       completions: false,
       goto: false,
-      allowedDuplicatedPackages: [],
-      namespaceImportPackages: ["effect"],
-      barrelImportPackages: [],
-      topLevelNamedReexports: "ignore"
+      namespaceImportPackages: ["effect"]
     }),
     Nano.map(({ diagnostics }) => {
       // sort by start position
@@ -169,15 +167,13 @@ function testDiagnosticQuickfixesOnExample(
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
+      ...LanguageServicePluginOptions.defaults,
       diagnostics: true,
-      diagnosticSeverity: {},
+      refactors: false,
       quickinfo: false,
       completions: false,
       goto: false,
-      allowedDuplicatedPackages: [],
-      namespaceImportPackages: ["effect"],
-      barrelImportPackages: [],
-      topLevelNamedReexports: "ignore"
+      namespaceImportPackages: ["effect"]
     }),
     Nano.unsafeRun,
     async (result) => {
