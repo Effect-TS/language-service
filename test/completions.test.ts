@@ -49,15 +49,12 @@ function testCompletionOnExample(
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
     Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
+      ...LanguageServicePluginOptions.defaults,
+      completions: true,
+      refactors: false,
       diagnostics: false,
-      diagnosticSeverity: {},
       quickinfo: false,
-      completions: false,
-      goto: false,
-      allowedDuplicatedPackages: [],
-      namespaceImportPackages: [],
-      barrelImportPackages: [],
-      topLevelNamedReexports: "ignore"
+      goto: false
     }),
     Nano.unsafeRun
   )

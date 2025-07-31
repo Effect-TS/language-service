@@ -1,4 +1,5 @@
 import type ts from "typescript"
+import type * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions.js"
 import * as Nano from "./core/Nano.js"
 import type * as TypeCheckerApi from "./core/TypeCheckerApi.js"
 import type * as TypeParser from "./core/TypeParser.js"
@@ -15,7 +16,11 @@ export function quickInfo(
 ): Nano.Nano<
   ts.QuickInfo | undefined,
   never,
-  TypeScriptApi.TypeScriptApi | TypeScriptUtils.TypeScriptUtils | TypeCheckerApi.TypeCheckerApi | TypeParser.TypeParser
+  | TypeScriptApi.TypeScriptApi
+  | TypeScriptUtils.TypeScriptUtils
+  | TypeCheckerApi.TypeCheckerApi
+  | TypeParser.TypeParser
+  | LanguageServicePluginOptions.LanguageServicePluginOptions
 > {
   return Nano.gen(function*() {
     const deduped = yield* dedupeJsDocs(quickInfo)

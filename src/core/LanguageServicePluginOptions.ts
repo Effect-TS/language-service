@@ -7,8 +7,10 @@ import * as Nano from "./Nano"
 export type DiagnosticSeverity = "error" | "warning" | "message" | "suggestion"
 
 export interface LanguageServicePluginOptions {
+  refactors: boolean
   diagnostics: boolean
   diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
+  quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
   completions: boolean
   goto: boolean
@@ -34,41 +36,62 @@ function parseDiagnosticSeverity(config: Record<PropertyKey, unknown>): Record<s
   )
 }
 
+export const defaults: LanguageServicePluginOptions = {
+  refactors: true,
+  diagnostics: true,
+  diagnosticSeverity: {},
+  quickinfo: true,
+  quickinfoEffectParameters: "whentruncated",
+  completions: true,
+  goto: true,
+  allowedDuplicatedPackages: [],
+  namespaceImportPackages: [],
+  barrelImportPackages: [],
+  topLevelNamedReexports: "ignore"
+}
+
 export function parse(config: any): LanguageServicePluginOptions {
   return {
+    refactors: isObject(config) && hasProperty(config, "refactors") && isBoolean(config.refactors)
+      ? config.refactors
+      : defaults.refactors,
     diagnostics: isObject(config) && hasProperty(config, "diagnostics") && isBoolean(config.diagnostics)
       ? config.diagnostics
-      : true,
+      : defaults.diagnostics,
     diagnosticSeverity:
       isObject(config) && hasProperty(config, "diagnosticSeverity") && isRecord(config.diagnosticSeverity)
         ? parseDiagnosticSeverity(config.diagnosticSeverity)
-        : {},
+        : defaults.diagnosticSeverity,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
-      : true,
+      : defaults.quickinfo,
+    quickinfoEffectParameters: isObject(config) && hasProperty(config, "quickinfoEffectParameters") &&
+        isString(config.quickinfoEffectParameters) &&
+        ["always", "never", "whentruncated"].includes(config.quickinfoEffectParameters.toLowerCase())
+      ? config.quickinfoEffectParameters.toLowerCase() as "always" | "never" | "whentruncated"
+      : defaults.quickinfoEffectParameters,
     completions: isObject(config) && hasProperty(config, "completions") && isBoolean(config.completions)
       ? config.completions
-      : true,
+      : defaults.completions,
     goto: isObject(config) && hasProperty(config, "goto") && isBoolean(config.goto)
       ? config.goto
-      : true,
+      : defaults.goto,
     allowedDuplicatedPackages: isObject(config) && hasProperty(config, "allowedDuplicatedPackages") &&
         isArray(config.allowedDuplicatedPackages) && config.allowedDuplicatedPackages.every(isString)
       ? config.allowedDuplicatedPackages.map((_) => _.toLowerCase())
-      : [],
+      : defaults.allowedDuplicatedPackages,
     namespaceImportPackages: isObject(config) && hasProperty(config, "namespaceImportPackages") &&
         isArray(config.namespaceImportPackages) && config.namespaceImportPackages.every(isString)
       ? config.namespaceImportPackages.map((_) => _.toLowerCase())
-      : [],
+      : defaults.namespaceImportPackages,
     barrelImportPackages: isObject(config) && hasProperty(config, "barrelImportPackages") &&
         isArray(config.barrelImportPackages) && config.barrelImportPackages.every(isString)
       ? config.barrelImportPackages.map((_) => _.toLowerCase())
-      : [],
+      : defaults.barrelImportPackages,
     topLevelNamedReexports: isObject(config) && hasProperty(config, "topLevelNamedReexports") &&
         isString(config.topLevelNamedReexports) &&
-        (config.topLevelNamedReexports.toLowerCase() === "ignore" ||
-          config.topLevelNamedReexports.toLowerCase() === "follow")
+        ["ignore", "follow"].includes(config.topLevelNamedReexports.toLowerCase())
       ? config.topLevelNamedReexports.toLowerCase() as "ignore" | "follow"
-      : "ignore"
+      : defaults.topLevelNamedReexports
   }
 }
