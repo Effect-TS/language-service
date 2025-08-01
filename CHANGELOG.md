@@ -1,5 +1,39 @@
 # @effect/language-service
 
+## 0.33.0
+
+### Minor Changes
+
+- [#327](https://github.com/Effect-TS/language-service/pull/327) [`52de365`](https://github.com/Effect-TS/language-service/commit/52de365b445c2985c0c8755ddc59e814f423b716) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for inlay hints in Effect.gen-like middleware functions
+
+  This feature provides TypeScript inlay hints for generator functions used with Effect.gen, Effect.fn.gen, and Effect.fn.untraced.gen. When enabled, it shows the inferred return type directly in the editor, making it easier to understand the types without hovering over the function.
+
+  Example:
+
+  ```typescript
+  const myEffect = Effect.gen(function* () /* : Effect<number> */ {
+    yield* Effect.succeed(42);
+  });
+  ```
+
+- [#325](https://github.com/Effect-TS/language-service/pull/325) [`cbea35a`](https://github.com/Effect-TS/language-service/commit/cbea35ac302cc914f193af21cc2a8bb1aef57d48) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `quickinfoEffectParameters` configuration option to control when Effect type parameters are displayed in quickinfo
+
+  This new option allows users to configure when Effect type parameters are shown in hover information:
+
+  - `"always"`: Always show type parameters
+  - `"never"`: Never show type parameters
+  - `"whenTruncated"` (default): Only show when TypeScript truncates the type display
+
+  Example configuration:
+
+  ```json
+  {
+    "effectLanguageService": {
+      "quickinfoEffectParameters": "whenTruncated"
+    }
+  }
+  ```
+
 ## 0.32.0
 
 ### Minor Changes
