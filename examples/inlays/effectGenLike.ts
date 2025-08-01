@@ -26,3 +26,11 @@ export const sampleFnUntraced = Effect.fnUntraced(function*(_: boolean) {
   }
   return n
 })
+
+export const withInitializer = Effect.fnUntraced(function*(_: boolean, _withInitializer = () => true) {
+  const n = Math.random()
+  if (n < 0.5) {
+    return yield* Effect.fail("Error")
+  }
+  return n
+})
