@@ -16,6 +16,7 @@ import * as TypeScriptUtils from "./core/TypeScriptUtils.js"
 import { diagnostics } from "./diagnostics.js"
 import { middlewareAutoImportQuickfixes } from "./diagnostics/middlewareAutoImportQuickfixes.js"
 import { goto } from "./goto.js"
+import { middlewareGenLike } from "./inlays/middlewareGenLike.js"
 import { quickInfo } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
 
@@ -431,6 +432,26 @@ const init = (
       }
 
       return applicableDefinition
+    }
+
+    proxy.provideInlayHints = (fileName, span, preferences, ...args) => {
+      const applicableInlayHints = languageService.provideInlayHints(fileName, span, preferences, ...args)
+
+      if (languageServicePluginOptions.inlays) {
+        const program = languageService.getProgram()
+        if (program) {
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              middlewareGenLike(sourceFile, span, preferences, applicableInlayHints),
+              runNano(program),
+              Either.getOrElse(() => applicableInlayHints)
+            )
+          }
+        }
+      }
+
+      return applicableInlayHints
     }
 
     return proxy
