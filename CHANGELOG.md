@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.33.1
+
+### Patch Changes
+
+- [#328](https://github.com/Effect-TS/language-service/pull/328) [`e25a3f9`](https://github.com/Effect-TS/language-service/commit/e25a3f9bcaa0c3c4c0a06ddef7fe4c42d7a85f0f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - feat: add inlay hints for Effect.gen-like middleware functions
+
+  Improved inlay hints for Effect.gen-like middleware functions to reduce visual clutter by omitting redundant type annotations that TypeScript already provides.
+
 ## 0.33.0
 
 ### Minor Changes
