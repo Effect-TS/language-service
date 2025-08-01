@@ -1,5 +1,9 @@
 import * as Effect from "effect/Effect"
 
+export function standardShouldAppear() {
+  return 42
+}
+
 export const sample = Effect.gen(function*() {
   const n = Math.random()
   if (n < 0.5) {
