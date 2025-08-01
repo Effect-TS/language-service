@@ -14,6 +14,7 @@ export interface LanguageServicePluginOptions {
   quickinfo: boolean
   completions: boolean
   goto: boolean
+  inlays: boolean
   allowedDuplicatedPackages: Array<string>
   namespaceImportPackages: Array<string>
   topLevelNamedReexports: "ignore" | "follow"
@@ -44,6 +45,7 @@ export const defaults: LanguageServicePluginOptions = {
   quickinfoEffectParameters: "whentruncated",
   completions: true,
   goto: true,
+  inlays: true,
   allowedDuplicatedPackages: [],
   namespaceImportPackages: [],
   barrelImportPackages: [],
@@ -76,6 +78,9 @@ export function parse(config: any): LanguageServicePluginOptions {
     goto: isObject(config) && hasProperty(config, "goto") && isBoolean(config.goto)
       ? config.goto
       : defaults.goto,
+    inlays: isObject(config) && hasProperty(config, "inlays") && isBoolean(config.inlays)
+      ? config.inlays
+      : defaults.inlays,
     allowedDuplicatedPackages: isObject(config) && hasProperty(config, "allowedDuplicatedPackages") &&
         isArray(config.allowedDuplicatedPackages) && config.allowedDuplicatedPackages.every(isString)
       ? config.allowedDuplicatedPackages.map((_) => _.toLowerCase())

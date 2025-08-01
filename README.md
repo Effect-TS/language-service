@@ -99,6 +99,7 @@ Few options can be provided alongside the initialization of the Language Service
         "quickinfoEffectParameters": "whenTruncated", // (default: "whenTruncated") controls when to display effect type parameters always,never,whenTruncated
         "completions": true, // controls Effect completions (default: true)
         "goto": true, // controls Effect goto references (default: true)
+        "inlays": true, // controls Effect provided inlayHints (default: true)
         "allowedDuplicatedPackages": [], // list of package names that have effect in peer dependencies and are allowed to be duplicated (default: [])
         "barrelImportPackages": [], // package names that should be preferred as imported from the top level barrel file (default: [])
         "namespaceImportPackages": [], // package names that should be preferred as imported with namespace imports e.g. ["effect", "@effect/*"] (default: [])
