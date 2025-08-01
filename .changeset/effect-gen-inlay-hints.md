@@ -1,5 +1,5 @@
 ---
-"@effect/language-service": minor
+"@effect/language-service": patch
 ---
 
 feat: add inlay hints for Effect.gen-like middleware functions
