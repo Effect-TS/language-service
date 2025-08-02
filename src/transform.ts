@@ -12,13 +12,19 @@ import * as TypeScriptApi from "./core/TypeScriptApi"
 import * as TypeScriptUtils from "./core/TypeScriptUtils"
 import { diagnostics } from "./diagnostics"
 
+const programsChecked = new WeakSet<ts.Program>()
+
 export default function(
   program: ts.Program,
   pluginConfig: PluginConfig,
   { addDiagnostic, ts: tsInstance }: TransformerExtras
 ) {
-  return (_: ts.TransformationContext) => {
-    return (sourceFile: ts.SourceFile) => {
+  if (!programsChecked.has(program)) {
+    programsChecked.add(program)
+    const rootFileNames = program.getRootFileNames()
+    const sourceFiles = program.getSourceFiles().filter((_) => rootFileNames.indexOf(_.fileName) > -1)
+
+    for (const sourceFile of sourceFiles) {
       // run the diagnostics and pipe them into addDiagnostic
       pipe(
         LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
@@ -42,9 +48,8 @@ export default function(
         Either.getOrElse(() => []),
         Array.map(addDiagnostic)
       )
-
-      // do not transform source ccde
-      return sourceFile
     }
   }
+
+  return (_: ts.TransformationContext) => (sourceFile: ts.SourceFile) => sourceFile
 }
