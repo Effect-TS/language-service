@@ -137,8 +137,9 @@ Your `tsconfig.json` should look like this:
 To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
 
 Running `tspc` in your project will now also run the plugin and give you the error diagnostics at compile time.
-Effect error diagnostics will be shown only after standard TypeScript diagnostics have been satisfied.
-Beware that setting noEmit will completely skip the effect diagnostics.
+Effect diagnostics in watch mode with noEmit enabled are not supported by ts-patch unfortunately.
+
+If you use incremental builds, after enabling ts-patch, a full rebuild may be necessary to invalidate the previous diagnostics cache.
 
 ```ts
 $ npx tspc
