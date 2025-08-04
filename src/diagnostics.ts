@@ -12,6 +12,7 @@ import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
 import { outdatedEffectCodegen } from "./diagnostics/outdatedEffectCodegen.js"
+import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConstructor.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
@@ -43,5 +44,6 @@ export const diagnostics = [
   strictBooleanExpressions,
   multipleEffectProvide,
   outdatedEffectCodegen,
+  overriddenSchemaConstructor,
   unsupportedServiceAccessors
 ]
