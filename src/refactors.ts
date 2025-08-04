@@ -1,3 +1,5 @@
+import { asyncAwaitToFn } from "./refactors/asyncAwaitToFn.js"
+import { asyncAwaitToFnTryPromise } from "./refactors/asyncAwaitToFnTryPromise.js"
 import { asyncAwaitToGen } from "./refactors/asyncAwaitToGen.js"
 import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise.js"
 import { effectGenToFn } from "./refactors/effectGenToFn.js"
@@ -19,6 +21,8 @@ import { writeTagClassAccessors } from "./refactors/writeTagClassAccessors.js"
 export const refactors = [
   asyncAwaitToGen,
   asyncAwaitToGenTryPromise,
+  asyncAwaitToFn,
+  asyncAwaitToFnTryPromise,
   functionToArrow,
   typeToEffectSchema,
   typeToEffectSchemaClass,

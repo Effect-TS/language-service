@@ -69,6 +69,8 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 
 - Transform an async function definition, into an Effect by using Effect.gen.
 - Transform an async function definition, into an Effect by using Effect.gen, and generating a tagged error for each promise call.
+- Transform an async function definition, into an Effect by using Effect.fn.
+- Transform an async function definition, into an Effect by using Effect.fn, and generating a tagged error for each promise call.
 - Transform a function returning an Effect.gen into a Effect.fn
 - Implement Service accessors in an `Effect.Service` or `Context.Tag` declaration
 - Function calls to pipe: Transform a set of function calls to a pipe() call.

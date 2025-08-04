@@ -57,7 +57,8 @@ export const functionToArrow = LSP.createRefactor({
 
           const newDeclaration: ts.Node = tsUtils.tryPreserveDeclarationSemantics(
             node,
-            arrowFunction
+            arrowFunction,
+            false
           )
           changeTracker.replaceNode(sourceFile, node, newDeclaration, {
             leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
