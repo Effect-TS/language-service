@@ -2,7 +2,6 @@ import * as Either from "effect/Either"
 import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
-import * as Gen from "effect/Utils"
 
 export class NanoTag<R> {
   declare "~nano.requirements": R
@@ -13,8 +12,40 @@ export class NanoTag<R> {
 
 export const Tag = <I = never>(identifier: string) => new NanoTag<I>(identifier)
 
+export class SingleShotGen<T, A> implements IterableIterator<T, A> {
+  private called = false
+  readonly self: T
+
+  constructor(self: T) {
+    this.self = self
+  }
+
+  /**
+   * @since 2.0.0
+   */
+  next(a: A): IteratorResult<T, A> {
+    return this.called ?
+      ({
+        value: a,
+        done: true
+      }) :
+      (this.called = true,
+        ({
+          value: this.self,
+          done: false
+        }))
+  }
+
+  /**
+   * @since 2.0.0
+   */
+  [Symbol.iterator](): IterableIterator<T, A> {
+    return new SingleShotGen<T, A>(this.self)
+  }
+}
+
 export interface NanoIterator<T extends Nano<any, any, any>> {
-  next(...args: ReadonlyArray<any>): IteratorResult<Gen.YieldWrap<T>, T["~nano.success"]>
+  next(...args: ReadonlyArray<any>): IteratorResult<T, T["~nano.success"]>
 }
 
 export interface NanoTypeLambda extends TypeLambda {
@@ -78,7 +109,7 @@ export interface Nano<out A = never, out E = never, out R = never> extends NanoP
 
 const PrimitiveProto: Pick<NanoPrimitive, typeof Symbol.iterator> = {
   [Symbol.iterator]() {
-    return new Gen.SingleShotGen(new Gen.YieldWrap(this as any as Nano<any, any, any>))
+    return new SingleShotGen(this as any)
   }
 }
 
@@ -234,7 +265,7 @@ const FromIteratorProto: NanoPrimitive = {
     const state = this[args][0].next(value)
     if (state.done) return succeed(state.value)
     fiber._stack.push(this)
-    return Gen.yieldWrapGet(state.value)
+    return state.value
   },
   [evaluate](this: any, fiber: NanoFiber) {
     return this[contA](this[args][1], fiber)
@@ -242,7 +273,7 @@ const FromIteratorProto: NanoPrimitive = {
 }
 
 const unsafeFromIterator = (
-  iterator: Iterator<Gen.YieldWrap<Nano<any, any, any>>>,
+  iterator: Iterator<Nano<any, any, any>>,
   initial?: undefined
 ) => {
   const nano = Object.create(FromIteratorProto)
@@ -250,29 +281,29 @@ const unsafeFromIterator = (
   return nano
 }
 
-export const gen = <Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff>(
+export const gen = <Eff extends Nano<any, any, any>, AEff>(
   ...args: [body: () => Generator<Eff, AEff, never>]
 ): Nano<
   AEff,
   [Eff] extends [never] ? never
-    : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
+    : [Eff] extends [Nano<infer _A, infer E, infer _R>] ? E
     : never,
   [Eff] extends [never] ? never
-    : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer _E, infer R>>] ? R
+    : [Eff] extends [Nano<infer _A, infer _E, infer R>] ? R
     : never
 > => suspend(() => unsafeFromIterator(args[0]()))
 
 export const fn = (_: string) =>
-<Eff extends Gen.YieldWrap<Nano<any, any, any>>, AEff, Args extends Array<any>>(
+<Eff extends Nano<any, any, any>, AEff, Args extends Array<any>>(
   body: (...args: Args) => Generator<Eff, AEff, never>
 ) =>
 (...args: Args): Nano<
   AEff,
   [Eff] extends [never] ? never
-    : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer E, infer _R>>] ? E
+    : [Eff] extends [Nano<infer _A, infer E, infer _R>] ? E
     : never,
   [Eff] extends [never] ? never
-    : [Eff] extends [Gen.YieldWrap<Nano<infer _A, infer _E, infer R>>] ? R
+    : [Eff] extends [Nano<infer _A, infer _E, infer R>] ? R
     : never
 > => suspend(() => unsafeFromIterator(body(...args)))
 
