@@ -1,5 +1,18 @@
 # @effect/language-service
 
+## 0.33.2
+
+### Patch Changes
+
+- [#331](https://github.com/Effect-TS/language-service/pull/331) [`d862c23`](https://github.com/Effect-TS/language-service/commit/d862c239f03cca679222f05cf2c9c49d0d57048d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix diagnostics not running for all source files in transform
+
+  Previously, diagnostics were only running on the current file being transformed instead of all root files in the TypeScript program. This could cause some diagnostics to be missed during compilation.
+
+  Also updated README with important notes about ts-patch limitations:
+
+  - Effect diagnostics in watch mode with noEmit enabled are not supported
+  - Incremental builds may require a full rebuild after enabling ts-patch to invalidate the previous diagnostics cache
+
 ## 0.33.1
 
 ### Patch Changes
