@@ -25,7 +25,7 @@ export function sampleReturns<A extends number, B extends number>(arg1: A, arg2:
   })
 }
 
-export const sampleReturnsConciseBody = Eff.fn(function* <A extends number, B extends number>(arg1: A, arg2: B) {
+export const sampleReturnsConciseBody = Eff.fn("sampleReturnsConciseBody")(function* <A extends number, B extends number>(arg1: A, arg2: B) {
     const a = yield* Eff.succeed(arg1)
     const b = yield* Eff.succeed(arg2)
     return a + b
