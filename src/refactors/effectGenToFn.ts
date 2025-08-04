@@ -16,91 +16,70 @@ export const effectGenToFn = LSP.createRefactor({
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const parseEffectGenNode = Nano.fn("asyncAwaitToGen.apply")(function*(node: ts.Node) {
-      // check if the node is a Effect.gen(...)
-      const effectGen = yield* typeParser.effectGen(node)
-      // if parent is a Effect.gen(...).pipe(...) we then move the pipe tot the new Effect.fn
-      let pipeArgs = ts.factory.createNodeArray<ts.Expression>([])
-      let nodeToReplace = node
+    const skipReturnBlock = (node: ts.Node) =>
+      ts.isBlock(node) && node.statements.length === 1 && ts.isReturnStatement(node.statements[0]) &&
+        node.statements[0].expression
+        ? node.statements[0].expression
+        : node
 
-      // then we iterate upwards until we find the function declaration
-      while (nodeToReplace.parent) {
-        const parent = nodeToReplace.parent
-        // if parent is arrow, exit
-        if (
-          ts.isConciseBody(nodeToReplace) && ts.isArrowFunction(parent) &&
-          parent.body === nodeToReplace
-        ) {
-          return ({ ...effectGen, pipeArgs, nodeToReplace: parent })
+    const parseFunctionLikeReturnEffectGen = Nano.fn("parseFunctionLikeReturnEffect.apply")(function*(node: ts.Node) {
+      if ((ts.isArrowFunction(node) || ts.isMethodDeclaration(node) || ts.isFunctionDeclaration(node)) && node.body) {
+        let subject = skipReturnBlock(node.body)
+        let pipeArgs: Array<ts.Expression> = []
+        while (true) {
+          // there may be some .pipe calls, we need to move them to the new Effect.fn
+          const maybePipe = yield* Nano.option(typeParser.pipeCall(subject))
+          if (Option.isNone(maybePipe)) break
+          subject = maybePipe.value.subject
+          pipeArgs = maybePipe.value.args.concat(pipeArgs)
         }
-        // if parent is a method
-        if (
-          (ts.isFunctionDeclaration(parent) || ts.isMethodDeclaration(parent)) &&
-          parent.body === nodeToReplace
-        ) {
-          return ({ ...effectGen, pipeArgs, nodeToReplace: parent })
-        }
-        // function body with only one statement, go up
-        if (
-          ts.isBlock(parent) && parent.statements.length === 1 &&
-          parent.statements[0] === nodeToReplace
-        ) {
-          nodeToReplace = parent
-          continue
-        }
-        // parent is a return and this is the expression
-        if (ts.isReturnStatement(parent) && parent.expression === nodeToReplace) {
-          nodeToReplace = parent
-          continue
-        }
-        // if parent is a .pipe, and gen is the subject piped
-        // if parent is a pipe(gen(), ..., ...) and gen is the first subject piped
-        const maybePipe = yield* pipe(
-          typeParser.pipeCall(parent),
-          Nano.orElse((e) => parent.parent ? typeParser.pipeCall(parent.parent) : Nano.fail(e)),
-          Nano.option
-        )
-        if (
-          Option.isSome(maybePipe) &&
-          maybePipe.value.subject === nodeToReplace
-        ) {
-          pipeArgs = ts.factory.createNodeArray(pipeArgs.concat(maybePipe.value.args))
-          nodeToReplace = maybePipe.value.node
-          continue
-        }
-        // exit
-        break
+        const fnIdentifier = node.name && ts.isIdentifier(node.name)
+          ? node.name
+          : ts.isVariableDeclaration(node.parent) && node.parent.name && ts.isIdentifier(node.parent.name)
+          ? node.parent.name
+          : undefined
+        const effectGen = yield* typeParser.effectGen(subject)
+        return ({ ...effectGen, nodeToReplace: node, pipeArgs, fnIdentifier })
       }
       return yield* Nano.fail(new LSP.RefactorNotApplicableError())
     })
 
+    const parentNodes = tsUtils.getAncestorNodesInRange(sourceFile, textRange)
+    if (parentNodes.length === 0) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
+
+    const nodesFromInitializers: Array<ts.Node> = pipe(
+      parentNodes,
+      Array.filter((_): _ is ts.VariableDeclaration => ts.isVariableDeclaration(_) && _.initializer ? true : false),
+      Array.map((_) => _.initializer!)
+    )
+
     const maybeNode = yield* pipe(
-      tsUtils.getAncestorNodesInRange(sourceFile, textRange),
-      Array.map(parseEffectGenNode),
+      nodesFromInitializers.concat(parentNodes),
+      Array.map(parseFunctionLikeReturnEffectGen),
       Nano.firstSuccessOf,
       Nano.option
     )
 
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
-    const { effectModule, generatorFunction, nodeToReplace, pipeArgs } = maybeNode.value
+    const { effectModule, fnIdentifier, generatorFunction, nodeToReplace, pipeArgs } = maybeNode.value
 
     return ({
       kind: "refactor.rewrite.effect.effectGenToFn",
-      description: "Convert to Effect.fn",
+      description: fnIdentifier ? `Convert to Effect.fn("${fnIdentifier.text}")` : "Convert to Effect.fn",
       apply: pipe(
         Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
           // if we have a name in the function declaration,
           // we call Effect.fn with the name
-          const effectFn = nodeToReplace.name && ts.isIdentifier(nodeToReplace.name) ?
+          const effectFn = fnIdentifier ?
             ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
                 effectModule,
                 "fn"
               ),
               undefined,
-              [ts.factory.createStringLiteral(nodeToReplace.name.text)]
+              [ts.factory.createStringLiteral(fnIdentifier.text)]
             ) :
             ts.factory.createPropertyAccessExpression(
               effectModule,

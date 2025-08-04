@@ -8,7 +8,7 @@ export const program = () =>
     return a + b
   })
 
-export const programWithPipes = Eff.fn(function*(fa: number, fb: number) {
+export const programWithPipes = Eff.fn("programWithPipes")(function*(fa: number, fb: number) {
     const a = yield* Eff.succeed(fa)
     const b = yield* Eff.succeed(fb)
     return a + b

@@ -1,4 +1,4 @@
-// Result of running refactor effectGenToFn at position 5:8
+// Result of running refactor effectGenToFn at position 4:17
 import * as Eff from "effect/Effect"
 
 export const program = Eff.fn("program")(function*() {
