@@ -50,6 +50,7 @@ export const effectGenToFn = LSP.createRefactor({
     const nodesFromInitializers: Array<ts.Node> = pipe(
       parentNodes,
       Array.filter((_): _ is ts.VariableDeclaration => ts.isVariableDeclaration(_) && _.initializer ? true : false),
+      Array.filter((_) => tsUtils.isNodeInRange(textRange)(_.name)),
       Array.map((_) => _.initializer!)
     )
 
@@ -102,7 +103,7 @@ export const effectGenToFn = LSP.createRefactor({
           changeTracker.replaceNode(
             sourceFile,
             nodeToReplace,
-            tsUtils.tryPreserveDeclarationSemantics(nodeToReplace, effectFnCallWithGenerator)
+            tsUtils.tryPreserveDeclarationSemantics(nodeToReplace, effectFnCallWithGenerator, false)
           )
         }),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts)

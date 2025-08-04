@@ -48,6 +48,11 @@ export interface TypeScriptUtils {
   createReturnYieldStarStatement: (
     expr: ts.Expression
   ) => ts.ReturnStatement
+  transformAsyncAwaitToEffectFn: (
+    node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+    effectModuleName: string,
+    onAwait: (expression: ts.Expression) => ts.Expression
+  ) => ts.Node
   transformAsyncAwaitToEffectGen: (
     node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
     effectModuleName: string,
@@ -55,7 +60,8 @@ export interface TypeScriptUtils {
   ) => ts.Node
   tryPreserveDeclarationSemantics: (
     nodeToReplace: ts.Node,
-    node: ts.Node
+    node: ts.Node,
+    dropAsync: boolean
   ) => ts.Node
   isNodeInRange: (textRange: ts.TextRange) => (node: ts.Node) => boolean
   toTextRange: (position: number) => ts.TextRange
@@ -333,11 +339,10 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     return (node: ts.Node) => node.pos <= textRange.pos && node.end >= textRange.end
   }
 
-  function transformAsyncAwaitToEffectGen(
-    node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
-    effectModuleName: string,
+  function transformAsyncAwaitToEffectGeneratorBody(
+    body: ts.ConciseBody,
     onAwait: (expression: ts.Expression) => ts.Expression
-  ) {
+  ): ts.ConciseBody {
     function visitor(_: ts.Node): ts.Node {
       if (ts.isAwaitExpression(_)) {
         const expression = ts.visitEachChild(_.expression, visitor, ts.nullTransformationContext)
@@ -349,7 +354,61 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       }
       return ts.visitEachChild(_, visitor, ts.nullTransformationContext)
     }
-    const generatorBody = visitor(node.body!)
+    return visitor(body) as any
+  }
+
+  function transformAsyncAwaitToEffectFn(
+    node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+    effectModuleName: string,
+    onAwait: (expression: ts.Expression) => ts.Expression
+  ) {
+    const generatorBody = transformAsyncAwaitToEffectGeneratorBody(node.body!, onAwait)
+    const fnName = node.name && ts.isIdentifier(node.name)
+      ? node.name
+      : ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name) && node.parent.initializer === node
+      ? node.parent.name
+      : undefined
+
+    let fnCall: ts.Expression = ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier(effectModuleName),
+      "fn"
+    )
+    if (fnName) {
+      fnCall = ts.factory.createCallExpression(
+        fnName,
+        undefined,
+        [ts.factory.createStringLiteral(fnName.text)]
+      )
+    }
+    return tryPreserveDeclarationSemantics(
+      node,
+      ts.factory.createCallExpression(
+        fnCall,
+        undefined,
+        [
+          ts.factory.createFunctionExpression(
+            undefined,
+            ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+            undefined,
+            node.typeParameters,
+            node.parameters,
+            undefined,
+            ts.isBlock(generatorBody)
+              ? generatorBody
+              : ts.factory.createBlock([ts.factory.createReturnStatement(generatorBody)])
+          )
+        ]
+      ),
+      true
+    )
+  }
+
+  function transformAsyncAwaitToEffectGen(
+    node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+    effectModuleName: string,
+    onAwait: (expression: ts.Expression) => ts.Expression
+  ) {
+    const generatorBody = transformAsyncAwaitToEffectGeneratorBody(node.body!, onAwait)
 
     const effectGenCallExp = createEffectGenCallExpression(effectModuleName, generatorBody)
 
@@ -492,15 +551,20 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     return typeNode
   }
 
-  function tryPreserveDeclarationSemantics(nodeToReplace: ts.Node, node: ts.Node) {
+  function tryPreserveDeclarationSemantics(nodeToReplace: ts.Node, node: ts.Node, dropAsync: boolean) {
     // new node should be an expression!
     if (!ts.isExpression(node)) return node
     // ok, we need to replace. is that a method or a function?
     if (ts.isFunctionDeclaration(nodeToReplace)) {
       // I need a name!!!
       if (!nodeToReplace.name) return node
+      let currentFlags = ts.getCombinedModifierFlags(nodeToReplace)
+      currentFlags &= ~ts.ModifierFlags.Async
+      const newModifiers = dropAsync
+        ? ts.factory.createModifiersFromModifierFlags(currentFlags)
+        : nodeToReplace.modifiers
       return ts.factory.createVariableStatement(
-        nodeToReplace.modifiers,
+        newModifiers,
         ts.factory.createVariableDeclarationList(
           [ts.factory.createVariableDeclaration(
             nodeToReplace.name,
@@ -512,8 +576,13 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
         )
       )
     } else if (ts.isMethodDeclaration(nodeToReplace)) {
+      let currentFlags = ts.getCombinedModifierFlags(nodeToReplace)
+      currentFlags &= ~ts.ModifierFlags.Async
+      const newModifiers = dropAsync
+        ? ts.factory.createModifiersFromModifierFlags(currentFlags)
+        : nodeToReplace.modifiers
       return ts.factory.createPropertyDeclaration(
-        nodeToReplace.modifiers,
+        newModifiers,
         nodeToReplace.name,
         undefined,
         undefined,
@@ -655,6 +724,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     getAncestorNodesInRange,
     toTextRange,
     isNodeInRange,
+    transformAsyncAwaitToEffectFn,
     transformAsyncAwaitToEffectGen,
     findImportedModuleIdentifierByPackageAndNameOrBarrel,
     simplifyTypeNode,
