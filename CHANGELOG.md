@@ -1,5 +1,61 @@
 # @effect/language-service
 
+## 0.34.0
+
+### Minor Changes
+
+- [#335](https://github.com/Effect-TS/language-service/pull/335) [`81a090a`](https://github.com/Effect-TS/language-service/commit/81a090a52fb4a2301d9387e0989313cc7fcdade9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new diagnostic to warn when schema classes override the default constructor behavior
+
+  The new diagnostic helps catch cases where schema classes define custom constructors that might break the expected schema behavior. Example:
+
+  ```ts
+  import { Schema } from "effect";
+
+  class MySchema extends Schema.Class<MySchema>("MySchema")({
+    value: Schema.String,
+  }) {
+    // This will trigger a warning
+    constructor(props: { value: string }) {
+      super(props);
+    }
+  }
+  ```
+
+  The diagnostic provides quickfixes to either:
+
+  - Remove the constructor
+  - Suppress the warning for the current line
+  - Suppress the warning for the entire file
+
+### Patch Changes
+
+- [#337](https://github.com/Effect-TS/language-service/pull/337) [`d72b1b4`](https://github.com/Effect-TS/language-service/commit/d72b1b4e324f8075a9c2840bb097d8436938d03d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve `effectGenToFn` refactor to preserve function names
+
+  The `effectGenToFn` refactor now extracts and preserves the original function name when converting from `Effect.gen` to `Effect.fn`. For example:
+
+  ```typescript
+  // Before refactor
+  export const programWithPipes = (fa: number, fb: number) =>
+    Eff.gen(
+      function* () {
+        const a = yield* Eff.succeed(fa);
+        const b = yield* Eff.succeed(fb);
+        return a + b;
+      },
+      Eff.map((a) => a + 1)
+    );
+
+  // After refactor (now preserves "programWithPipes" name)
+  export const programWithPipes = Eff.fn("programWithPipes")(
+    function* (fa: number, fb: number) {
+      const a = yield* Eff.succeed(fa);
+      const b = yield* Eff.succeed(fb);
+      return a + b;
+    },
+    Eff.map((a) => a + 1)
+  );
+  ```
+
 ## 0.33.2
 
 ### Patch Changes
