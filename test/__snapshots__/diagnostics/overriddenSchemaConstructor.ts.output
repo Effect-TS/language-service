@@ -1,0 +1,9 @@
+constructor() {
+    super({ a: 42 })
+  }
+29:2 - 31:3 | 1 | Classes extending Schema must not override the constructor
+
+constructor() {
+    super({} as any as never)
+  }
+36:2 - 38:3 | 1 | Classes extending Schema must not override the constructor
