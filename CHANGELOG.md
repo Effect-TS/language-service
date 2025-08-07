@@ -1,5 +1,20 @@
 # @effect/language-service
 
+## 0.35.0
+
+### Minor Changes
+
+- [#339](https://github.com/Effect-TS/language-service/pull/339) [`ef70757`](https://github.com/Effect-TS/language-service/commit/ef7075766afc39edd0ee0f9bb6bbfb55dbf9f11b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new refactors to transform async/await functions to Effect.fn
+
+  - Transform an async function definition into an Effect by using Effect.fn
+  - Transform an async function definition into an Effect by using Effect.fn with tagged errors for each promise call
+
+  These refactors complement the existing Effect.gen refactors by providing an alternative transformation using Effect.fn.
+
+### Patch Changes
+
+- [#341](https://github.com/Effect-TS/language-service/pull/341) [`df65523`](https://github.com/Effect-TS/language-service/commit/df65523e79641028df40438f746d9ee999a5e771) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Revert to previous transform logic
+
 ## 0.34.0
 
 ### Minor Changes
