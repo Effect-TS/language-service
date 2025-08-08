@@ -375,7 +375,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     )
     if (fnName) {
       fnCall = ts.factory.createCallExpression(
-        fnName,
+        fnCall,
         undefined,
         [ts.factory.createStringLiteral(fnName.text)]
       )
