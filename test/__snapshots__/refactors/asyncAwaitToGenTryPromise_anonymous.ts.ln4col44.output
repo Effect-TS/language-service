@@ -1,11 +1,19 @@
 // Result of running refactor asyncAwaitToGenTryPromise at position 4:44
 import * as Effect from "effect/Effect"
 
+export class Error1 extends Data.TaggedError("Error1")<{
+    cause: unknown
+}> { }
+
+export class Error2 extends Data.TaggedError("Error2")<{
+    cause: unknown
+}> { }
+
 const asyncFunctionDeclaration = function() {
     return Effect.gen(function*() {
-        const response = yield* Effect.tryPromise({ try: () => fetch("test"), catch: error => ({ _tag: "Error1" as const, error }) })
+        const response = yield* Effect.tryPromise({ try: () => fetch("test"), catch: cause => new Error1({ cause }) })
         if (response.ok) {
-            const y = yield* Effect.tryPromise({ try: () => response.json(), catch: error => ({ _tag: "Error2" as const, error }) })
+            const y = yield* Effect.tryPromise({ try: () => response.json(), catch: cause => new Error2({ cause }) })
             return y
         }
         return null

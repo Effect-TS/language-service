@@ -53,6 +53,11 @@ export interface TypeScriptUtils {
     effectModuleName: string,
     onAwait: (expression: ts.Expression) => ts.Expression
   ) => ts.Node
+  createDataTaggedErrorDeclaration: (
+    dataModuleIdentifier: string,
+    name: string,
+    fields: Array<ts.TypeElement>
+  ) => ts.ClassDeclaration
   transformAsyncAwaitToEffectGen: (
     node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
     effectModuleName: string,
@@ -715,6 +720,45 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     )
   }
 
+  function createDataTaggedErrorDeclaration(
+    dataModuleIdentifier: string,
+    name: string,
+    fields: Array<ts.TypeElement>
+  ) {
+    // Data.TaggedError("name")
+    const invokeTaggedError = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier(dataModuleIdentifier),
+        "TaggedError"
+      ),
+      undefined,
+      [
+        ts.factory.createStringLiteral(name)
+      ]
+    )
+    // Data.TaggedError("name")<{...fields}>
+    const withTypeFields = ts.factory.createExpressionWithTypeArguments(
+      invokeTaggedError,
+      [
+        ts.factory.createTypeLiteralNode(fields)
+      ]
+    )
+    return ts.factory.createClassDeclaration(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      name,
+      undefined,
+      [
+        ts.factory.createHeritageClause(
+          ts.SyntaxKind.ExtendsKeyword,
+          [
+            withTypeFields
+          ]
+        )
+      ],
+      []
+    )
+  }
+
   return {
     findNodeAtPositionIncludingTrivia,
     parsePackageContentNameAndVersionFromScope,
@@ -726,6 +770,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     isNodeInRange,
     transformAsyncAwaitToEffectFn,
     transformAsyncAwaitToEffectGen,
+    createDataTaggedErrorDeclaration,
     findImportedModuleIdentifierByPackageAndNameOrBarrel,
     simplifyTypeNode,
     tryPreserveDeclarationSemantics,
