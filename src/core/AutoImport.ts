@@ -233,6 +233,13 @@ export const makeAutoImportProvider: (
                       exportName: namedExport.name
                     }
                   })
+                  mapFromBarrelToBarrel.set(reexportedFile.resolvedModule.resolvedFileName, {
+                    ...(mapFromBarrelToBarrel.get(reexportedFile.resolvedModule.resolvedFileName) || {}),
+                    [namedExport.name]: {
+                      fileName: reexportedFile.resolvedModule.resolvedFileName,
+                      exportName: namedExport.name
+                    }
+                  })
                 }
               }
             }
