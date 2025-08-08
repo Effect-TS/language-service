@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.35.2
+
+### Patch Changes
+
+- [#346](https://github.com/Effect-TS/language-service/pull/346) [`5a37be2`](https://github.com/Effect-TS/language-service/commit/5a37be23a137ac703018f70f70248caa8835e6bc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix auto-import barrel-to-barrel mapping for top-level named re-exports
+
+  When `topLevelNamedReexports` is set to "follow", the auto-import provider now correctly maps barrel exports to their barrel modules, ensuring proper import suggestions for re-exported functions like `pipe` from `effect/Function`.
+
 ## 0.35.1
 
 ### Patch Changes
