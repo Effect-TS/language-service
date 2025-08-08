@@ -1,6 +1,10 @@
 // Result of running refactor asyncAwaitToFnTryPromise at position 4:28
 import * as T from "effect/Effect"
 
+export class Error1 extends Data.TaggedError("Error1")<{
+    cause: unknown
+}> { }
+
 export const refactorMe = T.fn("refactorMe")(function*(arg: string) {
-    return yield* T.tryPromise({ try: () => Promise.resolve(arg), catch: error => ({ _tag: "Error1" as const, error }) })
+    return yield* T.tryPromise({ try: () => Promise.resolve(arg), catch: cause => new Error1({ cause }) })
 })

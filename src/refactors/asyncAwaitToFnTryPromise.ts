@@ -1,6 +1,7 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import type * as ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -43,20 +44,33 @@ export const asyncAwaitToFnTryPromise = LSP.createRefactor({
             "Effect"
           ) || "Effect"
 
+          const dataModuleIdentifierName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+            sourceFile,
+            "effect",
+            "Data"
+          ) || "Data"
+
           let errorCount = 0
+          const errors: Array<ts.ClassDeclaration> = []
 
           function createErrorADT() {
             errorCount++
-            return ts.factory.createObjectLiteralExpression([
-              ts.factory.createPropertyAssignment(
-                "_tag",
-                ts.factory.createAsExpression(
-                  ts.factory.createStringLiteral("Error" + errorCount),
-                  ts.factory.createTypeReferenceNode("const")
-                )
-              ),
-              ts.factory.createShorthandPropertyAssignment("error")
-            ])
+            const errorName = "Error" + errorCount
+            errors.push(tsUtils.createDataTaggedErrorDeclaration(dataModuleIdentifierName, errorName, [
+              ts.factory.createPropertySignature(
+                undefined,
+                "cause",
+                undefined,
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
+              )
+            ]))
+            return ts.factory.createNewExpression(
+              ts.factory.createIdentifier(errorName),
+              undefined,
+              [ts.factory.createObjectLiteralExpression([
+                ts.factory.createShorthandPropertyAssignment("cause")
+              ])]
+            )
           }
 
           const newDeclaration = tsUtils.transformAsyncAwaitToEffectFn(
@@ -87,7 +101,7 @@ export const asyncAwaitToFnTryPromise = LSP.createRefactor({
                       ts.factory.createArrowFunction(
                         undefined,
                         undefined,
-                        [ts.factory.createParameterDeclaration(undefined, undefined, "error")],
+                        [ts.factory.createParameterDeclaration(undefined, undefined, "cause")],
                         undefined,
                         undefined,
                         createErrorADT()
@@ -97,6 +111,15 @@ export const asyncAwaitToFnTryPromise = LSP.createRefactor({
                 ]
               )
           )
+
+          let beforeNode: ts.Node = node
+          while (beforeNode.parent && !ts.isSourceFile(beforeNode.parent)) {
+            beforeNode = beforeNode.parent
+          }
+
+          for (const error of errors) {
+            changeTracker.insertNodeBefore(sourceFile, beforeNode, error, true)
+          }
 
           changeTracker.replaceNode(sourceFile, node, newDeclaration)
         }),
