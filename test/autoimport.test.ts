@@ -97,13 +97,28 @@ describe("autoimport", () => {
       })
     })
     it("import { pipe } from 'effect/Function'", () => {
-      const { result, toFilename } = testAutoImport("pipe", "effect/Function", { namespaceImportPackages: ["effect"] })
+      const { result, toFilename } = testAutoImport("pipe", "effect/Function", {
+        namespaceImportPackages: ["effect"]
+      })
       expect(result).toEqual({
         _tag: "NamespaceImport",
         fileName: toFilename("effect/Function"),
         moduleName: "effect/Function",
         name: "Function",
         introducedPrefix: "Function"
+      })
+    })
+    it("import { pipe } from 'effect/Function' with topLevelNamedReexports: follow", () => {
+      const { result, toFilename } = testAutoImport("pipe", "effect/Function", {
+        namespaceImportPackages: ["effect"],
+        topLevelNamedReexports: "follow"
+      })
+      expect(result).toEqual({
+        _tag: "NamedImport",
+        fileName: toFilename("effect/Function"),
+        moduleName: "effect/Function",
+        name: "pipe",
+        introducedPrefix: undefined
       })
     })
   })
