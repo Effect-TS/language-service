@@ -1,6 +1,6 @@
 // Result of running refactor asyncAwaitToFn at position 4:28
 import * as T from "effect/Effect"
 
-export const refactorMe = refactorMe("refactorMe")(function*(arg: string) {
+export const refactorMe = T.fn("refactorMe")(function*(arg: string) {
     return yield* T.promise(() => Promise.resolve(1))
 })
