@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.35.1
+
+### Patch Changes
+
+- [#345](https://github.com/Effect-TS/language-service/pull/345) [`92ee0ff`](https://github.com/Effect-TS/language-service/commit/92ee0ff4b05bc4aed38e8bd8662547c6aa4230db) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix async/await to Effect.gen.tryPromise and Effect.fn.tryPromise refactors to use Data.TaggedError for error handling instead of inline objects
+
+- [#343](https://github.com/Effect-TS/language-service/pull/343) [`0570ccf`](https://github.com/Effect-TS/language-service/commit/0570ccf08df996ff67779c1407d50895ade159db) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix async/await to Effect.fn refactor to use correct function name
+
+  Previously, the refactor would incorrectly use the function's own name instead of `Effect.fn` when transforming async functions. This patch fixes the issue to properly generate `Effect.fn("functionName")` in the refactored code.
+
 ## 0.35.0
 
 ### Minor Changes
