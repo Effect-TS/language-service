@@ -22,6 +22,13 @@ This package implements a TypeScript language service plugin that allows additio
 3. Ensure that you have installed TypeScript locally in your project and set your editor to use your workspace TypeScript version.
 
    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version". If that option does not appear, TypeScript is not installed locally in your node_modules.
+       - Add the following to you `.vscode/settings.json`
+         ```jsonc
+         {
+           "typescript.tsdk": "./node_modules/typescript/lib",
+           "typescript.enablePromptUseWorkspaceTsdk": true
+         }
+         ```
    - In JetBrains you may have to disable the Vue language service, and choose the workspace version of TypeScript in the settings from the dropdown.
    - In NVim with nvim-vtsls you should refer to [how to enable TypeScript plugins in vtsls](https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated)
    - In Emacs, additional steps are required to enable LSPs, [step by step instructions can be found here](https://gosha.net/2025/effect-ls-emacs/)
