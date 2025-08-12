@@ -57,6 +57,7 @@ export const importFromBarrel = LSP.createDiagnostic({
       // we can only check for identifiers
       if (!ts.isIdentifier(nodeForSymbol)) return
       const importedName = nodeForSymbol.text
+      if (!importedName) return
       // get the symbol of the re-export
       const reexportedSymbol = moduleSymbol.exports.get(ts.escapeLeadingUnderscores(importedName))
       if (!reexportedSymbol) return

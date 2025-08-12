@@ -5,6 +5,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -17,6 +18,7 @@ export const missingEffectError = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
@@ -47,13 +49,13 @@ export const missingEffectError = LSP.createDiagnostic({
           typeParser.effectType(expectedType, node),
           typeParser.effectType(realType, valueNode)
         ),
-        Nano.flatMap(([expectedEffect, realEffect]) =>
+        Nano.map(([expectedEffect, realEffect]) =>
           pipe(
-            TypeCheckerApi.getMissingTypeEntriesInTargetType(
+            typeCheckerUtils.getMissingTypeEntriesInTargetType(
               realEffect.E,
               expectedEffect.E
             ),
-            Nano.map((missingErrorTypes) => ({ missingErrorTypes, expectedErrorType: expectedEffect.E }))
+            (missingErrorTypes) => ({ missingErrorTypes, expectedErrorType: expectedEffect.E })
           )
         )
       )
@@ -83,13 +85,13 @@ export const missingEffectError = LSP.createDiagnostic({
                   const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
                   changeTracker.insertText(sourceFile, valueNode.getStart(), effectModuleIdentifier + ".catchAll(")
-                  changeTracker.insertText(sourceFile, valueNode.getEnd(), ", () => ")
+                  changeTracker.insertText(sourceFile, valueNode.end, ", () => ")
                   changeTracker.insertNodeAt(
                     sourceFile,
-                    valueNode.getEnd(),
+                    valueNode.end,
                     createDieMessage("TODO: catchAll not implemented")
                   )
-                  changeTracker.insertText(sourceFile, valueNode.getEnd(), ")")
+                  changeTracker.insertText(sourceFile, valueNode.end, ")")
                 })
               })
             }
@@ -129,13 +131,13 @@ export const missingEffectError = LSP.createDiagnostic({
                     const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
                     changeTracker.insertText(sourceFile, valueNode.getStart(), effectModuleIdentifier + ".catchTags(")
-                    changeTracker.insertText(sourceFile, valueNode.getEnd(), ", ")
+                    changeTracker.insertText(sourceFile, valueNode.end, ", ")
                     changeTracker.insertNodeAt(
                       sourceFile,
-                      valueNode.getEnd(),
+                      valueNode.end,
                       ts.factory.createObjectLiteralExpression(propertyAssignments)
                     )
-                    changeTracker.insertText(sourceFile, valueNode.getEnd(), ")")
+                    changeTracker.insertText(sourceFile, valueNode.end, ")")
                   })
                 })
               }

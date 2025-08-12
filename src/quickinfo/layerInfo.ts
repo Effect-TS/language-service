@@ -6,6 +6,7 @@ import * as pako from "pako"
 import type * as ts from "typescript"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
@@ -58,12 +59,16 @@ function processLayerGraphNode(
 ): Nano.Nano<
   LayerGraphNode,
   UnableToProduceLayerGraphError,
-  TypeCheckerApi.TypeCheckerApi | TypeScriptApi.TypeScriptApi | TypeParser.TypeParser
+  | TypeCheckerApi.TypeCheckerApi
+  | TypeScriptApi.TypeScriptApi
+  | TypeParser.TypeParser
+  | TypeCheckerUtils.TypeCheckerUtils
 > {
   return Nano.gen(function*() {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const excludeNever = (type: ts.Type) => Nano.succeed((type.flags & ts.TypeFlags.Never) !== 0)
 
     // expression.pipe(.....)
@@ -91,12 +96,12 @@ function processLayerGraphNode(
           Nano.all(...node.arguments.map((_) => processLayerGraphNode(ctx, _, undefined)))
         )
         if (Option.isSome(argNodes) && argNodes.value.length === node.arguments.length) {
-          const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+          const { allIndexes: outTypes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
             ctx.services,
             maybeLayer.value.ROut,
             excludeNever
           )
-          const { allIndexes: inTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+          const { allIndexes: inTypes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
             ctx.services,
             maybeLayer.value.RIn,
             excludeNever
@@ -116,18 +121,18 @@ function processLayerGraphNode(
     if (pipedInGraphNode && ts.isExpression(node)) {
       const type = typeChecker.getContextualType(node)
       if (type) {
-        const callSignatures = type.getCallSignatures()
+        const callSignatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
         if (callSignatures.length === 1) {
           const [signature] = callSignatures
-          const returnType = signature.getReturnType()
+          const returnType = typeChecker.getReturnTypeOfSignature(signature)
           const maybeLayer = yield* Nano.option(typeParser.layerType(returnType, node))
           if (Option.isSome(maybeLayer)) {
-            const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+            const { allIndexes: outTypes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
               ctx.services,
               maybeLayer.value.ROut,
               excludeNever
             )
-            const { allIndexes: inTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+            const { allIndexes: inTypes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
               ctx.services,
               maybeLayer.value.RIn,
               excludeNever
@@ -175,12 +180,12 @@ function processLayerGraphNode(
       const type = typeChecker.getTypeAtLocation(node)
       const maybeLayer = yield* Nano.option(typeParser.layerType(type, node))
       if (Option.isSome(maybeLayer)) {
-        const { allIndexes: outTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+        const { allIndexes: outTypes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
           ctx.services,
           maybeLayer.value.ROut,
           excludeNever
         )
-        const { allIndexes: inTypes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+        const { allIndexes: inTypes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
           ctx.services,
           maybeLayer.value.RIn,
           excludeNever
@@ -447,7 +452,7 @@ export function layerInfo(
       // there are cases where we create it from scratch
       if (!quickInfo) {
         const start = node.getStart()
-        const end = node.getEnd()
+        const end = node.end
         return {
           kind: ts.ScriptElementKind.callSignatureElement,
           kindModifiers: "",

@@ -2,6 +2,8 @@ import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 
 declare module "typescript" {
+  export function getTokenPosOfNode(node: ts.Node, sourceFile: ts.SourceFileLike, includeJsDoc?: boolean): number
+
   export function insertImports(
     changes: textChanges.ChangeTracker,
     sourceFile: ts.SourceFile,
@@ -140,11 +142,7 @@ declare module "typescript" {
     sourceFile: ts.SourceFileLike
   ): T | undefined
 
-  export function isMemberName(node: ts.Node): node is ts.MemberName
-  export function isKeyword(token: ts.SyntaxKind): token is ts.KeywordSyntaxKind
-
   export interface TypeChecker {
-    isTypeAssignableTo(source: ts.Type, target: ts.Type): boolean
     getUnionType(types: ReadonlyArray<ts.Type>): ts.Type
   }
 }

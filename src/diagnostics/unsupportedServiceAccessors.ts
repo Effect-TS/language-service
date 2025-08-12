@@ -64,7 +64,7 @@ export const unsupportedServiceAccessors = LSP.createDiagnostic({
 
                   // Add @effect-codegens comment before the class
                   const comment = "// @effect-codegens accessors\n"
-                  changeTracker.insertText(sourceFile, node.getStart(sourceFile), comment)
+                  changeTracker.insertText(sourceFile, ts.getTokenPosOfNode(node, sourceFile), comment)
                 })
               }]
             })

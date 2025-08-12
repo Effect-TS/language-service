@@ -203,7 +203,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
 
     function find(node: ts.Node) {
       // Check leading comments
-      const leading = ts.getLeadingCommentRanges(sourceText, node.getFullStart())
+      const leading = ts.getLeadingCommentRanges(sourceText, node.pos)
       if (leading) {
         for (const commentRange of leading) {
           if (commentRange.pos <= position && position < commentRange.end) {
@@ -214,8 +214,8 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
         }
       }
       // Continue traversing only if the position is within this node
-      if (node.getFullStart() <= position && position < node.getEnd()) {
-        node.forEachChild(find)
+      if (node.pos <= position && position < node.end) {
+        ts.forEachChild(node, find)
       }
     }
     find(sourceFile)
@@ -254,7 +254,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     position: number
   ) {
     function find(node: ts.Node): ts.Node | undefined {
-      if (position >= node.getStart() && position < node.getEnd()) {
+      if (position >= node.getStart() && position < node.end) {
         // If the position is within this node, keep traversing its children
         return ts.forEachChild(node, find) || node
       }
@@ -312,8 +312,6 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       return
     }
     const startPos = token.pos === 0 ? (ts.getShebang(sourceFile.text) || "").length : token.pos
-
-    if (startPos === 0) return
 
     const result = ts.forEachTrailingCommentRange(sourceFile.text, startPos, isCommentInRange, pos) ||
       ts.forEachLeadingCommentRange(sourceFile.text, startPos, isCommentInRange, pos)

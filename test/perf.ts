@@ -7,6 +7,7 @@ import * as LanguageServicePluginOptions from "../src/core/LanguageServicePlugin
 import * as LSP from "../src/core/LSP"
 import * as Nano from "../src/core/Nano"
 import * as TypeCheckerApi from "../src/core/TypeCheckerApi"
+import * as TypeCheckerUtils from "../src/core/TypeCheckerUtils"
 import * as TypeParser from "../src/core/TypeParser"
 import * as TypeScriptApi from "../src/core/TypeScriptApi"
 import * as TypeScriptUtils from "../src/core/TypeScriptUtils"
@@ -32,6 +33,7 @@ function testAllDagnostics() {
       pipe(
         LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, example.sourceFile),
         TypeParser.nanoLayer,
+        TypeCheckerUtils.nanoLayer,
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, example.program.getTypeChecker()),
         Nano.provideService(TypeScriptApi.TypeScriptProgram, example.program),
         TypeScriptUtils.nanoLayer,

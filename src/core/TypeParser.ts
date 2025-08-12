@@ -3,6 +3,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeCheckerApi from "./TypeCheckerApi.js"
+import * as TypeCheckerUtils from "./TypeCheckerUtils.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
 
@@ -167,10 +168,11 @@ export const nanoLayer = <A, E, R>(
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     return yield* pipe(
       fa,
-      Nano.provideService(TypeParser, make(ts, tsUtils, typeChecker))
+      Nano.provideService(TypeParser, make(ts, tsUtils, typeChecker, typeCheckerUtils))
     )
   })
 
@@ -190,36 +192,37 @@ export function typeParserIssue(
 export function make(
   ts: TypeScriptApi.TypeScriptApi,
   tsUtils: TypeScriptUtils.TypeScriptUtils,
-  typeChecker: TypeCheckerApi.TypeCheckerApi
+  typeChecker: TypeCheckerApi.TypeCheckerApi,
+  typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils
 ): TypeParser {
   function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
-    const signatures = type.getCallSignatures()
+    const signatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
     // Covariant<A> has only 1 type signature
     if (signatures.length !== 1) {
       return typeParserIssue("Covariant type has no call signature", type)
     }
     // get the return type
-    return Nano.succeed(signatures[0].getReturnType())
+    return Nano.succeed(typeChecker.getReturnTypeOfSignature(signatures[0]))
   }
 
   function contravariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
-    const signatures = type.getCallSignatures()
+    const signatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
     // Contravariant<A> has only 1 type signature
     if (signatures.length !== 1) {
       return typeParserIssue("Contravariant type has no call signature", type)
     }
     // get the return type
-    return Nano.succeed(signatures[0].getTypeParameterAtPosition(0))
+    return Nano.succeed(typeCheckerUtils.getTypeParameterAtPosition(signatures[0], 0))
   }
 
   function invariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
-    const signatures = type.getCallSignatures()
+    const signatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
     // Invariant<A> has only 1 type signature
     if (signatures.length !== 1) {
       return typeParserIssue("Invariant type has no call signature", type)
     }
     // get the return type
-    return Nano.succeed(signatures[0].getReturnType())
+    return Nano.succeed(typeChecker.getReturnTypeOfSignature(signatures[0]))
   }
 
   const pipeableType = Nano.cachedBy(
@@ -234,7 +237,7 @@ export function make(
       }
       // which should be callable with at least one call signature
       const pipeType = typeChecker.getTypeOfSymbolAtLocation(pipeSymbol, atLocation)
-      const signatures = pipeType.getCallSignatures()
+      const signatures = typeChecker.getSignaturesOfType(pipeType, ts.SignatureKind.Call)
       if (signatures.length === 0) {
         return typeParserIssue("'pipe' property is not callable", type, atLocation)
       }
@@ -329,7 +332,9 @@ export function make(
         ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) => b.name.indexOf("EffectTypeId") - a.name.indexOf("EffectTypeId"))
+      propertiesSymbols.sort((a, b) =>
+        ts.symbolName(b).indexOf("EffectTypeId") - ts.symbolName(a).indexOf("EffectTypeId")
+      )
       // has a property symbol which is an effect variance struct
       for (const propertySymbol of propertiesSymbols) {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
@@ -347,7 +352,7 @@ export function make(
       atLocation: ts.Node
     ) {
       // symbol name should be Effect
-      if (!(type.symbol && type.symbol.name === "Effect" && !type.aliasSymbol)) {
+      if (!(type.symbol && ts.symbolName(type.symbol) === "Effect" && !type.aliasSymbol)) {
         return yield* typeParserIssue("Type name should be Effect with no alias symbol", type, atLocation)
       }
       // should be an effect
@@ -371,7 +376,9 @@ export function make(
         ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) => b.name.indexOf("LayerTypeId") - a.name.indexOf("LayerTypeId"))
+      propertiesSymbols.sort((a, b) =>
+        ts.symbolName(b).indexOf("LayerTypeId") - ts.symbolName(a).indexOf("LayerTypeId")
+      )
       // has a property symbol which is a layer variance struct
       for (const propertySymbol of propertiesSymbols) {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
@@ -766,7 +773,7 @@ export function make(
         ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) => b.name.indexOf("TypeId") - a.name.indexOf("TypeId"))
+      propertiesSymbols.sort((a, b) => ts.symbolName(b).indexOf("TypeId") - ts.symbolName(a).indexOf("TypeId"))
       // has a property symbol which is an effect variance struct
       for (const propertySymbol of propertiesSymbols) {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
@@ -809,7 +816,7 @@ export function make(
         ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) => b.name.indexOf("TypeId") - a.name.indexOf("TypeId"))
+      propertiesSymbols.sort((a, b) => ts.symbolName(b).indexOf("TypeId") - ts.symbolName(a).indexOf("TypeId"))
       // has a property symbol which is an effect variance struct
       for (const propertySymbol of propertiesSymbols) {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
@@ -839,7 +846,7 @@ export function make(
       if (
         ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
         ts.isIdentifier(node.expression.name) &&
-        node.expression.name.text === "pipe"
+        ts.idText(node.expression.name) === "pipe"
       ) {
         return Nano.succeed({
           node,
@@ -877,12 +884,14 @@ export function make(
         ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
       )
       // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) => b.name.indexOf("ScopeTypeId") - a.name.indexOf("ScopeTypeId"))
+      propertiesSymbols.sort((a, b) =>
+        ts.symbolName(b).indexOf("ScopeTypeId") - ts.symbolName(a).indexOf("ScopeTypeId")
+      )
       // has a property scope type id
       for (const propertySymbol of propertiesSymbols) {
         const computedPropertyExpression: ts.ComputedPropertyName = (propertySymbol.valueDeclaration as any).name
         const symbol = typeChecker.getSymbolAtLocation(computedPropertyExpression.expression)
-        if (symbol && symbol.name === "ScopeTypeId") {
+        if (symbol && ts.symbolName(symbol) === "ScopeTypeId") {
           return type
         }
       }
@@ -903,11 +912,11 @@ export function make(
       const thenType = typeChecker.getTypeOfSymbolAtLocation(thenProperty, atLocation)
       if (!thenType) return typeParserIssue("not a promise - missing then property", type, atLocation)
       // .then should be callable
-      for (const callSignature of thenType.getCallSignatures()) {
+      for (const callSignature of typeChecker.getSignaturesOfType(thenType, ts.SignatureKind.Call)) {
         // take the callback argument of then
         const parameter = callSignature.parameters[0]
         if (!parameter) continue
-        const parameterType = callSignature.getTypeParameterAtPosition(0)
+        const parameterType = typeCheckerUtils.getTypeParameterAtPosition(callSignature, 0)
         if (!parameterType) continue
         // it can be an union with many types
         let callbackCallSignatures: Array<ts.Signature> = []
@@ -915,9 +924,9 @@ export function make(
         while (toTest.length > 0) {
           const type = toTest.shift()
           if (!type) continue
-          const callSignatures = type.getCallSignatures()
+          const callSignatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
           callbackCallSignatures = callbackCallSignatures.concat(callSignatures)
-          if (type.isUnion()) {
+          if (typeCheckerUtils.isUnion(type)) {
             toTest = toTest.concat(type.types)
           }
         }
@@ -926,7 +935,7 @@ export function make(
           if (!callbackParameter) {
             continue
           }
-          const callbackParameterType = callableType.getTypeParameterAtPosition(0)
+          const callbackParameterType = typeCheckerUtils.getTypeParameterAtPosition(callableType, 0)
           if (!callbackParameterType) {
             continue
           }
@@ -964,7 +973,7 @@ export function make(
                 const schemaIdentifier = schemaCall.expression
                 if (
                   ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                  schemaIdentifier.name.text === "Class"
+                  ts.idText(schemaIdentifier.name) === "Class"
                 ) {
                   const parsedSchemaModule = yield* pipe(
                     importedSchemaModule(schemaIdentifier.expression),
@@ -1016,7 +1025,7 @@ export function make(
                   const schemaIdentifier = schemaCall.expression
                   if (
                     ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                    schemaIdentifier.name.text === "TaggedClass"
+                    ts.idText(schemaIdentifier.name) === "TaggedClass"
                   ) {
                     const parsedSchemaModule = yield* pipe(
                       importedSchemaModule(schemaIdentifier.expression),
@@ -1069,7 +1078,7 @@ export function make(
                   const schemaIdentifier = schemaCall.expression
                   if (
                     ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                    schemaIdentifier.name.text === "TaggedError"
+                    ts.idText(schemaIdentifier.name) === "TaggedError"
                   ) {
                     const parsedSchemaModule = yield* pipe(
                       importedSchemaModule(schemaIdentifier.expression),
@@ -1122,7 +1131,7 @@ export function make(
                   const schemaIdentifier = schemaCall.expression
                   if (
                     ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                    schemaIdentifier.name.text === "TaggedRequest"
+                    ts.idText(schemaIdentifier.name) === "TaggedRequest"
                   ) {
                     const parsedSchemaModule = yield* pipe(
                       importedSchemaModule(schemaIdentifier.expression),
@@ -1176,7 +1185,7 @@ export function make(
                 const selfTypeNode = wholeCall.typeArguments[0]!
                 if (
                   ts.isPropertyAccessExpression(contextTagIdentifier) &&
-                  ts.isIdentifier(contextTagIdentifier.name) && contextTagIdentifier.name.text === "Tag"
+                  ts.isIdentifier(contextTagIdentifier.name) && ts.idText(contextTagIdentifier.name) === "Tag"
                 ) {
                   const parsedContextModule = yield* pipe(
                     importedContextModule(contextTagIdentifier.expression),
@@ -1249,14 +1258,14 @@ export function make(
                         for (const property of args.properties) {
                           if (
                             ts.isPropertyAssignment(property) && property.name && ts.isIdentifier(property.name) &&
-                            property.name.text === "accessors" && property.initializer &&
+                            ts.idText(property.name) === "accessors" && property.initializer &&
                             property.initializer.kind === ts.SyntaxKind.TrueKeyword
                           ) {
                             accessors = true
                           }
                           if (
                             ts.isPropertyAssignment(property) && property.name && ts.isIdentifier(property.name) &&
-                            property.name.text === "dependencies" && property.initializer &&
+                            ts.idText(property.name) === "dependencies" && property.initializer &&
                             ts.isArrayLiteralExpression(property.initializer)
                           ) {
                             dependencies = property.initializer.elements

@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -16,6 +17,7 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const layerModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
       sourceFile,
@@ -40,16 +42,7 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
     }
 
     const reportIfLayerRequireScope = (type: ts.Type, node: ts.Node, methodIdentifier: ts.Identifier | undefined) => {
-      let toCheck = [type]
-      const entries: Array<ts.Type> = []
-      while (toCheck.length > 0) {
-        const type = toCheck.pop()!
-        if (type.isUnion()) {
-          toCheck = toCheck.concat(type.types)
-        } else {
-          entries.push(type)
-        }
-      }
+      const entries: Array<ts.Type> = typeCheckerUtils.unrollUnionMembers(type)
       return pipe(
         Nano.firstSuccessOf(entries.map((type) => typeParser.scopeType(type, node))),
         Nano.map(() =>

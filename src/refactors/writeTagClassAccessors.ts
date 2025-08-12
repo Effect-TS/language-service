@@ -20,7 +20,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
   const typeParser = yield* Nano.service(TypeParser.TypeParser)
   const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-  const insertLocation = atLocation.members.length > 0 ? atLocation.members[0].pos : atLocation.getEnd() - 1
+  const insertLocation = atLocation.members.length > 0 ? atLocation.members[0].pos : atLocation.end - 1
 
   const effectIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
     sourceFile,
@@ -188,7 +188,11 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
       if (!signatureDeclaration) return yield* Nano.fail("error generating signature")
 
       // wrap the return type as it would be in a Effect.andThen
-      const returnType = yield* generateReturnType(signature.getReturnType(), atLocation, className)
+      const returnType = yield* generateReturnType(
+        typeChecker.getReturnTypeOfSignature(signature),
+        atLocation,
+        className
+      )
 
       // construct the new signature
       return ts.factory.createFunctionTypeNode(
@@ -201,7 +205,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
   for (const { property, propertyType } of involvedMembers) {
     const callSignatures: Array<ts.FunctionTypeNode> = []
     let propertyDeclaration: ts.PropertyDeclaration | undefined = undefined
-    for (const signature of propertyType.getCallSignatures()) {
+    for (const signature of typeChecker.getSignaturesOfType(propertyType, ts.SignatureKind.Call)) {
       yield* pipe(
         proxySignature(signature, atLocation, className),
         Nano.map((sig) => {
@@ -224,7 +228,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
     if (oldProperty) {
       changeTracker.deleteRange(sourceFile, {
         pos: oldProperty.getStart(sourceFile),
-        end: oldProperty.getEnd()
+        end: oldProperty.end
       })
       changeTracker.insertNodeAt(sourceFile, oldProperty.getStart(sourceFile), propertyDeclaration)
     } else {
@@ -251,7 +255,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   const involvedMembers: Array<{ property: ts.Symbol; propertyType: ts.Type }> = []
   for (const property of typeChecker.getPropertiesOfType(Service)) {
     const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, node)
-    const callSignatures = propertyType.getCallSignatures()
+    const callSignatures = typeChecker.getSignaturesOfType(propertyType, ts.SignatureKind.Call)
     if (callSignatures.length > 0) {
       const withTypeParameters = callSignatures.filter((_) => _.typeParameters && _.typeParameters.length > 0)
       if (callSignatures.length > 1 || withTypeParameters.length > 0) involvedMembers.push({ property, propertyType })

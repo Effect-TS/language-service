@@ -4,6 +4,7 @@ import type * as ts from "typescript"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 
 export const durationInput = LSP.createCompletion({
@@ -11,12 +12,13 @@ export const durationInput = LSP.createCompletion({
   apply: Nano.fn("durationInput")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     let isInString: boolean = false
     const previousToken = ts.findPrecedingToken(position, sourceFile)
     if (previousToken && ts.isStringTextContainingNode(previousToken)) {
-      const start = previousToken.getStart(sourceFile)
-      const end = previousToken.getEnd()
+      const start = ts.getTokenPosOfNode(previousToken, sourceFile)
+      const end = previousToken.end
 
       // To be "in" one of these literals, the position has to be:
       //   1. entirely within the token text.
@@ -35,7 +37,7 @@ export const durationInput = LSP.createCompletion({
 
         if (type) {
           // the type is an union
-          if (!type.isUnion()) return []
+          if (!typeCheckerUtils.isUnion(type)) return []
           // and has members with nanos, millis, etc...
           for (const member of type.types) {
             if (member.flags & ts.TypeFlags.TemplateLiteral) {

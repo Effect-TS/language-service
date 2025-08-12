@@ -2,6 +2,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import type * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import type * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -24,6 +25,7 @@ export interface RefactorDefinition {
     | TypeScriptApi.TypeScriptApi
     | TypeScriptUtils.TypeScriptUtils
     | TypeCheckerApi.TypeCheckerApi
+    | TypeCheckerUtils.TypeCheckerUtils
     | TypeParser.TypeParser
     | LanguageServicePluginOptions.LanguageServicePluginOptions
   >
@@ -58,6 +60,7 @@ export interface DiagnosticDefinition {
     | LanguageServicePluginOptions.LanguageServicePluginOptions
     | TypeScriptApi.TypeScriptApi
     | TypeScriptUtils.TypeScriptUtils
+    | TypeCheckerUtils.TypeCheckerUtils
     | TypeScriptApi.TypeScriptProgram
   >
 }
@@ -99,6 +102,7 @@ export interface CompletionDefinition {
     | LanguageServicePluginOptions.LanguageServicePluginOptions
     | TypeScriptApi.TypeScriptApi
     | TypeScriptUtils.TypeScriptUtils
+    | TypeCheckerUtils.TypeCheckerUtils
     | TypeScriptApi.TypeScriptProgram
   >
 }
@@ -264,7 +268,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
                 if (foundNode) {
                   lineOverrides[ruleName] = lineOverrides[ruleName] || []
                   lineOverrides[ruleName].unshift({
-                    pos: foundNode.node.getFullStart(),
+                    pos: foundNode.node.pos,
                     end: foundNode.node.end,
                     level: ruleLevel
                   })
@@ -317,12 +321,13 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
             (changeTracker) =>
               Nano.gen(function*() {
                 const disableAtNode = findParentStatementForDisableNextLine(node)
-                const { line } = ts.getLineAndCharacterOfPosition(sourceFile, disableAtNode.getStart())
+                const start = ts.getTokenPosOfNode(disableAtNode, sourceFile)
+                const { line } = ts.getLineAndCharacterOfPosition(sourceFile, start)
 
                 changeTracker.insertCommentBeforeLine(
                   sourceFile,
                   line,
-                  disableAtNode.getStart(),
+                  start,
                   ` @effect-diagnostics-next-line ${rule.name}:off`
                 )
               })
@@ -348,10 +353,10 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
         // run the executor
         const applicableDiagnostics: Array<ApplicableDiagnosticDefinition> = []
         yield* rule.apply(sourceFile, (entry) => {
-          const range = "getEnd" in entry.location
-            ? { pos: entry.location.getStart(sourceFile), end: entry.location.getEnd() }
+          const range = "kind" in entry.location
+            ? { pos: ts.getTokenPosOfNode(entry.location, sourceFile), end: entry.location.end }
             : entry.location
-          const node = "getEnd" in entry.location
+          const node = "kind" in entry.location
             ? entry.location
             : tsUtils.findNodeAtPositionIncludingTrivia(sourceFile, entry.location.pos)
           applicableDiagnostics.push({
