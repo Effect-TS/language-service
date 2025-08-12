@@ -34,7 +34,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
         ts.isCallExpression(node) &&
         ts.isPropertyAccessExpression(node.expression) &&
         ts.isIdentifier(node.expression.name) &&
-        node.expression.name.text === "provide" &&
+        ts.idText(node.expression.name) === "provide" &&
         node.arguments.length > 0
       ) {
         const layer = node.arguments[0]
@@ -76,8 +76,8 @@ export const multipleEffectProvide = LSP.createDiagnostic({
               apply: Nano.gen(function*() {
                 const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
                 changeTracker.deleteRange(sourceFile, {
-                  pos: chunk[0].node.getStart(sourceFile),
-                  end: chunk[chunk.length - 1].node.getEnd()
+                  pos: ts.getTokenPosOfNode(chunk[0].node, sourceFile),
+                  end: chunk[chunk.length - 1].node.end
                 })
                 const newNode = ts.factory.createCallExpression(
                   ts.factory.createPropertyAccessExpression(
@@ -94,7 +94,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
                     chunk.map((c) => c.layer)
                   )]
                 )
-                changeTracker.insertNodeAt(sourceFile, chunk[0].node.getStart(sourceFile), newNode)
+                changeTracker.insertNodeAt(sourceFile, ts.getTokenPosOfNode(chunk[0].node, sourceFile), newNode)
               })
             }]
           })

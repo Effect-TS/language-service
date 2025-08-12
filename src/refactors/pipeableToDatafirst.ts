@@ -31,7 +31,10 @@ export const pipeableToDatafirst = LSP.createRefactor({
       if (!ts.isCallExpression(node)) return Option.none()
       const signature = typeChecker.getResolvedSignature(node)
       if (!signature) return Option.none()
-      const callSignatures = typeChecker.getTypeAtLocation(node.expression).getCallSignatures()
+      const callSignatures = typeChecker.getSignaturesOfType(
+        typeChecker.getTypeAtLocation(node.expression),
+        ts.SignatureKind.Call
+      )
       for (let i = 0; i < callSignatures.length; i++) {
         const callSignature = callSignatures[i]
         if (callSignature.parameters.length === node.arguments.length + 1) {

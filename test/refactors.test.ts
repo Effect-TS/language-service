@@ -2,6 +2,7 @@ import * as LanguageServicePluginOptions from "@effect/language-service/core/Lan
 import * as LSP from "@effect/language-service/core/LSP"
 import * as Nano from "@effect/language-service/core/Nano"
 import * as TypeCheckerApi from "@effect/language-service/core/TypeCheckerApi"
+import * as TypeCheckerUtils from "@effect/language-service/core/TypeCheckerUtils"
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
@@ -72,6 +73,7 @@ function testRefactorOnExample(
   const canApply = pipe(
     LSP.getApplicableRefactors([refactor], sourceFile, textRange),
     TypeParser.nanoLayer,
+    TypeCheckerUtils.nanoLayer,
     TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
@@ -95,6 +97,7 @@ function testRefactorOnExample(
   const applicableRefactor = pipe(
     LSP.getEditsForRefactor([refactor], sourceFile, textRange, canApply.right[0].name),
     TypeParser.nanoLayer,
+    TypeCheckerUtils.nanoLayer,
     TypeScriptUtils.nanoLayer,
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),

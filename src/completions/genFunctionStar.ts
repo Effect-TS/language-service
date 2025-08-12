@@ -19,7 +19,7 @@ export const genFunctionStar = LSP.createCompletion({
     const genMemberSymbol = type.getProperty("gen")
     if (!genMemberSymbol) return []
     const genType = typeChecker.getTypeOfSymbolAtLocation(genMemberSymbol, accessedObject)
-    if (genType.getCallSignatures().length === 0) return []
+    if (typeChecker.getSignaturesOfType(genType, ts.SignatureKind.Call).length === 0) return []
 
     const span = ts.createTextSpan(
       accessedObject.end + 1,

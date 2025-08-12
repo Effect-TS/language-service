@@ -17,7 +17,7 @@ export class MyService2 extends Effect.Service<MyService2>()("MyService2", {
   })
 }) {}
 
-export class MyService3 extends Effect.Service<MyService2>()("MyService2", {
+export class MyService3 extends Effect.Service<MyService3>()("MyService2", {
   effect: Effect.gen(function*() {
     const _ = yield* OtherService
     yield* Effect.addFinalizer(() => Effect.log("finalizer"))

@@ -2,6 +2,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const strictBooleanExpressions = LSP.createDiagnostic({
@@ -11,6 +12,7 @@ export const strictBooleanExpressions = LSP.createDiagnostic({
   apply: Nano.fn("strictBooleanExpressions.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const conditionChecks = new WeakMap<ts.Node, boolean>()
 
     const nodeToVisit: Array<ts.Node> = []
@@ -59,7 +61,7 @@ export const strictBooleanExpressions = LSP.createDiagnostic({
           const type = typesToCheck.pop()!
 
           // unroll union types
-          if (type.isUnion()) {
+          if (typeCheckerUtils.isUnion(type)) {
             typesToCheck = typesToCheck.concat(type.types)
             continue
           }

@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -14,6 +15,7 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const checkForEffectInVoid = Nano.fn("effectInVoidSuccess.checkForEffectInVoid")(function*(
       node: ts.Node,
@@ -24,7 +26,7 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
       const expectedEffect = yield* typeParser.effectType(expectedType, node)
       const realEffect = yield* typeParser.effectType(realType, valueNode)
       if (expectedEffect.A.flags & ts.TypeFlags.Void) {
-        const voidValueTypes = TypeCheckerApi.unrollUnionMembers(realEffect.A)
+        const voidValueTypes = typeCheckerUtils.unrollUnionMembers(realEffect.A)
         const voidedEffect = yield* Nano.firstSuccessOf(
           voidValueTypes.map((_) => Nano.map(typeParser.strictEffectType(_, node), () => _))
         )

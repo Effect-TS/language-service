@@ -21,8 +21,8 @@ export const contextSelfInClasses = LSP.createCompletion({
     ) || "Context"
 
     // ensure accessed is an identifier
-    if (contextIdentifier !== accessedObject.text) return []
-    const name = className.text
+    if (contextIdentifier !== ts.idText(accessedObject)) return []
+    const name = ts.idText(className)
 
     return [{
       name: `Tag("${name}")`,

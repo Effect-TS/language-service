@@ -44,14 +44,14 @@ export const classSelfMismatch = LSP.createDiagnostic({
           let actualName = ""
           if (ts.isTypeReferenceNode(selfTypeNode)) {
             if (ts.isIdentifier(selfTypeNode.typeName)) {
-              actualName = selfTypeNode.typeName.text
+              actualName = ts.idText(selfTypeNode.typeName)
             } else if (ts.isQualifiedName(selfTypeNode.typeName)) {
-              actualName = selfTypeNode.typeName.right.text
+              actualName = ts.idText(selfTypeNode.typeName.right)
             }
           }
 
           // Check if the self type matches the class name
-          const expectedName = className.text
+          const expectedName = ts.idText(className)
           if (actualName !== expectedName) {
             report({
               location: selfTypeNode,

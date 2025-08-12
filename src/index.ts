@@ -10,6 +10,7 @@ import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptio
 import * as LSP from "./core/LSP.js"
 import * as Nano from "./core/Nano.js"
 import * as TypeCheckerApi from "./core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "./core/TypeCheckerUtils.js"
 import * as TypeParser from "./core/TypeParser.js"
 import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import * as TypeScriptUtils from "./core/TypeScriptUtils.js"
@@ -75,6 +76,7 @@ const init = (
           | TypeScriptApi.TypeScriptProgram
           | TypeScriptApi.TypeScriptApi
           | TypeScriptUtils.TypeScriptUtils
+          | TypeCheckerUtils.TypeCheckerUtils
           | TypeParser.TypeParser
           | LanguageServicePluginOptions.LanguageServicePluginOptions
         >
@@ -82,6 +84,7 @@ const init = (
         pipe(
           fa,
           TypeParser.nanoLayer,
+          TypeCheckerUtils.nanoLayer,
           TypeScriptUtils.nanoLayer,
           Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
           Nano.provideService(TypeScriptApi.TypeScriptProgram, program),

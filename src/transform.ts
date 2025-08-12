@@ -7,6 +7,7 @@ import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptio
 import * as LSP from "./core/LSP"
 import * as Nano from "./core/Nano"
 import * as TypeCheckerApi from "./core/TypeCheckerApi"
+import * as TypeCheckerUtils from "./core/TypeCheckerUtils"
 import * as TypeParser from "./core/TypeParser"
 import * as TypeScriptApi from "./core/TypeScriptApi"
 import * as TypeScriptUtils from "./core/TypeScriptUtils"
@@ -23,6 +24,7 @@ export default function(
       pipe(
         LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
         TypeParser.nanoLayer,
+        TypeCheckerUtils.nanoLayer,
         TypeScriptUtils.nanoLayer,
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
         Nano.provideService(TypeScriptApi.TypeScriptProgram, program),

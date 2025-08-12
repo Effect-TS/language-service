@@ -1,4 +1,5 @@
-// code fix leakingRequirements_skipNextLine  output for range 571 - 584
+// code fix leakingRequirements_skipFile  output for range 572 - 585
+/** @effect-diagnostics leakingRequirements:skip-file */
 import type { Effect } from "effect"
 import { Context } from "effect"
 
@@ -12,11 +13,10 @@ export class LeakingDeps extends Context.Tag("LeakingDeps")<LeakingDeps, {
 }>() {}
 
 export function local() {
-  class _LocalClass extends Context.Tag("_LocalClass")<FileSystem, {
+  class _LocalClass extends Context.Tag("_LocalClass")<_LocalClass, {
     writeFile: (content: string) => Effect.Effect<void>
   }>() {}
 
-  // @effect-diagnostics-next-line leakingRequirements:off
   class _LocalLeaking extends Context.Tag("_LocalLeaking")<_LocalLeaking, {
     writeCache: () => Effect.Effect<void, never, FileSystem>
     readCache: Effect.Effect<void, never, FileSystem>

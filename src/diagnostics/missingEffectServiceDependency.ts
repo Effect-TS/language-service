@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -13,6 +14,7 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
   apply: Nano.fn("missingEffectServiceDependency.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const nodeToVisit: Array<ts.Node> = []
@@ -59,7 +61,7 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
                 const excludeNever = (type: ts.Type) => Nano.succeed((type.flags & ts.TypeFlags.Never) !== 0)
 
                 // Get all required service indexes
-                const { allIndexes: requiredIndexes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+                const { allIndexes: requiredIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
                   servicesMemory,
                   layerResult.RIn,
                   excludeNever
@@ -74,8 +76,8 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
 
                 if (dependenciesProperty) {
                   const dependenciesTypes = typeChecker.getTypeOfSymbolAtLocation(dependenciesProperty, options)
-                  const numberIndexType = dependenciesTypes.getNumberIndexType()
-                  types = numberIndexType ? TypeCheckerApi.unrollUnionMembers(numberIndexType) : []
+                  const numberIndexType = typeChecker.getIndexTypeOfType(dependenciesTypes, ts.IndexKind.Number)
+                  types = numberIndexType ? typeCheckerUtils.unrollUnionMembers(numberIndexType) : []
                 }
 
                 // Process each dependency to get what services they provide
@@ -88,7 +90,7 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
 
                   if (depLayerResult) {
                     // Add the ROut of this dependency to the same memory map
-                    const { allIndexes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+                    const { allIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
                       servicesMemory,
                       depLayerResult.ROut,
                       excludeNever
