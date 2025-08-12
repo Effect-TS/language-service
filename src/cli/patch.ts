@@ -92,7 +92,7 @@ export const patch = Command.make(
         sourceText,
         insertCheckSourceFilePosition,
         insertCheckSourceFilePosition,
-        "effectLspPatchUtils.exports.checkSourceFile(effectLspTypeScriptApis, host, node, diagnostics.add)\n",
+        "effectLspPatchUtils.exports.checkSourceFile(effectLspTypeScriptApis, host, node, compilerOptions, diagnostics.add)\n",
         "\n"
       )
     )

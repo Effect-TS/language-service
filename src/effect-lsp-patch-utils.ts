@@ -1,6 +1,8 @@
 import * as Array from "effect/Array"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Option from "effect/Option"
+import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -16,8 +18,14 @@ export function checkSourceFile(
   tsInstance: TypeScriptApi.TypeScriptApi,
   program: ts.Program,
   sourceFile: ts.SourceFile,
+  compilerOptions: ts.CompilerOptions,
   addDiagnostic: (diagnostic: ts.Diagnostic) => void
 ) {
+  const pluginOptions = pipe(
+    (compilerOptions.plugins || []) as Array<any>,
+    Array.findFirst((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service"),
+    Option.getOrElse(() => ({}))
+  )
   // run the diagnostics and pipe them into addDiagnostic
   pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
@@ -29,7 +37,7 @@ export function checkSourceFile(
     Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
     Nano.provideService(
       LanguageServicePluginOptions.LanguageServicePluginOptions,
-      LanguageServicePluginOptions.parse({})
+      LanguageServicePluginOptions.parse(pluginOptions)
     ),
     Nano.unsafeRun,
     Either.map((_) => _.diagnostics),

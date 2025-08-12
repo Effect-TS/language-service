@@ -1013,30 +1013,29 @@ export function make(
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
             const expression = typeX.expression
+            // Schema.TaggedClass<T>("name")
             if (ts.isCallExpression(expression)) {
+              const schemaTaggedClassTCall = expression.expression
               // Schema.TaggedClass<T>("name")("tag", {})
-              const tagCall = expression.expression
-              if (ts.isCallExpression(tagCall)) {
-                const schemaCall = tagCall.expression
+              if (
+                ts.isCallExpression(schemaTaggedClassTCall) && schemaTaggedClassTCall.typeArguments &&
+                schemaTaggedClassTCall.typeArguments.length > 0
+              ) {
+                const selfTypeNode = schemaTaggedClassTCall.typeArguments[0]!
+                const schemaIdentifier = schemaTaggedClassTCall.expression
                 if (
-                  ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0
+                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                  ts.idText(schemaIdentifier.name) === "TaggedClass"
                 ) {
-                  const selfTypeNode = schemaCall.typeArguments[0]!
-                  const schemaIdentifier = schemaCall.expression
-                  if (
-                    ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                    ts.idText(schemaIdentifier.name) === "TaggedClass"
-                  ) {
-                    const parsedSchemaModule = yield* pipe(
-                      importedSchemaModule(schemaIdentifier.expression),
-                      Nano.option
-                    )
-                    if (Option.isSome(parsedSchemaModule)) {
-                      return {
-                        className: atLocation.name,
-                        selfTypeNode,
-                        Schema: parsedSchemaModule.value
-                      }
+                  const parsedSchemaModule = yield* pipe(
+                    importedSchemaModule(schemaIdentifier.expression),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedSchemaModule)) {
+                    return {
+                      className: atLocation.name,
+                      selfTypeNode,
+                      Schema: parsedSchemaModule.value
                     }
                   }
                 }
@@ -1066,30 +1065,29 @@ export function make(
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
             const expression = typeX.expression
+            // Schema.TaggedError<T>("name")("tag", {})
             if (ts.isCallExpression(expression)) {
+              const schemaTaggedErrorTCall = expression.expression
               // Schema.TaggedError<T>("name")("tag", {})
-              const tagCall = expression.expression
-              if (ts.isCallExpression(tagCall)) {
-                const schemaCall = tagCall.expression
+              if (
+                ts.isCallExpression(schemaTaggedErrorTCall) && schemaTaggedErrorTCall.typeArguments &&
+                schemaTaggedErrorTCall.typeArguments.length > 0
+              ) {
+                const selfTypeNode = schemaTaggedErrorTCall.typeArguments[0]!
+                const schemaIdentifier = schemaTaggedErrorTCall.expression
                 if (
-                  ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0
+                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                  ts.idText(schemaIdentifier.name) === "TaggedError"
                 ) {
-                  const selfTypeNode = schemaCall.typeArguments[0]!
-                  const schemaIdentifier = schemaCall.expression
-                  if (
-                    ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                    ts.idText(schemaIdentifier.name) === "TaggedError"
-                  ) {
-                    const parsedSchemaModule = yield* pipe(
-                      importedSchemaModule(schemaIdentifier.expression),
-                      Nano.option
-                    )
-                    if (Option.isSome(parsedSchemaModule)) {
-                      return {
-                        className: atLocation.name,
-                        selfTypeNode,
-                        Schema: parsedSchemaModule.value
-                      }
+                  const parsedSchemaModule = yield* pipe(
+                    importedSchemaModule(schemaIdentifier.expression),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedSchemaModule)) {
+                    return {
+                      className: atLocation.name,
+                      selfTypeNode,
+                      Schema: parsedSchemaModule.value
                     }
                   }
                 }
@@ -1119,30 +1117,30 @@ export function make(
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
             const expression = typeX.expression
+            // Schema.TaggedRequest<T>("name")("tag", {})
             if (ts.isCallExpression(expression)) {
-              // Schema.TaggedRequest<T>("name")("tag", {})
-              const tagCall = expression.expression
-              if (ts.isCallExpression(tagCall)) {
-                const schemaCall = tagCall.expression
+              const schemaTaggedRequestTCall = expression.expression
+              // Schema.TaggedRequest<T>("name")
+              if (
+                ts.isCallExpression(schemaTaggedRequestTCall) &&
+                schemaTaggedRequestTCall.typeArguments &&
+                schemaTaggedRequestTCall.typeArguments.length > 0
+              ) {
+                const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
+                const schemaIdentifier = schemaTaggedRequestTCall.expression
                 if (
-                  ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0
+                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
+                  ts.idText(schemaIdentifier.name) === "TaggedRequest"
                 ) {
-                  const selfTypeNode = schemaCall.typeArguments[0]!
-                  const schemaIdentifier = schemaCall.expression
-                  if (
-                    ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                    ts.idText(schemaIdentifier.name) === "TaggedRequest"
-                  ) {
-                    const parsedSchemaModule = yield* pipe(
-                      importedSchemaModule(schemaIdentifier.expression),
-                      Nano.option
-                    )
-                    if (Option.isSome(parsedSchemaModule)) {
-                      return {
-                        className: atLocation.name,
-                        selfTypeNode,
-                        Schema: parsedSchemaModule.value
-                      }
+                  const parsedSchemaModule = yield* pipe(
+                    importedSchemaModule(schemaIdentifier.expression),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedSchemaModule)) {
+                    return {
+                      className: atLocation.name,
+                      selfTypeNode,
+                      Schema: parsedSchemaModule.value
                     }
                   }
                 }
@@ -1241,7 +1239,7 @@ export function make(
                 const selfTypeNode = effectServiceCall.typeArguments[0]!
                 if (
                   ts.isPropertyAccessExpression(effectServiceIdentifier) &&
-                  ts.isIdentifier(effectServiceIdentifier.name) && effectServiceIdentifier.name.text === "Service"
+                  ts.isIdentifier(effectServiceIdentifier.name) && ts.idText(effectServiceIdentifier.name) === "Service"
                 ) {
                   const parsedContextTag = yield* pipe(
                     importedEffectModule(effectServiceIdentifier.expression),

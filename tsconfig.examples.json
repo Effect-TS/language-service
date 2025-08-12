@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "include": [
-    "examples/diagnostics/classSelfMismatch_contextTag.ts"
+    "examples"
   ],
   "exclude": [
     "examples/completions/**.ts"

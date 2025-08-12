@@ -76,7 +76,7 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
 
                 if (dependenciesProperty) {
                   const dependenciesTypes = typeChecker.getTypeOfSymbolAtLocation(dependenciesProperty, options)
-                  const numberIndexType = dependenciesTypes.getNumberIndexType()
+                  const numberIndexType = typeChecker.getIndexTypeOfType(dependenciesTypes, ts.IndexKind.Number)
                   types = numberIndexType ? typeCheckerUtils.unrollUnionMembers(numberIndexType) : []
                 }
 

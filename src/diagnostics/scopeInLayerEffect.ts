@@ -34,10 +34,10 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
       if (!ts.isPropertyAccessExpression(expression)) return
       // we check that the api is called on the Layer module
       const calledModule = expression.expression
-      if (!(ts.isIdentifier(calledModule) && calledModule.text === layerModuleIdentifier)) return
+      if (!(ts.isIdentifier(calledModule) && ts.idText(calledModule) === layerModuleIdentifier)) return
       const methodIdentifier = expression.name
       // *.effect, *.effectContext, whatever...
-      if (!(ts.isIdentifier(methodIdentifier) && methodIdentifier.text.toLowerCase().startsWith("effect"))) return
+      if (!(ts.isIdentifier(methodIdentifier) && ts.idText(methodIdentifier).toLowerCase().startsWith("effect"))) return
       return { methodIdentifier }
     }
 

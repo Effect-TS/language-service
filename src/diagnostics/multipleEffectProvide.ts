@@ -34,7 +34,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
         ts.isCallExpression(node) &&
         ts.isPropertyAccessExpression(node.expression) &&
         ts.isIdentifier(node.expression.name) &&
-        node.expression.name.text === "provide" &&
+        ts.idText(node.expression.name) === "provide" &&
         node.arguments.length > 0
       ) {
         const layer = node.arguments[0]

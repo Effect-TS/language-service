@@ -218,19 +218,20 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
     // static method: <A>(value: A) => Effect<A, never, Service> = (value) => Effect.andThen(Service, _ => _.method(value))
     const allSignatures = ts.factory.createIntersectionTypeNode(callSignatures)
     const type = tsUtils.simplifyTypeNode(allSignatures)
-    propertyDeclaration = createFunctionProperty(className, property.getName(), type, callSignatures.length > 1)
+    propertyDeclaration = createFunctionProperty(className, ts.symbolName(property), type, callSignatures.length > 1)
 
     // then we need to delete the old property (if present)
     const oldProperty = atLocation.members.filter(ts.isPropertyDeclaration).find((p) => {
       const symbol = typeChecker.getSymbolAtLocation(p.name)
-      return symbol?.getName() === property.getName()
+      return symbol && ts.symbolName(symbol) === ts.symbolName(property)
     })
     if (oldProperty) {
+      const start = ts.getTokenPosOfNode(oldProperty, sourceFile)
       changeTracker.deleteRange(sourceFile, {
-        pos: oldProperty.getStart(sourceFile),
+        pos: start,
         end: oldProperty.end
       })
-      changeTracker.insertNodeAt(sourceFile, oldProperty.getStart(sourceFile), propertyDeclaration)
+      changeTracker.insertNodeAt(sourceFile, start, propertyDeclaration)
     } else {
       changeTracker.insertNodeAt(sourceFile, insertLocation, propertyDeclaration, { suffix: "\n" })
     }
@@ -263,7 +264,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   }
 
   const hash = involvedMembers.map(({ property, propertyType }) => {
-    return property.getName() + ": " + typeChecker.typeToString(propertyType)
+    return ts.symbolName(property) + ": " + typeChecker.typeToString(propertyType)
   }).concat([className.text]).join("\n")
 
   return { Service, className, atLocation: node, hash: LSP.cyrb53(hash), involvedMembers }

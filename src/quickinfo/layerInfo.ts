@@ -451,7 +451,7 @@ export function layerInfo(
 
       // there are cases where we create it from scratch
       if (!quickInfo) {
-        const start = node.getStart()
+        const start = ts.getTokenPosOfNode(node, sourceFile)
         const end = node.end
         return {
           kind: ts.ScriptElementKind.callSignatureElement,

@@ -84,7 +84,11 @@ export const missingEffectError = LSP.createDiagnostic({
                 apply: Nano.gen(function*() {
                   const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-                  changeTracker.insertText(sourceFile, valueNode.getStart(), effectModuleIdentifier + ".catchAll(")
+                  changeTracker.insertText(
+                    sourceFile,
+                    ts.getTokenPosOfNode(valueNode, sourceFile),
+                    effectModuleIdentifier + ".catchAll("
+                  )
                   changeTracker.insertText(sourceFile, valueNode.end, ", () => ")
                   changeTracker.insertNodeAt(
                     sourceFile,
@@ -130,7 +134,11 @@ export const missingEffectError = LSP.createDiagnostic({
                   apply: Nano.gen(function*() {
                     const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-                    changeTracker.insertText(sourceFile, valueNode.getStart(), effectModuleIdentifier + ".catchTags(")
+                    changeTracker.insertText(
+                      sourceFile,
+                      ts.getTokenPosOfNode(valueNode, sourceFile),
+                      effectModuleIdentifier + ".catchTags("
+                    )
                     changeTracker.insertText(sourceFile, valueNode.end, ", ")
                     changeTracker.insertNodeAt(
                       sourceFile,
