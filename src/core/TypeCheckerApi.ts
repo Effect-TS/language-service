@@ -153,8 +153,8 @@ export const expectedAndRealType = Nano.cachedBy(
       } else if (ts.isCallExpression(node)) {
         // fn(a)
         const resolvedSignature = typeChecker.getResolvedSignature(node)
-        if (resolvedSignature && resolvedSignature.getParameters) {
-          resolvedSignature.getParameters().map((parameter, index) => {
+        if (resolvedSignature) {
+          resolvedSignature.parameters.map((parameter, index) => {
             const expectedType = typeChecker.getTypeOfSymbolAtLocation(parameter, node)
             const realType = typeChecker.getTypeAtLocation(node.arguments[index])
             result.push([

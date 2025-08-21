@@ -37,6 +37,7 @@
     "circular": "madge --extensions ts --circular --no-color --no-spinner --warning src",
     "test": "vitest",
     "test-update": "vitest --update",
+    "test-patch": "pnpm clean && pnpm build && pnpm effect-language-service unpatch && pnpm effect-language-service patch && pnpm check",
     "coverage": "vitest run --coverage",
     "code-debug": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/",
     "perf": "tsx test/perf.ts",

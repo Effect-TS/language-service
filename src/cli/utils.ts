@@ -51,7 +51,7 @@ export const getTypeScriptApisUtils = Effect.fn("getTypeScriptApisFile")(functio
   const filePath = path.resolve(dir, "lib", "typescript.js")
   const sourceText = yield* fs.readFileString(filePath)
   const patchWithWrappingFunction =
-    `var effectLspTypeScriptApis = (function(module){\n${sourceText}\nreturn ts\n})({});`
+    `var effectLspTypeScriptApis = (function(module){\n${sourceText}\nreturn ts\n})(effectLspTypeScriptApis);`
   return patchWithWrappingFunction
 })
 
@@ -104,7 +104,7 @@ export const extractAppliedPatches = Effect.fn("extractAppliedPatches")(function
     revertChanges.push({
       span: {
         start: commentRange.pos - metadata.insertedPrefixLength,
-        length: metadata.insertedTextLength + 1 + commentRange.end - commentRange.pos
+        length: metadata.insertedPrefixLength + metadata.insertedTextLength + 1 + commentRange.end - commentRange.pos
       },
       newText: metadata.replacedText
     })

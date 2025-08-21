@@ -34,6 +34,7 @@ export const patch = Command.make(
 
     let insertUtilsPosition = -1
     let insertCheckSourceFilePosition = -1
+    let insertSkipPrecedingCommentDirectivePosition = -1
 
     // then find the checkSourceFile function, and insert the call to checking the effect lsp diagnostics
     const nodesToCheck: Array<ts.Node> = [sourceFile]
@@ -50,6 +51,13 @@ export const patch = Command.make(
               insertCheckSourceFilePosition = node.end
             }
           }
+        }
+      } else if (ts.isFunctionDeclaration(node)) {
+        if (
+          node.name && ts.isIdentifier(node.name) && ts.idText(node.name) === "markPrecedingCommentDirectiveLine" &&
+          node.body && node.body.statements.length > 0
+        ) {
+          insertSkipPrecedingCommentDirectivePosition = node.body.statements[0].pos
         }
       }
 
@@ -93,6 +101,22 @@ export const patch = Command.make(
         insertCheckSourceFilePosition,
         insertCheckSourceFilePosition,
         "effectLspPatchUtils.exports.checkSourceFile(effectLspTypeScriptApis, host, node, compilerOptions, diagnostics.add)\n",
+        "\n"
+      )
+    )
+
+    // insert the skip preceding comment directive
+    if (insertSkipPrecedingCommentDirectivePosition === -1) {
+      return yield* Effect.fail(
+        new UnableToFindPositionToPatchError({ positionToFind: "skip preceding comment directive" })
+      )
+    }
+    patches.push(
+      yield* makeInsertPatch(
+        sourceText,
+        insertSkipPrecedingCommentDirectivePosition,
+        insertSkipPrecedingCommentDirectivePosition,
+        "if(diagnostic && diagnostic.source === \"effect\"){ return -1; }\n",
         "\n"
       )
     )

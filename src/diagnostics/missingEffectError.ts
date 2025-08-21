@@ -151,12 +151,11 @@ export const missingEffectError = LSP.createDiagnostic({
               }
             }
 
+            const typeNames = sortTypes(result.missingErrorTypes).map((_) => typeChecker.typeToString(_))
             report(
               {
                 location: node,
-                messageText: `Missing '${
-                  sortTypes(result.missingErrorTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
-                }' in the expected Effect errors.`,
+                messageText: `Missing '${typeNames.join(" | ")}' in the expected Effect errors.`,
                 fixes
               }
             )
