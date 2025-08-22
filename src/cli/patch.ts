@@ -151,7 +151,9 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
         sourceFile.text,
         insertCheckSourceFilePosition,
         insertCheckSourceFilePosition,
-        "effectLspPatchUtils.exports.checkSourceFile(effectLspTypeScriptApis, host, node, compilerOptions, diagnostics.add)\n",
+        `effectLspPatchUtils.exports.checkSourceFile(${
+          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis"
+        }, host, node, compilerOptions, diagnostics.add)\n`,
         "\n",
         version
       )
