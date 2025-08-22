@@ -17,7 +17,7 @@ export class UnableToFindTsPackageError extends Data.TaggedError("UnableToFindTs
   packageJsonPath: string
   cause: unknown
 }> {
-  toString(): string {
+  get message(): string {
     return `Unable to find and read typescript package.json at ${this.packageJsonPath}`
   }
 }
@@ -26,34 +26,50 @@ export class MalformedPackageJsonError extends Data.TaggedError("MalformedPackag
   packageJsonPath: string
   cause: unknown
 }> {
-  toString(): string {
+  get message(): string {
     return `Malformed typescript package.json at ${this.packageJsonPath}`
   }
 }
 
-export const getTsPackageInfo = Effect.fn("getTsPackageInfo")(function*() {
+export class CorruptedPatchedSourceFileError extends Data.TaggedError("CorruptedPatchedSourceFileError")<{
+  filePath: string
+  cause: unknown
+}> {
+  get message(): string {
+    return `Patched source file ${this.filePath} has corrupted patches`
+  }
+}
+
+export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(packageDir: string) {
   const path = yield* Path.Path
   const fs = yield* FileSystem.FileSystem
-  const packageJsonPath = path.resolve("node_modules", "typescript", "package.json")
+  const packageJsonPath = path.resolve(packageDir, "package.json")
   const packageJsonContent = yield* fs.readFileString(packageJsonPath).pipe(
     Effect.mapError((cause) => new UnableToFindTsPackageError({ packageJsonPath, cause }))
   )
   const packageJsonData = yield* Schema.decode(Schema.parseJson(PackageJsonSchema))(packageJsonContent).pipe(
     Effect.mapError((cause) => new MalformedPackageJsonError({ packageJsonPath, cause }))
   )
-  const dir = path.dirname(packageJsonPath)
-  return { ...packageJsonData, dir }
+  return { ...packageJsonData }
 })
 
-export const getTypeScriptApisUtils = Effect.fn("getTypeScriptApisFile")(function*(dir) {
-  const path = yield* Path.Path
-  const fs = yield* FileSystem.FileSystem
-  const filePath = path.resolve(dir, "lib", "typescript.js")
-  const sourceText = yield* fs.readFileString(filePath)
-  const patchWithWrappingFunction =
-    `var effectLspTypeScriptApis = (function(module){\n${sourceText}\nreturn ts\n})(effectLspTypeScriptApis);`
-  return patchWithWrappingFunction
-})
+export const getModuleFilePath = Effect.fn("getModuleFilePath")(
+  function*(dirPath: string, moduleName: "tsc" | "typescript") {
+    const path = yield* Path.Path
+    const filePath = path.resolve(dirPath, "lib", moduleName === "tsc" ? "_tsc.js" : "typescript.js")
+    return filePath
+  }
+)
+
+export const getTypeScriptApisUtils = Effect.fn("getTypeScriptApisFile")(
+  function*(dirPath: string) {
+    const filePath = yield* getModuleFilePath(dirPath, "typescript")
+    const sourceFile = yield* getUnpatchedSourceFile(filePath)
+    const patchWithWrappingFunction =
+      `var effectLspTypeScriptApis = (function(module){\n${sourceFile.text}\nreturn ts\n})(effectLspTypeScriptApis);`
+    return patchWithWrappingFunction
+  }
+)
 
 export const getEffectLspPatchUtils = Effect.fn("getEffectLspPatchUtils")(function*() {
   const path = yield* Path.Path
@@ -65,24 +81,10 @@ export const getEffectLspPatchUtils = Effect.fn("getEffectLspPatchUtils")(functi
   return patchWithWrappingFunction
 })
 
-export const getUnderscoreTscSourceFile = Effect.fn("getUnderscoreTscSourceFile")(function*(dir: string) {
-  const path = yield* Path.Path
-  const fs = yield* FileSystem.FileSystem
-  const filePath = path.resolve(dir, "lib", "_tsc.js")
-  const sourceText = yield* fs.readFileString(filePath)
-  const sourceFile = ts.createSourceFile(
-    filePath,
-    sourceText,
-    ts.ScriptTarget.ES2022,
-    true
-  )
-  return { sourceFile, filePath, sourceText }
-})
-
-const AppliedPatchMetadata = Schema.compose(
+export const AppliedPatchMetadata = Schema.compose(
   Schema.StringFromBase64,
   Schema.parseJson(Schema.Struct({
-    version: Schema.Number,
+    version: Schema.String,
     replacedText: Schema.String,
     insertedPrefixLength: Schema.Int,
     insertedTextLength: Schema.Int
@@ -90,27 +92,56 @@ const AppliedPatchMetadata = Schema.compose(
 )
 export type AppliedPatchMetadata = Schema.Schema.Type<typeof AppliedPatchMetadata>
 
-export const extractAppliedPatches = Effect.fn("extractAppliedPatches")(function*(sourceFile: ts.SourceFile) {
-  const regex = /@effect-lsp-patch(?:\s+)([a-zA-Z0-9+=/]+)/gm
-  let match: RegExpExecArray | null
-  const patches: Array<AppliedPatchMetadata> = []
-  const revertChanges: Array<ts.TextChange> = []
-  while ((match = regex.exec(sourceFile.text)) !== null) {
-    const commentTextMetadata = match[1]
-    const commentRange = tsUtils.getCommentAtPosition(sourceFile, match.index)
-    if (!commentRange) continue
-    const metadata = yield* Schema.decode(AppliedPatchMetadata)(commentTextMetadata)
-    patches.push(metadata)
-    revertChanges.push({
-      span: {
-        start: commentRange.pos - metadata.insertedPrefixLength,
-        length: metadata.insertedPrefixLength + metadata.insertedTextLength + 1 + commentRange.end - commentRange.pos
-      },
-      newText: metadata.replacedText
-    })
+export const makeEffectLspPatchChange = Effect.fn("makeEffectLspPatchChange")(
+  function*(
+    sourceText: string,
+    pos: number,
+    end: number,
+    insertedText: string,
+    insertedPrefix: string,
+    version: string
+  ) {
+    const replacedText = sourceText.slice(pos, end)
+    const metadata: AppliedPatchMetadata = {
+      version,
+      replacedText,
+      insertedPrefixLength: insertedPrefix.length,
+      insertedTextLength: insertedText.length
+    }
+    const encodedMetadata = yield* Schema.encode(AppliedPatchMetadata)(metadata)
+    const textChange: ts.TextChange = {
+      span: { start: pos, length: end - pos },
+      newText: insertedPrefix + "/* @effect-lsp-patch " + encodedMetadata + " */ " + insertedText
+    }
+    return textChange
   }
-  return { patches, revertChanges }
-})
+)
+
+export const extractAppliedEffectLspPatches = Effect.fn("extractAppliedEffectLspPatches")(
+  function*(sourceFile: ts.SourceFile) {
+    const regex = /@effect-lsp-patch(?:\s+)([a-zA-Z0-9+=/]+)/gm
+    let match: RegExpExecArray | null
+    const patches: Array<AppliedPatchMetadata> = []
+    const revertChanges: Array<ts.TextChange> = []
+    while ((match = regex.exec(sourceFile.text)) !== null) {
+      const commentTextMetadata = match[1]
+      const commentRange = tsUtils.getCommentAtPosition(sourceFile, match.index)
+      if (!commentRange) continue
+      const metadata = yield* Schema.decode(AppliedPatchMetadata)(commentTextMetadata).pipe(
+        Effect.mapError((cause) => new CorruptedPatchedSourceFileError({ filePath: sourceFile.fileName, cause }))
+      )
+      patches.push(metadata)
+      revertChanges.push({
+        span: {
+          start: commentRange.pos - metadata.insertedPrefixLength,
+          length: metadata.insertedPrefixLength + metadata.insertedTextLength + 1 + commentRange.end - commentRange.pos
+        },
+        newText: metadata.replacedText
+      })
+    }
+    return { patches, revertChanges }
+  }
+)
 
 export const applyTextChanges = Effect.fn("applyTextChanges")(
   function*(sourceText: string, patches: Array<ts.TextChange>) {
@@ -141,20 +172,25 @@ export const applyTextChanges = Effect.fn("applyTextChanges")(
   }
 )
 
-export const makeInsertPatch = Effect.fn("makeInsertPatch")(
-  function*(sourceText: string, pos: number, end: number, insertedText: string, insertedPrefix: string) {
-    const replacedText = sourceText.slice(pos, end)
-    const metadata: AppliedPatchMetadata = {
-      version: 1,
-      replacedText,
-      insertedPrefixLength: insertedPrefix.length,
-      insertedTextLength: insertedText.length
-    }
-    const encodedMetadata = yield* Schema.encode(AppliedPatchMetadata)(metadata)
-    const textChange: ts.TextChange = {
-      span: { start: pos, length: end - pos },
-      newText: insertedPrefix + "/* @effect-lsp-patch " + encodedMetadata + " */ " + insertedText
-    }
-    return textChange
-  }
-)
+export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(function*(filePath: string) {
+  const fs = yield* FileSystem.FileSystem
+  const sourceText = yield* fs.readFileString(filePath)
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    sourceText,
+    ts.ScriptTarget.ES2022,
+    true
+  )
+  const { revertChanges } = yield* extractAppliedEffectLspPatches(sourceFile)
+  // if there are no revert changes, return the original source file
+  if (revertChanges.length === 0) return sourceFile
+  // create a new source file with the reverted changes
+  const newSourceText = yield* applyTextChanges(sourceText, revertChanges)
+  const newSourceFile = ts.createSourceFile(
+    filePath,
+    newSourceText,
+    ts.ScriptTarget.ES2022,
+    true
+  )
+  return newSourceFile
+})

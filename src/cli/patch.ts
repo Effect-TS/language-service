@@ -1,55 +1,102 @@
 import * as Command from "@effect/cli/Command"
+import * as Options from "@effect/cli/Options"
 import * as FileSystem from "@effect/platform/FileSystem"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as ts from "typescript"
 import {
   applyTextChanges,
-  extractAppliedPatches,
   getEffectLspPatchUtils,
-  getTsPackageInfo,
+  getModuleFilePath,
+  getPackageJsonData,
   getTypeScriptApisUtils,
-  getUnderscoreTscSourceFile,
-  makeInsertPatch
+  getUnpatchedSourceFile,
+  makeEffectLspPatchChange
 } from "./utils"
 
 export class UnableToFindPositionToPatchError extends Data.TaggedError("UnableToFindPositionToPatchError")<{
   positionToFind: string
 }> {
-  toString(): string {
+  get message(): string {
     return `Unable to find position to patch ${this.positionToFind}`
   }
 }
 
-export const patch = Command.make(
-  "patch",
-  {},
-  Effect.fn("patch")(function*() {
-    const fs = yield* FileSystem.FileSystem
-    const patches: Array<ts.TextChange> = []
-    const { dir } = yield* getTsPackageInfo()
-    const { filePath, sourceFile, sourceText } = yield* getUnderscoreTscSourceFile(dir)
-    const { revertChanges } = yield* extractAppliedPatches(sourceFile)
-    if (revertChanges.length > 0) return yield* Effect.logInfo(`${filePath} appears to be already patched.`)
+const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
+const dirPath = Options.directory("dir").pipe(
+  Options.withDefault(LOCAL_TYPESCRIPT_DIR),
+  Options.withDescription("The directory of the typescript package to patch.")
+)
+
+const moduleNames = Options.choice("module", [
+  "tsc",
+  "typescript"
+]).pipe(
+  Options.atLeast(1),
+  Options.withDefault(["tsc"]),
+  Options.withDescription("The name of the module to patch.")
+)
+
+const getPatchesForModule = Effect.fn("getPatchesForModule")(
+  function*(moduleName: "tsc" | "typescript", dirPath: string, version: string, sourceFile: ts.SourceFile) {
+    const patches: Array<ts.TextChange> = []
     let insertUtilsPosition = -1
     let insertCheckSourceFilePosition = -1
     let insertSkipPrecedingCommentDirectivePosition = -1
 
+    // nodes where to start finding (optimization to avoid the entire file)
+    const nodesToCheck: Array<ts.Node> = []
+    function findNodeAtPositionIncludingTrivia(
+      sourceFile: ts.SourceFile,
+      position: number
+    ) {
+      function find(node: ts.Node): ts.Node | undefined {
+        if (position >= node.pos && position < node.end) {
+          // If the position is within this node, keep traversing its children
+          return ts.forEachChild(node, find) || node
+        }
+        return undefined
+      }
+
+      return find(sourceFile)
+    }
+
+    function pushFunctionDeclarationNode(text: string) {
+      const regex = new RegExp(text, "ig")
+      let pushed = false
+
+      let match
+      while ((match = regex.exec(sourceFile.text)) !== null) {
+        const node = findNodeAtPositionIncludingTrivia(sourceFile, match.index)
+        if (node) {
+          const functionDeclaration = ts.findAncestor(node, ts.isFunctionDeclaration)
+          nodesToCheck.push(functionDeclaration || node)
+          pushed = true
+        }
+      }
+      return pushed
+    }
+
+    // the two positions we care about
+    if (!pushFunctionDeclarationNode("checkSourceFileWorker")) nodesToCheck.push(sourceFile)
+    if (!pushFunctionDeclarationNode("markPrecedingCommentDirectiveLine")) nodesToCheck.push(sourceFile)
+
     // then find the checkSourceFile function, and insert the call to checking the effect lsp diagnostics
-    const nodesToCheck: Array<ts.Node> = [sourceFile]
     while (nodesToCheck.length > 0) {
-      const node = nodesToCheck.shift()!
+      const node = nodesToCheck.shift()
+      if (!node) continue
 
       if (ts.isExpressionStatement(node)) {
         const expression = node.expression
-        if (ts.isConditionalExpression(expression)) {
-          const whenTrue = expression.whenTrue
-          const whenFalse = expression.whenFalse
-          if (ts.isCallExpression(whenTrue) && ts.isCallExpression(whenFalse)) {
-            if (ts.isIdentifier(whenFalse.expression) && whenFalse.expression.text === "checkSourceFileWorker") {
-              insertCheckSourceFilePosition = node.end
-            }
+        if (ts.isCallExpression(expression)) {
+          const identifier = expression.expression
+          if (
+            ts.isIdentifier(identifier) && ts.idText(identifier) === "checkGrammarSourceFile" &&
+            ts.isBlock(node.parent) && node.parent.statements.length > 0
+          ) {
+            const block = node.parent
+            insertCheckSourceFilePosition = block.statements[block.statements.length - 1].end
           }
         }
       } else if (ts.isFunctionDeclaration(node)) {
@@ -72,22 +119,26 @@ export const patch = Command.make(
     if (insertUtilsPosition === -1) {
       return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "effect lsp utils insertion" }))
     }
-    patches.push(
-      yield* makeInsertPatch(
-        sourceText,
-        insertUtilsPosition,
-        insertUtilsPosition,
-        "\n" + (yield* getTypeScriptApisUtils(dir)) + "\n",
-        ""
+    if (moduleName !== "typescript") {
+      patches.push(
+        yield* makeEffectLspPatchChange(
+          sourceFile.text,
+          insertUtilsPosition,
+          insertUtilsPosition,
+          "\n" + (yield* getTypeScriptApisUtils(dirPath)) + "\n",
+          "",
+          version
+        )
       )
-    )
+    }
     patches.push(
-      yield* makeInsertPatch(
-        sourceText,
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
         insertUtilsPosition,
         insertUtilsPosition,
         "\n" + (yield* getEffectLspPatchUtils()) + "\n",
-        ""
+        "",
+        version
       )
     )
 
@@ -96,12 +147,13 @@ export const patch = Command.make(
       return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "checkSourceFile" }))
     }
     patches.push(
-      yield* makeInsertPatch(
-        sourceText,
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
         insertCheckSourceFilePosition,
         insertCheckSourceFilePosition,
         "effectLspPatchUtils.exports.checkSourceFile(effectLspTypeScriptApis, host, node, compilerOptions, diagnostics.add)\n",
-        "\n"
+        "\n",
+        version
       )
     )
 
@@ -112,18 +164,44 @@ export const patch = Command.make(
       )
     }
     patches.push(
-      yield* makeInsertPatch(
-        sourceText,
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
         insertSkipPrecedingCommentDirectivePosition,
         insertSkipPrecedingCommentDirectivePosition,
         "if(diagnostic && diagnostic.source === \"effect\"){ return -1; }\n",
-        "\n"
+        "\n",
+        version
       )
     )
+    return patches
+  }
+)
 
-    // then apply the patches
-    const newSourceText = yield* applyTextChanges(sourceText, patches)
-    yield* fs.writeFileString(filePath, newSourceText)
-    yield* Effect.logInfo(`${filePath} patched successfully.`)
-  }, Effect.tapError(Effect.logError))
+export const patch = Command.make(
+  "patch",
+  { dirPath, moduleNames },
+  Effect.fn("patch")(function*({ dirPath, moduleNames }) {
+    const fs = yield* FileSystem.FileSystem
+
+    // search for typescript
+    yield* Effect.logDebug(`Searching for typescript in ${dirPath}...`)
+    const { version } = yield* getPackageJsonData(dirPath)
+    yield* Effect.logDebug(`Found typescript version ${version}!`)
+
+    for (const moduleName of moduleNames) {
+      // get the unpatched source file
+      const filePath = yield* getModuleFilePath(dirPath, moduleName)
+      yield* Effect.logDebug(`Reading ${moduleName} from ${filePath}...`)
+      const sourceFile = yield* getUnpatchedSourceFile(filePath)
+
+      // construct the patches to apply
+      yield* Effect.logDebug(`Collecting patches for ${moduleName}...`)
+      const patches = yield* getPatchesForModule(moduleName, dirPath, version, sourceFile)
+
+      // then apply the patches
+      const newSourceText = yield* applyTextChanges(sourceFile.text, patches)
+      yield* fs.writeFileString(filePath, newSourceText)
+      yield* Effect.logInfo(`${filePath} patched successfully.`)
+    }
+  })
 )

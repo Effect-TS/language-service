@@ -18,4 +18,9 @@ const main = Command.run(cliCommand, {
   version: "0.0.1"
 })
 
-main(process.argv).pipe(Effect.provide(NodeContext.layer), NodeRuntime.runMain())
+main(process.argv).pipe(
+  Effect.provide(NodeContext.layer),
+  NodeRuntime.runMain({
+    disableErrorReporting: false
+  })
+)
