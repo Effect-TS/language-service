@@ -1,2 +1,11 @@
 ValidSchemaClass
 9:53 - 9:69 | 1 | Self type parameter should be 'InvalidSchemaClass'
+
+ValidSchemaTaggedClass
+21:29 - 21:51 | 1 | Self type parameter should be 'InvalidSchemaTaggedClass'
+
+ValidSchemaTaggedError
+34:29 - 34:51 | 1 | Self type parameter should be 'InvalidSchemaTaggedError'
+
+ValidSchemaTaggedRequest
+49:31 - 49:55 | 1 | Self type parameter should be 'InvalidSchemaTaggedRequest'

@@ -41,7 +41,7 @@ export const middlewareGenLike = Nano.fn("middlewareGenLike")(function*(
           Nano.map((_) => {
             const argsCloseParen = ts.findChildOfKind(_.generatorFunction, ts.SyntaxKind.CloseParenToken, sourceFile)
             if (
-              argsCloseParen && _.body && inlayHint.position >= argsCloseParen.getEnd() &&
+              argsCloseParen && _.body && inlayHint.position >= argsCloseParen.end &&
               inlayHint.position <= _.body.getStart(sourceFile)
             ) {
               shouldOmit = true

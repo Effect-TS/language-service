@@ -106,9 +106,9 @@ export function effectTypeArgs(
         Nano.map((_) => makeSymbolDisplayParts("Effect Type Parameters", _.A, _.E, _.R)),
         Nano.orElse(() => {
           // if we have a call signature, we can get the effect type from the return type
-          const callSignatues = type.getCallSignatures()
+          const callSignatues = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
           if (callSignatues.length !== 1) return Nano.succeed([])
-          const returnType = callSignatues[0].getReturnType()
+          const returnType = typeChecker.getReturnTypeOfSignature(callSignatues[0])
           return pipe(
             typeParser.effectType(
               returnType,
@@ -121,8 +121,8 @@ export function effectTypeArgs(
 
       // there are cases where we create it from scratch
       if (!quickInfo) {
-        const start = node.getStart()
-        const end = node.getEnd()
+        const start = ts.getTokenPosOfNode(node, sourceFile)
+        const end = node.end
         return {
           kind: ts.ScriptElementKind.callSignatureElement,
           kindModifiers: "",

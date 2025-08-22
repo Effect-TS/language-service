@@ -63,7 +63,7 @@ export function effectRpcDefinition(
         tsUtils.isNodeInRange(textRange)(node.name)
       ) {
         const type = typeChecker.getTypeAtLocation(node)
-        for (const callSig of type.getCallSignatures()) {
+        for (const callSig of typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)) {
           // we detect if it is an RPC api based on where the options simbol is declared from
           if (callSig.parameters.length >= 2 && isSymbolFromEffectRpcClientModule(callSig.parameters[1])) {
             rpcName = node.name.text
@@ -132,7 +132,7 @@ export function effectRpcDefinition(
     // create the result entry for the definitions
     const effectRpcResult = result.map(([node]) => ({
       fileName: node.getSourceFile().fileName,
-      textSpan: ts.createTextSpan(node.getStart(), node.getEnd() - node.getStart()),
+      textSpan: ts.createTextSpan(node.getStart(), node.end - node.getStart()),
       kind: ts.ScriptElementKind.constElement,
       name: rpcName,
       containerKind: ts.ScriptElementKind.constElement,
@@ -147,7 +147,7 @@ export function effectRpcDefinition(
     }
 
     return ({
-      textSpan: ts.createTextSpan(callNode.getStart(), callNode.getEnd() - callNode.getStart()),
+      textSpan: ts.createTextSpan(callNode.getStart(), callNode.end - callNode.getStart()),
       definitions: effectRpcResult
     })
   })

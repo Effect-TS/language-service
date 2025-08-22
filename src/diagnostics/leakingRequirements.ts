@@ -4,6 +4,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -14,6 +15,7 @@ export const leakingRequirements = LSP.createDiagnostic({
   apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
@@ -35,10 +37,16 @@ export const leakingRequirements = LSP.createDiagnostic({
               typeParser.effectType(servicePropertyType, atLocation),
               Nano.map((_) => effectContextType = _.R),
               Nano.orElse(() => {
-                const servicePropertyCallSignatures = servicePropertyType.getCallSignatures()
+                const servicePropertyCallSignatures = typeChecker.getSignaturesOfType(
+                  servicePropertyType,
+                  ts.SignatureKind.Call
+                )
                 if (servicePropertyCallSignatures.length === 1) {
                   return pipe(
-                    typeParser.effectType(servicePropertyCallSignatures[0].getReturnType(), atLocation),
+                    typeParser.effectType(
+                      typeChecker.getReturnTypeOfSignature(servicePropertyCallSignatures[0]),
+                      atLocation
+                    ),
                     Nano.map((_) => {
                       effectContextType = _.R
                     })
@@ -51,7 +59,7 @@ export const leakingRequirements = LSP.createDiagnostic({
             // once we have the type, check the context for shared requirements
             if (effectContextType) {
               effectMembers++
-              const { allIndexes } = yield* TypeCheckerApi.appendToUniqueTypesMap(
+              const { allIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
                 memory,
                 effectContextType,
                 (type) => {
@@ -109,7 +117,7 @@ export const leakingRequirements = LSP.createDiagnostic({
       const typesToCheck: Array<[type: ts.Type, reportNode: ts.Node]> = []
       if (
         ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
-        ts.isIdentifier(node.expression.name) && node.expression.name.text === "GenericTag"
+        ts.isIdentifier(node.expression.name) && ts.idText(node.expression.name) === "GenericTag"
       ) {
         typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
       } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {

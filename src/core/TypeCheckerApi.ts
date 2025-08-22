@@ -1,11 +1,17 @@
-import * as Array from "effect/Array"
-import { isFunction, pipe } from "effect/Function"
+import { isFunction } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
 import { hasProperty } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
+
+declare module "typescript" {
+  export interface TypeChecker {
+    getIndexType(constraint: ts.Type): ts.Type
+    getParameterType(signature: ts.Signature, parameterIndex: number): ts.Type
+  }
+}
 
 export interface TypeCheckerApi extends ts.TypeChecker {}
 export const TypeCheckerApi = Nano.Tag<TypeCheckerApi>("TypeChecker")
@@ -20,31 +26,6 @@ export const deterministicTypeOrder = Nano.gen(function*() {
     return 0
   })
 })
-
-export const getMissingTypeEntriesInTargetType = Nano.fn(
-  "TypeCheckerApi.getMissingTypeEntriesInTargetType"
-)(
-  function*(realType: ts.Type, expectedType: ts.Type) {
-    if (realType === expectedType) return []
-    const typeChecker = yield* Nano.service(TypeCheckerApi)
-
-    const result: Array<ts.Type> = []
-    let toTest: Array<ts.Type> = [realType]
-    while (toTest.length > 0) {
-      const type = toTest.pop()
-      if (!type) return result
-      if (type.isUnion()) {
-        toTest = toTest.concat(type.types)
-      } else {
-        const assignable = typeChecker.isTypeAssignableTo(type, expectedType)
-        if (!assignable) {
-          result.push(type)
-        }
-      }
-    }
-    return result
-  }
-)
 
 type ConvertibleDeclaration =
   | ts.FunctionDeclaration
@@ -96,6 +77,7 @@ export const getInferredReturnType = Nano.fn("TypeCheckerApi.getInferredReturnTy
   declaration: ConvertibleDeclaration
 ) {
   const typeChecker = yield* Nano.service(TypeCheckerApi)
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
   if (!declaration.body) {
     return yield* Nano.fail(
@@ -106,10 +88,13 @@ export const getInferredReturnType = Nano.fn("TypeCheckerApi.getInferredReturnTy
   let returnType: ts.Type | undefined
 
   if (typeChecker.isImplementationOfOverload(declaration)) {
-    const signatures = typeChecker.getTypeAtLocation(declaration).getCallSignatures()
+    const signatures = typeChecker.getSignaturesOfType(
+      typeChecker.getTypeAtLocation(declaration),
+      ts.SignatureKind.Call
+    )
     if (signatures.length > 1) {
       returnType = typeChecker.getUnionType(
-        signatures.map((s) => s.getReturnType()).filter((_) => !!_)
+        signatures.map((s) => typeChecker.getReturnTypeOfSignature(s)).filter((_) => !!_)
       )
     }
   }
@@ -169,7 +154,7 @@ export const expectedAndRealType = Nano.cachedBy(
         // fn(a)
         const resolvedSignature = typeChecker.getResolvedSignature(node)
         if (resolvedSignature) {
-          resolvedSignature.getParameters().map((parameter, index) => {
+          resolvedSignature.parameters.map((parameter, index) => {
             const expectedType = typeChecker.getTypeOfSymbolAtLocation(parameter, node)
             const realType = typeChecker.getTypeAtLocation(node.arguments[index])
             result.push([
@@ -192,11 +177,14 @@ export const expectedAndRealType = Nano.cachedBy(
           if (ts.isObjectLiteralExpression(parent.parent) && parent.name === node) {
             const type = typeChecker.getContextualType(parent.parent)
             if (type) {
-              const symbol = typeChecker.getPropertyOfType(type, node.text)
-              if (symbol) {
-                const expectedType = typeChecker.getTypeOfSymbolAtLocation(symbol, node)
-                const realType = typeChecker.getTypeAtLocation(node)
-                result.push([node, expectedType, node, realType])
+              const name = ts.isIdentifier(node) ? ts.idText(node) : ts.isStringLiteral(node) ? node.text : undefined
+              if (name) {
+                const symbol = typeChecker.getPropertyOfType(type, name)
+                if (symbol) {
+                  const expectedType = typeChecker.getTypeOfSymbolAtLocation(symbol, node)
+                  const realType = typeChecker.getTypeAtLocation(node)
+                  result.push([node, expectedType, node, realType])
+                }
               }
             }
           }
@@ -266,78 +254,6 @@ export const expectedAndRealType = Nano.cachedBy(
   }),
   "TypeCheckerApi.expectedAndRealType",
   (sourceFile) => sourceFile
-)
-
-export const unrollUnionMembers = (type: ts.Type) => {
-  const result: Array<ts.Type> = []
-  let toTest: Array<ts.Type> = [type]
-  while (toTest.length > 0) {
-    const type = toTest.pop()!
-    if (type.isUnion()) {
-      toTest = toTest.concat(type.types)
-    } else {
-      result.push(type)
-    }
-  }
-  return result
-}
-
-/**
- * Appends a type to a map of unique types, ensuring that the type is not already in the map.
- *
- * @param memory - The map that will be used as memory and updated as new types are encountered.
- * @param initialType - The type to start with, unions will be unrolled.
- * @param shouldExclude - A function that determines if a type should be excluded from the checking
- * @returns An object with the following properties:
- * - newIndexes: A set of new indexes that were added to the memory.
- * - knownIndexes: A set of indexes that were already in the memory.
- * - allIndexes: A set of all indexes that were encountered.
- */
-export const appendToUniqueTypesMap = Nano.fn(
-  "TypeCheckerApi.appendToUniqueTypesMap"
-)(
-  function*(memory: Map<string, ts.Type>, initialType: ts.Type, shouldExclude: (type: ts.Type) => Nano.Nano<boolean>) {
-    const typeChecker = yield* Nano.service(TypeCheckerApi)
-
-    const newIndexes: Set<string> = new Set()
-    const knownIndexes: Set<string> = new Set()
-    let toTest: Array<ts.Type> = [initialType]
-    while (toTest.length > 0) {
-      const type = toTest.pop()
-      if (!type) break
-      if (yield* shouldExclude(type)) {
-        continue
-      }
-      if (type.isUnion()) {
-        toTest = toTest.concat(type.types)
-      } else {
-        const foundMatch: Array<string> = []
-        for (const [typeId, knownType] of memory.entries()) {
-          const areSame = typeChecker.isTypeAssignableTo(knownType, type) &&
-            typeChecker.isTypeAssignableTo(type, knownType)
-          if (areSame) {
-            foundMatch.push(typeId)
-            break
-          }
-        }
-        if (foundMatch.length === 0) {
-          const newId = "t" + (memory.size + 1)
-          memory.set(newId, type)
-          newIndexes.add(newId)
-        } else {
-          knownIndexes.add(foundMatch[0])
-        }
-      }
-    }
-    return {
-      newIndexes,
-      knownIndexes,
-      allIndexes: pipe(
-        Array.fromIterable(newIndexes),
-        Array.appendAll(Array.fromIterable(knownIndexes))
-      )
-    }
-  }
 )
 
 export function makeResolveExternalModuleName(typeChecker: TypeCheckerApi) {

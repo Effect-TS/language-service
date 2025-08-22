@@ -48,10 +48,7 @@
         "namespaceImportPackages": [
           "effect",
           "@effect/*"
-        ],
-        "diagnosticSeverity": {
-          "importFromBarrel": "error"
-        }
+        ]
       }
     ]
   }

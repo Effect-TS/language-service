@@ -11,7 +11,7 @@ export class LeakingDeps extends Context.Tag("LeakingDeps")<LeakingDeps, {
 }>() {}
 
 export function local() {
-  class _LocalClass extends Context.Tag("_LocalClass")<FileSystem, {
+  class _LocalClass extends Context.Tag("_LocalClass")<_LocalClass, {
     writeFile: (content: string) => Effect.Effect<void>
   }>() {}
 

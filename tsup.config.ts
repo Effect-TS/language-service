@@ -7,7 +7,7 @@ import * as Layer from "effect/Layer"
 import { defineConfig } from "tsup"
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/transform.ts", "src/cli.ts"],
+  entry: ["src/index.ts", "src/transform.ts", "src/cli.ts", "src/effect-lsp-patch-utils.ts"],
   clean: true,
   sourcemap: true,
   noExternal: ["effect"],

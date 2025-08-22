@@ -48,15 +48,17 @@ export const importFromBarrel = LSP.createDiagnostic({
       const moduleSymbol = resolveExternalModuleName(importDeclaration.moduleSpecifier)
       if (!moduleSymbol) return
       if (!moduleSymbol.exports) return
-      const sourceFile = importDeclaration.getSourceFile()
+      const sourceFile = tsUtils.getSourceFileOfNode(importDeclaration)
+      if (!sourceFile) return
 
       const nodeForSymbol = element.propertyName || element.name
       const aliasSymbol = element.name || element.propertyName
-      const aliasedName = aliasSymbol.text
+      const aliasedName = ts.idText(aliasSymbol)
 
       // we can only check for identifiers
       if (!ts.isIdentifier(nodeForSymbol)) return
-      const importedName = nodeForSymbol.text
+      const importedName = ts.idText(nodeForSymbol)
+      if (!importedName) return
       // get the symbol of the re-export
       const reexportedSymbol = moduleSymbol.exports.get(ts.escapeLeadingUnderscores(importedName))
       if (!reexportedSymbol) return
@@ -74,7 +76,8 @@ export const importFromBarrel = LSP.createDiagnostic({
       if (!originalModuleSymbol) return
       // the value declaration should be the sourcefile of the original module
       if (!originalModuleSymbol.valueDeclaration) return
-      const originalSourceFile = originalModuleSymbol.valueDeclaration.getSourceFile()
+      const originalSourceFile = tsUtils.getSourceFileOfNode(originalModuleSymbol.valueDeclaration)
+      if (!originalSourceFile) return
       const unbarrelledFileName = getModuleSpecifier(
         program.getCompilerOptions(),
         sourceFile,

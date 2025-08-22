@@ -20,7 +20,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
   const typeParser = yield* Nano.service(TypeParser.TypeParser)
   const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-  const insertLocation = atLocation.members.length > 0 ? atLocation.members[0].pos : atLocation.getEnd() - 1
+  const insertLocation = atLocation.members.length > 0 ? atLocation.members[0].pos : atLocation.end - 1
 
   const effectIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
     sourceFile,
@@ -188,7 +188,11 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
       if (!signatureDeclaration) return yield* Nano.fail("error generating signature")
 
       // wrap the return type as it would be in a Effect.andThen
-      const returnType = yield* generateReturnType(signature.getReturnType(), atLocation, className)
+      const returnType = yield* generateReturnType(
+        typeChecker.getReturnTypeOfSignature(signature),
+        atLocation,
+        className
+      )
 
       // construct the new signature
       return ts.factory.createFunctionTypeNode(
@@ -201,7 +205,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
   for (const { property, propertyType } of involvedMembers) {
     const callSignatures: Array<ts.FunctionTypeNode> = []
     let propertyDeclaration: ts.PropertyDeclaration | undefined = undefined
-    for (const signature of propertyType.getCallSignatures()) {
+    for (const signature of typeChecker.getSignaturesOfType(propertyType, ts.SignatureKind.Call)) {
       yield* pipe(
         proxySignature(signature, atLocation, className),
         Nano.map((sig) => {
@@ -214,19 +218,20 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
     // static method: <A>(value: A) => Effect<A, never, Service> = (value) => Effect.andThen(Service, _ => _.method(value))
     const allSignatures = ts.factory.createIntersectionTypeNode(callSignatures)
     const type = tsUtils.simplifyTypeNode(allSignatures)
-    propertyDeclaration = createFunctionProperty(className, property.getName(), type, callSignatures.length > 1)
+    propertyDeclaration = createFunctionProperty(className, ts.symbolName(property), type, callSignatures.length > 1)
 
     // then we need to delete the old property (if present)
     const oldProperty = atLocation.members.filter(ts.isPropertyDeclaration).find((p) => {
       const symbol = typeChecker.getSymbolAtLocation(p.name)
-      return symbol?.getName() === property.getName()
+      return symbol && ts.symbolName(symbol) === ts.symbolName(property)
     })
     if (oldProperty) {
+      const start = ts.getTokenPosOfNode(oldProperty, sourceFile)
       changeTracker.deleteRange(sourceFile, {
-        pos: oldProperty.getStart(sourceFile),
-        end: oldProperty.getEnd()
+        pos: start,
+        end: oldProperty.end
       })
-      changeTracker.insertNodeAt(sourceFile, oldProperty.getStart(sourceFile), propertyDeclaration)
+      changeTracker.insertNodeAt(sourceFile, start, propertyDeclaration)
     } else {
       changeTracker.insertNodeAt(sourceFile, insertLocation, propertyDeclaration, { suffix: "\n" })
     }
@@ -251,7 +256,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   const involvedMembers: Array<{ property: ts.Symbol; propertyType: ts.Type }> = []
   for (const property of typeChecker.getPropertiesOfType(Service)) {
     const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, node)
-    const callSignatures = propertyType.getCallSignatures()
+    const callSignatures = typeChecker.getSignaturesOfType(propertyType, ts.SignatureKind.Call)
     if (callSignatures.length > 0) {
       const withTypeParameters = callSignatures.filter((_) => _.typeParameters && _.typeParameters.length > 0)
       if (callSignatures.length > 1 || withTypeParameters.length > 0) involvedMembers.push({ property, propertyType })
@@ -259,7 +264,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   }
 
   const hash = involvedMembers.map(({ property, propertyType }) => {
-    return property.getName() + ": " + typeChecker.typeToString(propertyType)
+    return ts.symbolName(property) + ": " + typeChecker.typeToString(propertyType)
   }).concat([className.text]).join("\n")
 
   return { Service, className, atLocation: node, hash: LSP.cyrb53(hash), involvedMembers }

@@ -85,6 +85,7 @@ export interface TypeScriptUtils {
     sourceFile: ts.SourceFile,
     position: number
   ) => ts.Node | undefined
+  getSourceFileOfNode: (current: ts.Node | undefined) => ts.SourceFile | undefined
 }
 export const TypeScriptUtils = Nano.Tag<TypeScriptUtils>("TypeScriptUtils")
 
@@ -203,7 +204,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
 
     function find(node: ts.Node) {
       // Check leading comments
-      const leading = ts.getLeadingCommentRanges(sourceText, node.getFullStart())
+      const leading = ts.getLeadingCommentRanges(sourceText, node.pos)
       if (leading) {
         for (const commentRange of leading) {
           if (commentRange.pos <= position && position < commentRange.end) {
@@ -214,8 +215,8 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
         }
       }
       // Continue traversing only if the position is within this node
-      if (node.getFullStart() <= position && position < node.getEnd()) {
-        node.forEachChild(find)
+      if (node.pos <= position && position < node.end) {
+        ts.forEachChild(node, find)
       }
     }
     find(sourceFile)
@@ -254,7 +255,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     position: number
   ) {
     function find(node: ts.Node): ts.Node | undefined {
-      if (position >= node.getStart() && position < node.getEnd()) {
+      if (position >= ts.getTokenPosOfNode(node, sourceFile) && position < node.end) {
         // If the position is within this node, keep traversing its children
         return ts.forEachChild(node, find) || node
       }
@@ -312,8 +313,6 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       return
     }
     const startPos = token.pos === 0 ? (ts.getShebang(sourceFile.text) || "").length : token.pos
-
-    if (startPos === 0) return
 
     const result = ts.forEachTrailingCommentRange(sourceFile.text, startPos, isCommentInRange, pos) ||
       ts.forEachLeadingCommentRange(sourceFile.text, startPos, isCommentInRange, pos)
@@ -614,9 +613,10 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       ts.isPropertyAccessExpression(precedingToken.parent)
     ) {
       // we are in a "extends Schema.Tag|"
+      const spanStart = ts.getTokenPosOfNode(precedingToken.parent, sourceFile)
       replacementSpan = ts.createTextSpan(
-        precedingToken.parent.getStart(sourceFile),
-        precedingToken.end - precedingToken.parent.getStart(sourceFile)
+        spanStart,
+        precedingToken.end - spanStart
       )
       accessedObject = precedingToken.parent.expression
       outerNode = precedingToken.parent
@@ -625,17 +625,19 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       ts.isPropertyAccessExpression(precedingToken.parent)
     ) {
       // we are in a "extends Schema.|"
+      const precedingTokenSpanStart = ts.getTokenPosOfNode(precedingToken.parent, sourceFile)
       replacementSpan = ts.createTextSpan(
-        precedingToken.parent.getStart(sourceFile),
-        precedingToken.end - precedingToken.parent.getStart(sourceFile)
+        precedingTokenSpanStart,
+        precedingToken.end - precedingTokenSpanStart
       )
       accessedObject = precedingToken.parent.expression
       outerNode = precedingToken.parent
     } else if (ts.isIdentifier(precedingToken) && precedingToken.parent) {
       // we are in a "extends Schema|"
+      const precedingTokenSpanStart = ts.getTokenPosOfNode(precedingToken, sourceFile)
       replacementSpan = ts.createTextSpan(
-        precedingToken.getStart(sourceFile),
-        precedingToken.end - precedingToken.getStart(sourceFile)
+        precedingTokenSpanStart,
+        precedingToken.end - precedingTokenSpanStart
       )
       accessedObject = precedingToken
       outerNode = precedingToken
@@ -759,6 +761,14 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     )
   }
 
+  function getSourceFileOfNode(current: ts.Node | undefined): ts.SourceFile | undefined {
+    let node = current
+    while (node && node.kind !== ts.SyntaxKind.SourceFile) {
+      node = node.parent
+    }
+    return node as ts.SourceFile
+  }
+
   return {
     findNodeAtPositionIncludingTrivia,
     parsePackageContentNameAndVersionFromScope,
@@ -778,6 +788,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     createEffectGenCallExpressionWithBlock,
     createReturnYieldStarStatement,
     makeGetModuleSpecifier,
-    parseAccessedExpressionForCompletion
+    parseAccessedExpressionForCompletion,
+    getSourceFileOfNode
   }
 }

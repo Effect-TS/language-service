@@ -39,18 +39,18 @@ export const unsupportedServiceAccessors = LSP.createDiagnostic({
               member.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.StaticKeyword)
             ) {
               if (member.name && ts.isIdentifier(member.name)) {
-                existingStaticMembers.add(member.name.text)
+                existingStaticMembers.add(ts.idText(member.name))
               }
             }
           })
 
           // Filter out members that already have static implementations
           const missingMembers = parseResult.involvedMembers.filter(({ property }) =>
-            !existingStaticMembers.has(property.getName())
+            !existingStaticMembers.has(ts.symbolName(property))
           )
 
           if (missingMembers.length > 0) {
-            const memberNames = missingMembers.map(({ property }) => `'${property.getName()}'`).join(", ")
+            const memberNames = missingMembers.map(({ property }) => `'${ts.symbolName(property)}'`).join(", ")
 
             report({
               location: parseResult.className,
@@ -64,7 +64,7 @@ export const unsupportedServiceAccessors = LSP.createDiagnostic({
 
                   // Add @effect-codegens comment before the class
                   const comment = "// @effect-codegens accessors\n"
-                  changeTracker.insertText(sourceFile, node.getStart(sourceFile), comment)
+                  changeTracker.insertText(sourceFile, ts.getTokenPosOfNode(node, sourceFile), comment)
                 })
               }]
             })
