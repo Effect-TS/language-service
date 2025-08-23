@@ -33,8 +33,7 @@ const moduleNames = Options.choice("module", [
   "tsc",
   "typescript"
 ]).pipe(
-  Options.atLeast(1),
-  Options.withDefault(["tsc"]),
+  Options.repeated,
   Options.withDescription("The name of the module to patch.")
 )
 
@@ -144,14 +143,14 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
 
     // insert the checkSourceFile call
     if (insertCheckSourceFilePosition === -1) {
-      return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "checkSourceFile" }))
+      return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "checkSourceFileWorker" }))
     }
     patches.push(
       yield* makeEffectLspPatchChange(
         sourceFile.text,
         insertCheckSourceFilePosition,
         insertCheckSourceFilePosition,
-        `effectLspPatchUtils.exports.checkSourceFile(${
+        `effectLspPatchUtils.exports.checkSourceFileWorker(${
           moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis"
         }, host, node, compilerOptions, diagnostics.add)\n`,
         "\n",
@@ -190,9 +189,12 @@ export const patch = Command.make(
     const { version } = yield* getPackageJsonData(dirPath)
     yield* Effect.logDebug(`Found typescript version ${version}!`)
 
-    for (const moduleName of moduleNames) {
+    const modulesToPatch = moduleNames.length === 0 ? ["tsc"] as const : moduleNames
+    for (const moduleName of modulesToPatch) {
       // get the unpatched source file
+      yield* Effect.logDebug(`Searching ${moduleName}...`)
       const filePath = yield* getModuleFilePath(dirPath, moduleName)
+
       yield* Effect.logDebug(`Reading ${moduleName} from ${filePath}...`)
       const sourceFile = yield* getUnpatchedSourceFile(filePath)
 

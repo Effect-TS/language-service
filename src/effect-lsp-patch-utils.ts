@@ -14,7 +14,7 @@ import * as TypeScriptApi from "./core/TypeScriptApi"
 import * as TypeScriptUtils from "./core/TypeScriptUtils"
 import { diagnostics } from "./diagnostics"
 
-export function checkSourceFile(
+export function checkSourceFileWorker(
   tsInstance: TypeScriptApi.TypeScriptApi,
   program: ts.Program,
   sourceFile: ts.SourceFile,

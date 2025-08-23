@@ -15,8 +15,7 @@ const moduleNames = Options.choice("module", [
   "tsc",
   "typescript"
 ]).pipe(
-  Options.atLeast(1),
-  Options.withDefault(["tsc"]),
+  Options.repeated,
   Options.withDescription("The name of the module to patch.")
 )
 
