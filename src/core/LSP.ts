@@ -87,6 +87,20 @@ export function createDiagnostic(definition: DiagnosticDefinition): DiagnosticDe
   return definition
 }
 
+export function concatDiagnostics(fa: Array<ts.Diagnostic>, fb: Array<ts.Diagnostic>): Array<ts.Diagnostic> {
+  const result = fa.slice(0)
+  for (const b of fb) {
+    const existing = result.find((a) =>
+      a.file === b.file && a.code === b.code && a.source === b.source && a.start === b.start && a.length === b.length &&
+      a.messageText === b.messageText
+    )
+    if (!existing) {
+      result.push(b)
+    }
+  }
+  return result
+}
+
 export interface CompletionDefinition {
   name: string
   apply: (

@@ -25,7 +25,8 @@ export const unpatch = Command.make(
   Effect.fn("unpatch")(function*({ dirPath, moduleNames }) {
     const fs = yield* FileSystem.FileSystem
 
-    for (const moduleName of moduleNames) {
+    const modulesToUnpatch = moduleNames.length === 0 ? ["typescript", "tsc"] as const : moduleNames
+    for (const moduleName of modulesToUnpatch) {
       yield* Effect.logDebug(`Resolving ${moduleName}...`)
       const filePath = yield* getModuleFilePath(dirPath, moduleName)
 

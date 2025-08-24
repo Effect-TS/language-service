@@ -124,7 +124,7 @@ const init = (
 
     proxy.getSemanticDiagnostics = (fileName, ...args) => {
       const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
-      return runDiagnosticsAndCacheCodeFixes(fileName).concat(applicableDiagnostics)
+      return LSP.concatDiagnostics(runDiagnosticsAndCacheCodeFixes(fileName), applicableDiagnostics)
     }
 
     proxy.getSupportedCodeFixes = (...args) =>
