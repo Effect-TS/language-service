@@ -10,10 +10,14 @@ const tsUtils = TypeScriptUtils.makeTypeScriptUtils(ts)
 
 const PackageJsonSchema = Schema.Struct({
   name: Schema.String,
-  version: Schema.String
+  version: Schema.String,
+  scripts: Schema.optional(Schema.Record({
+    key: Schema.String,
+    value: Schema.String
+  }))
 })
 
-export class UnableFindTsPackageError extends Data.TaggedError("UnableToFindPackageError")<{
+export class UnableToFindPackageJsonError extends Data.TaggedError("UnableToFindPackageError")<{
   packageJsonPath: string
   cause: unknown
 }> {
@@ -45,7 +49,7 @@ export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(pack
   const fs = yield* FileSystem.FileSystem
   const packageJsonPath = path.resolve(packageDir, "package.json")
   const packageJsonContent = yield* fs.readFileString(packageJsonPath).pipe(
-    Effect.mapError((cause) => new UnableFindTsPackageError({ packageJsonPath, cause }))
+    Effect.mapError((cause) => new UnableToFindPackageJsonError({ packageJsonPath, cause }))
   )
   const packageJsonData = yield* Schema.decode(Schema.parseJson(PackageJsonSchema))(packageJsonContent).pipe(
     Effect.mapError((cause) => new MalformedPackageJsonError({ packageJsonPath, cause }))
