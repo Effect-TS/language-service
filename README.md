@@ -22,7 +22,7 @@ This package implements a TypeScript language service plugin that allows additio
 3. Ensure that you have installed TypeScript locally in your project and set your editor to use your workspace TypeScript version.
 
    - In VSCode you can do this by pressing "F1" and typing "TypeScript: Select TypeScript version". Then select "Use workspace version". If that option does not appear, TypeScript is not installed locally in your node_modules.
-       - Add the following to you `.vscode/settings.json`
+       - Not required, but to remember the user to do so, you can update your `.vscode/settings.json`
          ```jsonc
          {
            "typescript.tsdk": "./node_modules/typescript/lib",
@@ -128,7 +128,40 @@ The full list can be found in the [diagnostics](https://github.com/Effect-TS/lan
 
 TypeScript LSPs are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
 
-HOWEVER, if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
+We provide two approaches to solve this scenario.
+
+### Option A - Effect LSP Cli Patch (experimental recommended)
+
+This option works by modifing directly the source code of the tsc compiler and the typescript library in your project node_modules. This allows to get effect's diagnostics even when noEmit is enabled, for composite and incremental projects as well.
+
+After having installed and configured the LSP for editor usage, you can run the following command inside the folder that contains your local project typescript installation:
+
+`effect-language-service patch`
+
+If everything goes smoothly, something along these lines should be printed out:
+
+```
+/node_modules/typescript/lib/typescript.js patched successfully.
+/node_modules/typescript/lib/_tsc.js patched successfully.
+```
+
+Now the CLI has patched the tsc binary and the typescript library to raise effect diagnostics even at build time if the plugin is configured in your tsconfig!
+
+As the command output suggests, you may need to delete your tsbuildinfo files or perform a full rebuild in order to re-check previously existing files.
+
+To make the patch persistent across package installations and updates, we recommend adding the patch command to your package.json prepare scripts:
+
+```jsonc
+  "scripts": {
+    "prepare": "effect-language-service patch"
+  }
+```
+
+so that across updates the patch will be re-applied again.
+
+### Option B - Using ts-patch
+
+if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
 Your `tsconfig.json` should look like this:
 
 ```jsonc
@@ -148,7 +181,7 @@ To get diagnostics you need to install `ts-patch` which will make it possible to
 
 Running `tspc` in your project will now also run the plugin and give you the error diagnostics at compile time.
 Effect error diagnostics will be shown only after standard TypeScript diagnostics have been satisfied.
-Beware that setting noEmit will completely skip the effect diagnostics.
+Beware that setting noEmit will completely skip the effect diagnostics, and projects using incremental builds may encounter some issues.
 
 ```ts
 $ npx tspc

@@ -21,11 +21,14 @@ export function checkSourceFileWorker(
   compilerOptions: ts.CompilerOptions,
   addDiagnostic: (diagnostic: ts.Diagnostic) => void
 ) {
+  // check if the plugin is enabled
   const pluginOptions = pipe(
     (compilerOptions.plugins || []) as Array<any>,
-    Array.findFirst((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service"),
-    Option.getOrElse(() => ({}))
+    Array.findFirst((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service")
   )
+  if (Option.isNone(pluginOptions)) {
+    return
+  }
   // run the diagnostics and pipe them into addDiagnostic
   pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
@@ -53,7 +56,4 @@ export function checkSourceFileWorker(
     }),
     Array.map(addDiagnostic)
   )
-
-  // do not transform source ccde
-  return sourceFile
 }

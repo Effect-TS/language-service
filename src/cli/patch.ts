@@ -178,18 +178,41 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
   }
 )
 
+export const printRememberDeleteTsbuildinfo = Effect.fn("printRememberDeleteTsbuildinfo")(function*() {
+  yield* Effect.logInfo(
+    `If your project uses incremental builds, delete the .tsbuildinfo files and perform a full build.`
+  )
+})
+
+export const printRememberPrepareScript = Effect.fn("printRememberPrepareScript")(function*() {
+  const packageJson = yield* getPackageJsonData(".")
+  if (packageJson.scripts && "prepare" in packageJson.scripts) {
+    const prepareScript = packageJson.scripts.prepare
+    if (prepareScript.toLocaleLowerCase().includes("effect-language-service")) return
+  }
+  yield* Effect.logInfo(
+    `No prepare script found in package.json; to make the patch persistent across package installations and updates, add the following to your package.json scripts:
+  "scripts": {
+          "prepare": "effect-language-service patch"
+  }`
+  )
+}, Effect.ignore)
+
 export const patch = Command.make(
   "patch",
   { dirPath, moduleNames },
   Effect.fn("patch")(function*({ dirPath, moduleNames }) {
     const fs = yield* FileSystem.FileSystem
 
+    // read my data
+    const { version: effectLspVersion } = yield* getPackageJsonData(__dirname)
+
     // search for typescript
     yield* Effect.logDebug(`Searching for typescript in ${dirPath}...`)
-    const { version } = yield* getPackageJsonData(dirPath)
-    yield* Effect.logDebug(`Found typescript version ${version}!`)
+    const { version: typescriptVersion } = yield* getPackageJsonData(dirPath)
+    yield* Effect.logDebug(`Found typescript version ${typescriptVersion}!`)
 
-    const modulesToPatch = moduleNames.length === 0 ? ["tsc"] as const : moduleNames
+    const modulesToPatch = moduleNames.length === 0 ? ["typescript", "tsc"] as const : moduleNames
     for (const moduleName of modulesToPatch) {
       // get the unpatched source file
       yield* Effect.logDebug(`Searching ${moduleName}...`)
@@ -200,12 +223,16 @@ export const patch = Command.make(
 
       // construct the patches to apply
       yield* Effect.logDebug(`Collecting patches for ${moduleName}...`)
-      const patches = yield* getPatchesForModule(moduleName, dirPath, version, sourceFile)
+      const patches = yield* getPatchesForModule(moduleName, dirPath, effectLspVersion, sourceFile)
 
       // then apply the patches
       const newSourceText = yield* applyTextChanges(sourceFile.text, patches)
       yield* fs.writeFileString(filePath, newSourceText)
       yield* Effect.logInfo(`${filePath} patched successfully.`)
     }
+
+    // remember
+    yield* printRememberDeleteTsbuildinfo()
+    yield* printRememberPrepareScript()
   })
 )
