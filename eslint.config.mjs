@@ -132,5 +132,23 @@ export default [
         }
       ]
     }
+  },
+  {
+    files: ["src/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          "paths": [
+            {
+              "name": "typescript",
+              "message":
+                "Importing the TS module is not allowed; only type imports are allowed. Use Nano.service(TypeScriptApi) instead.",
+              "allowTypeImports": true
+            }
+          ]
+        }
+      ]
+    }
   }
 ]

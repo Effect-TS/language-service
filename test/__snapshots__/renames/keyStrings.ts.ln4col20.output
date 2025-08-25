@@ -1,0 +1,6 @@
+// Result of running rename keyStrings at position 4:20
+import * as Context from "effect/Context"
+
+export class MyService extends Context.Tag("NewText")<MyService, {
+  hello: number
+}>() {}

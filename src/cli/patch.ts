@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-restricted-imports */
 import * as Command from "@effect/cli/Command"
 import * as Options from "@effect/cli/Options"
 import * as FileSystem from "@effect/platform/FileSystem"

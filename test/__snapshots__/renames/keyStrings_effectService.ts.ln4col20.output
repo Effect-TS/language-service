@@ -1,0 +1,6 @@
+// Result of running rename keyStrings at position 4:20
+import * as Effect from "effect/Effect"
+
+export class MyService extends Effect.Service<MyService>()("NewText", {
+  succeed: { value: 42 }
+}) {}
