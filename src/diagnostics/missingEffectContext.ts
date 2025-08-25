@@ -14,7 +14,6 @@ export const missingEffectContext = LSP.createDiagnostic({
   apply: Nano.fn("missingEffectContext.apply")(function*(sourceFile, report) {
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const checkForMissingContextTypes = (
@@ -36,9 +35,9 @@ export const missingEffectContext = LSP.createDiagnostic({
         )
       )
 
-    const sortTypes = ReadonlyArray.sort(typeOrder)
+    const sortTypes = ReadonlyArray.sort(typeCheckerUtils.deterministicTypeOrder)
 
-    const entries = yield* TypeCheckerApi.expectedAndRealType(sourceFile)
+    const entries = typeCheckerUtils.expectedAndRealType(sourceFile)
     for (const [node, expectedType, valueNode, realType] of entries) {
       // if the types are different, check for missing context types
       if (expectedType !== realType) {

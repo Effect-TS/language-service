@@ -5,6 +5,7 @@ import type * as ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
@@ -15,6 +16,7 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     function addReturnTypeAnnotation(
       sourceFile: ts.SourceFile,
@@ -86,11 +88,11 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
       })
     }
 
-    const returnType = yield* Nano.option(TypeCheckerApi.getInferredReturnType(node))
-    if (Option.isNone(returnType)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
+    const returnType = typeCheckerUtils.getInferredReturnType(node)
+    if (!returnType) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
     const returnTypeNode = typeChecker.typeToTypeNode(
-      returnType.value,
+      returnType,
       node,
       ts.NodeBuilderFlags.NoTruncation
     )

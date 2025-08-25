@@ -3,6 +3,7 @@ import * as Option from "effect/Option"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 import * as SchemaGen from "../utils/SchemaGen.js"
@@ -14,6 +15,7 @@ export const typeToEffectSchemaClass = LSP.createRefactor({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const maybeNode = yield* SchemaGen.findNodeToProcess(sourceFile, textRange)
 
@@ -27,7 +29,8 @@ export const typeToEffectSchemaClass = LSP.createRefactor({
         SchemaGen.applyAtNode(sourceFile, node, true),
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
         Nano.provideService(TypeScriptUtils.TypeScriptUtils, tsUtils),
-        Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
+        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provideService(TypeCheckerUtils.TypeCheckerUtils, typeCheckerUtils)
       )
     })
   })
