@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.36.0
+
+### Minor Changes
+
+- [#354](https://github.com/Effect-TS/language-service/pull/354) [`b4b4657`](https://github.com/Effect-TS/language-service/commit/b4b4657585286db479d30ac41e2e5406a5cd0044) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add LSP patch mode
+
+### Patch Changes
+
+- [#353](https://github.com/Effect-TS/language-service/pull/353) [`790d4d0`](https://github.com/Effect-TS/language-service/commit/790d4d07e3934cbc6631b8fd856ee3179e11520e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix CLI and LSP improvements:
+
+  - Remove deprecated check command from CLI
+  - Fix unpatch command to default to both typescript and tsc modules when no modules specified
+  - Add concatDiagnostics utility to prevent duplicate diagnostics in LSP
+
+- [#351](https://github.com/Effect-TS/language-service/pull/351) [`be5d851`](https://github.com/Effect-TS/language-service/commit/be5d8515b7844d17841a5012c16cc64056aaf351) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix TypeScript module reference in patch utility to use correct module name when patching TypeScript directly
+
+- [#349](https://github.com/Effect-TS/language-service/pull/349) [`46a1ef2`](https://github.com/Effect-TS/language-service/commit/46a1ef29c03579cbb05cd788daa27351e8b58bb8) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Introduce ts-patch less mode
+
 ## 0.35.2
 
 ### Patch Changes
