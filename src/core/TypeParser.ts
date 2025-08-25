@@ -155,6 +155,24 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  extendsDataTaggedError: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      keyStringLiteral: ts.StringLiteral | undefined
+      Data: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsDataTaggedClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      keyStringLiteral: ts.StringLiteral | undefined
+      Data: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
   extendsSchemaTaggedRequest: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
@@ -515,6 +533,27 @@ export function make(
       return node
     }),
     "TypeParser.importedEffectModule",
+    (node) => node
+  )
+
+  const importedDataModule = Nano.cachedBy(
+    Nano.fn("TypeParser.importedDataModule")(function*(
+      node: ts.Node
+    ) {
+      const type = typeChecker.getTypeAtLocation(node)
+      // if the type has a property "TaggedError" that is a function
+      const propertySymbol = typeChecker.getPropertyOfType(type, "TaggedError")
+      if (!propertySymbol) {
+        return yield* typeParserIssue("Type has no 'TaggedError' property", type, node)
+      }
+      // should be an expression
+      if (!ts.isExpression(node)) {
+        return yield* typeParserIssue("Node is not an expression", type, node)
+      }
+      // return the node itself
+      return node
+    }),
+    "TypeParser.importedDataModule",
     (node) => node
   )
 
@@ -1126,6 +1165,110 @@ export function make(
     (atLocation) => atLocation
   )
 
+  const extendsDataTaggedError = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsDataTaggedError")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            // Data.TaggedError("name")<{}>
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Data.TaggedError("name")
+              const dataTaggedErrorCall = expression
+              // Data.TaggedError
+              const dataIdentifier = dataTaggedErrorCall.expression
+              if (
+                ts.isPropertyAccessExpression(dataIdentifier) && ts.isIdentifier(dataIdentifier.name) &&
+                ts.idText(dataIdentifier.name) === "TaggedError"
+              ) {
+                const parsedDataModule = yield* pipe(
+                  importedDataModule(dataIdentifier.expression),
+                  Nano.option
+                )
+                if (Option.isSome(parsedDataModule)) {
+                  // For Data.TaggedError, the structure is: Data.TaggedError("name")<{}>
+                  // The string literal is in the single call expression
+                  return {
+                    className: atLocation.name,
+                    keyStringLiteral: dataTaggedErrorCall.arguments.length > 0 &&
+                        ts.isStringLiteral(dataTaggedErrorCall.arguments[0])
+                      ? dataTaggedErrorCall.arguments[0]
+                      : undefined,
+                    Data: parsedDataModule.value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Data.TaggedError", undefined, atLocation)
+    }),
+    "TypeParser.extendsDataTaggedError",
+    (atLocation) => atLocation
+  )
+
+  const extendsDataTaggedClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsDataTaggedClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            // Data.TaggedClass("name")<{}>
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Data.TaggedClass("name")
+              const dataTaggedClassCall = expression
+              // Data.TaggedClass
+              const dataIdentifier = dataTaggedClassCall.expression
+              if (
+                ts.isPropertyAccessExpression(dataIdentifier) && ts.isIdentifier(dataIdentifier.name) &&
+                ts.idText(dataIdentifier.name) === "TaggedClass"
+              ) {
+                const parsedDataModule = yield* pipe(
+                  importedDataModule(dataIdentifier.expression),
+                  Nano.option
+                )
+                if (Option.isSome(parsedDataModule)) {
+                  // For Data.TaggedClass, the structure is: Data.TaggedClass("name")<{}>
+                  // The string literal is in the single call expression
+                  return {
+                    className: atLocation.name,
+                    keyStringLiteral: dataTaggedClassCall.arguments.length > 0 &&
+                        ts.isStringLiteral(dataTaggedClassCall.arguments[0])
+                      ? dataTaggedClassCall.arguments[0]
+                      : undefined,
+                    Data: parsedDataModule.value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Data.TaggedClass", undefined, atLocation)
+    }),
+    "TypeParser.extendsDataTaggedClass",
+    (atLocation) => atLocation
+  )
+
   const extendsSchemaTaggedRequest = Nano.cachedBy(
     Nano.fn("TypeParser.extendsSchemaTaggedRequest")(function*(
       atLocation: ts.ClassDeclaration
@@ -1353,6 +1496,8 @@ export function make(
     extendsSchemaClass,
     extendsSchemaTaggedClass,
     extendsSchemaTaggedError,
+    extendsDataTaggedError,
+    extendsDataTaggedClass,
     extendsSchemaTaggedRequest
   }
 }

@@ -34,6 +34,8 @@ export const renameKeyStrings = (
           Nano.orElse(() =>
             Nano.map(typeParser.extendsSchemaTaggedError(parentClass), (_) => [_.keyStringLiteral, _.tagStringLiteral])
           ),
+          Nano.orElse(() => Nano.map(typeParser.extendsDataTaggedError(parentClass), (_) => [_.keyStringLiteral])),
+          Nano.orElse(() => Nano.map(typeParser.extendsDataTaggedClass(parentClass), (_) => [_.keyStringLiteral])),
           Nano.orElse(() =>
             Nano.map(
               typeParser.extendsSchemaTaggedRequest(parentClass),

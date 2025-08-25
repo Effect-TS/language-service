@@ -88,6 +88,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Toggle between pipe styles `X.pipe(Y)` and `pipe(X, Y)`
 
 ### Miscellaneous
+- Renaming a class name, will rename the identifier as well for TaggedError, TaggedClass, etc...
 - "Go to definition" for RpcClient will resolve to the Rpc definition
 
 ## Options
