@@ -1,0 +1,4 @@
+// Result of running rename keyStrings at position 4:20
+import * as Schema from "effect/Schema"
+
+export class MyService extends Schema.TaggedClass<MyService>("NewText")("NewText", {}) {}

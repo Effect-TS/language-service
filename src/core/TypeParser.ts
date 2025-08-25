@@ -106,6 +106,7 @@ export interface TypeParser {
       Service: ts.Type
       accessors: boolean | undefined
       dependencies: ts.NodeArray<ts.Expression> | undefined
+      keyStringLiteral: ts.StringLiteral | undefined
       options: ts.Expression
     },
     TypeParserIssue,
@@ -117,6 +118,7 @@ export interface TypeParser {
       selfTypeNode: ts.TypeNode
       args: ts.NodeArray<ts.Expression>
       Identifier: ts.Type
+      keyStringLiteral: ts.StringLiteral | undefined
       Tag: ts.Node
     },
     TypeParserIssue,
@@ -135,6 +137,8 @@ export interface TypeParser {
     {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
+      keyStringLiteral: ts.StringLiteral | undefined
+      tagStringLiteral: ts.StringLiteral | undefined
       Schema: ts.Node
     },
     TypeParserIssue,
@@ -144,6 +148,8 @@ export interface TypeParser {
     {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
+      keyStringLiteral: ts.StringLiteral | undefined
+      tagStringLiteral: ts.StringLiteral | undefined
       Schema: ts.Node
     },
     TypeParserIssue,
@@ -153,6 +159,8 @@ export interface TypeParser {
     {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
+      keyStringLiteral: ts.StringLiteral | undefined
+      tagStringLiteral: ts.StringLiteral | undefined
       Schema: ts.Node
     },
     TypeParserIssue,
@@ -1012,11 +1020,11 @@ export function make(
       for (const heritageClause of heritageClauses) {
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
+            // Schema.TaggedClass<T>("name")("tag", {})
             const expression = typeX.expression
-            // Schema.TaggedClass<T>("name")
-            if (ts.isCallExpression(expression)) {
+            if (ts.isCallExpression(expression) && expression.arguments.length > 0) {
+              // Schema.TaggedClass<T>("name")
               const schemaTaggedClassTCall = expression.expression
-              // Schema.TaggedClass<T>("name")("tag", {})
               if (
                 ts.isCallExpression(schemaTaggedClassTCall) && schemaTaggedClassTCall.typeArguments &&
                 schemaTaggedClassTCall.typeArguments.length > 0
@@ -1035,6 +1043,14 @@ export function make(
                     return {
                       className: atLocation.name,
                       selfTypeNode,
+                      keyStringLiteral: schemaTaggedClassTCall.arguments.length > 0 &&
+                          ts.isStringLiteral(schemaTaggedClassTCall.arguments[0])
+                        ? schemaTaggedClassTCall.arguments[0]
+                        : undefined,
+                      tagStringLiteral: expression.arguments.length > 0 &&
+                          ts.isStringLiteral(expression.arguments[0])
+                        ? expression.arguments[0]
+                        : undefined,
                       Schema: parsedSchemaModule.value
                     }
                   }
@@ -1064,11 +1080,11 @@ export function make(
       for (const heritageClause of heritageClauses) {
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
-            const expression = typeX.expression
             // Schema.TaggedError<T>("name")("tag", {})
+            const expression = typeX.expression
             if (ts.isCallExpression(expression)) {
+              // Schema.TaggedError<T>("name")
               const schemaTaggedErrorTCall = expression.expression
-              // Schema.TaggedError<T>("name")("tag", {})
               if (
                 ts.isCallExpression(schemaTaggedErrorTCall) && schemaTaggedErrorTCall.typeArguments &&
                 schemaTaggedErrorTCall.typeArguments.length > 0
@@ -1087,6 +1103,14 @@ export function make(
                     return {
                       className: atLocation.name,
                       selfTypeNode,
+                      keyStringLiteral: schemaTaggedErrorTCall.arguments.length > 0 &&
+                          ts.isStringLiteral(schemaTaggedErrorTCall.arguments[0])
+                        ? schemaTaggedErrorTCall.arguments[0]
+                        : undefined,
+                      tagStringLiteral: expression.arguments.length > 0 &&
+                          ts.isStringLiteral(expression.arguments[0])
+                        ? expression.arguments[0]
+                        : undefined,
                       Schema: parsedSchemaModule.value
                     }
                   }
@@ -1116,11 +1140,11 @@ export function make(
       for (const heritageClause of heritageClauses) {
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
-            const expression = typeX.expression
             // Schema.TaggedRequest<T>("name")("tag", {})
+            const expression = typeX.expression
             if (ts.isCallExpression(expression)) {
-              const schemaTaggedRequestTCall = expression.expression
               // Schema.TaggedRequest<T>("name")
+              const schemaTaggedRequestTCall = expression.expression
               if (
                 ts.isCallExpression(schemaTaggedRequestTCall) &&
                 schemaTaggedRequestTCall.typeArguments &&
@@ -1140,6 +1164,13 @@ export function make(
                     return {
                       className: atLocation.name,
                       selfTypeNode,
+                      tagStringLiteral: expression.arguments.length > 0 && ts.isStringLiteral(expression.arguments[0])
+                        ? expression.arguments[0]
+                        : undefined,
+                      keyStringLiteral: schemaTaggedRequestTCall.arguments.length > 0 &&
+                          ts.isStringLiteral(schemaTaggedRequestTCall.arguments[0])
+                        ? schemaTaggedRequestTCall.arguments[0]
+                        : undefined,
                       Schema: parsedSchemaModule.value
                     }
                   }
@@ -1194,6 +1225,9 @@ export function make(
                     return {
                       className: atLocation.name,
                       selfTypeNode,
+                      keyStringLiteral: ts.isStringLiteral(contextTagCall.arguments[0])
+                        ? contextTagCall.arguments[0]
+                        : undefined,
                       args: contextTagCall.arguments,
                       Identifier: tagType.Identifier,
                       Tag: parsedContextModule.value
@@ -1276,6 +1310,9 @@ export function make(
                       className: atLocation.name,
                       selfTypeNode,
                       args: wholeCall.arguments,
+                      keyStringLiteral: ts.isStringLiteral(wholeCall.arguments[0])
+                        ? wholeCall.arguments[0]
+                        : undefined,
                       options: wholeCall.arguments[1],
                       accessors,
                       dependencies

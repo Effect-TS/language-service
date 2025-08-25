@@ -20,6 +20,7 @@ import { goto } from "./goto.js"
 import { middlewareGenLike } from "./inlays/middlewareGenLike.js"
 import { quickInfo } from "./quickinfo.js"
 import { refactors } from "./refactors.js"
+import { renameKeyStrings } from "./renames/keyStrings.js"
 
 const LSP_INJECTED_URI = "@effect/language-service/injected"
 
@@ -455,6 +456,40 @@ const init = (
       }
 
       return applicableInlayHints
+    }
+
+    proxy.findRenameLocations = (fileName, position, findInStrings, findInComments, userPreferences, ...args) => {
+      const applicableRenameInfo = languageService.findRenameLocations(
+        fileName,
+        position,
+        findInStrings,
+        findInComments,
+        userPreferences as ts.UserPreferences,
+        ...args
+      )
+
+      if (languageServicePluginOptions.renames) {
+        const program = languageService.getProgram()
+        if (program) {
+          const sourceFile = program.getSourceFile(fileName)
+          if (sourceFile) {
+            return pipe(
+              renameKeyStrings(
+                sourceFile,
+                position,
+                findInStrings,
+                findInComments,
+                userPreferences as ts.UserPreferences,
+                applicableRenameInfo
+              ),
+              runNano(program),
+              Either.getOrElse(() => applicableRenameInfo)
+            )
+          }
+        }
+      }
+
+      return applicableRenameInfo
     }
 
     return proxy

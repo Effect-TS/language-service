@@ -19,6 +19,7 @@ export interface LanguageServicePluginOptions {
   namespaceImportPackages: Array<string>
   topLevelNamedReexports: "ignore" | "follow"
   barrelImportPackages: Array<string>
+  renames: boolean
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -49,7 +50,8 @@ export const defaults: LanguageServicePluginOptions = {
   allowedDuplicatedPackages: [],
   namespaceImportPackages: [],
   barrelImportPackages: [],
-  topLevelNamedReexports: "ignore"
+  topLevelNamedReexports: "ignore",
+  renames: true
 }
 
 export function parse(config: any): LanguageServicePluginOptions {
@@ -97,6 +99,9 @@ export function parse(config: any): LanguageServicePluginOptions {
         isString(config.topLevelNamedReexports) &&
         ["ignore", "follow"].includes(config.topLevelNamedReexports.toLowerCase())
       ? config.topLevelNamedReexports.toLowerCase() as "ignore" | "follow"
-      : defaults.topLevelNamedReexports
+      : defaults.topLevelNamedReexports,
+    renames: isObject(config) && hasProperty(config, "renames") && isBoolean(config.renames)
+      ? config.renames
+      : defaults.renames
   }
 }
