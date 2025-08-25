@@ -4,6 +4,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
+import type * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -193,7 +194,7 @@ export const processNode = (
   | TypeParametersNotSupportedError
   | OnlyLiteralPropertiesSupportedError
   | IndexSignatureWithMoreThanOneParameterError,
-  TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | SchemaGenContext
+  TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | TypeCheckerUtils.TypeCheckerUtils | SchemaGenContext
 > =>
   Nano.gen(function*() {
     const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, ts } = yield* Nano.service(

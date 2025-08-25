@@ -1,6 +1,7 @@
 import type * as ts from "typescript"
 import type * as Nano from "./core/Nano"
 import type * as TypeCheckerApi from "./core/TypeCheckerApi"
+import type * as TypeCheckerUtils from "./core/TypeCheckerUtils"
 import type * as TypeScriptApi from "./core/TypeScriptApi"
 import type * as TypeScriptUtils from "./core/TypeScriptUtils"
 import { effectRpcDefinition } from "./goto/effectRpcDefinition"
@@ -16,6 +17,7 @@ export function goto(
   | TypeScriptUtils.TypeScriptUtils
   | TypeScriptApi.TypeScriptProgram
   | TypeCheckerApi.TypeCheckerApi
+  | TypeCheckerUtils.TypeCheckerUtils
 > {
   return effectRpcDefinition(applicableGotoDefinition, sourceFile, position)
 }

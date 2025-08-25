@@ -20,7 +20,6 @@ export const missingEffectError = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
     const effectModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
       sourceFile,
@@ -60,9 +59,9 @@ export const missingEffectError = LSP.createDiagnostic({
         )
       )
 
-    const sortTypes = ReadonlyArray.sort(typeOrder)
+    const sortTypes = ReadonlyArray.sort(typeCheckerUtils.deterministicTypeOrder)
 
-    const entries = yield* TypeCheckerApi.expectedAndRealType(sourceFile)
+    const entries = typeCheckerUtils.expectedAndRealType(sourceFile)
     for (const [node, expectedType, valueNode, realType] of entries) {
       // if the types are different, check for missing error types
       if (expectedType !== realType) {

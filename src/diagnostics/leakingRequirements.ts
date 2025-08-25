@@ -17,7 +17,6 @@ export const leakingRequirements = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeOrder = yield* TypeCheckerApi.deterministicTypeOrder
 
     const parseLeakedRequirements = Nano.cachedBy(
       Nano.fn("leakingServices.checkServiceLeaking")(
@@ -138,7 +137,9 @@ export const leakingRequirements = LSP.createDiagnostic({
           Nano.flatMap(({ Service }) =>
             pipe(
               parseLeakedRequirements(Service, node),
-              Nano.map((requirements) => reportLeakingRequirements(reportAt, Array.sort(requirements, typeOrder)))
+              Nano.map((requirements) =>
+                reportLeakingRequirements(reportAt, Array.sort(requirements, typeCheckerUtils.deterministicTypeOrder))
+              )
             )
           ),
           Nano.orElse(() => Nano.sync(() => ts.forEachChild(node, appendNodeToVisit))),
