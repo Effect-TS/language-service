@@ -61,7 +61,8 @@ export const missingEffectError = LSP.createDiagnostic({
 
     const sortTypes = ReadonlyArray.sort(typeCheckerUtils.deterministicTypeOrder)
 
-    const entries = typeCheckerUtils.expectedAndRealType(sourceFile)
+    const entries = LSP.getEffectLspPatchSourceFileMetadata(sourceFile)?.relationErrors ||
+      typeCheckerUtils.expectedAndRealType(sourceFile)
     for (const [node, expectedType, valueNode, realType] of entries) {
       // if the types are different, check for missing error types
       if (expectedType !== realType) {
