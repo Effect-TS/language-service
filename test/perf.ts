@@ -22,13 +22,19 @@ function testAllDagnostics() {
   const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir()).filter((fileName) => fileName.endsWith(".ts"))
   // run a couple of times
   console.log("running a couple of times")
-  const totalSamples = 1000
+  const totalSamples = 5
   let totalTime = 0
-  for (const exampleFileName of allExampleFiles) {
-    const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), exampleFileName))
-      .toString("utf8")
-    const example = createServicesWithMockedVFS(exampleFileName, sourceText)
-    for (let i = -1; i < totalSamples; i++) {
+  let totalRuns = 0
+
+  for (let i = 0; i < totalSamples; i++) {
+    for (const exampleFileName of allExampleFiles) {
+      const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), exampleFileName))
+        .toString("utf8")
+      const example = createServicesWithMockedVFS(exampleFileName, sourceText)
+      totalRuns++
+      if (totalRuns % 10 === 0) {
+        console.log("executed ", totalRuns, " samples out of ", totalSamples * allExampleFiles.length)
+      }
       const start = performance.now()
       pipe(
         LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, example.sourceFile),
@@ -53,7 +59,7 @@ function testAllDagnostics() {
       if (i !== -1) totalTime += end - start
     }
   }
-  console.log(totalTime + " total " + (totalTime / totalSamples).toFixed(4) + " avg")
+  console.log(totalTime + " total " + (totalTime / totalRuns).toFixed(4) + " avg")
   console.log(Nano.getTimings().join("\n"))
 }
 

@@ -1336,9 +1336,6 @@ export function make(
       if (!atLocation.name) {
         return yield* typeParserIssue("Class has no name", undefined, atLocation)
       }
-      const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
-      if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
-      const type = typeChecker.getTypeOfSymbol(classSym)
       const heritageClauses = atLocation.heritageClauses
       if (!heritageClauses) {
         return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
@@ -1364,6 +1361,9 @@ export function make(
                     Nano.option
                   )
                   if (Option.isSome(parsedContextModule)) {
+                    const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+                    if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+                    const type = typeChecker.getTypeOfSymbol(classSym)
                     const tagType = yield* contextTag(type, atLocation)
                     return {
                       className: atLocation.name,
@@ -1395,9 +1395,6 @@ export function make(
       if (!atLocation.name) {
         return yield* typeParserIssue("Class has no name", undefined, atLocation)
       }
-      const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
-      if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
-      const type = typeChecker.getTypeOfSymbol(classSym)
       const heritageClauses = atLocation.heritageClauses
       if (!heritageClauses) {
         return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
@@ -1418,6 +1415,9 @@ export function make(
                   ts.isPropertyAccessExpression(effectServiceIdentifier) &&
                   ts.isIdentifier(effectServiceIdentifier.name) && ts.idText(effectServiceIdentifier.name) === "Service"
                 ) {
+                  const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+                  if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+                  const type = typeChecker.getTypeOfSymbol(classSym)
                   const parsedContextTag = yield* pipe(
                     importedEffectModule(effectServiceIdentifier.expression),
                     Nano.flatMap(() => contextTag(type, atLocation)),
