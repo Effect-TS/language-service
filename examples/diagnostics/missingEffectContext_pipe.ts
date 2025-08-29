@@ -5,4 +5,5 @@ class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
   succeed: { a: 1 }
 }) {}
 
+// @ts-expect-error
 pipe(ServiceA, Effect.flatMap(() => Effect.void), Effect.runPromise)
