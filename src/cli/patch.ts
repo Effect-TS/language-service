@@ -4,6 +4,7 @@ import * as Options from "@effect/cli/Options"
 import * as FileSystem from "@effect/platform/FileSystem"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import * as Option from "effect/Option"
 import * as ts from "typescript"
 import {
   applyTextChanges,
@@ -41,9 +42,13 @@ const moduleNames = Options.choice("module", [
 const getPatchesForModule = Effect.fn("getPatchesForModule")(
   function*(moduleName: "tsc" | "typescript", dirPath: string, version: string, sourceFile: ts.SourceFile) {
     const patches: Array<ts.TextChange> = []
-    let insertUtilsPosition = -1
-    let insertCheckSourceFilePosition = -1
-    let insertSkipPrecedingCommentDirectivePosition = -1
+    const insertUtilsPosition: Option.Option<{ position: number }> = Option.some({ position: 0 })
+    let insertClearSourceFileEffectMetadataPosition: Option.Option<{ position: number }> = Option.none()
+    let insertCheckSourceFilePosition: Option.Option<{ position: number }> = Option.none()
+    let insertSkipPrecedingCommentDirectivePosition: Option.Option<{ position: number }> = Option.none()
+    let insertAppendMetadataRelationErrorPosition: Option.Option<
+      { position: number; sourceIdentifier: string; targetIdentifier: string }
+    > = Option.none()
 
     // nodes where to start finding (optimization to avoid the entire file)
     const nodesToCheck: Array<ts.Node> = []
@@ -79,8 +84,11 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     }
 
     // the two positions we care about
-    if (!pushFunctionDeclarationNode("checkSourceFileWorker")) nodesToCheck.push(sourceFile)
-    if (!pushFunctionDeclarationNode("markPrecedingCommentDirectiveLine")) nodesToCheck.push(sourceFile)
+    let requiresFullScan = false
+    if (!pushFunctionDeclarationNode("checkSourceFileWorker")) requiresFullScan = true
+    if (!pushFunctionDeclarationNode("markPrecedingCommentDirectiveLine")) requiresFullScan = true
+    if (!pushFunctionDeclarationNode("reportRelationError")) requiresFullScan = true
+    if (requiresFullScan) nodesToCheck.push(sourceFile)
 
     // then find the checkSourceFile function, and insert the call to checking the effect lsp diagnostics
     while (nodesToCheck.length > 0) {
@@ -96,7 +104,18 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
             ts.isBlock(node.parent) && node.parent.statements.length > 0
           ) {
             const block = node.parent
-            insertCheckSourceFilePosition = block.statements[block.statements.length - 1].end
+            const parentFunctionDeclaration = ts.findAncestor(node, ts.isFunctionDeclaration)
+            if (
+              parentFunctionDeclaration && parentFunctionDeclaration.name &&
+              ts.isIdentifier(parentFunctionDeclaration.name) &&
+              ts.idText(parentFunctionDeclaration.name) === "checkSourceFileWorker"
+            ) {
+              // should be inside the function declaration
+              insertClearSourceFileEffectMetadataPosition = Option.some({ position: node.pos })
+              insertCheckSourceFilePosition = Option.some({
+                position: block.statements[block.statements.length - 1].end
+              })
+            }
           }
         }
       } else if (ts.isFunctionDeclaration(node)) {
@@ -104,7 +123,28 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
           node.name && ts.isIdentifier(node.name) && ts.idText(node.name) === "markPrecedingCommentDirectiveLine" &&
           node.body && node.body.statements.length > 0
         ) {
-          insertSkipPrecedingCommentDirectivePosition = node.body.statements[0].pos
+          insertSkipPrecedingCommentDirectivePosition = Option.some({ position: node.body.statements[0].pos })
+        }
+
+        if (
+          node.name && ts.isIdentifier(node.name) && ts.idText(node.name) === "reportRelationError" &&
+          node.body && node.body.statements.length > 0 && node.parameters.length >= 3
+        ) {
+          const sourceIdentifier =
+            node.parameters[1] && ts.isParameter(node.parameters[1]) && ts.isIdentifier(node.parameters[1].name)
+              ? ts.idText(node.parameters[1].name)
+              : undefined
+          const targetIdentifier =
+            node.parameters[2] && ts.isParameter(node.parameters[2]) && ts.isIdentifier(node.parameters[2].name)
+              ? ts.idText(node.parameters[2].name)
+              : undefined
+          if (sourceIdentifier && targetIdentifier) {
+            insertAppendMetadataRelationErrorPosition = Option.some({
+              position: node.body.statements[0].pos,
+              sourceIdentifier,
+              targetIdentifier
+            })
+          }
         }
       }
 
@@ -115,16 +155,15 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     }
 
     // insert the utils
-    insertUtilsPosition = 0
-    if (insertUtilsPosition === -1) {
+    if (Option.isNone(insertUtilsPosition)) {
       return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "effect lsp utils insertion" }))
     }
     if (moduleName !== "typescript") {
       patches.push(
         yield* makeEffectLspPatchChange(
           sourceFile.text,
-          insertUtilsPosition,
-          insertUtilsPosition,
+          insertUtilsPosition.value.position,
+          insertUtilsPosition.value.position,
           "\n" + (yield* getTypeScriptApisUtils(dirPath)) + "\n",
           "",
           version
@@ -134,23 +173,40 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     patches.push(
       yield* makeEffectLspPatchChange(
         sourceFile.text,
-        insertUtilsPosition,
-        insertUtilsPosition,
+        insertUtilsPosition.value.position,
+        insertUtilsPosition.value.position,
         "\n" + (yield* getEffectLspPatchUtils()) + "\n",
         "",
         version
       )
     )
 
+    // insert the clearSourceFileMetadata call
+    if (Option.isNone(insertClearSourceFileEffectMetadataPosition)) {
+      return yield* Effect.fail(
+        new UnableToFindPositionToPatchError({ positionToFind: "clearSourceFileEffectMetadata" })
+      )
+    }
+    patches.push(
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
+        insertClearSourceFileEffectMetadataPosition.value.position,
+        insertClearSourceFileEffectMetadataPosition.value.position,
+        `effectLspPatchUtils.exports.clearSourceFileEffectMetadata(node)\n`,
+        "\n",
+        version
+      )
+    )
+
     // insert the checkSourceFile call
-    if (insertCheckSourceFilePosition === -1) {
+    if (Option.isNone(insertCheckSourceFilePosition)) {
       return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "checkSourceFileWorker" }))
     }
     patches.push(
       yield* makeEffectLspPatchChange(
         sourceFile.text,
-        insertCheckSourceFilePosition,
-        insertCheckSourceFilePosition,
+        insertCheckSourceFilePosition.value.position,
+        insertCheckSourceFilePosition.value.position,
         `effectLspPatchUtils.exports.checkSourceFileWorker(${
           moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis"
         }, host, node, compilerOptions, diagnostics.add)\n`,
@@ -159,8 +215,28 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
       )
     )
 
+    // insert the appendMetadataRelationError call
+    if (Option.isNone(insertAppendMetadataRelationErrorPosition)) {
+      return yield* Effect.fail(
+        new UnableToFindPositionToPatchError({ positionToFind: "appendMetadataRelationError" })
+      )
+    }
+    const { sourceIdentifier, targetIdentifier } = insertAppendMetadataRelationErrorPosition.value
+    patches.push(
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
+        insertAppendMetadataRelationErrorPosition.value.position,
+        insertAppendMetadataRelationErrorPosition.value.position,
+        `effectLspPatchUtils.exports.appendMetadataRelationError(${
+          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis"
+        }, errorNode, ${sourceIdentifier}, ${targetIdentifier})\n`,
+        "\n",
+        version
+      )
+    )
+
     // insert the skip preceding comment directive
-    if (insertSkipPrecedingCommentDirectivePosition === -1) {
+    if (Option.isNone(insertSkipPrecedingCommentDirectivePosition)) {
       return yield* Effect.fail(
         new UnableToFindPositionToPatchError({ positionToFind: "skip preceding comment directive" })
       )
@@ -168,8 +244,8 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     patches.push(
       yield* makeEffectLspPatchChange(
         sourceFile.text,
-        insertSkipPrecedingCommentDirectivePosition,
-        insertSkipPrecedingCommentDirectivePosition,
+        insertSkipPrecedingCommentDirectivePosition.value.position,
+        insertSkipPrecedingCommentDirectivePosition.value.position,
         "if(diagnostic && diagnostic.source === \"effect\"){ return -1; }\n",
         "\n",
         version

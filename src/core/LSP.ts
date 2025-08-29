@@ -537,3 +537,22 @@ export const getEditsForCodegen = Nano.fn("LSP.getEditsForCodegen")(function*(
     ignore: updateHashComment
   } satisfies ApplicableCodegenDefinition & { ignore: Nano.Nano<void, never, ts.textChanges.ChangeTracker> }
 })
+
+export interface EffectLspPatchSourceFileMetadata {
+  relationErrors: Array<[node: ts.Node, expectedType: ts.Type, valueNode: ts.Node, realType: ts.Type]>
+}
+
+export const getEffectLspPatchSourceFileMetadata = (
+  sourceFile: ts.SourceFile
+): EffectLspPatchSourceFileMetadata | undefined => {
+  return (sourceFile as any)["@effect-lsp-patch/metadata"]
+}
+
+export const getOrDefaultEffectLspPatchSourceFileMetadata = (
+  sourceFile: ts.SourceFile
+): EffectLspPatchSourceFileMetadata => {
+  return getEffectLspPatchSourceFileMetadata(sourceFile) ||
+    ((sourceFile as any)["@effect-lsp-patch/metadata"] = {
+      relationErrors: []
+    })
+}
