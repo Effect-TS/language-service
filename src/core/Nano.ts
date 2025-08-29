@@ -164,6 +164,7 @@ class NanoFiber {
   _yielded: NanoExit | undefined = undefined
   _services: Record<string, any> = {}
   _cache: Record<string, WeakMap<any, any>> = {}
+  _perf: boolean = false
 
   runLoop(nano: Nano<any, any, any>) {
     let current: NanoPrimitive | NanoYield = nano
@@ -192,6 +193,39 @@ class NanoFiber {
     this._yielded = value
     return NanoYield
   }
+}
+
+const timings: Record<string, number> = {}
+const timingsCount: Record<string, number> = {}
+const WithSpanProto: NanoPrimitive = {
+  ...PrimitiveProto,
+  [evaluate](fiber) {
+    const [fa, name]: [Nano<any, any, any>, string] = this[args]
+    if (!fiber._perf) return fa
+    const start = performance.now()
+    timingsCount[name] = (timingsCount[name] || 0) + 1
+    return match(fa, {
+      onSuccess: (_) => {
+        const end = performance.now()
+        timings[name] = (timings[name] || 0) + (end - start)
+        return succeed(_)
+      },
+      onFailure: (_) => {
+        const end = performance.now()
+        timings[name] = (timings[name] || 0) + (end - start)
+        return fail(_)
+      }
+    })
+  }
+}
+
+export const withSpan = (
+  name: string
+) =>
+<A, E, R>(fa: Nano<A, E, R>): Nano<A, E, R> => {
+  const nano = Object.create(WithSpanProto)
+  nano[args] = [fa, name]
+  return nano
 }
 
 export const unsafeRun = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
@@ -305,7 +339,7 @@ export const fn = (_: string) =>
   [Eff] extends [never] ? never
     : [Eff] extends [Nano<infer _A, infer _E, infer R>] ? R
     : never
-> => suspend(() => unsafeFromIterator(body(...args)))
+> => withSpan(_)(suspend(() => unsafeFromIterator(body(...args))))
 
 const MatchProto: NanoPrimitive = {
   ...PrimitiveProto,
@@ -464,4 +498,19 @@ export const all: <A extends Array<Nano<any, any, any>>>(
   }
 )
 
-export const getTimings = () => [] as Array<string>
+export const getTimings = () => {
+  const result: Array<[name: string, avg: number, hits: number, total: number]> = []
+  for (const key in timings) {
+    result.push([key, timings[key] / (timingsCount[key] || 1), timingsCount[key], timings[key]])
+  }
+  result.sort((a, b) => b[3] - a[3])
+  const lines: Array<string> = []
+  for (const [name, avg, hits, total] of result) {
+    lines.push(
+      `${name.padEnd(75)} tot ${total.toFixed(2).padStart(10)}ms avg ${avg.toFixed(2).padStart(10)}ms ${
+        hits.toString().padStart(10)
+      } hits`
+    )
+  }
+  return lines
+}
