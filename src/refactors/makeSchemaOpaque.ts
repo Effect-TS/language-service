@@ -172,15 +172,15 @@ export const makeSchemaOpaque = LSP.createRefactor({
             "Schema"
           ) || "Schema"
 
-          const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
+          const newIdentifier = ts.factory.createIdentifier(ts.idText(identifier) + "_")
           const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,
-            newIdentifier.text,
+            ts.idText(newIdentifier),
             types.A,
-            identifier.text,
+            ts.idText(identifier),
             types.I,
-            identifier.text + "Encoded",
-            identifier.text + "Context"
+            ts.idText(identifier) + "Encoded",
+            ts.idText(identifier) + "Context"
           )
 
           changeTracker.replaceNode(
@@ -208,10 +208,10 @@ export const makeSchemaOpaque = LSP.createRefactor({
             variableStatement.modifiers,
             ts.factory.createVariableDeclarationList(
               [ts.factory.createVariableDeclaration(
-                identifier.text,
+                ts.idText(identifier),
                 undefined,
                 newSchemaType,
-                ts.factory.createIdentifier(newIdentifier.text)
+                ts.factory.createIdentifier(ts.idText(newIdentifier))
               )],
               variableDeclarationList.flags
             )

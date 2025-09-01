@@ -381,7 +381,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       fnCall = ts.factory.createCallExpression(
         fnCall,
         undefined,
-        [ts.factory.createStringLiteral(fnName.text)]
+        [ts.factory.createStringLiteral(ts.idText(fnName))]
       )
     }
     return tryPreserveDeclarationSemantics(
@@ -473,7 +473,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
       if (!namedBindings) continue
       if (ts.isNamespaceImport(namedBindings)) {
         if (test(namedBindings.name, statement.moduleSpecifier, Option.none())) {
-          return (namedBindings.name.text)
+          return ts.idText(namedBindings.name)
         }
       } else if (ts.isNamedImports(namedBindings)) {
         for (const importSpecifier of namedBindings.elements) {
@@ -481,7 +481,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
             Option.orElse(() => Option.some(importSpecifier.name))
           )
           if (test(importSpecifier.name, statement.moduleSpecifier, importProperty)) {
-            return (importSpecifier.name.text)
+            return ts.idText(importSpecifier.name)
           }
         }
       }
@@ -508,7 +508,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
         // import { Module as M } from "package"
         if (
           Option.isSome(importProperty) && ts.isIdentifier(importProperty.value) &&
-          importProperty.value.text === moduleName && ts.isStringLiteral(fromModule) &&
+          ts.idText(importProperty.value) === moduleName && ts.isStringLiteral(fromModule) &&
           fromModule.text === packageName
         ) {
           return true

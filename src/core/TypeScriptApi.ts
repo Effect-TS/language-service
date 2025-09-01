@@ -145,6 +145,11 @@ declare module "typescript" {
   export interface TypeChecker {
     getUnionType(types: ReadonlyArray<ts.Type>): ts.Type
   }
+
+  interface Identifier {
+    /** @deprecated Use the `ts.idText(node)` method instead */
+    readonly text: string
+  }
 }
 
 type _TypeScriptApi = typeof ts

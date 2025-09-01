@@ -66,7 +66,7 @@ export const effectGenToFn = LSP.createRefactor({
 
     return ({
       kind: "refactor.rewrite.effect.effectGenToFn",
-      description: fnIdentifier ? `Convert to Effect.fn("${fnIdentifier.text}")` : "Convert to Effect.fn",
+      description: fnIdentifier ? `Convert to Effect.fn("${ts.idText(fnIdentifier)}")` : "Convert to Effect.fn",
       apply: pipe(
         Nano.gen(function*() {
           const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
@@ -80,7 +80,7 @@ export const effectGenToFn = LSP.createRefactor({
                 "fn"
               ),
               undefined,
-              [ts.factory.createStringLiteral(fnIdentifier.text)]
+              [ts.factory.createStringLiteral(ts.idText(fnIdentifier))]
             ) :
             ts.factory.createPropertyAccessExpression(
               effectModule,

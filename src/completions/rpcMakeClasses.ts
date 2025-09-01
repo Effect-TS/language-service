@@ -21,8 +21,8 @@ export const rpcMakeClasses = LSP.createCompletion({
     ) || "Rpc"
 
     // ensure accessed is an identifier
-    if (rpcIdentifier !== accessedObject.text) return []
-    const name = className.text
+    if (rpcIdentifier !== ts.idText(accessedObject)) return []
+    const name = ts.idText(className)
 
     return [{
       name: `make("${name}")`,

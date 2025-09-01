@@ -26,14 +26,15 @@ export function effectRpcDefinition(
 
     function isSymbolFromEffectRpcModule(symbol: ts.Symbol) {
       if (symbol.valueDeclaration) {
-        const sourceFile = symbol.valueDeclaration.getSourceFile()
-
-        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(sourceFile)
-        if (packageInfo && packageInfo.name === "@effect/rpc") {
-          const fileSymbol = typeChecker.getSymbolAtLocation(sourceFile)
-          return fileSymbol && fileSymbol.exports && fileSymbol.exports.has("isRpc" as any) &&
-            fileSymbol.exports.has("make" as any) &&
-            fileSymbol.exports.has("fromTaggedRequest" as any)
+        const sourceFile = tsUtils.getSourceFileOfNode(symbol.valueDeclaration)
+        if (sourceFile) {
+          const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(sourceFile)
+          if (packageInfo && packageInfo.name === "@effect/rpc") {
+            const fileSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+            return fileSymbol && fileSymbol.exports && fileSymbol.exports.has("isRpc" as any) &&
+              fileSymbol.exports.has("make" as any) &&
+              fileSymbol.exports.has("fromTaggedRequest" as any)
+          }
         }
       }
       return false
@@ -41,13 +42,14 @@ export function effectRpcDefinition(
 
     function isSymbolFromEffectRpcClientModule(symbol: ts.Symbol) {
       if (symbol.valueDeclaration) {
-        const sourceFile = symbol.valueDeclaration.getSourceFile()
-
-        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(sourceFile)
-        if (packageInfo && packageInfo.name === "@effect/rpc") {
-          const fileSymbol = typeChecker.getSymbolAtLocation(sourceFile)
-          return fileSymbol && fileSymbol.exports && fileSymbol.exports.has("RpcClient" as any) &&
-            fileSymbol.exports.has("make" as any)
+        const sourceFile = tsUtils.getSourceFileOfNode(symbol.valueDeclaration)
+        if (sourceFile) {
+          const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(sourceFile)
+          if (packageInfo && packageInfo.name === "@effect/rpc") {
+            const fileSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+            return fileSymbol && fileSymbol.exports && fileSymbol.exports.has("RpcClient" as any) &&
+              fileSymbol.exports.has("make" as any)
+          }
         }
       }
       return false
@@ -66,7 +68,7 @@ export function effectRpcDefinition(
         for (const callSig of typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)) {
           // we detect if it is an RPC api based on where the options simbol is declared from
           if (callSig.parameters.length >= 2 && isSymbolFromEffectRpcClientModule(callSig.parameters[1])) {
-            rpcName = node.name.text
+            rpcName = ts.idText(node.name)
             callNode = node.name
           }
         }
@@ -109,7 +111,7 @@ export function effectRpcDefinition(
         if (
           ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
           ts.isIdentifier(node.expression.name) &&
-          (node.expression.name.text === "make" || node.expression.name.text === "fromTaggedRequest")
+          (ts.idText(node.expression.name) === "make" || ts.idText(node.expression.name) === "fromTaggedRequest")
         ) {
           const symbol = typeChecker.getSymbolAtLocation(node.expression.name)
           if (symbol && isSymbolFromEffectRpcModule(symbol)) {

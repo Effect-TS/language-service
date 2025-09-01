@@ -581,7 +581,7 @@ export function make(
       }
       const propertyAccess = node.expression
       // gen
-      if (propertyAccess.name.text !== "gen") {
+      if (!(ts.isIdentifier(propertyAccess.name) && ts.idText(propertyAccess.name) === "gen")) {
         return typeParserIssue("Call expression name is not 'gen'", undefined, node)
       }
       // check Effect module
@@ -632,7 +632,7 @@ export function make(
       }
       const propertyAccess = node.expression
       // gen
-      if (propertyAccess.name.text !== "fnUntraced") {
+      if (!(ts.isIdentifier(propertyAccess.name) && ts.idText(propertyAccess.name) === "fnUntraced")) {
         return typeParserIssue(
           "Call expression name is not 'fnUntraced'",
           undefined,
@@ -694,7 +694,7 @@ export function make(
       }
       const propertyAccess = expressionToTest
       // fn
-      if (propertyAccess.name.text !== "fn") {
+      if (!(ts.isIdentifier(propertyAccess.name) && ts.idText(propertyAccess.name) === "fn")) {
         return typeParserIssue(
           "Call expression name is not 'fn'",
           undefined,
@@ -905,7 +905,7 @@ export function make(
 
       // pipe(A, B, ...)
       if (
-        ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "pipe" &&
+        ts.isCallExpression(node) && ts.isIdentifier(node.expression) && ts.idText(node.expression) === "pipe" &&
         node.arguments.length > 0
       ) {
         const [subject, ...args] = node.arguments

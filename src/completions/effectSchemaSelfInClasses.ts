@@ -21,8 +21,8 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
     ) || "Schema"
 
     // ensure accessed is an identifier
-    if (schemaIdentifier !== accessedObject.text) return []
-    const name = className.text
+    if (schemaIdentifier !== ts.idText(accessedObject)) return []
+    const name = ts.idText(className)
 
     return [{
       name: `Class<${name}>`,

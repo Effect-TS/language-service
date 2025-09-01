@@ -29,12 +29,12 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
             "Schema"
           ) || "Schema"
 
-          const newIdentifier = ts.factory.createIdentifier(identifier.text + "_")
+          const newIdentifier = ts.factory.createIdentifier(ts.idText(identifier) + "_")
           const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,
-            newIdentifier.text,
+            ts.idText(newIdentifier),
             types.A,
-            identifier.text,
+            ts.idText(identifier),
             types.I,
             "Encoded",
             "Context"
@@ -42,7 +42,7 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
 
           const namespace = ts.factory.createModuleDeclaration(
             [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-            ts.factory.createIdentifier(identifier.text),
+            ts.factory.createIdentifier(ts.idText(identifier)),
             ts.factory.createModuleBlock([
               encodedType,
               contextType
@@ -58,6 +58,8 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
           changeTracker.insertNodeAfter(sourceFile, variableStatement, opaqueType)
           changeTracker.insertNodeAfter(sourceFile, variableStatement, namespace)
 
+          const namespaceName = ts.isStringLiteral(namespace.name) ? namespace.name.text : ts.idText(namespace.name)
+
           // insert new declaration
           const newSchemaType = ts.factory.createTypeReferenceNode(
             ts.factory.createQualifiedName(
@@ -68,13 +70,15 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
               ts.factory.createTypeReferenceNode(opaqueType.name),
               ts.factory.createTypeReferenceNode(
                 ts.factory.createQualifiedName(
-                  ts.factory.createIdentifier(namespace.name.text),
-                  encodedType.name
+                  ts.factory.createIdentifier(
+                    namespaceName
+                  ),
+                  ts.idText(encodedType.name)
                 )
               ),
               ts.factory.createTypeReferenceNode(ts.factory.createQualifiedName(
-                ts.factory.createIdentifier(namespace.name.text),
-                contextType.name
+                ts.factory.createIdentifier(namespaceName),
+                ts.idText(contextType.name)
               ))
             ]
           )
@@ -82,10 +86,10 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
             variableStatement.modifiers,
             ts.factory.createVariableDeclarationList(
               [ts.factory.createVariableDeclaration(
-                identifier.text,
+                ts.idText(identifier),
                 undefined,
                 newSchemaType,
-                ts.factory.createIdentifier(newIdentifier.text)
+                ts.factory.createIdentifier(ts.idText(newIdentifier))
               )],
               variableDeclarationList.flags
             )
