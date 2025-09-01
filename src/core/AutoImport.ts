@@ -11,7 +11,8 @@ interface ImportKindNamed {
   moduleName: string | undefined
   fileName: string
   name: string
-  introducedPrefix?: string
+  aliasName: string | undefined
+  introducedPrefix: string | undefined
 }
 
 interface ImportKindNamespace {
@@ -19,6 +20,7 @@ interface ImportKindNamespace {
   moduleName: string | undefined
   fileName: string
   name: string
+  aliasName: string | undefined
   introducedPrefix: string | undefined
 }
 
@@ -271,6 +273,12 @@ export const makeAutoImportProvider: (
     return moduleSpecifier
   }
 
+  const resolveAliasName = (chosenName: string) => {
+    const aliasName = languageServicePluginOptions.importAliases[chosenName]
+    if (aliasName) return aliasName
+    return undefined
+  }
+
   const resolve = (exportFileName: string, exportName: string): ImportKindNamed | ImportKindNamespace | undefined => {
     // case 0) excluded
     const excludedExports = mapFilenameToExportExcludes.get(exportFileName)
@@ -284,7 +292,9 @@ export const makeAutoImportProvider: (
           _tag: "NamedImport",
           fileName: reexportedFile.fileName,
           moduleName: resolveModuleName(reexportedFile.fileName),
-          name: exportName
+          name: exportName,
+          aliasName: resolveAliasName(exportName),
+          introducedPrefix: undefined
         })
       }
     }
@@ -300,6 +310,7 @@ export const makeAutoImportProvider: (
             fileName: namespacedFileName,
             moduleName: resolveModuleName(namespacedFileName),
             name: introducedAlias,
+            aliasName: resolveAliasName(introducedAlias),
             introducedPrefix: undefined
           })
         }
@@ -313,7 +324,8 @@ export const makeAutoImportProvider: (
         fileName: exportFileName,
         moduleName: resolveModuleName(exportFileName),
         name: introducedAlias,
-        introducedPrefix: introducedAlias
+        aliasName: resolveAliasName(introducedAlias),
+        introducedPrefix: resolveAliasName(introducedAlias) || introducedAlias
       })
     }
     // case 4) barrel import { succeed } from "effect/Effect"
@@ -324,7 +336,8 @@ export const makeAutoImportProvider: (
         fileName: mapToBarrel.fileName,
         moduleName: resolveModuleName(mapToBarrel.fileName),
         name: mapToBarrel.alias,
-        introducedPrefix: mapToBarrel.alias
+        aliasName: resolveAliasName(mapToBarrel.alias),
+        introducedPrefix: resolveAliasName(mapToBarrel.alias) || mapToBarrel.alias
       })
     }
   }
@@ -429,8 +442,9 @@ export const addImport = (
   // add the import based on the style
   switch (effectAutoImport._tag) {
     case "NamespaceImport": {
+      const aliasName = effectAutoImport.aliasName || effectAutoImport.name
       const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
-      description = `Import * as ${effectAutoImport.name} from "${importModule}"`
+      description = `Import * as ${aliasName} from "${importModule}"`
       ts.insertImports(
         changeTracker,
         sourceFile,
@@ -439,7 +453,7 @@ export const addImport = (
           ts.factory.createImportClause(
             false,
             undefined,
-            ts.factory.createNamespaceImport(ts.factory.createIdentifier(effectAutoImport.name))
+            ts.factory.createNamespaceImport(ts.factory.createIdentifier(aliasName))
           ),
           ts.factory.createStringLiteral(importModule)
         ),
@@ -450,7 +464,11 @@ export const addImport = (
     }
     case "NamedImport": {
       const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
-      description = `Import { ${effectAutoImport.name} } from "${importModule}"`
+      if (effectAutoImport.aliasName) {
+        description = `Import { ${effectAutoImport.name} as ${effectAutoImport.aliasName} } from "${importModule}"`
+      } else {
+        description = `Import { ${effectAutoImport.name} } from "${importModule}"`
+      }
       // loop through the import declarations of the source file
       // and see if we can find the import declaration that is importing the barrel file
       let foundImportDeclaration = false
@@ -464,9 +482,13 @@ export const addImport = (
             const importClause = statement.importClause
             if (importClause && importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
               const namedImports = importClause.namedBindings
-              const existingImportSpecifier = namedImports.elements.find((element) =>
-                element.name.text === effectAutoImport.name
-              )
+              const existingImportSpecifier = namedImports.elements.find((element) => {
+                if (effectAutoImport.aliasName) {
+                  return element.name.text === effectAutoImport.name &&
+                    element.propertyName?.text === effectAutoImport.aliasName
+                }
+                return element.name.text === effectAutoImport.name
+              })
               // the import already exists, we can exit
               if (existingImportSpecifier) {
                 foundImportDeclaration = true
@@ -480,8 +502,8 @@ export const addImport = (
                   namedImports.elements.concat([
                     ts.factory.createImportSpecifier(
                       false,
-                      undefined,
-                      ts.factory.createIdentifier(effectAutoImport.name)
+                      effectAutoImport.aliasName ? ts.factory.createIdentifier(effectAutoImport.name) : undefined,
+                      ts.factory.createIdentifier(effectAutoImport.aliasName || effectAutoImport.name)
                     )
                   ])
                 )
@@ -505,8 +527,8 @@ export const addImport = (
                 [
                   ts.factory.createImportSpecifier(
                     false,
-                    undefined,
-                    ts.factory.createIdentifier(effectAutoImport.name)
+                    effectAutoImport.aliasName ? ts.factory.createIdentifier(effectAutoImport.name) : undefined,
+                    ts.factory.createIdentifier(effectAutoImport.aliasName || effectAutoImport.name)
                   )
                 ]
               )

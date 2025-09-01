@@ -2,6 +2,7 @@ import { isArray } from "effect/Array"
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import { hasProperty, isBoolean, isObject, isRecord, isString } from "effect/Predicate"
+import * as Record from "effect/Record"
 import * as Nano from "./Nano"
 
 export type DiagnosticSeverity = "error" | "warning" | "message" | "suggestion"
@@ -19,6 +20,7 @@ export interface LanguageServicePluginOptions {
   namespaceImportPackages: Array<string>
   topLevelNamedReexports: "ignore" | "follow"
   barrelImportPackages: Array<string>
+  importAliases: Record<string, string>
   renames: boolean
 }
 
@@ -49,8 +51,9 @@ export const defaults: LanguageServicePluginOptions = {
   inlays: true,
   allowedDuplicatedPackages: [],
   namespaceImportPackages: [],
-  barrelImportPackages: [],
   topLevelNamedReexports: "ignore",
+  barrelImportPackages: [],
+  importAliases: {},
   renames: true
 }
 
@@ -95,6 +98,9 @@ export function parse(config: any): LanguageServicePluginOptions {
         isArray(config.barrelImportPackages) && config.barrelImportPackages.every(isString)
       ? config.barrelImportPackages.map((_) => _.toLowerCase())
       : defaults.barrelImportPackages,
+    importAliases: isObject(config) && hasProperty(config, "importAliases") && isRecord(config.importAliases)
+      ? Record.map(config.importAliases, (value) => String(value))
+      : defaults.importAliases,
     topLevelNamedReexports: isObject(config) && hasProperty(config, "topLevelNamedReexports") &&
         isString(config.topLevelNamedReexports) &&
         ["ignore", "follow"].includes(config.topLevelNamedReexports.toLowerCase())

@@ -58,6 +58,7 @@ function testAutoImport(
 }
 
 describe("autoimport", () => {
+  // NAMESPACE IMPORT
   describe("namespace import", () => {
     it("import { Effect } from 'effect'", () => {
       const { result, toFilename } = testAutoImport("Effect", "effect", { namespaceImportPackages: ["effect"] })
@@ -121,7 +122,23 @@ describe("autoimport", () => {
         introducedPrefix: undefined
       })
     })
+    it("import { Array as Arr } from 'effect/Array'", () => {
+      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
+        namespaceImportPackages: ["effect"],
+        importAliases: { Array: "Arr" }
+      })
+      expect(result).toEqual({
+        _tag: "NamespaceImport",
+        fileName: toFilename("effect/Array"),
+        moduleName: "effect/Array",
+        name: "Array",
+        aliasName: "Arr",
+        introducedPrefix: "Arr"
+      })
+    })
   })
+
+  // BARREL IMPORT
   describe("barrel import", () => {
     it("import { succeed } from 'effect/Effect'", () => {
       const { result, toFilename } = testAutoImport("succeed", "effect/Effect", { barrelImportPackages: ["effect"] })
@@ -143,6 +160,20 @@ describe("autoimport", () => {
         topLevelNamedReexports: "follow"
       })
       expect(result).toBeUndefined()
+    })
+    it("import { Array as Arr } from 'effect/Array'", () => {
+      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
+        barrelImportPackages: ["effect"],
+        importAliases: { Array: "Arr" }
+      })
+      expect(result).toEqual({
+        _tag: "NamedImport",
+        fileName: toFilename("effect"),
+        moduleName: "effect",
+        name: "Array",
+        aliasName: "Arr",
+        introducedPrefix: "Arr"
+      })
     })
   })
 })
