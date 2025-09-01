@@ -24,7 +24,7 @@ export const schemaBrand = LSP.createCompletion({
       "Schema"
     ) || "Schema"
 
-    if (schemaName !== accessedObject.text) return []
+    if (schemaName !== ts.idText(accessedObject)) return []
 
     const span = ts.createTextSpan(
       accessedObject.end + 1,
@@ -34,7 +34,7 @@ export const schemaBrand = LSP.createCompletion({
     return pipe(
       tsUtils.getAncestorNodesInRange(sourceFile, tsUtils.toTextRange(accessedObject.pos)),
       Array.filter(ts.isVariableDeclaration),
-      Array.map((_) => _.name && ts.isIdentifier(_.name) ? _.name.text : ""),
+      Array.map((_) => _.name && ts.isIdentifier(_.name) ? ts.idText(_.name) : ""),
       Array.filter((_) => _.length > 0),
       Array.head,
       Option.map((name) => [

@@ -78,7 +78,7 @@ export const makeAutoImportProvider: (
         namespaceExports.push({
           moduleSpecifier,
           exportClause,
-          name: exportClause.name.text
+          name: ts.idText(exportClause.name)
         })
       }
       if (ts.isNamedExports(exportClause)) {
@@ -89,8 +89,8 @@ export const makeAutoImportProvider: (
           namedExports.push({
             moduleSpecifier,
             exportClause,
-            name: exportName.text,
-            aliasName: exportSpecifier.name.text
+            name: ts.idText(exportName),
+            aliasName: ts.idText(exportSpecifier.name)
           })
         }
       }
@@ -396,7 +396,7 @@ export const parseImportOnlyChanges = Nano.fn("parseImportOnlyChanges")(function
           if (ts.isNamedImports(namedBindings)) {
             for (const importSpecifier of namedBindings.elements) {
               if (!ts.isIdentifier(importSpecifier.name)) return
-              const exportName = importSpecifier.name.text
+              const exportName = ts.idText(importSpecifier.name)
               imports.push({ moduleName, exportName })
               continue
             }
@@ -484,10 +484,11 @@ export const addImport = (
               const namedImports = importClause.namedBindings
               const existingImportSpecifier = namedImports.elements.find((element) => {
                 if (effectAutoImport.aliasName) {
-                  return element.name.text === effectAutoImport.name &&
-                    element.propertyName?.text === effectAutoImport.aliasName
+                  return ts.idText(element.name) === effectAutoImport.name && element.propertyName &&
+                    ts.isIdentifier(element.propertyName) &&
+                    ts.idText(element.propertyName) === effectAutoImport.aliasName
                 }
-                return element.name.text === effectAutoImport.name
+                return ts.idText(element.name) === effectAutoImport.name
               })
               // the import already exists, we can exit
               if (existingImportSpecifier) {

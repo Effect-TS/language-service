@@ -20,7 +20,7 @@ export const pipeableToDatafirst = LSP.createRefactor({
       if (!ts.isCallExpression(node)) return false
       const expression = node.expression
       if (!ts.isIdentifier(expression)) return false
-      if (expression.text !== "pipe") return false
+      if (ts.idText(expression) !== "pipe") return false
       return true
     }
 

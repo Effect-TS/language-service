@@ -22,7 +22,7 @@ export const renameKeyStrings = (
 
     const node = tsUtils.findNodeAtPositionIncludingTrivia(sourceFile, position)
     if (node && ts.isIdentifier(node)) {
-      const textToReplace = node.text
+      const textToReplace = ts.idText(node)
       const parentClass = node.parent
       if (ts.isClassDeclaration(parentClass) && parentClass.name === node) {
         const baseIdentifier = yield* pipe(

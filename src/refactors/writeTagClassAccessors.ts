@@ -41,7 +41,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
       ),
       undefined,
       [
-        ts.factory.createIdentifier(className.text),
+        ts.factory.createIdentifier(ts.idText(className)),
         ts.factory.createArrowFunction(
           undefined,
           undefined,
@@ -95,10 +95,10 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
       Nano.flatMap((returnedEffect) => {
         // the type is an effect, so we just need to add the service type to the context type
         const contextType = (returnedEffect.R.flags & ts.TypeFlags.Never) ?
-          ts.factory.createTypeReferenceNode(className.text) :
+          ts.factory.createTypeReferenceNode(ts.idText(className)) :
           ts.factory.createUnionTypeNode(
             [
-              ts.factory.createTypeReferenceNode(className.text),
+              ts.factory.createTypeReferenceNode(ts.idText(className)),
               typeChecker.typeToTypeNode(returnedEffect.R, atLocation, ts.NodeBuilderFlags.NoTruncation)!
             ]
           )
@@ -149,7 +149,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
                     ts.factory.createIdentifier("UnknownException")
                   )
                 ),
-                ts.factory.createTypeReferenceNode(className.text)
+                ts.factory.createTypeReferenceNode(ts.idText(className))
               ]
             ))
           })
@@ -167,7 +167,7 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
           [
             successType,
             ts.factory.createTypeReferenceNode("never"),
-            ts.factory.createTypeReferenceNode(className.text)
+            ts.factory.createTypeReferenceNode(ts.idText(className))
           ]
         )
 
@@ -265,7 +265,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
 
   const hash = involvedMembers.map(({ property, propertyType }) => {
     return ts.symbolName(property) + ": " + typeChecker.typeToString(propertyType)
-  }).concat([className.text]).join("\n")
+  }).concat([ts.idText(className)]).join("\n")
 
   return { Service, className, atLocation: node, hash: LSP.cyrb53(hash), involvedMembers }
 })

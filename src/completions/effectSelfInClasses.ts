@@ -21,8 +21,8 @@ export const effectSelfInClasses = LSP.createCompletion({
     ) || "Effect"
 
     // ensure accessed is an identifier
-    if (effectIdentifier !== accessedObject.text) return []
-    const name = className.text
+    if (effectIdentifier !== ts.idText(accessedObject)) return []
+    const name = ts.idText(className)
 
     return [{
       name: `Service<${name}>`,

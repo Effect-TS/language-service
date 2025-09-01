@@ -30,7 +30,7 @@ export const fnFunctionStar = LSP.createCompletion({
     const maybeFnName: Array<LSP.CompletionEntryDefinition> = pipe(
       tsUtils.getAncestorNodesInRange(sourceFile, tsUtils.toTextRange(accessedObject.pos)),
       Array.filter(ts.isVariableDeclaration),
-      Array.map((_) => _.name && ts.isIdentifier(_.name) ? _.name.text : ""),
+      Array.map((_) => _.name && ts.isIdentifier(_.name) ? ts.idText(_.name) : ""),
       Array.filter((_) => _.length > 0),
       Array.head,
       Option.map((name) => [

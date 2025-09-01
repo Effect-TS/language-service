@@ -21,8 +21,8 @@ export const effectDataClasses = LSP.createCompletion({
     ) || "Data"
 
     // ensure accessed is an identifier
-    if (effectDataIdentifier !== accessedObject.text) return []
-    const name = className.text
+    if (effectDataIdentifier !== ts.idText(accessedObject)) return []
+    const name = ts.idText(className)
 
     return [{
       name: `TaggedError("${name}")`,

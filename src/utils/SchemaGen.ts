@@ -100,12 +100,12 @@ export const makeSchemaGenContext = Nano.fn("SchemaGen.makeSchemaGenContext")(fu
       ),
     entityNameToDataTypeName: (name) => {
       if (ts.isIdentifier(name)) {
-        switch (name.text) {
+        switch (ts.idText(name)) {
           case "Date":
           case "Pick":
           case "Omit":
           case "Record":
-            return Option.some(name.text)
+            return Option.some(ts.idText(name))
           case "ReadonlyArray":
           case "Array":
             return Option.some("Array")
@@ -114,7 +114,7 @@ export const makeSchemaGenContext = Nano.fn("SchemaGen.makeSchemaGenContext")(fu
       }
       if (!ts.isIdentifier(name.left)) return Option.none()
       for (const moduleName in moduleToImportedName) {
-        if (name.left.text === moduleToImportedName[moduleName] && name.right.text === moduleName) {
+        if (ts.idText(name.left) === moduleToImportedName[moduleName] && ts.idText(name.right) === moduleName) {
           return Option.some(moduleName)
         }
       }
@@ -131,11 +131,11 @@ const typeEntityNameToNode: (
 )(
   function*(entityName: ts.EntityName) {
     const { ts } = yield* Nano.service(SchemaGenContext)
-    if (ts.isIdentifier(entityName)) return ts.factory.createIdentifier(entityName.text)
+    if (ts.isIdentifier(entityName)) return ts.factory.createIdentifier(ts.idText(entityName))
     const left = yield* typeEntityNameToNode(entityName.left)
     return ts.factory.createPropertyAccessExpression(
       left,
-      ts.factory.createIdentifier(entityName.right.text)
+      ts.factory.createIdentifier(ts.idText(entityName.right))
     )
   }
 )
@@ -444,7 +444,7 @@ const processInterfaceDeclaration = Nano.fn("SchemaGen.processInterfaceDeclarati
     const { properties, records } = yield* processMembers(node.members, false)
 
     if (preferClass && records.length === 0) {
-      return yield* createExportSchemaClassDeclaration(node.name.text, properties)
+      return yield* createExportSchemaClassDeclaration(ts.idText(node.name), properties)
     }
 
     const schemaStruct = createApiCall(
@@ -452,7 +452,7 @@ const processInterfaceDeclaration = Nano.fn("SchemaGen.processInterfaceDeclarati
       [ts.factory.createObjectLiteralExpression(properties, true)].concat(records)
     )
 
-    return yield* createExportVariableDeclaration(node.name.text, schemaStruct)
+    return yield* createExportVariableDeclaration(ts.idText(node.name), schemaStruct)
   }
 )
 
@@ -467,13 +467,13 @@ const processTypeAliasDeclaration = Nano.fn("SchemaGen.processInterfaceDeclarati
     if (preferClass && ts.isTypeLiteralNode(node.type)) {
       const { properties, records } = yield* processMembers(node.type.members, false)
       if (records.length === 0) {
-        return yield* createExportSchemaClassDeclaration(node.name.text, properties)
+        return yield* createExportSchemaClassDeclaration(ts.idText(node.name), properties)
       }
     }
 
     const effectSchema = yield* processNode(node.type, false)
 
-    return yield* createExportVariableDeclaration(node.name.text, effectSchema)
+    return yield* createExportVariableDeclaration(ts.idText(node.name), effectSchema)
   }
 )
 
