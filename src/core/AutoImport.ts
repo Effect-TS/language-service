@@ -464,7 +464,7 @@ export const addImport = (
     }
     case "NamedImport": {
       const importModule = effectAutoImport.moduleName || effectAutoImport.fileName
-      if(effectAutoImport.aliasName) {
+      if (effectAutoImport.aliasName) {
         description = `Import { ${effectAutoImport.name} as ${effectAutoImport.aliasName} } from "${importModule}"`
       } else {
         description = `Import { ${effectAutoImport.name} } from "${importModule}"`
@@ -483,8 +483,9 @@ export const addImport = (
             if (importClause && importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
               const namedImports = importClause.namedBindings
               const existingImportSpecifier = namedImports.elements.find((element) => {
-                if(effectAutoImport.aliasName){
-                  return element.name.text === effectAutoImport.name && element.propertyName?.text === effectAutoImport.aliasName
+                if (effectAutoImport.aliasName) {
+                  return element.name.text === effectAutoImport.name &&
+                    element.propertyName?.text === effectAutoImport.aliasName
                 }
                 return element.name.text === effectAutoImport.name
               })

@@ -123,7 +123,10 @@ describe("autoimport", () => {
       })
     })
     it("import { Array as Arr } from 'effect/Array'", () => {
-      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", { namespaceImportPackages: ["effect"], importAliases: { Array: "Arr" } })
+      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
+        namespaceImportPackages: ["effect"],
+        importAliases: { Array: "Arr" }
+      })
       expect(result).toEqual({
         _tag: "NamespaceImport",
         fileName: toFilename("effect/Array"),
@@ -159,7 +162,10 @@ describe("autoimport", () => {
       expect(result).toBeUndefined()
     })
     it("import { Array as Arr } from 'effect/Array'", () => {
-      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", { barrelImportPackages: ["effect"], importAliases: { Array: "Arr" } })
+      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
+        barrelImportPackages: ["effect"],
+        importAliases: { Array: "Arr" }
+      })
       expect(result).toEqual({
         _tag: "NamedImport",
         fileName: toFilename("effect"),

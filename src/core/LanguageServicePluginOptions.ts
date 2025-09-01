@@ -2,8 +2,8 @@ import { isArray } from "effect/Array"
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import { hasProperty, isBoolean, isObject, isRecord, isString } from "effect/Predicate"
-import * as Nano from "./Nano"
 import * as Record from "effect/Record"
+import * as Nano from "./Nano"
 
 export type DiagnosticSeverity = "error" | "warning" | "message" | "suggestion"
 
