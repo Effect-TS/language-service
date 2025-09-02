@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.37.0
+
+### Minor Changes
+
+- [#361](https://github.com/Effect-TS/language-service/pull/361) [`3834abe`](https://github.com/Effect-TS/language-service/commit/3834abe88ceda4bd26244df155bca777eec21a96) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add to patching mode support to storing metadata such as relation error locations and types to improve perf
+
+- [#363](https://github.com/Effect-TS/language-service/pull/363) [`8fb54a9`](https://github.com/Effect-TS/language-service/commit/8fb54a9be92425940d1f61e207b9a272aeb20e65) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for importAliases config
+
+### Patch Changes
+
+- [#356](https://github.com/Effect-TS/language-service/pull/356) [`8c906e1`](https://github.com/Effect-TS/language-service/commit/8c906e1cf72f02056cdfe298804cfc95456de4ff) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add helper for renames, so that triggering a rename will include the identifier of a class as well
+
+- [#360](https://github.com/Effect-TS/language-service/pull/360) [`331051d`](https://github.com/Effect-TS/language-service/commit/331051d66edc42def1f3250c02316a3652d680b0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Some minor perf improvements
+
+- [#358](https://github.com/Effect-TS/language-service/pull/358) [`03cfa73`](https://github.com/Effect-TS/language-service/commit/03cfa73bc59943a60d2f75744497e5911089d049) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor TypeChecker utilities to improve code organization by moving utility functions from TypeCheckerApi.ts to TypeCheckerUtils.ts
+
+- [#364](https://github.com/Effect-TS/language-service/pull/364) [`358f323`](https://github.com/Effect-TS/language-service/commit/358f3236156ee7b6222f941757f41853c23ebd25) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Replace direct `.text` property access with TypeScript API helper `ts.idText()` for getting identifier text from nodes. This is a more robust approach that properly handles escaped identifiers and follows TypeScript's recommended practices.
+
 ## 0.36.0
 
 ### Minor Changes
