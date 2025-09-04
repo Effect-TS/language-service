@@ -4,6 +4,7 @@ import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   name: "missingStarInYieldEffectGen",
@@ -12,8 +13,9 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
-    const brokenGenerators = new Set<ts.Node>()
+    const brokenGenerators = new Set<number>()
     const brokenYields = new Set<ts.YieldExpression>()
 
     const nodeToVisit: Array<ts.Node> = []
@@ -46,9 +48,9 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
             typeParser.effectGen(effectGenNode),
             Nano.orElse(() => typeParser.effectFnUntracedGen(effectGenNode)),
             Nano.orElse(() => typeParser.effectFnGen(effectGenNode)),
-            Nano.map(({ functionStar }) => {
-              if (functionStar) {
-                brokenGenerators.add(functionStar)
+            Nano.map(({ generatorFunction }) => {
+              if (generatorFunction) {
+                brokenGenerators.add(ts.getTokenPosOfNode(generatorFunction, tsUtils.getSourceFileOfNode(node)!))
               }
               brokenYields.add(node)
             }),
@@ -59,9 +61,9 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
     }
 
     // emit diagnostics
-    brokenGenerators.forEach((node) =>
+    brokenGenerators.forEach((pos) =>
       report({
-        location: node,
+        location: ({ pos, end: pos + "function".length }),
         messageText: `Seems like you used yield instead of yield* inside this Effect.gen.`,
         fixes: []
       })
