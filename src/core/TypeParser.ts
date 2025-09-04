@@ -592,7 +592,11 @@ export function make(
           effectModule,
           generatorFunction,
           body: generatorFunction.body,
-          functionStar: generatorFunction.getFirstToken()
+          functionStar: ts.findChildOfKind(
+            generatorFunction,
+            ts.SyntaxKind.FunctionKeyword,
+            tsUtils.getSourceFileOfNode(node)!
+          )
         }))
       )
     },
@@ -647,7 +651,11 @@ export function make(
           effectModule,
           generatorFunction,
           body: generatorFunction.body,
-          functionStar: generatorFunction.getFirstToken()
+          functionStar: ts.findChildOfKind(
+            generatorFunction,
+            ts.SyntaxKind.FunctionKeyword,
+            tsUtils.getSourceFileOfNode(node)!
+          )
         }))
       )
     },
@@ -709,7 +717,11 @@ export function make(
           generatorFunction,
           effectModule,
           body: generatorFunction.body,
-          functionStar: generatorFunction.getFirstToken()
+          functionStar: ts.findChildOfKind(
+            generatorFunction,
+            ts.SyntaxKind.FunctionKeyword,
+            tsUtils.getSourceFileOfNode(node)!
+          )
         }))
       )
     },
