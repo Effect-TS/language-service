@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as Command from "@effect/cli/Command"
 import * as NodeContext from "@effect/platform-node/NodeContext"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
@@ -15,7 +17,7 @@ const cliCommand = Command.make(
 
 const main = Command.run(cliCommand, {
   name: "effect-language-service",
-  version: "0.0.1"
+  version: "0.0.2"
 })
 
 main(process.argv).pipe(
