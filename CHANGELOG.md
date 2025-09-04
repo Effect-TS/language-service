@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.38.1
+
+### Patch Changes
+
+- [#368](https://github.com/Effect-TS/language-service/pull/368) [`01f62a9`](https://github.com/Effect-TS/language-service/commit/01f62a99c53d5bc70242d858e3573dd9dffc54d7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix logic of firstChild with patching mode
+
 ## 0.38.0
 
 ### Minor Changes
