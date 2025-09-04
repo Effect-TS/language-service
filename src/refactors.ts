@@ -4,6 +4,7 @@ import { asyncAwaitToGen } from "./refactors/asyncAwaitToGen.js"
 import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise.js"
 import { effectGenToFn } from "./refactors/effectGenToFn.js"
 import { functionToArrow } from "./refactors/functionToArrow.js"
+import { layerMagic } from "./refactors/layerMagic.js"
 import { makeSchemaOpaque } from "./refactors/makeSchemaOpaque.js"
 import { makeSchemaOpaqueWithNs } from "./refactors/makeSchemaOpaqueWithNs.js"
 import { pipeableToDatafirst } from "./refactors/pipeableToDatafirst.js"
@@ -19,6 +20,7 @@ import { wrapWithPipe } from "./refactors/wrapWithPipe.js"
 import { writeTagClassAccessors } from "./refactors/writeTagClassAccessors.js"
 
 export const refactors = [
+  layerMagic,
   asyncAwaitToGen,
   asyncAwaitToGenTryPromise,
   asyncAwaitToFn,

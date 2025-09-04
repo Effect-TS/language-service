@@ -1,0 +1,40 @@
+// 19:23,20:13,24:24,31:21,38:20
+import { Effect, Layer } from "effect"
+
+class DbConnection extends Effect.Service<DbConnection>()("DbConnection", {
+  succeed: {}
+}) {}
+class FileSystem extends Effect.Service<FileSystem>()("FileSystem", {
+  succeed: {}
+}) {
+  static bothInAndOut = Layer.effect(FileSystem, FileSystem)
+}
+class Cache extends Effect.Service<Cache>()("Cache", {
+  effect: Effect.as(FileSystem, {})
+}) {}
+class UserRepository extends Effect.Service<UserRepository>()("UserRepository", {
+  effect: Effect.as(Effect.zipRight(DbConnection, Cache), {})
+}) {}
+
+export const expect_Cache_provideMergeFileSystem = [
+  FileSystem.Default,
+  Cache.Default
+] as any as Layer.Layer<FileSystem>
+
+export const prepareSomewhatComplex = [
+  DbConnection.Default,
+  Cache.Default,
+  UserRepository.Default,
+  FileSystem.Default
+] as any as Layer.Layer<UserRepository | Cache>
+
+export const prepareSomewhatComplex2 = [
+  DbConnection.Default,
+  Cache.Default,
+  UserRepository.Default,
+  FileSystem.Default
+] as any as Layer.Layer<UserRepository | Cache | FileSystem>
+
+export const provideRequireSame = [FileSystem.bothInAndOut, FileSystem.Default, Cache.Default] as any as Layer.Layer<
+  Cache | FileSystem
+>
