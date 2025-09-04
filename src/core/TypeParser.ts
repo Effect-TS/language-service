@@ -39,7 +39,6 @@ export interface TypeParser {
       effectModule: ts.Expression
       generatorFunction: ts.FunctionExpression
       body: ts.Block
-      functionStar: ts.Node | undefined
     },
     TypeParserIssue
   >
@@ -49,9 +48,8 @@ export interface TypeParser {
     {
       node: ts.Node
       effectModule: ts.Node
-      generatorFunction: ts.Node
+      generatorFunction: ts.FunctionExpression
       body: ts.Block
-      functionStar: ts.Node | undefined
     },
     TypeParserIssue
   >
@@ -60,10 +58,9 @@ export interface TypeParser {
   ) => Nano.Nano<
     {
       node: ts.Node
-      generatorFunction: ts.Node
+      generatorFunction: ts.FunctionExpression
       effectModule: ts.Node
       body: ts.Block
-      functionStar: ts.Node | undefined
     },
     TypeParserIssue
   >
@@ -591,12 +588,7 @@ export function make(
           node,
           effectModule,
           generatorFunction,
-          body: generatorFunction.body,
-          functionStar: ts.findChildOfKind(
-            generatorFunction,
-            ts.SyntaxKind.FunctionKeyword,
-            tsUtils.getSourceFileOfNode(node)!
-          )
+          body: generatorFunction.body
         }))
       )
     },
@@ -650,12 +642,7 @@ export function make(
           node,
           effectModule,
           generatorFunction,
-          body: generatorFunction.body,
-          functionStar: ts.findChildOfKind(
-            generatorFunction,
-            ts.SyntaxKind.FunctionKeyword,
-            tsUtils.getSourceFileOfNode(node)!
-          )
+          body: generatorFunction.body
         }))
       )
     },
@@ -716,12 +703,7 @@ export function make(
           node,
           generatorFunction,
           effectModule,
-          body: generatorFunction.body,
-          functionStar: ts.findChildOfKind(
-            generatorFunction,
-            ts.SyntaxKind.FunctionKeyword,
-            tsUtils.getSourceFileOfNode(node)!
-          )
+          body: generatorFunction.body
         }))
       )
     },
