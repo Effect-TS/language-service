@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.38.0
+
+### Minor Changes
+
+- [#365](https://github.com/Effect-TS/language-service/pull/365) [`3b418c5`](https://github.com/Effect-TS/language-service/commit/3b418c58b8b337fd62f15bea21faca6465b9405a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add Layer Magic refactor for automatic layer composition and building
+
+  This refactor allows you to automatically compose and build layers based on service dependencies. It helps simplify complex layer constructions by:
+
+  - Analyzing service dependencies
+  - Automatically composing layers in the correct order
+  - Building final layer structures with proper dependency resolution
+
+  Example: When working with services that have dependencies, the refactor can transform your layer setup code into a properly composed layer structure that respects all service requirements.
+
+### Patch Changes
+
+- [#367](https://github.com/Effect-TS/language-service/pull/367) [`0e6034b`](https://github.com/Effect-TS/language-service/commit/0e6034b0c5a9ee3967bd813b47c7b83a54b004f3) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add shebang to CLI entry point for proper executable support and bump version
+
 ## 0.37.0
 
 ### Minor Changes
