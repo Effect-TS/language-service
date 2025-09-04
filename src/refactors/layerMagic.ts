@@ -9,6 +9,113 @@ import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
+interface DependencyNode {
+  provides: Array<string>
+  requires: Array<string>
+  node: ts.Expression
+}
+
+interface DependencySortResult {
+  sorted: Array<DependencyNode>
+  cycles: Array<Array<string>>
+  hasCycles: boolean
+}
+
+/**
+ * Sorts dependency nodes using a modified depth-first approach with cycle detection.
+ *
+ * Rules:
+ * 1. Nodes that provide services come before nodes that require them
+ * 2. Multiple providers of the same service are ordered by fewer requirements first
+ * 3. Cycles are detected and reported gracefully
+ *
+ * @param nodes Record of dependency nodes to sort, where keys are node identifiers
+ * @returns Sorted nodes with cycle information
+ */
+export function sortDependencies(nodes: Record<string, DependencyNode>): DependencySortResult {
+  const result: Array<DependencyNode> = []
+  const visited = new Set<string>()
+  const visiting = new Set<string>()
+  const cycles: Array<Array<string>> = []
+
+  // Create a map of what each node provides for quick lookup
+  const providesMap = new Map<string, Array<string>>()
+  Object.entries(nodes).forEach(([nodeId, node]) => {
+    node.provides.forEach((service) => {
+      if (!providesMap.has(service)) {
+        providesMap.set(service, [])
+      }
+      providesMap.get(service)!.push(nodeId)
+    })
+  })
+
+  // Sort providers of the same service by number of requirements (ascending)
+  providesMap.forEach((nodeIds) => {
+    nodeIds.sort((a, b) => {
+      const nodeA = nodes[a]!
+      const nodeB = nodes[b]!
+      return nodeA.requires.length - nodeB.requires.length
+    })
+  })
+
+  const visit = (nodeId: string, path: Array<string>): void => {
+    if (visited.has(nodeId)) {
+      return
+    }
+
+    if (visiting.has(nodeId)) {
+      // Cycle detected
+      const cycleStart = path.indexOf(nodeId)
+      const cycle = path.slice(cycleStart).concat([nodeId])
+      const cycleServices = cycle.map((id) => {
+        const node = nodes[id]!
+        return `${node.provides.join(", ")} (requires: ${node.requires.join(", ")})`
+      })
+      cycles.push(cycleServices)
+      return
+    }
+
+    visiting.add(nodeId)
+    const currentPath = [...path, nodeId]
+
+    // Find all nodes that this node depends on
+    const dependencies = new Set<string>()
+    const node = nodes[nodeId]!
+
+    // For each requirement, find nodes that provide it
+    node.requires.forEach((requiredService) => {
+      const providers = providesMap.get(requiredService) || []
+      providers.forEach((providerId) => {
+        if (providerId !== nodeId) {
+          dependencies.add(providerId)
+        }
+      })
+    })
+
+    // Visit dependencies first (depth-first)
+    dependencies.forEach((depId) => {
+      visit(depId, currentPath)
+    })
+
+    visiting.delete(nodeId)
+    visited.add(nodeId)
+    result.push(node)
+  }
+
+  // Visit all nodes
+  Object.keys(nodes).forEach((nodeId) => {
+    if (!visited.has(nodeId)) {
+      visit(nodeId, [])
+    }
+  })
+
+  return {
+    sorted: result,
+    cycles,
+    hasCycles: cycles.length > 0
+  }
+}
+
 interface LayerMagicExtractedLayer {
   node: ts.Expression
   RIn: ts.Type
@@ -138,9 +245,12 @@ export const layerMagic = LSP.createRefactor({
       const atLocation = adjustedNode(node)
       return pipe(
         extractLayers(atLocation, false),
+        Nano.flatMap((extractedLayer) =>
+          extractedLayer.length < 1 ? TypeParser.TypeParserIssue.issue : Nano.succeed(extractedLayer)
+        ),
         Nano.map((extractedLayers) => ({
-          kind: "refactor.rewrite.effect.layerMagic",
-          description: "Layer Magic: prepare",
+          kind: "refactor.rewrite.effect.layerMagicPrepare",
+          description: "Prepare layers for automatic composition",
           apply: pipe(
             Nano.gen(function*() {
               const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
@@ -190,7 +300,7 @@ export const layerMagic = LSP.createRefactor({
     const parseAsAnyAsLayer: (
       node: ts.Node
     ) => Nano.Nano<
-      LayerMagicExtractedLayer,
+      LayerMagicExtractedLayer & { castedStructure: ts.Expression },
       TypeParser.TypeParserIssue,
       never
     > = (node: ts.Node) => {
@@ -201,7 +311,7 @@ export const layerMagic = LSP.createRefactor({
         ) {
           return pipe(
             typeParser.layerType(typeChecker.getTypeAtLocation(node.type), node.type),
-            Nano.map((_) => ({ node, ..._ }))
+            Nano.map((_) => ({ node, ..._, castedStructure: expression.expression }))
           )
         }
       }
@@ -218,50 +328,92 @@ export const layerMagic = LSP.createRefactor({
       const atLocation = adjustedNode(node)
       return pipe(
         parseAsAnyAsLayer(atLocation),
-        Nano.flatMap((targetLayer) =>
+        Nano.flatMap((_targetLayer) =>
           pipe(
-            extractArrayLiteral(atLocation),
-            Nano.orElse(() => extractLayers(atLocation, false)),
+            extractArrayLiteral(_targetLayer.castedStructure),
+            Nano.orElse(() => extractLayers(_targetLayer.castedStructure, false)),
+            Nano.flatMap((extractedLayer) =>
+              extractedLayer.length < 1 ? TypeParser.TypeParserIssue.issue : Nano.succeed(extractedLayer)
+            ),
             Nano.map((extractedLayers) => ({
-              kind: "refactor.rewrite.effect.layerMagic",
-              description: "Layer Magic: build",
-              apply: pipe(
-                Nano.gen(function*() {
-                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+              kind: "refactor.rewrite.effect.layerMagicBuild",
+              description: "Compose layers automatically with target output services",
+              apply: Nano.gen(function*() {
+                const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-                  const nodes: Array<{ provides: Array<string>; requires: Array<string>; node: ts.Expression }> = []
+                const memory = new Map<string, ts.Type>()
+                // what do the user wants as output?
+                const { allIndexes: outputIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
+                  memory,
+                  _targetLayer.ROut,
+                  (_) => Nano.succeed((_.flags & ts.TypeFlags.Never) !== 0)
+                )
 
-                  const memory = new Map<string, ts.Type>()
-                  for (const layer of extractedLayers) {
-                    const { allIndexes: providedIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
-                      memory,
-                      layer.ROut,
-                      (_) => Nano.succeed((_.flags & ts.TypeFlags.Never) !== 0)
-                    )
-                    const { allIndexes: requiredIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
-                      memory,
-                      layer.RIn,
-                      (_) => Nano.succeed((_.flags & ts.TypeFlags.Never) !== 0)
-                    )
-                    nodes.push({ provides: providedIndexes, requires: requiredIndexes, node: layer.node })
+                // and then what does each layer provide/requires?
+                const nodes: Record<string, DependencyNode> = {}
+                for (let i = 0; i < extractedLayers.length; i++) {
+                  const layer = extractedLayers[i]
+                  const { allIndexes: providedIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
+                    memory,
+                    layer.ROut,
+                    (_) => Nano.succeed((_.flags & ts.TypeFlags.Never) !== 0)
+                  )
+                  const { allIndexes: requiredIndexes } = yield* typeCheckerUtils.appendToUniqueTypesMap(
+                    memory,
+                    layer.RIn,
+                    (_) => Nano.succeed((_.flags & ts.TypeFlags.Never) !== 0)
+                  )
+                  nodes[`node_${i}`] = {
+                    provides: providedIndexes.filter((_) => requiredIndexes.indexOf(_) === -1), // only provide indexes that are not required
+                    requires: requiredIndexes,
+                    node: layer.node
                   }
+                }
 
-                  const type = typeChecker.typeToTypeNode(targetLayer.ROut, undefined, ts.NodeBuilderFlags.NoTruncation)
+                // Sort dependencies with cycle detection
+                const sortResult = sortDependencies(nodes)
+                const sortedNodes = sortResult.sorted.reverse()
 
-                  if (type) {
-                    const newDeclaration = ts.factory.createAsExpression(
-                      ts.factory.createNumericLiteral(1),
-                      type
+                // now traverse in the reverse order and determine what requires merge/provide or both
+                const missingOutput = new Set<string>(outputIndexes)
+                const missingInternal = new Set<string>()
+                const outputEntry: Array<{ merges: boolean; provides: boolean; node: ts.Expression }> = []
+                for (const graphNode of sortedNodes) {
+                  const mergeOutput = graphNode.provides.filter((_) => missingOutput.has(_))
+                  const provideInternal = graphNode.provides.filter((_) => missingInternal.has(_))
+                  graphNode.requires.forEach((_) => missingInternal.add(_))
+                  mergeOutput.forEach((_) => missingOutput.delete(_))
+                  outputEntry.push({
+                    merges: mergeOutput.length > 0,
+                    provides: provideInternal.length > 0,
+                    node: graphNode.node
+                  })
+                }
+
+                // Use sorted nodes for further processing
+                const newDeclaration = ts.factory.createCallExpression(
+                  ts.factory.createPropertyAccessExpression(
+                    outputEntry[0]!.node,
+                    "pipe"
+                  ),
+                  [],
+                  outputEntry.slice(1).map((_) =>
+                    ts.factory.createCallExpression(
+                      ts.factory.createPropertyAccessExpression(
+                        ts.factory.createIdentifier(layerIdentifier),
+                        _.merges && _.provides ? "provideMerge" : _.merges ? "merge" : "provide"
+                      ),
+                      [],
+                      [_.node]
                     )
+                  )
+                )
 
-                    changeTracker.replaceNode(sourceFile, atLocation, newDeclaration, {
-                      leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
-                      trailingTriviaOption: ts.textChanges.TrailingTriviaOption.Exclude
-                    })
-                  }
-                }),
-                Nano.provideService(TypeScriptApi.TypeScriptApi, ts)
-              )
+                changeTracker.replaceNode(sourceFile, atLocation, newDeclaration, {
+                  leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
+                  trailingTriviaOption: ts.textChanges.TrailingTriviaOption.Exclude
+                })
+              })
             }))
           )
         )

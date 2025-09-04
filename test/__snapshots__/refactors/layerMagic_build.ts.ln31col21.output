@@ -1,4 +1,4 @@
-// 19:23,20:13,24:24,31:21,38:20
+// Result of running refactor layerMagic at position 31:21
 import { Effect, Layer } from "effect"
 
 class DbConnection extends Effect.Service<DbConnection>()("DbConnection", {
@@ -28,12 +28,7 @@ export const prepareSomewhatComplex = [
   FileSystem.Default
 ] as any as Layer.Layer<UserRepository | Cache>
 
-export const prepareSomewhatComplex2 = [
-  DbConnection.Default,
-  Cache.Default,
-  UserRepository.Default,
-  FileSystem.Default
-] as any as Layer.Layer<UserRepository | Cache | FileSystem>
+export const prepareSomewhatComplex2 =UserRepository.Default.pipe(Layer.provideMerge(Cache.Default), Layer.provideMerge(FileSystem.Default), Layer.provide(DbConnection.Default))
 
 export const provideRequireSame = [FileSystem.bothInAndOut, FileSystem.Default, Cache.Default] as any as Layer.Layer<
   Cache | FileSystem
