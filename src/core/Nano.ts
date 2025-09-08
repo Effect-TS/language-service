@@ -349,11 +349,11 @@ const MatchProto: NanoPrimitive = {
   }
 }
 
-export const match = <A, B, E, R, C, E2, R2, E3, R3>(
+const match = <A, B, E, R, C, E2, R2, E3, R3>(
   fa: Nano<A, E, R>,
   opts: {
     onSuccess: (a: A) => Nano<B, E2, R2>
-    onFailure: (e: E) => Nano<C, E3, R3>
+    onFailure: (e: E | NanoDefectException) => Nano<C, E3, R3>
   }
 ): Nano<B, E | E2 | E3, R | R2 | R3> => {
   const nano = Object.create(MatchProto)
@@ -369,7 +369,7 @@ export const orElse = <E, B, E2, R2>(
 <A, R>(fa: Nano<A, E, R>): Nano<A | B, E2, R | R2> => {
   const nano = Object.create(MatchProto)
   nano[args] = fa
-  nano[contE] = f
+  nano[contE] = (_: E | NanoDefectException) => _ instanceof NanoDefectException ? fail(_) : f(_)
   return nano
 }
 
@@ -480,6 +480,14 @@ export const ignore = <A, E, R>(fa: Nano<A, E, R>): Nano<void, never, R> => {
   nano[args] = fa
   nano[contA] = (_: A) => void_
   nano[contE] = (_: E | NanoDefectException) => _ instanceof NanoDefectException ? fail(_) : void_
+  return nano
+}
+
+export const swap = <A, E, R>(fa: Nano<A, E, R>): Nano<E, A, R> => {
+  const nano = Object.create(MatchProto)
+  nano[args] = fa
+  nano[contA] = (_: A) => fail(_)
+  nano[contE] = (_: E | NanoDefectException) => _ instanceof NanoDefectException ? fail(_) : succeed(_)
   return nano
 }
 
