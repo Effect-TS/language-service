@@ -1,5 +1,4 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import type * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import type * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
@@ -175,18 +174,21 @@ export const getApplicableRefactors = Nano.fn("LSP.getApplicableRefactors")(func
     : positionOrRange
   const effectRefactors: Array<ts.ApplicableRefactorInfo> = []
   for (const refactor of refactors) {
-    const result = yield* Nano.option(refactor.apply(sourceFile, textRange))
-    if (Option.isSome(result)) {
-      effectRefactors.push({
-        name: refactorNameToFullyQualifiedName(refactor.name),
-        description: refactor.description,
-        actions: [{
+    yield* pipe(
+      refactor.apply(sourceFile, textRange),
+      Nano.map((result) =>
+        effectRefactors.push({
           name: refactorNameToFullyQualifiedName(refactor.name),
-          description: result.value.description,
-          kind: result.value.kind
-        }]
-      })
-    }
+          description: refactor.description,
+          actions: [{
+            name: refactorNameToFullyQualifiedName(refactor.name),
+            description: result.description,
+            kind: result.kind
+          }]
+        })
+      ),
+      Nano.ignore
+    )
   }
   return effectRefactors
 })

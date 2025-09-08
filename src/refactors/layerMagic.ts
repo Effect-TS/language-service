@@ -1,5 +1,6 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
+import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -264,12 +265,44 @@ export const layerMagic = LSP.createRefactor({
                 )
               }
 
-              const typeReferences = pipe(
+              const previouslyProvided = yield* pipe(
+                typeParser.layerType(typeChecker.getTypeAtLocation(atLocation), atLocation),
+                Nano.map((_) => _.ROut),
+                Nano.option
+              )
+
+              const [existingBefore, newlyIntroduced] = pipe(
                 Array.fromIterable(memory.values()),
                 Array.sort(typeCheckerUtils.deterministicTypeOrder),
+                Array.partition((_) =>
+                  Option.isNone(previouslyProvided) || typeChecker.isTypeAssignableTo(_, previouslyProvided.value)
+                )
+              )
+
+              const typeReferences = pipe(
+                newlyIntroduced,
                 Array.map((_) => typeChecker.typeToTypeNode(_, undefined, ts.NodeBuilderFlags.NoTruncation)),
                 Array.filter((_) => !!_)
               )
+
+              const providesUnion = typeReferences.length === 0
+                ? ts.factory.createTypeReferenceNode("never")
+                : ts.factory.createUnionTypeNode(typeReferences)
+
+              const typeStrings = pipe(
+                existingBefore,
+                Array.map((_) => typeChecker.typeToString(_, undefined, ts.TypeFormatFlags.NoTruncation)),
+                Array.filter((_) => !!_)
+              )
+
+              const unionWithComment = typeStrings.length === 0
+                ? providesUnion
+                : ts.addSyntheticTrailingComment(
+                  providesUnion,
+                  ts.SyntaxKind.MultiLineCommentTrivia,
+                  " " + typeStrings.join(" | ") + " ",
+                  false
+                )
 
               const newDeclaration = ts.factory.createAsExpression(
                 ts.factory.createAsExpression(
@@ -278,11 +311,7 @@ export const layerMagic = LSP.createRefactor({
                 ),
                 ts.factory.createTypeReferenceNode(
                   ts.factory.createQualifiedName(ts.factory.createIdentifier(layerIdentifier), "Layer"),
-                  typeReferences.length === 0 ?
-                    [
-                      ts.factory.createTypeReferenceNode("never")
-                    ] :
-                    [ts.factory.createUnionTypeNode(typeReferences)]
+                  [unionWithComment]
                 )
               )
 
