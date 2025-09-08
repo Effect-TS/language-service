@@ -1,0 +1,47 @@
+// code fix unsupportedServiceAccessors_enableCodegen  output for range 783 - 811
+import * as Effect from "effect/Effect"
+
+export class ValidService extends Effect.Tag("ValidService")<ValidService, {
+  constant: Effect.Effect<string, never, never>
+  method: (value: string) => Effect.Effect<string, never, never>
+}>() {
+}
+
+export class ValidServiceBecauseManuallyDefined
+  extends Effect.Tag("ValidServiceBecauseManuallyDefined")<ValidServiceBecauseManuallyDefined, {
+    constant: Effect.Effect<string, never, never>
+    method: <A>(value: A) => Effect.Effect<A, never, ValidServiceBecauseManuallyDefined>
+  }>()
+{
+  static method: <A>(value: A) => Effect.Effect<A, never, ValidServiceBecauseManuallyDefined> = (...args) =>
+    Effect.andThen(ValidServiceBecauseManuallyDefined, (_) => _.method(...args))
+}
+
+// should warn because method has generics
+// @effect-codegens accessors
+export class ShouldWarnMethodWithGenerics
+  extends Effect.Tag("ShouldWarnMethodWithGenerics")<ShouldWarnMethodWithGenerics, {
+    constant: Effect.Effect<string, never, never>
+    method: <A>(value: A, _test: string) => Effect.Effect<A, never, ShouldWarnMethodWithGenerics>
+  }>()
+{
+}
+
+// should warn because method has multiple signatures with different return types
+export class ShouldWarnMethodWithMultipleSignatures
+  extends Effect.Tag("ShouldWarnMethodWithMultipleSignatures")<ShouldWarnMethodWithMultipleSignatures, {
+    constant: Effect.Effect<string, never, never>
+    methodWithMultipleSignaturesNoGenerics(
+      value: string
+    ): Effect.Effect<string, never, ShouldWarnMethodWithMultipleSignatures>
+    methodWithMultipleSignaturesNoGenerics(
+      value: string,
+      opts: { discard: true }
+    ): Effect.Effect<void, never, ShouldWarnMethodWithMultipleSignatures>
+    methodWithMultipleSignaturesNoGenerics(
+      value: string,
+      opts?: { discard: true }
+    ): Effect.Effect<string | void>
+  }>()
+{
+}

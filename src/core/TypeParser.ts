@@ -121,6 +121,19 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  extendsEffectTag: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      args: ts.NodeArray<ts.Expression>
+      Identifier: ts.Type
+      Service: ts.Type
+      keyStringLiteral: ts.StringLiteral | undefined
+      Tag: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
   extendsSchemaClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
@@ -1382,6 +1395,66 @@ export function make(
     (atLocation) => atLocation
   )
 
+  const extendsEffectTag = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsEffectTag")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const wholeCall = typeX.expression
+            if (ts.isCallExpression(wholeCall)) {
+              const effectTagCall = wholeCall.expression
+              if (
+                ts.isCallExpression(effectTagCall) &&
+                wholeCall.typeArguments && wholeCall.typeArguments.length > 0
+              ) {
+                const effectTagIdentifier = effectTagCall.expression
+                const selfTypeNode = wholeCall.typeArguments[0]!
+                if (
+                  ts.isPropertyAccessExpression(effectTagIdentifier) &&
+                  ts.isIdentifier(effectTagIdentifier.name) && ts.idText(effectTagIdentifier.name) === "Tag"
+                ) {
+                  const parsedEffectModule = yield* pipe(
+                    importedEffectModule(effectTagIdentifier.expression),
+                    Nano.option
+                  )
+                  if (Option.isSome(parsedEffectModule)) {
+                    const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+                    if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+                    const type = typeChecker.getTypeOfSymbol(classSym)
+                    const tagType = yield* contextTag(type, atLocation)
+                    return {
+                      className: atLocation.name,
+                      selfTypeNode,
+                      keyStringLiteral: ts.isStringLiteral(effectTagCall.arguments[0])
+                        ? effectTagCall.arguments[0]
+                        : undefined,
+                      args: effectTagCall.arguments,
+                      Identifier: tagType.Identifier,
+                      Service: tagType.Service,
+                      Tag: parsedEffectModule.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Effect.Tag", undefined, atLocation)
+    }),
+    "TypeParser.extendsEffectTag",
+    (atLocation) => atLocation
+  )
+
   const extendsEffectService = Nano.cachedBy(
     Nano.fn("TypeParser.extendsEffectService")(function*(
       atLocation: ts.ClassDeclaration
@@ -1485,6 +1558,7 @@ export function make(
     pipeCall,
     scopeType,
     promiseLike,
+    extendsEffectTag,
     extendsEffectService,
     extendsContextTag,
     extendsSchemaClass,

@@ -28,6 +28,7 @@ export const renameKeyStrings = (
         const baseIdentifier = yield* pipe(
           Nano.map(typeParser.extendsContextTag(parentClass), (_) => [_.keyStringLiteral]),
           Nano.orElse(() => Nano.map(typeParser.extendsEffectService(parentClass), (_) => [_.keyStringLiteral])),
+          Nano.orElse(() => Nano.map(typeParser.extendsEffectTag(parentClass), (_) => [_.keyStringLiteral])),
           Nano.orElse(() =>
             Nano.map(typeParser.extendsSchemaTaggedClass(parentClass), (_) => [_.keyStringLiteral, _.tagStringLiteral])
           ),
