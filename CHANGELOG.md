@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.38.2
+
+### Patch Changes
+
+- [#374](https://github.com/Effect-TS/language-service/pull/374) [`9d66c1e`](https://github.com/Effect-TS/language-service/commit/9d66c1eb1f67837166a01b3c7993620a520fe0a4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix Mermaid graph generation for layers with generic types
+
+  Properly escape angle brackets (`<` and `>`) in Mermaid diagrams to prevent rendering issues when displaying layer names containing generic type parameters.
+
+- [#370](https://github.com/Effect-TS/language-service/pull/370) [`0e25fbc`](https://github.com/Effect-TS/language-service/commit/0e25fbc9ea6784d99eb6feacfdc976044b9c890c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Layer Magic refactor now shows previously provided layers as a comment in the generated type annotation.
+
+  When using the Layer Magic "Prepare for reuse" refactor, layers that were already provided at the location are now shown as a trailing comment (e.g., `/* Foo | Bar */`) next to the newly introduced layer types. This helps developers understand which layers were already available and which ones are being newly introduced.
+
+- [#372](https://github.com/Effect-TS/language-service/pull/372) [`172363c`](https://github.com/Effect-TS/language-service/commit/172363cdbfe8df9704a1fd85e77cf01d28b721e6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add general support for Effect.Tag in various diagnostics/refactors
+
 ## 0.38.1
 
 ### Patch Changes
