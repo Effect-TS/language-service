@@ -223,7 +223,7 @@ interface MermaidGraphContext {
 }
 
 function escapeMermaid(text: string) {
-  return text.replace(/"/mg, "#quot;").replace(/\n/mg, " ")
+  return text.replace(/"/mg, "#quot;").replace(/\n/mg, " ").replace(/</mg, "#lt;").replace(/>/mg, "#gt;")
 }
 
 function processNodeMermaid(
