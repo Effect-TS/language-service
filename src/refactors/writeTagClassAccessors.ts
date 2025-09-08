@@ -248,6 +248,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
 
   const { Service, accessors, className } = yield* pipe(
     typeParser.extendsEffectService(node),
+    Nano.orElse(() => Nano.map(typeParser.extendsEffectTag(node), (_) => ({ accessors: true, ..._ }))),
     Nano.orElse(() => Nano.fail("not a class extending Effect.Service call"))
   )
 

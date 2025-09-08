@@ -1,0 +1,4 @@
+// 4:20
+import * as Effect from "effect/Effect"
+
+export class MyClass extends Effect.Tag("MyClass")<MyClass, {}>() {}
