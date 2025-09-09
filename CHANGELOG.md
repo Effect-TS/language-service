@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.38.3
+
+### Patch Changes
+
+- [#375](https://github.com/Effect-TS/language-service/pull/375) [`74696fd`](https://github.com/Effect-TS/language-service/commit/74696fda0300aa40fbb155a9967cb649c7f89595) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `resolveModulePattern` to use fallback mechanism for package scope resolution when primary method is unavailable
+
 ## 0.38.2
 
 ### Patch Changes
