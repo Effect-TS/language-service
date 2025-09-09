@@ -22,7 +22,7 @@ export const importFromBarrel = LSP.createDiagnostic({
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const packageNamesToCheck = Array.flatten(
       languageServicePluginOptions.namespaceImportPackages.map((packageName) =>
-        tsUtils.resolveModulePattern(sourceFile, packageName)
+        tsUtils.resolveModulePattern(program, sourceFile, packageName)
       )
     )
 
