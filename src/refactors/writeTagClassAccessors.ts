@@ -3,6 +3,7 @@ import type * as ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -242,6 +243,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
   const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
   const typeParser = yield* Nano.service(TypeParser.TypeParser)
+  const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
   // only applicable to class declarations
   if (!ts.isClassDeclaration(node)) return yield* Nano.fail("not a class declaration")
@@ -251,16 +253,25 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
     Nano.orElse(() => Nano.map(typeParser.extendsEffectTag(node), (_) => ({ accessors: true, ..._ }))),
     Nano.orElse(() => Nano.fail("not a class extending Effect.Service call"))
   )
-
   if (accessors !== true) return yield* Nano.fail("accessors are not enabled in the Effect.Service call")
 
   const involvedMembers: Array<{ property: ts.Symbol; propertyType: ts.Type }> = []
-  for (const property of typeChecker.getPropertiesOfType(Service)) {
-    const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, node)
-    const callSignatures = typeChecker.getSignaturesOfType(propertyType, ts.SignatureKind.Call)
-    if (callSignatures.length > 0) {
-      const withTypeParameters = callSignatures.filter((_) => _.typeParameters && _.typeParameters.length > 0)
-      if (callSignatures.length > 1 || withTypeParameters.length > 0) involvedMembers.push({ property, propertyType })
+
+  const nonPrimitiveServices = typeCheckerUtils.unrollUnionMembers(Service).filter((_) =>
+    !((_.flags & ts.TypeFlags.Number) || (_.flags & ts.TypeFlags.String) || (_.flags & ts.TypeFlags.Boolean) ||
+      (_.flags & ts.TypeFlags.Literal))
+  )
+
+  if (nonPrimitiveServices.length === 0) return yield* Nano.fail("Service type is a primitive type")
+
+  for (const serviceShape of nonPrimitiveServices) {
+    for (const property of typeChecker.getPropertiesOfType(serviceShape)) {
+      const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, node)
+      const callSignatures = typeChecker.getSignaturesOfType(propertyType, ts.SignatureKind.Call)
+      if (callSignatures.length > 0) {
+        const withTypeParameters = callSignatures.filter((_) => _.typeParameters && _.typeParameters.length > 0)
+        if (callSignatures.length > 1 || withTypeParameters.length > 0) involvedMembers.push({ property, propertyType })
+      }
     }
   }
 

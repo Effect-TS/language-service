@@ -461,6 +461,7 @@ export interface CodegenDefinition {
     | TypeScriptApi.TypeScriptApi
     | TypeScriptUtils.TypeScriptUtils
     | TypeCheckerApi.TypeCheckerApi
+    | TypeCheckerUtils.TypeCheckerUtils
     | TypeParser.TypeParser
     | LanguageServicePluginOptions.LanguageServicePluginOptions
   >
