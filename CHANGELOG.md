@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.38.4
+
+### Patch Changes
+
+- [#378](https://github.com/Effect-TS/language-service/pull/378) [`2f9bc51`](https://github.com/Effect-TS/language-service/commit/2f9bc515d8c26bb2e6488d71308195d11965e14d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for Effect.Tag in writeTagClassAccessors refactor
+
+  The writeTagClassAccessors refactor now supports Effect.Tag classes in addition to Effect.Service and Context.Tag. This allows users to generate accessor methods for services created with Effect.Tag, maintaining consistency across all tag-based service patterns.
+
 ## 0.38.3
 
 ### Patch Changes
