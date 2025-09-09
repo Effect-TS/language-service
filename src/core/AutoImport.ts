@@ -164,7 +164,7 @@ export const makeAutoImportProvider: (
       topLevelNamedReexports: "ignore" | "follow"
     ) {
       for (const packagePattern of packagePatterns) {
-        const packageNames = tsUtils.resolveModulePattern(fromSourceFile, packagePattern)
+        const packageNames = tsUtils.resolveModulePattern(program, fromSourceFile, packagePattern)
         for (const packageName of packageNames) {
           const packageInfo = getPackageInfo(fromSourceFile.fileName, packageName)
           if (!packageInfo) continue

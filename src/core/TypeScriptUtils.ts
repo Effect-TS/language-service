@@ -33,7 +33,7 @@ export interface TypeScriptUtils {
       options?: any
     ) => string)
     | undefined
-  resolveModulePattern: (sourceFile: ts.SourceFile, pattern: string) => Array<string>
+  resolveModulePattern: (program: ts.Program, sourceFile: ts.SourceFile, pattern: string) => Array<string>
   getAncestorNodesInRange: (sourceFile: ts.SourceFile, textRange: ts.TextRange) => Array<ts.Node>
   findImportedModuleIdentifierByPackageAndNameOrBarrel: (
     sourceFile: ts.SourceFile,
@@ -110,10 +110,10 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     if (!hasProperty(packageJsonScope.contents, "packageJsonContent")) return
     const packageJsonContent = packageJsonScope.contents.packageJsonContent
     if (!hasProperty(packageJsonContent, "name")) return
-    if (!hasProperty(packageJsonContent, "version")) return
     if (!hasProperty(packageJsonScope, "packageDirectory")) return
     if (!isString(packageJsonScope.packageDirectory)) return
-    const { name, version } = packageJsonContent
+    const { name } = packageJsonContent
+    const version = hasProperty(packageJsonScope, "version") ? packageJsonScope.version : ""
     if (!isString(name)) return
     if (!isString(version)) return
     const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&
@@ -149,9 +149,25 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     }
   }
 
-  function resolveModulePattern(sourceFile: ts.SourceFile, pattern: string) {
+  function resolveModulePattern(program: ts.Program, sourceFile: ts.SourceFile, pattern: string) {
     if (pattern.indexOf("*") === -1) return [pattern.toLowerCase()]
-    const packageJsonScope = parsePackageContentNameAndVersionFromScope(sourceFile)
+    let packageJsonScope = parsePackageContentNameAndVersionFromScope(sourceFile)
+    if (
+      !packageJsonScope && hasProperty(ts, "getPackageScopeForPath") && isFunction(ts.getPackageScopeForPath) &&
+      hasProperty(ts, "getTemporaryModuleResolutionState") && isFunction(ts.getTemporaryModuleResolutionState) &&
+      hasProperty(ts, "getPackageScopeForPath") &&
+      isFunction(ts.getPackageScopeForPath)
+    ) {
+      const temporaryModuleResolutionState = ts.getTemporaryModuleResolutionState(
+        undefined,
+        program,
+        program.getCompilerOptions()
+      )
+      packageJsonScope = parsePackageContentNameAndVersionFromScope({
+        ...sourceFile,
+        packageJsonScope: ts.getPackageScopeForPath(sourceFile.fileName, temporaryModuleResolutionState)
+      })
+    }
     const referencedPackages: Array<string> = []
     for (const statement of sourceFile.statements) {
       if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
