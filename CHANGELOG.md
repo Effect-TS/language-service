@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.39.0
+
+### Minor Changes
+
+- [#380](https://github.com/Effect-TS/language-service/pull/380) [`98e30dd`](https://github.com/Effect-TS/language-service/commit/98e30dd52b1f67aed10ae7d83b4833e6ff2bac19) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Added exposed APIs for mermaid chart locally and allow to disable external links
+
 ## 0.38.4
 
 ### Patch Changes
