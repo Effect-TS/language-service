@@ -484,15 +484,30 @@ export function make(
     Nano.fn("TypeParser.importedSchemaModule")(function*(
       node: ts.Node
     ) {
+      // should be an expression
+      if (!ts.isIdentifier(node)) {
+        return yield* typeParserIssue("Node is not an expression", undefined, node)
+      }
       const type = typeChecker.getTypeAtLocation(node)
       // if the type has a property "Class" that is a function
       const propertySymbol = typeChecker.getPropertyOfType(type, "Class")
       if (!propertySymbol) {
         return yield* typeParserIssue("Type has no 'Class' property", type, node)
       }
-      // should be an expression
-      if (!ts.isExpression(node)) {
-        return yield* typeParserIssue("Node is not an expression", type, node)
+      const sourceFile = tsUtils.getSourceFileOfNode(node)
+      if (!sourceFile) {
+        return yield* typeParserIssue("Node is not in a source file", undefined, node)
+      }
+      const schemaIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+        sourceFile,
+        "effect",
+        "Schema"
+      )
+      if (!schemaIdentifier) {
+        return yield* typeParserIssue("Schema module not found", undefined, node)
+      }
+      if (ts.idText(node) !== schemaIdentifier) {
+        return yield* typeParserIssue("Node is not a schema module reference", undefined, node)
       }
       // return the node itself
       return node
@@ -512,8 +527,23 @@ export function make(
         return yield* typeParserIssue("Type has no 'Tag' property", type, node)
       }
       // should be an expression
-      if (!ts.isExpression(node)) {
-        return yield* typeParserIssue("Node is not an expression", type, node)
+      if (!ts.isIdentifier(node)) {
+        return yield* typeParserIssue("Node is not an identifier", type, node)
+      }
+      const sourceFile = tsUtils.getSourceFileOfNode(node)
+      if (!sourceFile) {
+        return yield* typeParserIssue("Node is not in a source file", undefined, node)
+      }
+      const contextIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+        sourceFile,
+        "effect",
+        "Context"
+      )
+      if (!contextIdentifier) {
+        return yield* typeParserIssue("Context module not found", undefined, node)
+      }
+      if (ts.idText(node) !== contextIdentifier) {
+        return yield* typeParserIssue("Node is not a context module reference", undefined, node)
       }
       // return the node itself
       return node
@@ -557,8 +587,23 @@ export function make(
         return yield* typeParserIssue("Type has no 'TaggedError' property", type, node)
       }
       // should be an expression
-      if (!ts.isExpression(node)) {
+      if (!ts.isIdentifier(node)) {
         return yield* typeParserIssue("Node is not an expression", type, node)
+      }
+      const sourceFile = tsUtils.getSourceFileOfNode(node)
+      if (!sourceFile) {
+        return yield* typeParserIssue("Node is not in a source file", undefined, node)
+      }
+      const dataIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+        sourceFile,
+        "effect",
+        "Data"
+      )
+      if (!dataIdentifier) {
+        return yield* typeParserIssue("Data module not found", undefined, node)
+      }
+      if (ts.idText(node) !== dataIdentifier) {
+        return yield* typeParserIssue("Node is not a data module reference", undefined, node)
       }
       // return the node itself
       return node
@@ -1029,8 +1074,10 @@ export function make(
                   ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
                   ts.idText(schemaIdentifier.name) === "Class"
                 ) {
+                  const expressionType = typeChecker.getTypeAtLocation(expression)
                   const parsedSchemaModule = yield* pipe(
-                    importedSchemaModule(schemaIdentifier.expression),
+                    effectSchemaType(expressionType, expression),
+                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
                     Nano.option
                   )
                   if (Option.isSome(parsedSchemaModule)) {
@@ -1081,8 +1128,10 @@ export function make(
                   ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
                   ts.idText(schemaIdentifier.name) === "TaggedClass"
                 ) {
+                  const expressionType = typeChecker.getTypeAtLocation(expression)
                   const parsedSchemaModule = yield* pipe(
-                    importedSchemaModule(schemaIdentifier.expression),
+                    effectSchemaType(expressionType, expression),
+                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
                     Nano.option
                   )
                   if (Option.isSome(parsedSchemaModule)) {
@@ -1141,8 +1190,10 @@ export function make(
                   ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
                   ts.idText(schemaIdentifier.name) === "TaggedError"
                 ) {
+                  const expressionType = typeChecker.getTypeAtLocation(expression)
                   const parsedSchemaModule = yield* pipe(
-                    importedSchemaModule(schemaIdentifier.expression),
+                    effectSchemaType(expressionType, expression),
+                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
                     Nano.option
                   )
                   if (Option.isSome(parsedSchemaModule)) {
@@ -1306,8 +1357,10 @@ export function make(
                   ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
                   ts.idText(schemaIdentifier.name) === "TaggedRequest"
                 ) {
+                  const expressionType = typeChecker.getTypeAtLocation(expression)
                   const parsedSchemaModule = yield* pipe(
-                    importedSchemaModule(schemaIdentifier.expression),
+                    effectSchemaType(expressionType, expression),
+                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
                     Nano.option
                   )
                   if (Option.isSome(parsedSchemaModule)) {

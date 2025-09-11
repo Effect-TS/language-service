@@ -29,6 +29,7 @@ export const classSelfMismatch = LSP.createDiagnostic({
         const result = yield* pipe(
           typeParser.extendsEffectService(node),
           Nano.orElse(() => typeParser.extendsContextTag(node)),
+          Nano.orElse(() => typeParser.extendsEffectTag(node)),
           Nano.orElse(() => typeParser.extendsSchemaClass(node)),
           Nano.orElse(() => typeParser.extendsSchemaTaggedClass(node)),
           Nano.orElse(() => typeParser.extendsSchemaTaggedError(node)),
