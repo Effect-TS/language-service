@@ -1,5 +1,28 @@
 # @effect/language-service
 
+## 0.40.0
+
+### Minor Changes
+
+- [#384](https://github.com/Effect-TS/language-service/pull/384) [`62b9829`](https://github.com/Effect-TS/language-service/commit/62b98290c043dc3457d116a92d91aaf57bde60fc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new diagnostic: `effectGenUsesAdapter` - warns when using `Effect.gen` with the generator adapter pattern (function\*(\_)) instead of using `pipe()`
+
+  The generator adapter pattern `function*(_)` is an old pattern. Users should use `pipe()` for composing effects or `Effect.gen(function*())` without the adapter for generator-based code.
+
+  Example that will trigger the warning:
+
+  ```ts
+  const example = Effect.gen(function* (_) {
+    const result = yield* _(Effect.succeed(42));
+    return result;
+  });
+  ```
+
+### Patch Changes
+
+- [#382](https://github.com/Effect-TS/language-service/pull/382) [`2f318b6`](https://github.com/Effect-TS/language-service/commit/2f318b6af86bb9e81fcc806f180bf149712e027d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add noExternal option
+
+- [#385](https://github.com/Effect-TS/language-service/pull/385) [`8580bed`](https://github.com/Effect-TS/language-service/commit/8580bed2ee39b92c410a95c6651812519bd3d3bb) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix false positive regarding Schema.Class
+
 ## 0.39.0
 
 ### Minor Changes
