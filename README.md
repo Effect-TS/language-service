@@ -55,6 +55,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn on subsequent `Effect.provide` anti-pattern
 - Detect wrong `Self` type parameter for APIs like `Effect.Service` or `Schema.TaggedError` and similar 
 - Unnecessary usages of `Effect.gen` or `pipe()`
+- Warn when using `Effect.gen` with the old generator adapter pattern
 - Warn when importing from a barrel file instead of from the module directly
 - Warn on usage of try/catch inside `Effect.gen` and family
 - Detect unnecessary pipe chains like `X.pipe(Y).pipe(Z)`

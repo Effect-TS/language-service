@@ -1,5 +1,6 @@
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
+import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
@@ -25,6 +26,7 @@ import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAcc
 export const diagnostics = [
   classSelfMismatch,
   duplicatePackage,
+  effectGenUsesAdapter,
   missingEffectContext,
   missingEffectError,
   missingEffectServiceDependency,
