@@ -22,6 +22,7 @@ export interface LanguageServicePluginOptions {
   barrelImportPackages: Array<string>
   importAliases: Record<string, string>
   renames: boolean
+  noExternal: boolean
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -54,7 +55,8 @@ export const defaults: LanguageServicePluginOptions = {
   topLevelNamedReexports: "ignore",
   barrelImportPackages: [],
   importAliases: {},
-  renames: true
+  renames: true,
+  noExternal: false
 }
 
 export function parse(config: any): LanguageServicePluginOptions {
@@ -108,6 +110,9 @@ export function parse(config: any): LanguageServicePluginOptions {
       : defaults.topLevelNamedReexports,
     renames: isObject(config) && hasProperty(config, "renames") && isBoolean(config.renames)
       ? config.renames
-      : defaults.renames
+      : defaults.renames,
+    noExternal: isObject(config) && hasProperty(config, "noExternal") && isBoolean(config.noExternal)
+      ? config.noExternal
+      : defaults.noExternal
   }
 }

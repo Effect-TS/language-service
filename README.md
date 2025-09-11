@@ -116,7 +116,8 @@ Few options can be provided alongside the initialization of the Language Service
         "barrelImportPackages": [], // package names that should be preferred as imported from the top level barrel file (default: [])
         "namespaceImportPackages": [], // package names that should be preferred as imported with namespace imports e.g. ["effect", "@effect/*"] (default: [])
         "topLevelNamedReexports": "ignore", // for namespaceImportPackages, how should top level named re-exports (e.g. {pipe} from "effect") be treated? "ignore" will leave them as is, "follow" will rewrite them to the re-exported module (e.g. {pipe} from "effect/Function")
-        "importAliases": { "Array": "Arr" } // allows to chose some different names for import name aliases (only when not chosing to import the whole module) (default: {})
+        "importAliases": { "Array": "Arr" }, // allows to chose some different names for import name aliases (only when not chosing to import the whole module) (default: {})
+        "noExternal": false // disables features that provides links to external websites (such as links to mermaidchart.com) (default: false)
       }
     ]
   }

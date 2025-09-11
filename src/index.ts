@@ -19,6 +19,7 @@ import { middlewareAutoImportQuickfixes } from "./diagnostics/middlewareAutoImpo
 import { goto } from "./goto.js"
 import { middlewareGenLike } from "./inlays/middlewareGenLike.js"
 import { quickInfo } from "./quickinfo.js"
+import { effectApiGetLayerGraph } from "./quickinfo/layerInfo.js"
 import { refactors } from "./refactors.js"
 import { renameKeyStrings } from "./renames/keyStrings.js"
 
@@ -491,6 +492,48 @@ const init = (
 
       return applicableRenameInfo
     }
+
+    info.session?.addProtocolHandler("_effectGetLayerMermaid", (arg) => {
+      const { character, line, path } = arg.arguments
+      const normalizedPath = modules.typescript.server.toNormalizedPath(path)
+
+      const projectService = info.project.projectService
+      const scriptInfo = projectService.getScriptInfoForNormalizedPath(normalizedPath)
+      if (scriptInfo) {
+        const targetProject = scriptInfo.getDefaultProject()
+        if (targetProject) {
+          const program = targetProject.getLanguageService().getProgram()
+          if (program) {
+            const sourceFile = targetProject.getSourceFile(scriptInfo.path)
+            if (sourceFile) {
+              return pipe(
+                effectApiGetLayerGraph(sourceFile, line, character),
+                Nano.map((response) => ({
+                  response: {
+                    success: true,
+                    ...response
+                  }
+                })),
+                runNano(program),
+                Either.getOrElse((e) => ({
+                  response: {
+                    success: false,
+                    error: e.message
+                  }
+                }))
+              )
+            }
+          }
+        }
+      }
+
+      return {
+        response: {
+          success: false,
+          error: "No source file found"
+        }
+      }
+    })
 
     return proxy
   }
