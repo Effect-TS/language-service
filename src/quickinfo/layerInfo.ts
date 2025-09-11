@@ -4,6 +4,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as pako from "pako"
 import type * as ts from "typescript"
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
@@ -326,21 +327,118 @@ function processNodeMermaid(
 }
 
 function generateMarmaidUri(
-  graph: LayerGraphNode,
-  ctxL: LayerGraphContext
+  code: string
 ): Nano.Nano<string, never, TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi> {
   return Nano.gen(function*() {
-    const ctx: MermaidGraphContext = {
-      seenIds: new Set()
-    }
-    const lines = yield* processNodeMermaid(graph, ctx, ctxL)
-    const code = "flowchart TB\n" + lines.join("\n")
     const state = JSON.stringify({ code })
     const data = new TextEncoder().encode(state)
     const compressed = pako.deflate(data, { level: 9 })
     const pakoString = "pako:" + Encoding.encodeBase64Url(compressed)
     return "https://www.mermaidchart.com/play#" + pakoString
   })
+}
+
+function getAdjustedNode(
+  sourceFile: ts.SourceFile,
+  position: number
+) {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+
+    // find the node we are hovering
+    const range = tsUtils.toTextRange(position)
+    const maybeNode = pipe(
+      tsUtils.getAncestorNodesInRange(sourceFile, range),
+      Array.filter((_) => ts.isVariableDeclaration(_) || ts.isPropertyDeclaration(_)),
+      Array.filter((_) => tsUtils.isNodeInRange(range)(_.name)),
+      Array.head
+    )
+    if (Option.isNone(maybeNode)) return undefined
+    const node = maybeNode.value
+    const layerNode = node.initializer
+      ? node.initializer
+      : node
+
+    const layerType = typeChecker.getTypeAtLocation(layerNode)
+    const maybeLayer = yield* Nano.option(typeParser.layerType(layerType, layerNode))
+
+    if (Option.isNone(maybeLayer)) return undefined
+
+    return { node, layerNode }
+  })
+}
+
+function parseLayerGraph(
+  sourceFile: ts.SourceFile,
+  layerNode: ts.Node
+) {
+  return Nano.gen(function*() {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+
+    let lastId = 0
+    const graphCtx: LayerGraphContext = {
+      services: new Map(),
+      serviceTypeToString: new Map(),
+      nextId: () => "id" + (lastId++)
+    }
+    const rootNode = yield* processLayerGraphNode(graphCtx, layerNode, undefined)
+    const ctx: MermaidGraphContext = {
+      seenIds: new Set()
+    }
+    const mermaidLines = yield* processNodeMermaid(rootNode, ctx, graphCtx)
+    const mermaidCode = "flowchart TB\n" + mermaidLines.join("\n")
+
+    const textualExplanation: Array<string> = []
+    const appendInfo = (providesNode: Array<LayerGraphNode>, type: ts.Type, kindText: string) => {
+      const typeString = typeChecker.typeToString(
+        type,
+        undefined,
+        ts.TypeFormatFlags.NoTruncation
+      )
+
+      const positions = providesNode.map((_) => {
+        const nodePosition = _.node.getStart(sourceFile, false)
+        const { character, line } = ts.getLineAndCharacterOfPosition(sourceFile, nodePosition)
+        const nodeText = _.node.getText().trim().replace(/\n/g, " ").substr(0, 50)
+        return "ln " + (line + 1) + " col " + character + " by `" + nodeText + "`"
+      })
+
+      textualExplanation.push("- " + typeString + " " + kindText + " at " + positions.join(", "))
+    }
+
+    for (const providesKey of rootNode.rout) {
+      const providesNode = findInnermostGraphEdge(rootNode, "rout", providesKey)
+      appendInfo(providesNode, graphCtx.services.get(providesKey)!, "provided")
+    }
+    if (textualExplanation.length > 0) textualExplanation.push("")
+    for (const requiresKey of rootNode.rin) {
+      const requiresNode = findInnermostGraphEdge(rootNode, "rin", requiresKey)
+      appendInfo(requiresNode, graphCtx.services.get(requiresKey)!, "required")
+    }
+    return { mermaidCode, textualExplanation }
+  })
+}
+
+export function effectApiGetLayerGraph(
+  sourceFile: ts.SourceFile,
+  line: number,
+  character: number
+) {
+  return pipe(
+    Nano.gen(function*() {
+      const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+      const position = ts.getPositionOfLineAndCharacter(sourceFile, line, character)
+      const maybeNodes = yield* getAdjustedNode(sourceFile, position)
+      if (!maybeNodes) return yield* Nano.fail(new UnableToProduceLayerGraphError("No node found"))
+      const { layerNode, node } = maybeNodes
+      const { mermaidCode } = yield* parseLayerGraph(sourceFile, layerNode)
+      return { start: node.pos, end: node.end, mermaidCode }
+    })
+  )
 }
 
 export function layerInfo(
@@ -351,85 +449,32 @@ export function layerInfo(
   return pipe(
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-      const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-      const typeParser = yield* Nano.service(TypeParser.TypeParser)
+      const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
-      // find the node we are hovering
-      const range = tsUtils.toTextRange(position)
-      const maybeNode = pipe(
-        tsUtils.getAncestorNodesInRange(sourceFile, range),
-        Array.filter((_) => ts.isVariableDeclaration(_) || ts.isPropertyDeclaration(_)),
-        Array.filter((_) => tsUtils.isNodeInRange(range)(_.name)),
-        Array.head
-      )
-      if (Option.isNone(maybeNode)) return quickInfo
-      const node = maybeNode.value
-      const layerNode = node.initializer
-        ? node.initializer
-        : node
-
-      const layerType = typeChecker.getTypeAtLocation(layerNode)
-      const maybeLayer = yield* Nano.option(typeParser.layerType(layerType, layerNode))
-
-      if (Option.isNone(maybeLayer)) return quickInfo
-
-      let lastId = 0
-      const graphCtx: LayerGraphContext = {
-        services: new Map(),
-        serviceTypeToString: new Map(),
-        nextId: () => "id" + (lastId++)
-      }
+      const maybeNodes = yield* getAdjustedNode(sourceFile, position)
+      if (!maybeNodes) return quickInfo
+      const { layerNode, node } = maybeNodes
 
       const layerInfoDisplayParts = yield* pipe(
-        processLayerGraphNode(graphCtx, layerNode, undefined),
-        Nano.flatMap((rootNode) =>
+        parseLayerGraph(sourceFile, layerNode),
+        Nano.flatMap(({ mermaidCode, textualExplanation }) =>
           Nano.gen(function*() {
-            yield* Nano.succeed(undefined)
-            const lines: Array<string> = []
-
-            const appendInfo = (providesNode: Array<LayerGraphNode>, type: ts.Type, kindText: string) => {
-              const typeString = typeChecker.typeToString(
-                type,
-                undefined,
-                ts.TypeFormatFlags.NoTruncation
-              )
-
-              const positions = providesNode.map((_) => {
-                const nodePosition = _.node.getStart(sourceFile, false)
-                const { character, line } = ts.getLineAndCharacterOfPosition(sourceFile, nodePosition)
-                const nodeText = _.node.getText().trim().replace(/\n/g, " ").substr(0, 50)
-                return "ln " + (line + 1) + " col " + character + " by `" + nodeText + "`"
-              })
-
-              lines.push("- " + typeString + " " + kindText + " at " + positions.join(", "))
-            }
-
-            for (const providesKey of rootNode.rout) {
-              const providesNode = findInnermostGraphEdge(rootNode, "rout", providesKey)
-              appendInfo(providesNode, graphCtx.services.get(providesKey)!, "provided")
-            }
-            if (lines.length > 0) lines.push("")
-            for (const requiresKey of rootNode.rin) {
-              const requiresNode = findInnermostGraphEdge(rootNode, "rin", requiresKey)
-              appendInfo(requiresNode, graphCtx.services.get(requiresKey)!, "required")
-            }
-            const mermaidUri = yield* Nano.option(generateMarmaidUri(rootNode, graphCtx))
             const linkParts: Array<ts.SymbolDisplayPart> = []
-            if (Option.isSome(mermaidUri)) {
+            if (!options.noExternal) {
+              const mermaidUri = yield* generateMarmaidUri(mermaidCode)
               linkParts.push({ kind: "space", text: "\n" })
               linkParts.push({ kind: "link", text: "{@link " })
-              linkParts.push({ kind: "linkText", text: mermaidUri.value + " Show full Layer graph" })
+              linkParts.push({ kind: "linkText", text: mermaidUri + " Show full Layer graph" })
               linkParts.push({ kind: "link", text: "}" })
               linkParts.push({ kind: "space", text: "\n" })
             }
-            if (lines.length === 0) return linkParts
+            if (textualExplanation.length === 0) return linkParts
             return [
               {
                 kind: "text",
                 text: (
                   "```\n" +
-                  "/**\n" + lines.map((l) => " * " + l).join("\n") +
+                  "/**\n" + textualExplanation.map((l) => " * " + l).join("\n") +
                   "\n */\n```\n"
                 )
               },
