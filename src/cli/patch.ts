@@ -42,7 +42,6 @@ const moduleNames = Options.choice("module", [
 const getPatchesForModule = Effect.fn("getPatchesForModule")(
   function*(moduleName: "tsc" | "typescript", dirPath: string, version: string, sourceFile: ts.SourceFile) {
     const patches: Array<ts.TextChange> = []
-    const insertUtilsPosition: Option.Option<{ position: number }> = Option.some({ position: 0 })
     let insertClearSourceFileEffectMetadataPosition: Option.Option<{ position: number }> = Option.none()
     let insertCheckSourceFilePosition: Option.Option<{ position: number }> = Option.none()
     let insertSkipPrecedingCommentDirectivePosition: Option.Option<{ position: number }> = Option.none()
@@ -154,33 +153,6 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
       })
     }
 
-    // insert the utils
-    if (Option.isNone(insertUtilsPosition)) {
-      return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "effect lsp utils insertion" }))
-    }
-    if (moduleName !== "typescript") {
-      patches.push(
-        yield* makeEffectLspPatchChange(
-          sourceFile.text,
-          insertUtilsPosition.value.position,
-          insertUtilsPosition.value.position,
-          "\n" + (yield* getTypeScriptApisUtils(dirPath)) + "\n",
-          "",
-          version
-        )
-      )
-    }
-    patches.push(
-      yield* makeEffectLspPatchChange(
-        sourceFile.text,
-        insertUtilsPosition.value.position,
-        insertUtilsPosition.value.position,
-        "\n" + (yield* getEffectLspPatchUtils()) + "\n",
-        "",
-        version
-      )
-    )
-
     // insert the clearSourceFileMetadata call
     if (Option.isNone(insertClearSourceFileEffectMetadataPosition)) {
       return yield* Effect.fail(
@@ -192,7 +164,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
         sourceFile.text,
         insertClearSourceFileEffectMetadataPosition.value.position,
         insertClearSourceFileEffectMetadataPosition.value.position,
-        `effectLspPatchUtils.exports.clearSourceFileEffectMetadata(node)\n`,
+        `effectLspPatchUtils().clearSourceFileEffectMetadata(node)\n`,
         "\n",
         version
       )
@@ -207,8 +179,8 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
         sourceFile.text,
         insertCheckSourceFilePosition.value.position,
         insertCheckSourceFilePosition.value.position,
-        `effectLspPatchUtils.exports.checkSourceFileWorker(${
-          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis"
+        `effectLspPatchUtils().checkSourceFileWorker(${
+          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis()"
         }, host, node, compilerOptions, diagnostics.add)\n`,
         "\n",
         version
@@ -227,8 +199,8 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
         sourceFile.text,
         insertAppendMetadataRelationErrorPosition.value.position,
         insertAppendMetadataRelationErrorPosition.value.position,
-        `effectLspPatchUtils.exports.appendMetadataRelationError(${
-          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis"
+        `effectLspPatchUtils().appendMetadataRelationError(${
+          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis()"
         }, errorNode, ${sourceIdentifier}, ${targetIdentifier})\n`,
         "\n",
         version
@@ -251,6 +223,34 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
         version
       )
     )
+
+    // NOTE: we add fake file markers so that ts-patch is fine with it's concept of
+    // "source" sectors
+    let eofPos = sourceFile.text.lastIndexOf("// src/") - 1
+    if (eofPos < 0) eofPos = sourceFile.text.length
+    if (moduleName !== "typescript") {
+      patches.push(
+        yield* makeEffectLspPatchChange(
+          sourceFile.text,
+          eofPos,
+          eofPos,
+          yield* getTypeScriptApisUtils(dirPath),
+          "\n\n// src/@effect/language-service/effect-lsp-patch-utils.ts\n",
+          version
+        )
+      )
+    }
+    patches.push(
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
+        eofPos,
+        eofPos,
+        yield* getEffectLspPatchUtils(),
+        "\n\n// src/@effect/language-service/embedded-typescript-copy.ts\n",
+        version
+      )
+    )
+
     return patches
   }
 )

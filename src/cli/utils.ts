@@ -70,8 +70,17 @@ export const getTypeScriptApisUtils = Effect.fn("getTypeScriptApisFile")(
   function*(dirPath: string) {
     const filePath = yield* getModuleFilePath(dirPath, "typescript")
     const sourceFile = yield* getUnpatchedSourceFile(filePath)
-    const patchWithWrappingFunction =
-      `var effectLspTypeScriptApis = (function(module){\n${sourceFile.text}\nreturn ts\n})(effectLspTypeScriptApis);`
+    const bodyWithoutBundlerComment = yield* omitBundlerSourceFileComment(
+      sourceFile.text.split("\n").map((line) => `    ${line}`).join("\n")
+    )
+    const patchWithWrappingFunction = `
+var _effectLspTypeScriptApis = undefined;
+function effectLspTypeScriptApis(){
+  if(!_effectLspTypeScriptApis){
+    _effectLspTypeScriptApis = (function(module){\n${bodyWithoutBundlerComment}\nreturn ts\n})(effectLspTypeScriptApis);
+  }
+  return _effectLspTypeScriptApis;
+}`
     return patchWithWrappingFunction
   }
 )
@@ -81,8 +90,17 @@ export const getEffectLspPatchUtils = Effect.fn("getEffectLspPatchUtils")(functi
   const fs = yield* FileSystem.FileSystem
   const effectLspPatchUtilsPath = path.resolve(__dirname, "effect-lsp-patch-utils.js")
   const effectLspPatchUtilsContent = yield* fs.readFileString(effectLspPatchUtilsPath)
-  const patchWithWrappingFunction =
-    `var effectLspPatchUtils = (function(module){\n${effectLspPatchUtilsContent}\nreturn module\n})(effectLspPatchUtils || {});`
+  const bodyWithoutBundlerComment = yield* omitBundlerSourceFileComment(
+    effectLspPatchUtilsContent.split("\n").map((line) => `    ${line}`).join("\n")
+  )
+  const patchWithWrappingFunction = `
+var _effectLspPatchUtils = undefined;
+function effectLspPatchUtils(){
+  if(!_effectLspPatchUtils){
+    _effectLspPatchUtils = (function(module){\n${bodyWithoutBundlerComment}\nreturn module\n})({});
+  }
+  return _effectLspPatchUtils.exports;
+}`
   return patchWithWrappingFunction
 })
 
@@ -199,3 +217,28 @@ export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(functi
   )
   return newSourceFile
 })
+
+export const omitBundlerSourceFileComment = Effect.fn("omitBundlerSourceFileComment")(
+  function*(originalSourceText: string) {
+    const deleteChanges: Array<ts.TextChange> = []
+    const sourceFile = ts.createSourceFile(
+      "file.ts",
+      originalSourceText,
+      ts.ScriptTarget.ES2022,
+      true
+    )
+    const lineStarts = sourceFile.getLineStarts()
+    const regex = /^\s*\/\/\s*src\//gmid
+    for (let i = 0; i < lineStarts.length; i++) {
+      const pos = lineStarts[i]
+      const end = i >= lineStarts.length ? sourceFile.text.length : lineStarts[i + 1]
+      if (sourceFile.text.substring(pos, end).match(regex)) {
+        deleteChanges.push({
+          span: { start: pos, length: end - 1 - pos },
+          newText: ""
+        })
+      }
+    }
+    return yield* applyTextChanges(sourceFile.text, deleteChanges)
+  }
+)
