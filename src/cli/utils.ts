@@ -220,8 +220,25 @@ export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(functi
 
 export const omitBundlerSourceFileComment = Effect.fn("omitBundlerSourceFileComment")(
   function*(originalSourceText: string) {
-    return originalSourceText.split("\n").filter((line) => line.match(/^\s*\/\/\s*src\//gm) === null).join(
-      "\n"
+    const deleteChanges: Array<ts.TextChange> = []
+    const sourceFile = ts.createSourceFile(
+      "file.ts",
+      originalSourceText,
+      ts.ScriptTarget.ES2022,
+      true
     )
+    const lineStarts = sourceFile.getLineStarts()
+    const regex = /^\s*\/\/\s*src\//gmid
+    for (let i = 0; i < lineStarts.length; i++) {
+      const pos = lineStarts[i]
+      const end = i >= lineStarts.length ? sourceFile.text.length : lineStarts[i + 1]
+      if (sourceFile.text.substring(pos, end).match(regex)) {
+        deleteChanges.push({
+          span: { start: pos, length: end - 1 - pos },
+          newText: ""
+        })
+      }
+    }
+    return yield* applyTextChanges(sourceFile.text, deleteChanges)
   }
 )
