@@ -42,7 +42,7 @@ export const classSelfMismatch = LSP.createDiagnostic({
           const { className, selfTypeNode } = result
 
           // Get the actual name from the self type node
-          let actualName = ""
+          let actualName = sourceFile.text.substring(selfTypeNode.pos, selfTypeNode.end)
           if (ts.isTypeReferenceNode(selfTypeNode)) {
             if (ts.isIdentifier(selfTypeNode.typeName)) {
               actualName = ts.idText(selfTypeNode.typeName)
