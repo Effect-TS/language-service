@@ -69,7 +69,10 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
       ]
     )
     return ts.factory.createPropertyDeclaration(
-      [ts.factory.createModifier(ts.SyntaxKind.StaticKeyword)],
+      [
+        ts.factory.createModifier(ts.SyntaxKind.StaticKeyword),
+        ts.factory.createModifier(ts.SyntaxKind.OverrideKeyword)
+      ],
       propertyName,
       undefined,
       type,

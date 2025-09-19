@@ -27,12 +27,12 @@ export class MyService extends Effect.Service<MyService>()("MyService", {
     }
   })
 }) {
-    static methodWithGeneric: (<A>(value: A, _test: string) => Effect.Effect<A, never, MyService>) = (...args) => Effect.andThen(MyService, _ => _.methodWithGeneric(...args))
-    static methodWithOverridesAndGenerics: {
+    static override methodWithGeneric: (<A>(value: A, _test: string) => Effect.Effect<A, never, MyService>) = (...args) => Effect.andThen(MyService, _ => _.methodWithGeneric(...args))
+    static override methodWithOverridesAndGenerics: {
         <A>(value: A): Effect.Effect<A, never, MyService>
         <A>(value: A, opts: { discard: true }): Effect.Effect<void, never, MyService>
     } = (...args: any[]) => Effect.andThen(MyService, (_: any) => _.methodWithOverridesAndGenerics(...args)) as any
-    static methodWithOverridesNoGenerics: {
+    static override methodWithOverridesNoGenerics: {
         (value: string): Effect.Effect<string, never, MyService>;
         (value: string, opts: { discard: true }): Effect.Effect<void, never, MyService>
     } = (...args: any[]) => Effect.andThen(MyService, (_: any) => _.methodWithOverridesNoGenerics(...args)) as any
