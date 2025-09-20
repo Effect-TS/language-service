@@ -10,7 +10,7 @@ export class MyService extends Effect.Service<MyService>()("MyService", {
       method: <A>(value: A, _test: string) => Effect.succeed(value)
     }
   })
-}) {static method: (<A>(value: A, _test: string) => Effect.Effect<A, never, MyService>) = (...args) => Effect.andThen(MyService, _ => _.method(...args))
+}) {static override method: (<A>(value: A, _test: string) => Effect.Effect<A, never, MyService>) = (...args) => Effect.andThen(MyService, _ => _.method(...args))
 
   static myOtherStuff = 42
 }
