@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.40.1
+
+### Patch Changes
+
+- [#393](https://github.com/Effect-TS/language-service/pull/393) [`0d49098`](https://github.com/Effect-TS/language-service/commit/0d490981d77f31f600d3db49c214b9e7245ec3fa) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix name of autofix suggestion
+
+- [#387](https://github.com/Effect-TS/language-service/pull/387) [`7307ee1`](https://github.com/Effect-TS/language-service/commit/7307ee1d01196eece482644ab9b8d68c19f2e692) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Comply with ts-patch and vue-tsc patching mechanism
+
+- [#392](https://github.com/Effect-TS/language-service/pull/392) [`9df4e59`](https://github.com/Effect-TS/language-service/commit/9df4e59f6605ed95410c27bca3194a802e89422c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Adds override keyword in generated accessors
+
+- [#395](https://github.com/Effect-TS/language-service/pull/395) [`e504cec`](https://github.com/Effect-TS/language-service/commit/e504cecb4ca5c0a82db5fb6893a025959dd16640) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix and silently skip double-adding of handlers in protocols handlers
+
 ## 0.40.0
 
 ### Minor Changes
