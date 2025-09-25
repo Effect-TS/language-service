@@ -61,6 +61,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Detect unnecessary pipe chains like `X.pipe(Y).pipe(Z)`
 - Warn when using `Effect.Service` with `accessors: true` but methods have generics or multiple signatures
 - Warn on missing service dependencies in `Effect.Service` declarations
+- Warn when `Effect.Service` is used with a primitive type instead of an object type
 - Warn when schema classes override the default constructor behavior
 
 ### Completions

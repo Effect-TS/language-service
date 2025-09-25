@@ -225,4 +225,17 @@ function testAllDagnostics() {
   }
 }
 
+describe("Diagnostics", () => {
+  it("the diagnostic code should be unique among all diagnostics", () => {
+    const codes = diagnostics.reduce((acc, d) => {
+      acc[d.code] = (acc[d.code] || 0) + 1
+      return acc
+    }, {} as Record<number, number>)
+    for (const [code, count] of Object.entries(codes)) {
+      if (code === "1") continue // skip the diagnostic code 1 which is used for missingEffectContext and missingEffectError
+      expect(count, "code " + code + " should be unique").toEqual(1)
+    }
+  })
+})
+
 testAllDagnostics()
