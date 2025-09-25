@@ -1,7 +1,7 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import { hasProperty, isFunction, isObject, isString } from "effect/Predicate"
+import { hasProperty, isObject, isString } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
@@ -23,16 +23,6 @@ export interface TypeScriptUtils {
     position: number
   ) => { node: ts.Node; commentRange: ts.CommentRange } | undefined
   getCommentAtPosition: (sourceFile: ts.SourceFile, pos: number) => ts.CommentRange | undefined
-  makeGetModuleSpecifier: () =>
-    | ((
-      compilerOptions: ts.CompilerOptions,
-      importingSourceFile: ts.SourceFile,
-      importingSourceFileName: string,
-      toFileName: string,
-      host: any,
-      options?: any
-    ) => string)
-    | undefined
   resolveModulePattern: (program: ts.Program, sourceFile: ts.SourceFile, pattern: string) => Array<string>
   getAncestorNodesInRange: (sourceFile: ts.SourceFile, textRange: ts.TextRange) => Array<ts.Node>
   findImportedModuleIdentifierByPackageAndNameOrBarrel: (
@@ -98,6 +88,9 @@ export const nanoLayer = <A, E, R>(
   )
 
 export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScriptUtils {
+  const getTemporaryModuleResolutionState = TypeScriptApi.makeGetTemporaryModuleResolutionState(ts)
+  const getPackageScopeForPath = TypeScriptApi.makeGetPackageScopeForPath(ts)
+
   /**
    * Parse internal package info from a scope
    */
@@ -153,19 +146,16 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     if (pattern.indexOf("*") === -1) return [pattern.toLowerCase()]
     let packageJsonScope = parsePackageContentNameAndVersionFromScope(sourceFile)
     if (
-      !packageJsonScope && hasProperty(ts, "getPackageScopeForPath") && isFunction(ts.getPackageScopeForPath) &&
-      hasProperty(ts, "getTemporaryModuleResolutionState") && isFunction(ts.getTemporaryModuleResolutionState) &&
-      hasProperty(ts, "getPackageScopeForPath") &&
-      isFunction(ts.getPackageScopeForPath)
+      !packageJsonScope && getPackageScopeForPath && getTemporaryModuleResolutionState
     ) {
-      const temporaryModuleResolutionState = ts.getTemporaryModuleResolutionState(
+      const temporaryModuleResolutionState = getTemporaryModuleResolutionState(
         undefined,
         program,
         program.getCompilerOptions()
       )
       packageJsonScope = parsePackageContentNameAndVersionFromScope({
         ...sourceFile,
-        packageJsonScope: ts.getPackageScopeForPath(sourceFile.fileName, temporaryModuleResolutionState)
+        packageJsonScope: getPackageScopeForPath(sourceFile.fileName, temporaryModuleResolutionState)
       })
     }
     const referencedPackages: Array<string> = []
@@ -187,31 +177,6 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
         packageName.startsWith(pattern.toLowerCase().substring(0, pattern.length - 1))
       )
     )
-  }
-
-  function makeGetModuleSpecifier() {
-    if (
-      !(hasProperty(ts, "moduleSpecifiers") && hasProperty(ts.moduleSpecifiers, "getModuleSpecifier") &&
-        isFunction(ts.moduleSpecifiers.getModuleSpecifier))
-    ) return
-    const _internal = ts.moduleSpecifiers.getModuleSpecifier
-    return (
-      compilerOptions: ts.CompilerOptions,
-      importingSourceFile: ts.SourceFile,
-      importingSourceFileName: string,
-      toFileName: string,
-      host: any,
-      options?: any
-    ): string => {
-      return _internal(
-        compilerOptions,
-        importingSourceFile,
-        importingSourceFileName,
-        toFileName,
-        host,
-        options
-      )
-    }
   }
 
   function findNodeWithLeadingCommentAtPosition(sourceFile: ts.SourceFile, position: number) {
@@ -803,7 +768,6 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     parseDataForExtendsClassCompletion,
     createEffectGenCallExpressionWithBlock,
     createReturnYieldStarStatement,
-    makeGetModuleSpecifier,
     parseAccessedExpressionForCompletion,
     getSourceFileOfNode
   }
