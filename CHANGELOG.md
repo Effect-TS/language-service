@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.41.0
+
+### Minor Changes
+
+- [#396](https://github.com/Effect-TS/language-service/pull/396) [`744de40`](https://github.com/Effect-TS/language-service/commit/744de4072f713e31157cd082a7fef8695bb8c7c0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new diagnostic to warn when `Effect.Service` is used with a primitive type instead of an object type. This diagnostic helps prevent common mistakes where developers try to use primitive values (strings, numbers, etc.) as service types, which is not supported by `Effect.Service`. The diagnostic suggests wrapping the value in an object or manually using `Context.Tag` or `Effect.Tag` for primitive types.
+
 ## 0.40.1
 
 ### Patch Changes
