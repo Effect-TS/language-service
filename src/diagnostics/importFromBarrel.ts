@@ -20,6 +20,9 @@ export const importFromBarrel = LSP.createDiagnostic({
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
+
+    const getModuleSpecifier = TypeScriptApi.makeGetModuleSpecifier(ts)
+    const resolveExternalModuleName = TypeCheckerApi.makeResolveExternalModuleName(typeChecker)
     const packageNamesToCheck = Array.flatten(
       languageServicePluginOptions.namespaceImportPackages.map((packageName) =>
         tsUtils.resolveModulePattern(program, sourceFile, packageName)
@@ -29,9 +32,6 @@ export const importFromBarrel = LSP.createDiagnostic({
     const isImportedFromBarrelExport = (
       element: ts.ImportSpecifier
     ) => {
-      const getModuleSpecifier = tsUtils.makeGetModuleSpecifier()
-      const resolveExternalModuleName = TypeCheckerApi.makeResolveExternalModuleName(typeChecker)
-
       if (!(getModuleSpecifier && resolveExternalModuleName)) return
 
       const importDeclaration = ts.findAncestor(element, (node) => ts.isImportDeclaration(node))

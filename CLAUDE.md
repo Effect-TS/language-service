@@ -41,15 +41,15 @@ This workflow should be initiated only if asked by the user.
 - The remote origin/main branch is not writeable, so if there are changes on the main branch, create a new one and work over there
 
 ### 2. Preliminary TypeScript checks
-This steps can be skipped if no typescript file has been changed in this branch
+The following steps can be skipped if no typescript file has been changed in this branch
 - run "pnpm lint-fix" to fix code formatting
 - run "pnpm check" to see if you should fix some type errors
 - run "pnpm test" to validate that changes did not broke anything
 - when you think that you have finished it all, drop all the files from test/__snapshots__ and run "pnpm test". Look at the git changes in snapshot files and ensure that they are expected changes and there are no side effects.
 
 ### 3. Documentation checks
-- if new diagnostics, completions or refactor are added, ensure they are already mentioned in the README.md
-- If in the git changes does not exists a new changeset file to be added, create a new one in the .changeset folder, the pattern is something like this:
+- if new diagnostics, completions or refactor are added, ensure they are already mentioned in the README.md. Ensure to read examples and test/__snapshots__ related to the change to ensure full understanding of whats changed
+- If in the git changes does not exists a new changeset file to be added, create a new one in the .changeset folder, the patt<ern is something like this:
 ```
 ---
 "@effect/language-service": ${patchType}
@@ -62,5 +62,5 @@ Description of the change with examples
 
 ### 4. Pushing the PR to GitHub
 If all the preliminary checks pass, create a new github PR for the changes that:
-- Provide a description of what changed
+- Provide a description of what changed, ensure to read examples and test/__snapshots__ related to the change to ensure full understanding of whats changed
 - If the change involve refactors or diagnostic, provide an example of the feature added/changed

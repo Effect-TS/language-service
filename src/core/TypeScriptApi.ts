@@ -1,3 +1,4 @@
+import { hasProperty, isFunction } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 
@@ -161,3 +162,76 @@ export interface TypeScriptProgram extends _TypeScriptProgram {}
 export const TypeScriptProgram = Nano.Tag<TypeScriptProgram>("TypeScriptProgram")
 
 export const ChangeTracker = Nano.Tag<ts.textChanges.ChangeTracker>("ChangeTracker")
+
+// the followin APIs are not part of the public API of TypeScript, we keep them here for internal use and tracking which ones we use
+export function makeGetModuleSpecifier(ts: TypeScriptApi) {
+  if (
+    !(hasProperty(ts, "moduleSpecifiers") && hasProperty(ts.moduleSpecifiers, "getModuleSpecifier") &&
+      isFunction(ts.moduleSpecifiers.getModuleSpecifier))
+  ) return
+  const _internal = ts.moduleSpecifiers.getModuleSpecifier
+  return (
+    compilerOptions: ts.CompilerOptions,
+    importingSourceFile: ts.SourceFile,
+    importingSourceFileName: string,
+    toFileName: string,
+    host: any,
+    options?: any
+  ): string => {
+    return _internal(
+      compilerOptions,
+      importingSourceFile,
+      importingSourceFileName,
+      toFileName,
+      host,
+      options
+    )
+  }
+}
+
+export interface ModuleResolutionState {
+  __internal: any
+}
+
+export function makeGetTemporaryModuleResolutionState(
+  ts: TypeScriptApi
+) {
+  if (hasProperty(ts, "getTemporaryModuleResolutionState") && isFunction(ts.getTemporaryModuleResolutionState)) {
+    const _internal = ts.getTemporaryModuleResolutionState
+    return (
+      cache: ts.ModuleResolutionCache | undefined,
+      program: ts.Program,
+      compilerOptions: ts.CompilerOptions
+    ): ModuleResolutionState => _internal(cache, program, compilerOptions) as any
+  }
+  return undefined
+}
+
+export function makeGetPackageScopeForPath(
+  ts: TypeScriptApi
+) {
+  if (hasProperty(ts, "getPackageScopeForPath") && isFunction(ts.getPackageScopeForPath)) {
+    const _internal = ts.getPackageScopeForPath
+    return (path: string, state: ModuleResolutionState) => _internal(path, state) as any
+  }
+}
+
+export function makeResolvePackageNameToPackageJson(
+  ts: TypeScriptApi
+) {
+  if (hasProperty(ts, "resolvePackageNameToPackageJson") && isFunction(ts.resolvePackageNameToPackageJson)) {
+    const _internal = ts.resolvePackageNameToPackageJson
+    return (packageName: string, fromFileName: string, compilerOptions: ts.CompilerOptions, host: any) =>
+      _internal(packageName, fromFileName, compilerOptions, host) as any
+  }
+}
+
+export function makeGetEntrypointsFromPackageJsonInfo(
+  ts: TypeScriptApi
+) {
+  if (hasProperty(ts, "getEntrypointsFromPackageJsonInfo") && isFunction(ts.getEntrypointsFromPackageJsonInfo)) {
+    const _internal = ts.getEntrypointsFromPackageJsonInfo
+    return (packageJsonInfo: any, compilerOptions: ts.CompilerOptions, host: any) =>
+      _internal(packageJsonInfo, compilerOptions, host) as any
+  }
+}

@@ -52,8 +52,11 @@ export const makeAutoImportProvider: (
   const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
   const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
   const languageServicePluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
+
   const host = program as any as ts.ProgramHost<ts.BuilderProgram>
-  const getModuleSpecifier = tsUtils.makeGetModuleSpecifier()
+  const getModuleSpecifier = TypeScriptApi.makeGetModuleSpecifier(ts)
+  const resolvePackageNameToPackageJson = TypeScriptApi.makeResolvePackageNameToPackageJson(ts)
+  const getEntrypointsFromPackageJsonInfo = TypeScriptApi.makeGetEntrypointsFromPackageJsonInfo(ts)
 
   function collectSourceFileReexports(
     sourceFile: ts.SourceFile
@@ -104,8 +107,11 @@ export const makeAutoImportProvider: (
     packageName: string
   ): { entrypoints: Array<string>; exportedKeys: Array<string> } | undefined {
     try {
+      // we use undocumented API here
+      if (!resolvePackageNameToPackageJson || !getEntrypointsFromPackageJsonInfo) return
+
       // then we resolve the package info
-      const packageJsonInfo = (ts as any).resolvePackageNameToPackageJson(
+      const packageJsonInfo = resolvePackageNameToPackageJson(
         packageName,
         fromFileName,
         program.getCompilerOptions(),
@@ -113,7 +119,7 @@ export const makeAutoImportProvider: (
       )
       if (!packageJsonInfo) return
       // resolve the list of entrypoints
-      const _entrypoints = (ts as any).getEntrypointsFromPackageJsonInfo(
+      const _entrypoints = getEntrypointsFromPackageJsonInfo(
         packageJsonInfo,
         program.getCompilerOptions(),
         host
