@@ -1,0 +1,27 @@
+effect
+11:2 - 11:8 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.
+
+effect
+17:2 - 17:8 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.
+
+effect
+24:4 - 24:10 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.
+
+scoped
+31:2 - 31:8 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.
+
+scoped
+38:4 - 38:10 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.
+
+succeed
+45:2 - 45:9 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.
+
+sync
+51:2 - 51:6 | 1 | Effect.Service requires the service type to be an object {} and not a primitive type. 
+Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.

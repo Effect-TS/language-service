@@ -9,7 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 export const missingEffectServiceDependency = LSP.createDiagnostic({
   name: "missingEffectServiceDependency",
-  code: 21,
+  code: 22,
   severity: "off",
   apply: Nano.fn("missingEffectServiceDependency.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

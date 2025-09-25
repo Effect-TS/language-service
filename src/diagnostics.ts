@@ -12,6 +12,7 @@ import { missingEffectServiceDependency } from "./diagnostics/missingEffectServi
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
+import { nonObjectEffectServiceType } from "./diagnostics/nonObjectEffectServiceType.js"
 import { outdatedEffectCodegen } from "./diagnostics/outdatedEffectCodegen.js"
 import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConstructor.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
@@ -47,5 +48,6 @@ export const diagnostics = [
   multipleEffectProvide,
   outdatedEffectCodegen,
   overriddenSchemaConstructor,
-  unsupportedServiceAccessors
+  unsupportedServiceAccessors,
+  nonObjectEffectServiceType
 ]
