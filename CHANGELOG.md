@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.41.1
+
+### Patch Changes
+
+- [#398](https://github.com/Effect-TS/language-service/pull/398) [`ae323d7`](https://github.com/Effect-TS/language-service/commit/ae323d791e790019fdb155c67da3196622b5210d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor internal TypeScript API wrappers to TypeScriptApi module for better code organization
+
 ## 0.41.0
 
 ### Minor Changes
