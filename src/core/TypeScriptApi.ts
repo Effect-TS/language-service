@@ -164,6 +164,39 @@ export const TypeScriptProgram = Nano.Tag<TypeScriptProgram>("TypeScriptProgram"
 export const ChangeTracker = Nano.Tag<ts.textChanges.ChangeTracker>("ChangeTracker")
 
 // the followin APIs are not part of the public API of TypeScript, we keep them here for internal use and tracking which ones we use
+export interface PackageJsonInfoCache {
+  __internal: any
+}
+export function getPackageJsonInfoCache(program: ts.Program): PackageJsonInfoCache | undefined {
+  try {
+    if (hasProperty(program, "getModuleResolutionCache") && isFunction(program.getModuleResolutionCache)) {
+      const moduleResolutionCache = program.getModuleResolutionCache()
+      if (
+        hasProperty(moduleResolutionCache, "getPackageJsonInfoCache") &&
+        isFunction(moduleResolutionCache.getPackageJsonInfoCache)
+      ) {
+        return moduleResolutionCache.getPackageJsonInfoCache()
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
+    return undefined
+  }
+  return undefined
+}
+
+export function getDirectoryPath(ts: TypeScriptApi, path: string): string {
+  try {
+    if (hasProperty(ts, "getDirectoryPath") && isFunction(ts.getDirectoryPath)) {
+      return ts.getDirectoryPath(path)
+    }
+    return path
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
+    return path
+  }
+}
+
 export function makeGetModuleSpecifier(ts: TypeScriptApi) {
   if (
     !(hasProperty(ts, "moduleSpecifiers") && hasProperty(ts.moduleSpecifiers, "getModuleSpecifier") &&
@@ -199,7 +232,7 @@ export function makeGetTemporaryModuleResolutionState(
   if (hasProperty(ts, "getTemporaryModuleResolutionState") && isFunction(ts.getTemporaryModuleResolutionState)) {
     const _internal = ts.getTemporaryModuleResolutionState
     return (
-      cache: ts.ModuleResolutionCache | undefined,
+      cache: PackageJsonInfoCache | undefined,
       program: ts.Program,
       compilerOptions: ts.CompilerOptions
     ): ModuleResolutionState => _internal(cache, program, compilerOptions) as any

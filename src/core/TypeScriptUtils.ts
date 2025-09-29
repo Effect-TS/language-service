@@ -76,6 +76,10 @@ export interface TypeScriptUtils {
     position: number
   ) => ts.Node | undefined
   getSourceFileOfNode: (current: ts.Node | undefined) => ts.SourceFile | undefined
+  resolveModuleWithPackageInfoFromSourceFile: (
+    program: ts.Program,
+    sourceFile: ts.SourceFile
+  ) => ModuleWithPackageInfo | undefined
 }
 export const TypeScriptUtils = Nano.Tag<TypeScriptUtils>("TypeScriptUtils")
 
@@ -142,22 +146,32 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     }
   }
 
-  function resolveModulePattern(program: ts.Program, sourceFile: ts.SourceFile, pattern: string) {
-    if (pattern.indexOf("*") === -1) return [pattern.toLowerCase()]
+  function resolveModuleWithPackageInfoFromSourceFile(
+    program: ts.Program,
+    sourceFile: ts.SourceFile
+  ): ModuleWithPackageInfo | undefined {
     let packageJsonScope = parsePackageContentNameAndVersionFromScope(sourceFile)
     if (
       !packageJsonScope && getPackageScopeForPath && getTemporaryModuleResolutionState
     ) {
+      const packageJsonInfoCache = TypeScriptApi.getPackageJsonInfoCache(program)
       const temporaryModuleResolutionState = getTemporaryModuleResolutionState(
-        undefined,
+        packageJsonInfoCache,
         program,
         program.getCompilerOptions()
       )
+      const directoryPath = TypeScriptApi.getDirectoryPath(ts, sourceFile.fileName)
       packageJsonScope = parsePackageContentNameAndVersionFromScope({
         ...sourceFile,
-        packageJsonScope: getPackageScopeForPath(sourceFile.fileName, temporaryModuleResolutionState)
+        packageJsonScope: getPackageScopeForPath(directoryPath, temporaryModuleResolutionState)
       })
     }
+    return packageJsonScope
+  }
+
+  function resolveModulePattern(program: ts.Program, sourceFile: ts.SourceFile, pattern: string) {
+    if (pattern.indexOf("*") === -1) return [pattern.toLowerCase()]
+    const packageJsonScope = resolveModuleWithPackageInfoFromSourceFile(program, sourceFile)
     const referencedPackages: Array<string> = []
     for (const statement of sourceFile.statements) {
       if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
@@ -754,6 +768,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     findNodeAtPositionIncludingTrivia,
     parsePackageContentNameAndVersionFromScope,
     resolveModulePattern,
+    resolveModuleWithPackageInfoFromSourceFile,
     findNodeWithLeadingCommentAtPosition,
     getCommentAtPosition,
     getAncestorNodesInRange,
