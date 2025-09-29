@@ -319,6 +319,17 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
     },
     "sortText": "11",
   },
+  {
+    "insertText": "Effect.Tag("MyService")<MyService, {\${0}}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 7,
+      "start": 141,
+    },
+    "sortText": "11",
+  },
 ]
 `;
 

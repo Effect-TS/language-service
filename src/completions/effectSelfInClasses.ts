@@ -30,6 +30,12 @@ export const effectSelfInClasses = LSP.createCompletion({
       insertText: `${effectIdentifier}.Service<${name}>()("${name}", {${"${0}"}}){}`,
       replacementSpan,
       isSnippet: true
+    }, {
+      name: `Tag("${name}")`,
+      kind: ts.ScriptElementKind.constElement,
+      insertText: `${effectIdentifier}.Tag("${name}")<${name}, {${"${0}"}}>(){}`,
+      replacementSpan,
+      isSnippet: true
     }] satisfies Array<LSP.CompletionEntryDefinition>
   })
 })
