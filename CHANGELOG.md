@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.41.1
+
+### Patch Changes
+
+- [#401](https://github.com/Effect-TS/language-service/pull/401) [`394fa8d`](https://github.com/Effect-TS/language-service/commit/394fa8d2e8077a7788c446f876d0c162640e88f9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add Effect.Tag completion for classes extending Effect
+
+  When typing `Effect.` in a class that extends Effect, the completion now also suggests `Effect.Tag` alongside the existing `Effect.Service` completion. This provides an additional way to define tagged services using the Effect.Tag pattern.
+
+- [#398](https://github.com/Effect-TS/language-service/pull/398) [`ae323d7`](https://github.com/Effect-TS/language-service/commit/ae323d791e790019fdb155c67da3196622b5210d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor internal TypeScript API wrappers to TypeScriptApi module for better code organization
+
+- [#400](https://github.com/Effect-TS/language-service/pull/400) [`6537461`](https://github.com/Effect-TS/language-service/commit/6537461915529e356f89a844755cc14f66349265) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Reuse program package json info cache if available
+
 ## 0.41.0
 
 ### Minor Changes
