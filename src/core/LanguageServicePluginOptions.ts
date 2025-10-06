@@ -1,7 +1,7 @@
 import { isArray } from "effect/Array"
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
-import { hasProperty, isBoolean, isObject, isRecord, isString } from "effect/Predicate"
+import { hasProperty, isBoolean, isNumber, isObject, isRecord, isString } from "effect/Predicate"
 import * as Record from "effect/Record"
 import * as Nano from "./Nano"
 
@@ -13,6 +13,7 @@ export interface LanguageServicePluginOptions {
   diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
+  quickinfoMaximumLength: number
   completions: boolean
   goto: boolean
   inlays: boolean
@@ -47,6 +48,7 @@ export const defaults: LanguageServicePluginOptions = {
   diagnosticSeverity: {},
   quickinfo: true,
   quickinfoEffectParameters: "whentruncated",
+  quickinfoMaximumLength: -1,
   completions: true,
   goto: true,
   inlays: true,
@@ -79,6 +81,10 @@ export function parse(config: any): LanguageServicePluginOptions {
         ["always", "never", "whentruncated"].includes(config.quickinfoEffectParameters.toLowerCase())
       ? config.quickinfoEffectParameters.toLowerCase() as "always" | "never" | "whentruncated"
       : defaults.quickinfoEffectParameters,
+    quickinfoMaximumLength:
+      isObject(config) && hasProperty(config, "quickinfoMaximumLength") && isNumber(config.quickinfoMaximumLength)
+        ? config.quickinfoMaximumLength
+        : defaults.quickinfoMaximumLength,
     completions: isObject(config) && hasProperty(config, "completions") && isBoolean(config.completions)
       ? config.completions
       : defaults.completions,

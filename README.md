@@ -111,6 +111,7 @@ Few options can be provided alongside the initialization of the Language Service
         },
         "quickinfo": true, // controls Effect quickinfo (default: true)
         "quickinfoEffectParameters": "whenTruncated", // (default: "whenTruncated") controls when to display effect type parameters always,never,whenTruncated
+        "quickinfoMaximumLength": -1, // controls how long can be the types in the quickinfo hover (helps with very long type to improve perfs, defaults to -1 for no truncation, can be any number eg. 1000 and TS will try to fit as much as possible in that budget, higher number means more info.)
         "completions": true, // controls Effect completions (default: true)
         "goto": true, // controls Effect goto references (default: true)
         "inlays": true, // controls Effect provided inlayHints (default: true)
