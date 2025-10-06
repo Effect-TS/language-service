@@ -22,11 +22,22 @@ export function effectTypeArgs(
       if (options.quickinfoEffectParameters === "never") return quickInfo
 
       function formatTypeForQuickInfo(channelType: ts.Type, channelName: string) {
-        const stringRepresentation = typeChecker.typeToString(
-          channelType,
-          undefined,
-          ts.TypeFormatFlags.NoTruncation
-        )
+        let stringRepresentation = ""
+        if (options.quickinfoMaximumLength > 0) {
+          const typeNode = typeChecker.typeToTypeNode(
+            channelType,
+            undefined,
+            ts.NodeBuilderFlags.None,
+            // @ts-expect-error
+            undefined,
+            undefined,
+            options.quickinfoMaximumLength
+          )
+          const printer = ts.createPrinter({})
+          stringRepresentation = typeNode ? printer.printNode(ts.EmitHint.Unspecified, typeNode, sourceFile) : ""
+        } else {
+          stringRepresentation = typeChecker.typeToString(channelType, undefined, ts.TypeFormatFlags.NoTruncation)
+        }
         return `type ${channelName} = ${stringRepresentation}`
       }
 
