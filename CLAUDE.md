@@ -45,7 +45,7 @@ The following steps can be skipped if no typescript file has been changed in thi
 - run "pnpm lint-fix" to fix code formatting
 - run "pnpm check" to see if you should fix some type errors
 - run "pnpm test" to validate that changes did not broke anything
-- when you think that you have finished it all, drop all the files from test/__snapshots__ and run "pnpm test". Look at the git changes in snapshot files and ensure that they are expected changes and there are no side effects.
+- when you think that you have finished it all, remove from disk all the files from test/__snapshots__ folder and run "pnpm test". Look at the git changes in snapshot files and ensure that they are expected changes and there are no side effects.
 
 ### 3. Documentation checks
 - if new diagnostics, completions or refactor are added, ensure they are already mentioned in the README.md. Ensure to read examples and test/__snapshots__ related to the change to ensure full understanding of whats changed
@@ -61,6 +61,6 @@ Description of the change with examples
 "${patchType}" should be replaced by "patch" if the PR contains only bugfixes or small changes; or "minor" if new diagnostics, refactors or features are added.
 
 ### 4. Pushing the PR to GitHub
-If all the preliminary checks pass, create a new github PR for the changes that:
+If all the preliminary checks pass, ask the user if some specific issue should be referenced, gather info on the issue and then create a new github PR for the changes that:
 - Provide a description of what changed, ensure to read examples and test/__snapshots__ related to the change to ensure full understanding of whats changed
 - If the change involve refactors or diagnostic, provide an example of the feature added/changed

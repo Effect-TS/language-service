@@ -21,6 +21,7 @@ export const wrapWithEffectGen = LSP.createRefactor({
     const findEffectToWrap = Nano.fn("wrapWithEffectGen.apply.findEffectToWrap")(
       function*(node: ts.Node) {
         if (!ts.isExpression(node)) return yield* Nano.fail("is not an expression")
+        if (node.parent && ts.isHeritageClause(node.parent)) return yield* Nano.fail("is in a heritage clause")
 
         const parent = node.parent
         if (
@@ -28,7 +29,7 @@ export const wrapWithEffectGen = LSP.createRefactor({
         ) return yield* Nano.fail("is LHS of variable declaration")
 
         const type = typeChecker.getTypeAtLocation(node)
-        yield* typeParser.effectType(type, node)
+        yield* typeParser.strictEffectType(type, node)
 
         return node
       }
