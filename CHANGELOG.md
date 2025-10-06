@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.42.0
+
+### Minor Changes
+
+- [#403](https://github.com/Effect-TS/language-service/pull/403) [`dc3f7e9`](https://github.com/Effect-TS/language-service/commit/dc3f7e90fad5743d7d47593221137908130f2f6e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `quickinfoMaximumLength` option to control the maximum length of types displayed in quickinfo hover. This helps improve performance when dealing with very long types by allowing TypeScript to truncate them to a specified budget. Defaults to -1 (no truncation), but can be set to any positive number (e.g., 1000) to limit type display length.
+
 ## 0.41.1
 
 ### Patch Changes
