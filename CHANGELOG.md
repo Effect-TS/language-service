@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.43.1
+
+### Patch Changes
+
+- [#408](https://github.com/Effect-TS/language-service/pull/408) [`9ccd800`](https://github.com/Effect-TS/language-service/commit/9ccd8007b338e0524e17d3061acb722ad5c0e87b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix handling of leading/trailing slashes
+
 ## 0.43.0
 
 ### Minor Changes
