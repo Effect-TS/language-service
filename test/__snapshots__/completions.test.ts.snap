@@ -3,13 +3,29 @@
 exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] = `
 [
   {
-    "insertText": "Context.Tag("MyService")<MyService, \${0}>(){}",
+    "insertText": "Context.Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",
     "replacementSpan": {
       "length": 8,
       "start": 144,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses_identifierKey.ts at 5:40 1`] = `
+[
+  {
+    "insertText": "Context.Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 8,
+      "start": 240,
     },
     "sortText": "11",
   },
@@ -184,7 +200,7 @@ exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
 exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:5 1`] = `
 [
   {
-    "insertText": "@effect-diagnostics \${1|classSelfMismatch,duplicatePackage,effectGenUsesAdapter,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingEffectServiceDependency,missingReturnYieldStar,missingStarInYieldEffectGen,multipleEffectProvide,nonObjectEffectServiceType,outdatedEffectCodegen,overriddenSchemaConstructor,returnEffectInGen,scopeInLayerEffect,strictBooleanExpressions,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain,unsupportedServiceAccessors|}:\${2|off,warning,error,message,suggestion|}$0",
+    "insertText": "@effect-diagnostics \${1|classSelfMismatch,deterministicKeys,duplicatePackage,effectGenUsesAdapter,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingEffectServiceDependency,missingReturnYieldStar,missingStarInYieldEffectGen,multipleEffectProvide,nonObjectEffectServiceType,outdatedEffectCodegen,overriddenSchemaConstructor,returnEffectInGen,scopeInLayerEffect,strictBooleanExpressions,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain,unsupportedServiceAccessors|}:\${2|off,warning,error,message,suggestion|}$0",
     "isSnippet": true,
     "kind": "string",
     "name": "@effect-diagnostics",
@@ -195,7 +211,7 @@ exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:
     "sortText": "11",
   },
   {
-    "insertText": "@effect-diagnostics-next-line \${1|classSelfMismatch,duplicatePackage,effectGenUsesAdapter,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingEffectServiceDependency,missingReturnYieldStar,missingStarInYieldEffectGen,multipleEffectProvide,nonObjectEffectServiceType,outdatedEffectCodegen,overriddenSchemaConstructor,returnEffectInGen,scopeInLayerEffect,strictBooleanExpressions,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain,unsupportedServiceAccessors|}:\${2|off,warning,error,message,suggestion|}$0",
+    "insertText": "@effect-diagnostics-next-line \${1|classSelfMismatch,deterministicKeys,duplicatePackage,effectGenUsesAdapter,effectInVoidSuccess,floatingEffect,genericEffectServices,importFromBarrel,leakingRequirements,missingEffectContext,missingEffectError,missingEffectServiceDependency,missingReturnYieldStar,missingStarInYieldEffectGen,multipleEffectProvide,nonObjectEffectServiceType,outdatedEffectCodegen,overriddenSchemaConstructor,returnEffectInGen,scopeInLayerEffect,strictBooleanExpressions,tryCatchInEffectGen,unnecessaryEffectGen,unnecessaryPipe,unnecessaryPipeChain,unsupportedServiceAccessors|}:\${2|off,warning,error,message,suggestion|}$0",
     "isSnippet": true,
     "kind": "string",
     "name": "@effect-diagnostics-next-line",
@@ -309,7 +325,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
 exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
 [
   {
-    "insertText": "Effect.Service<MyService>()("MyService", {\${0}}){}",
+    "insertText": "Effect.Service<MyService>()("@effect/language-service/MyService", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService>",
@@ -320,7 +336,7 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
     "sortText": "11",
   },
   {
-    "insertText": "Effect.Tag("MyService")<MyService, {\${0}}>(){}",
+    "insertText": "Effect.Tag("@effect/language-service/MyService")<MyService, {\${0}}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",

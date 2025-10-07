@@ -120,7 +120,8 @@ Few options can be provided alongside the initialization of the Language Service
         "namespaceImportPackages": [], // package names that should be preferred as imported with namespace imports e.g. ["effect", "@effect/*"] (default: [])
         "topLevelNamedReexports": "ignore", // for namespaceImportPackages, how should top level named re-exports (e.g. {pipe} from "effect") be treated? "ignore" will leave them as is, "follow" will rewrite them to the re-exported module (e.g. {pipe} from "effect/Function")
         "importAliases": { "Array": "Arr" }, // allows to chose some different names for import name aliases (only when not chosing to import the whole module) (default: {})
-        "noExternal": false // disables features that provides links to external websites (such as links to mermaidchart.com) (default: false)
+        "noExternal": false, // disables features that provides links to external websites (such as links to mermaidchart.com) (default: false)
+        "keyPatterns": [{ "target": "service", "pattern": "default", "skipLeadingPath": ["src/"] }] // configure the key patterns; recommended reading more on the section "Configuring Key Patterns"
       }
     ]
   }
@@ -229,6 +230,56 @@ or you can set the severity for the entire project in the global plugin configur
   }
 }
 ```
+
+## Configuring Key Patterns
+
+Effect uses string keys for Services, Error Tags, RPC Methods, and more.
+It can happen that sometimes, after some refactors or copy/paste, you may end up having wrong or non unique keys in your services.
+
+To avoid that, the LSP suggests deterministic patterns for keys; that can be configured by the "keyPatterns" option.
+
+To enable reporting of wrong or outdated keys, the rule "deterministicKeys" must be enabled first (off by default). To do so, adjust its diagnosticSeverity to error.
+
+The keyPatterns key can then contain an array of the configured patterns.
+
+```jsonc
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        // ...
+        "diagnosticSeverity": {
+          "deterministicKeys": "error" // enables reporting of wrong keys
+          // ...
+        },
+        "keyPatterns": [
+          {
+            "target": "service", // what key type to target between service|error
+            "pattern": "default", // the chosen pattern
+            "skipLeadingPath": ["src/"] // other pattern specific configs
+          }
+        ]
+        
+      }
+    ]
+  }
+}
+```
+
+### Pattern: default
+
+This pattern constructs keys by chaining package name + file path + class identifier.
+
+E.g. `@effect/package/subpath-relative-to-package-root/FileName/ClassIdentifier`
+
+If the filename and the class identifier are the same, they won't be repeated, but used only once.
+
+The skipLeadingPath array can contain a set of prefixes to remove from the subpath part of the path. By default "src/" is removed for example.
+
+### Pattern: package-identifier
+
+This pattern uses the package name + identifier. This usually works great if you have a flat structure, with one file per service/error.
 
 ## Known gotchas
 

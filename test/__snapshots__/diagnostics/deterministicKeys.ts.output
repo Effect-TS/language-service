@@ -1,0 +1,5 @@
+"ExpectedServiceIdentifier"
+7:22 - 7:49 | 1 | Key should be '@effect/language-service/ExpectedServiceIdentifier'
+
+"ErrorA"
+10:45 - 10:53 | 1 | Key should be '@effect/language-service/ErrorA'

@@ -1,3 +1,4 @@
+import * as KeyBuilder from "../core/KeyBuilder.js"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
@@ -24,6 +25,9 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
     if (schemaIdentifier !== ts.idText(accessedObject)) return []
     const name = ts.idText(className)
 
+    // create the expected identifier
+    const errorTagKey = (yield* KeyBuilder.createString(sourceFile, name, "error")) || name
+
     return [{
       name: `Class<${name}>`,
       kind: ts.ScriptElementKind.constElement,
@@ -33,7 +37,7 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
     }, {
       name: `TaggedError<${name}>`,
       kind: ts.ScriptElementKind.constElement,
-      insertText: `${schemaIdentifier}.TaggedError<${name}>("${name}")("${name}", {${"${0}"}}){}`,
+      insertText: `${schemaIdentifier}.TaggedError<${name}>("${errorTagKey}")("${errorTagKey}", {${"${0}"}}){}`,
       replacementSpan,
       isSnippet: true
     }, {
