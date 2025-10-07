@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.43.2
+
+### Patch Changes
+
+- [#410](https://github.com/Effect-TS/language-service/pull/410) [`0b40c04`](https://github.com/Effect-TS/language-service/commit/0b40c04625cadc0a8dfc3b194daafea1f751a3b9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Defer typescript loading in CLI
+
 ## 0.43.1
 
 ### Patch Changes
