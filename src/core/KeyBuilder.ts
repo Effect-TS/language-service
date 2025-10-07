@@ -27,27 +27,20 @@ export const makeKeyBuilder = Nano.fn("KeyBuilder")(
         // ensure this pattern applies for this kind
         if (keyPattern.target !== kind) continue
 
-        // simple package identifier + name
-        if (keyPattern.pattern === "package-identifier") {
-          return packageInfo.name + "/" + classNameText
-        }
-        // gets the dirname of the source file
-        const dirPath = TypeScriptApi.getDirectoryPath(ts, sourceFile.fileName)
-        if (!dirPath.startsWith(packageInfo.packageDirectory)) return
-        let subDirectory = dirPath.slice(packageInfo.packageDirectory.length)
-        if (subDirectory.startsWith("/")) subDirectory = subDirectory.slice(1)
+        // constructs the only filename of the source file
         const lastIndex = sourceFile.fileName.lastIndexOf("/")
-        let subModule = lastIndex === -1 ? "" : sourceFile.fileName.slice(lastIndex + 1)
-        for (const extension of [".ts", ".tsx", ".js", ".jsx"]) {
-          if (subModule.toLowerCase().endsWith(extension)) {
-            subModule = subModule.slice(0, -extension.length)
-            break
-          }
-        }
-        if (subModule.toLowerCase().endsWith("/index")) subModule = subModule.slice(0, -6)
-        if (subModule.startsWith("/")) subModule = subModule.slice(1)
+        let onlyFileName = lastIndex === -1 ? "" : sourceFile.fileName.slice(lastIndex + 1)
+        const lastExtensionIndex = onlyFileName.lastIndexOf(".")
+        if (lastExtensionIndex !== -1) onlyFileName = onlyFileName.slice(0, lastExtensionIndex)
+        if (onlyFileName.toLowerCase().endsWith("/index")) onlyFileName = onlyFileName.slice(0, -6)
+        if (onlyFileName.startsWith("/")) onlyFileName = onlyFileName.slice(1)
 
-        // remove the configured prefixes
+        // constructs the subdirectory of the source file
+        let subDirectory = TypeScriptApi.getDirectoryPath(ts, sourceFile.fileName)
+        if (!subDirectory.startsWith(packageInfo.packageDirectory)) continue
+        subDirectory = subDirectory.slice(packageInfo.packageDirectory.length)
+        if (!subDirectory.endsWith("/")) subDirectory = subDirectory + "/"
+        if (subDirectory.startsWith("/")) subDirectory = subDirectory.slice(1)
         for (const prefix of keyPattern.skipLeadingPath) {
           if (subDirectory.startsWith(prefix)) {
             subDirectory = subDirectory.slice(prefix.length)
@@ -56,10 +49,21 @@ export const makeKeyBuilder = Nano.fn("KeyBuilder")(
         }
 
         // construct the parts of the expected identifier
-        const parts = [packageInfo.name, subDirectory, subModule].concat(
-          subModule.toLowerCase() === classNameText.toLowerCase() ? [] : [classNameText]
+        let parts = [packageInfo.name, subDirectory, onlyFileName].concat(
+          onlyFileName.toLowerCase() === classNameText.toLowerCase() ? [] : [classNameText]
+        )
+        if (keyPattern.pattern === "package-identifier") {
+          parts = [packageInfo.name, onlyFileName].concat(
+            onlyFileName.toLowerCase() === classNameText.toLowerCase() ? [] : [classNameText]
+          )
+        }
+
+        // remove leading/trailing slashes
+        parts = parts.map((part) => part.startsWith("/") ? part.slice(1) : part).map((part) =>
+          part.endsWith("/") ? part.slice(0, -1) : part
         )
 
+        // return them joined
         return parts.filter((_) => String(_).trim().length > 0).join("/")
       }
     }
