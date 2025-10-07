@@ -1,13 +1,10 @@
-/* eslint-disable @typescript-eslint/no-restricted-imports */
 import * as FileSystem from "@effect/platform/FileSystem"
 import * as Path from "@effect/platform/Path"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
-import * as ts from "typescript"
+import type * as ts from "typescript"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
-
-const tsUtils = TypeScriptUtils.makeTypeScriptUtils(ts)
 
 const PackageJsonSchema = Schema.Struct({
   name: Schema.String,
@@ -44,6 +41,20 @@ export class CorruptedPatchedSourceFileError extends Data.TaggedError("Corrupted
     return `Patched source file ${this.filePath} has corrupted patches`
   }
 }
+
+export class UnableToFindInstalledTypeScriptPackage extends Data.TaggedError("UnableToFindInstalledTypeScriptPackage")<{
+  cause: unknown
+}> {
+  get message(): string {
+    return `Unable to find an installed typescript package`
+  }
+}
+
+export const getTypeScript = Effect.try({
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  try: () => require("typescript") as typeof ts,
+  catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
+})
 
 export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(packageDir: string) {
   const path = yield* Path.Path
@@ -142,6 +153,9 @@ export const makeEffectLspPatchChange = Effect.fn("makeEffectLspPatchChange")(
 
 export const extractAppliedEffectLspPatches = Effect.fn("extractAppliedEffectLspPatches")(
   function*(sourceFile: ts.SourceFile) {
+    const ts = yield* getTypeScript
+    const tsUtils = TypeScriptUtils.makeTypeScriptUtils(ts)
+
     const regex = /@effect-lsp-patch(?:\s+)([a-zA-Z0-9+=/]+)/gm
     let match: RegExpExecArray | null
     const patches: Array<AppliedPatchMetadata> = []
@@ -197,6 +211,8 @@ export const applyTextChanges = Effect.fn("applyTextChanges")(
 
 export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(function*(filePath: string) {
   const fs = yield* FileSystem.FileSystem
+  const ts = yield* getTypeScript
+
   const sourceText = yield* fs.readFileString(filePath)
   const sourceFile = ts.createSourceFile(
     filePath,
@@ -220,6 +236,8 @@ export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(functi
 
 export const omitBundlerSourceFileComment = Effect.fn("omitBundlerSourceFileComment")(
   function*(originalSourceText: string) {
+    const ts = yield* getTypeScript
+
     const deleteChanges: Array<ts.TextChange> = []
     const sourceFile = ts.createSourceFile(
       "file.ts",

@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-restricted-imports */
 import * as Command from "@effect/cli/Command"
 import * as Options from "@effect/cli/Options"
 import * as FileSystem from "@effect/platform/FileSystem"
 import { pipe } from "effect"
 import * as Array from "effect/Array"
 import * as Effect from "effect/Effect"
-import * as ts from "typescript"
-import { extractAppliedEffectLspPatches, getModuleFilePath, getPackageJsonData } from "./utils"
+import { extractAppliedEffectLspPatches, getModuleFilePath, getPackageJsonData, getTypeScript } from "./utils"
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
@@ -20,6 +18,7 @@ export const check = Command.make(
   { dirPath },
   Effect.fn("check")(function*({ dirPath }) {
     const fs = yield* FileSystem.FileSystem
+    const ts = yield* getTypeScript
 
     // read my data
     const { version: effectLspVersion } = yield* getPackageJsonData(__dirname)
