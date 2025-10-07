@@ -1,4 +1,5 @@
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
+import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
@@ -49,5 +50,6 @@ export const diagnostics = [
   outdatedEffectCodegen,
   overriddenSchemaConstructor,
   unsupportedServiceAccessors,
-  nonObjectEffectServiceType
+  nonObjectEffectServiceType,
+  deterministicKeys
 ]

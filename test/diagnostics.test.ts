@@ -13,7 +13,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { applyEdits, createServicesWithMockedVFS } from "./utils/mocks.js"
+import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
 
@@ -63,15 +63,19 @@ function testDiagnosticOnExample(
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
-      ...LanguageServicePluginOptions.defaults,
-      diagnostics: true,
-      refactors: false,
-      quickinfo: false,
-      completions: false,
-      goto: false,
-      namespaceImportPackages: ["effect"]
-    }),
+    Nano.provideService(
+      LanguageServicePluginOptions.LanguageServicePluginOptions,
+      LanguageServicePluginOptions.parse({
+        ...LanguageServicePluginOptions.defaults,
+        diagnostics: true,
+        refactors: false,
+        quickinfo: false,
+        completions: false,
+        goto: false,
+        namespaceImportPackages: ["effect"],
+        ...configFromSourceComment(sourceText)
+      })
+    ),
     Nano.map(({ diagnostics }) => {
       // sort by start position
       diagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
@@ -169,15 +173,19 @@ function testDiagnosticQuickfixesOnExample(
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
-      ...LanguageServicePluginOptions.defaults,
-      diagnostics: true,
-      refactors: false,
-      quickinfo: false,
-      completions: false,
-      goto: false,
-      namespaceImportPackages: ["effect"]
-    }),
+    Nano.provideService(
+      LanguageServicePluginOptions.LanguageServicePluginOptions,
+      LanguageServicePluginOptions.parse({
+        ...LanguageServicePluginOptions.defaults,
+        diagnostics: true,
+        refactors: false,
+        quickinfo: false,
+        completions: false,
+        goto: false,
+        namespaceImportPackages: ["effect"],
+        ...configFromSourceComment(sourceText)
+      })
+    ),
     Nano.unsafeRun,
     async (result) => {
       expect(Either.isRight(result), "should run with no error " + result).toEqual(true)

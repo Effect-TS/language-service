@@ -102,3 +102,15 @@ export function applyEdits(
   }
   return sourceText
 }
+
+export function configFromSourceComment(
+  sourceText: string
+): Record<string, unknown> {
+  let commentPosition = sourceText.indexOf("@test-config")
+  if (commentPosition === -1) return {}
+  commentPosition += "@test-config".length
+  const commentEndPosition = sourceText.indexOf("\n", commentPosition)
+  if (commentEndPosition === -1) return {}
+  const commentText = sourceText.substring(commentPosition, commentEndPosition)
+  return JSON.parse(commentText.trim())
+}

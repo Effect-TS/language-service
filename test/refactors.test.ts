@@ -13,7 +13,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { applyEdits, createServicesWithMockedVFS } from "./utils/mocks.js"
+import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesRefactorsDir = () => path.join(__dirname, "..", "examples", "refactors")
 
@@ -78,14 +78,18 @@ function testRefactorOnExample(
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
-      ...LanguageServicePluginOptions.defaults,
-      refactors: true,
-      diagnostics: false,
-      quickinfo: false,
-      completions: false,
-      goto: false
-    }),
+    Nano.provideService(
+      LanguageServicePluginOptions.LanguageServicePluginOptions,
+      LanguageServicePluginOptions.parse({
+        ...LanguageServicePluginOptions.defaults,
+        refactors: true,
+        diagnostics: false,
+        quickinfo: false,
+        completions: false,
+        goto: false,
+        ...configFromSourceComment(sourceText)
+      })
+    ),
     Nano.unsafeRun
   )
 
@@ -102,14 +106,18 @@ function testRefactorOnExample(
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
-      ...LanguageServicePluginOptions.defaults,
-      refactors: true,
-      diagnostics: false,
-      quickinfo: false,
-      completions: false,
-      goto: false
-    }),
+    Nano.provideService(
+      LanguageServicePluginOptions.LanguageServicePluginOptions,
+      LanguageServicePluginOptions.parse({
+        ...LanguageServicePluginOptions.defaults,
+        refactors: true,
+        diagnostics: false,
+        quickinfo: false,
+        completions: false,
+        goto: false,
+        ...configFromSourceComment(sourceText)
+      })
+    ),
     Nano.unsafeRun
   )
 

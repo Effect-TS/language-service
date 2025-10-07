@@ -7,6 +7,12 @@ import * as Nano from "./Nano"
 
 export type DiagnosticSeverity = "error" | "warning" | "message" | "suggestion"
 
+export interface LanguageServicePluginOptionsKeyPattern {
+  target: "service" | "error"
+  pattern: "package-identifier" | "default"
+  skipLeadingPath: Array<string>
+}
+
 export interface LanguageServicePluginOptions {
   refactors: boolean
   diagnostics: boolean
@@ -14,6 +20,7 @@ export interface LanguageServicePluginOptions {
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
   quickinfoMaximumLength: number
+  keyPatterns: Array<LanguageServicePluginOptionsKeyPattern>
   completions: boolean
   goto: boolean
   inlays: boolean
@@ -58,7 +65,34 @@ export const defaults: LanguageServicePluginOptions = {
   barrelImportPackages: [],
   importAliases: {},
   renames: true,
-  noExternal: false
+  noExternal: false,
+  keyPatterns: [{
+    target: "service",
+    pattern: "default",
+    skipLeadingPath: ["src/"]
+  }]
+}
+
+function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
+  const result: Array<LanguageServicePluginOptionsKeyPattern> = []
+  for (const entry of patterns) {
+    if (!isObject(entry)) continue
+    result.push({
+      target: hasProperty(entry, "target") && isString(entry.target) &&
+          ["service", "error"].includes(entry.target.toLowerCase())
+        ? entry.target.toLowerCase() as "service" | "error"
+        : "service",
+      pattern: hasProperty(entry, "pattern") && isString(entry.pattern) &&
+          ["package-identifier", "default"].includes(entry.pattern.toLowerCase())
+        ? entry.pattern.toLowerCase() as "package-identifier" | "default"
+        : "default",
+      skipLeadingPath:
+        hasProperty(entry, "skipLeadingPath") && isArray(entry.skipLeadingPath) && entry.skipLeadingPath.every(isString)
+          ? entry.skipLeadingPath
+          : ["src/"]
+    })
+  }
+  return result
 }
 
 export function parse(config: any): LanguageServicePluginOptions {
@@ -119,6 +153,9 @@ export function parse(config: any): LanguageServicePluginOptions {
       : defaults.renames,
     noExternal: isObject(config) && hasProperty(config, "noExternal") && isBoolean(config.noExternal)
       ? config.noExternal
-      : defaults.noExternal
+      : defaults.noExternal,
+    keyPatterns: isObject(config) && hasProperty(config, "keyPatterns") && isArray(config.keyPatterns)
+      ? parseKeyPatterns(config.keyPatterns)
+      : defaults.keyPatterns
   }
 }

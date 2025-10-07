@@ -1,8 +1,23 @@
 import * as Nano from "@effect/language-service/core/Nano"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import { configFromSourceComment } from "./utils/mocks"
 
 import { describe, expect, it } from "vitest"
+
+describe("configFromSourceComment", () => {
+  it("should return the config from the source comment", () => {
+    const config = configFromSourceComment(`
+      // @test-config { "key": "value" }
+      console.log("hello")
+      `)
+    expect(config).toEqual({ key: "value" })
+  })
+  it("should return an empty object if there is no config", () => {
+    const config = configFromSourceComment("console.log('hello')")
+    expect(config).toEqual({})
+  })
+})
 
 describe("nano", () => {
   it("flatMap-ping", () => {

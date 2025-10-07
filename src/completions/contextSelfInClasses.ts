@@ -1,3 +1,4 @@
+import * as KeyBuilder from "../core/KeyBuilder.js"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
@@ -24,10 +25,13 @@ export const contextSelfInClasses = LSP.createCompletion({
     if (contextIdentifier !== ts.idText(accessedObject)) return []
     const name = ts.idText(className)
 
+    // create the expected identifier
+    const tagKey = (yield* KeyBuilder.createString(sourceFile, name, "service")) || name
+
     return [{
       name: `Tag("${name}")`,
       kind: ts.ScriptElementKind.constElement,
-      insertText: `${contextIdentifier}.Tag("${name}")<${name}, ${"${0}"}>(){}`,
+      insertText: `${contextIdentifier}.Tag("${tagKey}")<${name}, ${"${0}"}>(){}`,
       replacementSpan,
       isSnippet: true
     }] satisfies Array<LSP.CompletionEntryDefinition>

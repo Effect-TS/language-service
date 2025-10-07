@@ -13,7 +13,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { createServicesWithMockedVFS } from "./utils/mocks.js"
+import { configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesCompletionsDir = () => path.join(__dirname, "..", "examples", "completions")
 
@@ -50,14 +50,18 @@ function testCompletionOnExample(
     Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
     Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
     Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(LanguageServicePluginOptions.LanguageServicePluginOptions, {
-      ...LanguageServicePluginOptions.defaults,
-      completions: true,
-      refactors: false,
-      diagnostics: false,
-      quickinfo: false,
-      goto: false
-    }),
+    Nano.provideService(
+      LanguageServicePluginOptions.LanguageServicePluginOptions,
+      LanguageServicePluginOptions.parse({
+        ...LanguageServicePluginOptions.defaults,
+        completions: true,
+        refactors: false,
+        diagnostics: false,
+        quickinfo: false,
+        goto: false,
+        ...configFromSourceComment(sourceText)
+      })
+    ),
     Nano.unsafeRun
   )
 

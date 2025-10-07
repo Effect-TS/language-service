@@ -1,3 +1,4 @@
+import * as KeyBuilder from "../core/KeyBuilder.js"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
 import * as TypeScriptApi from "../core/TypeScriptApi"
@@ -24,10 +25,13 @@ export const effectDataClasses = LSP.createCompletion({
     if (effectDataIdentifier !== ts.idText(accessedObject)) return []
     const name = ts.idText(className)
 
+    // create the expected identifier
+    const errorTagKey = (yield* KeyBuilder.createString(sourceFile, name, "error")) || name
+
     return [{
       name: `TaggedError("${name}")`,
       kind: ts.ScriptElementKind.constElement,
-      insertText: `${effectDataIdentifier}.TaggedError("${name}")<{${"${0}"}}>{}`,
+      insertText: `${effectDataIdentifier}.TaggedError("${errorTagKey}")<{${"${0}"}}>{}`,
       replacementSpan,
       isSnippet: true
     }, {
