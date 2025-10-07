@@ -1,5 +1,43 @@
 # @effect/language-service
 
+## 0.43.0
+
+### Minor Changes
+
+- [#407](https://github.com/Effect-TS/language-service/pull/407) [`6590590`](https://github.com/Effect-TS/language-service/commit/6590590c0decd83f0baa4fd47655f0f67b6c5db9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add deterministicKeys diagnostic to enforce consistent key patterns for Services and Errors
+
+  This new diagnostic helps maintain consistent and unique keys for Effect Services and Tagged Errors by validating them against configurable patterns. The diagnostic is disabled by default and can be enabled via the `deterministicKeys` diagnosticSeverity setting.
+
+  Two patterns are supported:
+
+  - `default`: Constructs keys from package name + file path + class identifier (e.g., `@effect/package/FileName/ClassIdentifier`)
+  - `package-identifier`: Uses package name + identifier for flat project structures
+
+  Example configuration:
+
+  ```jsonc
+  {
+    "diagnosticSeverity": {
+      "deterministicKeys": "error"
+    },
+    "keyPatterns": [
+      {
+        "target": "service",
+        "pattern": "default",
+        "skipLeadingPath": ["src/"]
+      }
+    ]
+  }
+  ```
+
+  The diagnostic also provides auto-fix code actions to update keys to match the configured patterns.
+
+### Patch Changes
+
+- [#405](https://github.com/Effect-TS/language-service/pull/405) [`f43b3ab`](https://github.com/Effect-TS/language-service/commit/f43b3ab32cad347fb2eb0af740771e35a6c7ff66) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix wrapWithEffectGen refactor not working on class heritage clauses
+
+  The wrapWithEffectGen refactor now correctly skips expressions in heritage clauses (e.g., `extends` clauses in class declarations) to avoid wrapping them inappropriately.
+
 ## 0.42.0
 
 ### Minor Changes
