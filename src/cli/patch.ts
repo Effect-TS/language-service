@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/no-restricted-imports */
 import * as Command from "@effect/cli/Command"
 import * as Options from "@effect/cli/Options"
 import * as FileSystem from "@effect/platform/FileSystem"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
-import * as ts from "typescript"
+import type * as ts from "typescript"
 import {
   applyTextChanges,
   getEffectLspPatchUtils,
   getModuleFilePath,
   getPackageJsonData,
+  getTypeScript,
   getTypeScriptApisUtils,
   getUnpatchedSourceFile,
   makeEffectLspPatchChange
@@ -41,6 +41,8 @@ const moduleNames = Options.choice("module", [
 
 const getPatchesForModule = Effect.fn("getPatchesForModule")(
   function*(moduleName: "tsc" | "typescript", dirPath: string, version: string, sourceFile: ts.SourceFile) {
+    const ts = yield* getTypeScript
+
     const patches: Array<ts.TextChange> = []
     let insertClearSourceFileEffectMetadataPosition: Option.Option<{ position: number }> = Option.none()
     let insertCheckSourceFilePosition: Option.Option<{ position: number }> = Option.none()
