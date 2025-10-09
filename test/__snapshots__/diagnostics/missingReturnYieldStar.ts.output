@@ -1,8 +1,8 @@
 yield* Effect.fail("no zero!")
-11:6 - 11:36 | 1 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.
+11:6 - 11:36 | 1 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)
 
 yield* Effect.interrupt
-18:4 - 18:27 | 1 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.
+18:4 - 18:27 | 1 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)
 
 yield* Effect.die("lol")
-19:4 - 19:28 | 1 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.
+19:4 - 19:28 | 1 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)

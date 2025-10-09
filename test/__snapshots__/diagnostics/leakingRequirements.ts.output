@@ -1,9 +1,9 @@
 LeakingDeps
 8:13 - 8:24 | 2 | This Service is leaking the FileSystem requirement.
 If these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.
-More info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage
+More info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)
 
 _LocalLeaking
 18:8 - 18:21 | 2 | This Service is leaking the FileSystem requirement.
 If these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.
-More info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage
+More info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)

@@ -1,11 +1,11 @@
 ValidSchemaClass
-9:53 - 9:69 | 1 | Self type parameter should be 'InvalidSchemaClass'
+9:53 - 9:69 | 1 | Self type parameter should be 'InvalidSchemaClass'    effect(classSelfMismatch)
 
 ValidSchemaTaggedClass
-21:29 - 21:51 | 1 | Self type parameter should be 'InvalidSchemaTaggedClass'
+21:29 - 21:51 | 1 | Self type parameter should be 'InvalidSchemaTaggedClass'    effect(classSelfMismatch)
 
 ValidSchemaTaggedError
-34:29 - 34:51 | 1 | Self type parameter should be 'InvalidSchemaTaggedError'
+34:29 - 34:51 | 1 | Self type parameter should be 'InvalidSchemaTaggedError'    effect(classSelfMismatch)
 
 ValidSchemaTaggedRequest
-49:31 - 49:55 | 1 | Self type parameter should be 'InvalidSchemaTaggedRequest'
+49:31 - 49:55 | 1 | Self type parameter should be 'InvalidSchemaTaggedRequest'    effect(classSelfMismatch)

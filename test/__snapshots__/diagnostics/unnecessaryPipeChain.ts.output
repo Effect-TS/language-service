@@ -1,5 +1,5 @@
 Effect.succeed(1).pipe(Effect.map((x) => x + 2)).pipe(Effect.map((x) => x + 3))
-4:26 - 4:105 | 2 | Chained pipe calls can be simplified to a single pipe call
+4:26 - 4:105 | 2 | Chained pipe calls can be simplified to a single pipe call    effect(unnecessaryPipeChain)
 
 pipe(pipe(Effect.succeed(1), Effect.map((x) => x + 2)), Effect.map((x) => x + 3))
-6:22 - 6:103 | 2 | Chained pipe calls can be simplified to a single pipe call
+6:22 - 6:103 | 2 | Chained pipe calls can be simplified to a single pipe call    effect(unnecessaryPipeChain)

@@ -1,5 +1,5 @@
 shouldReport
-4:13 - 4:25 | 0 | There is a nested 'Effect<number, never, never>' in the 'void' success channel, beware that this could lead to nested Effect<Effect<...>> that won't be executed.
+4:13 - 4:25 | 0 | There is a nested 'Effect<number, never, never>' in the 'void' success channel, beware that this could lead to nested Effect<Effect<...>> that won't be executed.    effect(effectInVoidSuccess)
 
 return Stream.empty.pipe(
     Stream.runCollect,
@@ -9,4 +9,4 @@ return Stream.empty.pipe(
       onFailure: () => Effect.fail("error")
     })
   )
-7:2 - 14:3 | 0 | There is a nested 'Effect<never, string, never>' in the 'void' success channel, beware that this could lead to nested Effect<Effect<...>> that won't be executed.
+7:2 - 14:3 | 0 | There is a nested 'Effect<never, string, never>' in the 'void' success channel, beware that this could lead to nested Effect<Effect<...>> that won't be executed.    effect(effectInVoidSuccess)

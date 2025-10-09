@@ -377,7 +377,9 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
             : tsUtils.findNodeAtPositionIncludingTrivia(sourceFile, entry.location.pos)
           applicableDiagnostics.push({
             range,
-            messageText: entry.messageText,
+            messageText: pluginOptions.diagnosticsName
+              ? `${entry.messageText}    effect(${rule.name})`
+              : entry.messageText,
             fixes: entry.fixes.concat(node ? [fixByDisableNextLine(node)] : []).concat([fixByDisableEntireFile])
           })
         })

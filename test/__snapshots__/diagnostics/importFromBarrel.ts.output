@@ -1,5 +1,5 @@
 Effect
-2:9 - 2:15 | 1 | Importing from barrel module effect is not allowed.
+2:9 - 2:15 | 1 | Importing from barrel module effect is not allowed.    effect(importFromBarrel)
 
 Predicate as P
-3:9 - 3:23 | 1 | Importing from barrel module effect is not allowed.
+3:9 - 3:23 | 1 | Importing from barrel module effect is not allowed.    effect(importFromBarrel)

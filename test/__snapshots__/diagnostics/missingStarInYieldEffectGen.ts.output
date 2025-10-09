@@ -1,38 +1,38 @@
 function
-8:45 - 8:53 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
+8:45 - 8:53 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
 
 yield Effect.succeed(1)
-9:2 - 9:25 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+9:2 - 9:25 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
 
 function
-13:53 - 13:61 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
+13:53 - 13:61 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
 
 yield Effect.succeed(1)
-14:2 - 14:25 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+14:2 - 14:25 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
 
 yield Effect.succeed(2)
-15:2 - 15:25 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+15:2 - 15:25 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
 
 function
-20:20 - 20:28 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
+20:20 - 20:28 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
 
 yield Effect.succeed(1)
-21:4 - 21:27 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+21:4 - 21:27 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
 
 function
-31:39 - 31:47 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
+31:39 - 31:47 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
 
 yield Effect.never
-32:2 - 32:20 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+32:2 - 32:20 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
 
 function
-36:68 - 36:76 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
+36:68 - 36:76 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
 
 yield Effect.never
-37:2 - 37:20 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+37:2 - 37:20 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
 
 function
-41:55 - 41:63 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.
+41:55 - 41:63 | 1 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
 
 yield Effect.never
-42:2 - 42:20 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.
+42:2 - 42:20 | 1 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)
