@@ -17,6 +17,7 @@ export interface LanguageServicePluginOptions {
   refactors: boolean
   diagnostics: boolean
   diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
+  diagnosticsName: boolean
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
   quickinfoMaximumLength: number
@@ -53,6 +54,7 @@ export const defaults: LanguageServicePluginOptions = {
   refactors: true,
   diagnostics: true,
   diagnosticSeverity: {},
+  diagnosticsName: true,
   quickinfo: true,
   quickinfoEffectParameters: "whentruncated",
   quickinfoMaximumLength: -1,
@@ -107,6 +109,9 @@ export function parse(config: any): LanguageServicePluginOptions {
       isObject(config) && hasProperty(config, "diagnosticSeverity") && isRecord(config.diagnosticSeverity)
         ? parseDiagnosticSeverity(config.diagnosticSeverity)
         : defaults.diagnosticSeverity,
+    diagnosticsName: isObject(config) && hasProperty(config, "diagnosticsName") && isBoolean(config.diagnosticsName)
+      ? config.diagnosticsName
+      : defaults.diagnosticsName,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
       : defaults.quickinfo,

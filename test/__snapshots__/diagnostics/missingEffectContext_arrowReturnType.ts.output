@@ -1,2 +1,2 @@
 Effect.void.pipe(Effect.andThen(eff))
-19:2 - 19:39 | 1 | Missing 'R' in the expected Effect context.
+19:2 - 19:39 | 1 | Missing 'R' in the expected Effect context.    effect(missingEffectContext)

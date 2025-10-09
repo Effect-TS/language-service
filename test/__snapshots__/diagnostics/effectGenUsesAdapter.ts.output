@@ -1,2 +1,2 @@
 _
-9:47 - 9:48 | 0 | The adapter of Effect.gen is not required anymore, it is now just an alias of pipe.
+9:47 - 9:48 | 0 | The adapter of Effect.gen is not required anymore, it is now just an alias of pipe.    effect(effectGenUsesAdapter)

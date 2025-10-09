@@ -1,2 +1,2 @@
 ValidContextTag
-11:69 - 11:84 | 1 | Self type parameter should be 'InvalidContextTag'
+11:69 - 11:84 | 1 | Self type parameter should be 'InvalidContextTag'    effect(classSelfMismatch)

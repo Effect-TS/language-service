@@ -1,2 +1,2 @@
 ShouldReport
-7:13 - 7:25 | 0 | Effect Services with type parameters are not supported because they cannot be properly discriminated at runtime, which may cause unexpected behavior.
+7:13 - 7:25 | 0 | Effect Services with type parameters are not supported because they cannot be properly discriminated at runtime, which may cause unexpected behavior.    effect(genericEffectServices)
