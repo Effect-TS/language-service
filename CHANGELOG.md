@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.44.0
+
+### Minor Changes
+
+- [#415](https://github.com/Effect-TS/language-service/pull/415) [`42c66a1`](https://github.com/Effect-TS/language-service/commit/42c66a12658d712671b482fdcce0c5b608171d4f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `diagnosticsName` option to include rule names in diagnostic messages. When enabled (default: true), diagnostic messages will display the rule name at the end, e.g., "Effect must be yielded or assigned to a variable. effect(floatingEffect)"
+
 ## 0.43.2
 
 ### Patch Changes
