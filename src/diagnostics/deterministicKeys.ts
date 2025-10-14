@@ -53,7 +53,7 @@ export const deterministicKeys = LSP.createDiagnostic({
 
           // build the expected identifier
           const expectedKey = yield* KeyBuilder.createString(sourceFile, classNameText, result.target)
-          if (!expectedKey) return
+          if (!expectedKey) continue
 
           // Get the actual identifier from the keyStringLiteral
           const actualIdentifier = keyStringLiteral.text
