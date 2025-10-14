@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.44.1
+
+### Patch Changes
+
+- [#417](https://github.com/Effect-TS/language-service/pull/417) [`db0a643`](https://github.com/Effect-TS/language-service/commit/db0a6433d1bd9fed80d1e5b5bc7c3e18c9d82354) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix early exit for a deterministicKeys rule
+
 ## 0.44.0
 
 ### Minor Changes
