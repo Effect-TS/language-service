@@ -7,8 +7,10 @@ import * as Nano from "./Nano"
 
 export type DiagnosticSeverity = "error" | "warning" | "message" | "suggestion"
 
+export type KeyBuilderKind = "service" | "error" | "custom"
+
 export interface LanguageServicePluginOptionsKeyPattern {
-  target: "service" | "error"
+  target: KeyBuilderKind
   pattern: "package-identifier" | "default"
   skipLeadingPath: Array<string>
 }
@@ -22,6 +24,7 @@ export interface LanguageServicePluginOptions {
   quickinfo: boolean
   quickinfoMaximumLength: number
   keyPatterns: Array<LanguageServicePluginOptionsKeyPattern>
+  extendedKeyDetection: boolean
   completions: boolean
   goto: boolean
   inlays: boolean
@@ -72,7 +75,12 @@ export const defaults: LanguageServicePluginOptions = {
     target: "service",
     pattern: "default",
     skipLeadingPath: ["src/"]
-  }]
+  }, {
+    target: "custom",
+    pattern: "default",
+    skipLeadingPath: ["src/"]
+  }],
+  extendedKeyDetection: false
 }
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
@@ -81,7 +89,7 @@ function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePlugin
     if (!isObject(entry)) continue
     result.push({
       target: hasProperty(entry, "target") && isString(entry.target) &&
-          ["service", "error"].includes(entry.target.toLowerCase())
+          ["service", "error", "custom"].includes(entry.target.toLowerCase())
         ? entry.target.toLowerCase() as "service" | "error"
         : "service",
       pattern: hasProperty(entry, "pattern") && isString(entry.pattern) &&
@@ -161,6 +169,10 @@ export function parse(config: any): LanguageServicePluginOptions {
       : defaults.noExternal,
     keyPatterns: isObject(config) && hasProperty(config, "keyPatterns") && isArray(config.keyPatterns)
       ? parseKeyPatterns(config.keyPatterns)
-      : defaults.keyPatterns
+      : defaults.keyPatterns,
+    extendedKeyDetection:
+      isObject(config) && hasProperty(config, "extendedKeyDetection") && isBoolean(config.extendedKeyDetection)
+        ? config.extendedKeyDetection
+        : defaults.extendedKeyDetection
   }
 }

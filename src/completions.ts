@@ -3,6 +3,7 @@ import { durationInput } from "./completions/durationInput.js"
 import { effectCodegensComment } from "./completions/effectCodegensComment.js"
 import { effectDataClasses } from "./completions/effectDataClasses.js"
 import { effectDiagnosticsComment } from "./completions/effectDiagnosticsComment.js"
+import { effectJsdocComment } from "./completions/effectJsdocComment.js"
 import { effectSchemaSelfInClasses } from "./completions/effectSchemaSelfInClasses.js"
 import { effectSelfInClasses } from "./completions/effectSelfInClasses.js"
 import { fnFunctionStar } from "./completions/fnFunctionStar.js"
@@ -20,6 +21,7 @@ export const completions = [
   effectDataClasses,
   effectDiagnosticsComment,
   effectCodegensComment,
+  effectJsdocComment,
   durationInput,
   schemaBrand
 ]
