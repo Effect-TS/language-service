@@ -1,5 +1,31 @@
 # @effect/language-service
 
+## 0.45.0
+
+### Minor Changes
+
+- [#419](https://github.com/Effect-TS/language-service/pull/419) [`7cd7216`](https://github.com/Effect-TS/language-service/commit/7cd7216abc8e3057098acf1889c7494d17a869d6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for custom APIs in deterministicKeys diagnostic using the `@effect-identifier` JSDoc tag.
+
+  You can now enforce deterministic keys in custom APIs that follow an `extends MyApi("identifier")` pattern by:
+
+  - Adding `extendedKeyDetection: true` to plugin options to enable detection
+  - Marking the identifier parameter with `/** @effect-identifier */` JSDoc tag
+
+  Example:
+
+  ```ts
+  export function Repository(/** @effect-identifier */ identifier: string) {
+    return Context.Tag("Repository/" + identifier);
+  }
+
+  export class UserRepo extends Repository("user-repo")<
+    UserRepo,
+    {
+      /** ... */
+    }
+  >() {}
+  ```
+
 ## 0.44.1
 
 ### Patch Changes
