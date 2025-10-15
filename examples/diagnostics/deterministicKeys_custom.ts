@@ -1,0 +1,19 @@
+// @effect-diagnostics deterministicKeys:error
+// @test-config { "extendedKeyDetection": true }
+import * as Context from "effect/Context"
+import * as Persistable from "./utils"
+
+// simple case inside same file
+export function MyConstructor(/** @effect-identifier */ identifier: string) {
+  return Context.Tag("hey/" + identifier)
+}
+
+export class MyClass extends MyConstructor("Hello")<MyClass, {}>() {
+}
+
+// referenced on another file
+export class TTLRequest extends Persistable.Class<{
+  payload: { id: number }
+}>()("TTLRequest", {
+  primaryKey: (req) => `TTLRequest:${req.id}`
+}) {}

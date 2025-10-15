@@ -282,6 +282,27 @@ The skipLeadingPath array can contain a set of prefixes to remove from the subpa
 
 This pattern uses the package name + identifier. This usually works great if you have a flat structure, with one file per service/error.
 
+## Using Key Patterns in custom API definitions
+
+You can enforce and take advantage of the deterministicKeys rule also in your own custom API that provide an `extends MyApi("identifier")`-like experience, so basically only in extends clause of class declarations.
+
+To do so, first you need to enable `extendedKeyDetection: true` in plugin options to enable slower detection of this custom patterns.
+
+And then you'll need to add a JSDoc `/** @effect-identifier */` to the parameter where you expect to receive string identifier.
+
+Let's say for example that you want to provide a Repository() API that is basically the same of Context.Tag, but prefixes the key identifier with 'Repository/'; the definition of the Resource API would be something like this:
+
+```ts
+export function Repository(/** @effect-identifier */ identifier: string) {
+  return Context.Tag("Repository/" + identifier)
+}
+```
+
+and will be used as follows:
+```ts
+export class UserRepo extends Repository("Hello")<UserRepo, { /** ... */ }>() {}
+```
+
 ## Known gotchas
 
 ### Svelte VSCode extension and SvelteKit

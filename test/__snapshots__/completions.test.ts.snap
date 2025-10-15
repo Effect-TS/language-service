@@ -224,6 +224,22 @@ exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:
 ]
 `;
 
+exports[`Completion effectJsdocComment > effectJsdocComment.ts at 2:6 1`] = `
+[
+  {
+    "insertText": "@effect-identifier",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "@effect-identifier",
+    "replacementSpan": {
+      "length": 1,
+      "start": 71,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotToken.ts at 4:22 1`] = `
 [
   {

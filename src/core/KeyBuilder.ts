@@ -4,10 +4,8 @@ import * as Nano from "./Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
 
-export type KeyBuilderKind = "service" | "error"
-
 export interface KeyBuilder {
-  createString(identifier: string, kind: KeyBuilderKind): string | undefined
+  createString(identifier: string, kind: LanguageServicePluginOptions.KeyBuilderKind): string | undefined
 }
 
 export const makeKeyBuilder = Nano.fn("KeyBuilder")(
@@ -20,7 +18,10 @@ export const makeKeyBuilder = Nano.fn("KeyBuilder")(
     // Get package info for this source file, skip validation if not available
     const packageInfo = tsUtils.resolveModuleWithPackageInfoFromSourceFile(program, sourceFile)
 
-    function createString(classNameText: string, kind: KeyBuilderKind): string | undefined {
+    function createString(
+      classNameText: string,
+      kind: LanguageServicePluginOptions.KeyBuilderKind
+    ): string | undefined {
       if (!packageInfo) return
 
       for (const keyPattern of options.keyPatterns) {
@@ -85,7 +86,11 @@ export const getOrMakeKeyBuilder = Nano.fn("getOrMakeKeyBuilder")(function*(
   return keyBuilder
 })
 
-export function createString(sourceFile: ts.SourceFile, identifier: string, kind: KeyBuilderKind) {
+export function createString(
+  sourceFile: ts.SourceFile,
+  identifier: string,
+  kind: LanguageServicePluginOptions.KeyBuilderKind
+) {
   return Nano.map(
     getOrMakeKeyBuilder(sourceFile),
     (identifierBuilder) => identifierBuilder.createString(identifier, kind)

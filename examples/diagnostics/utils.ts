@@ -7,7 +7,7 @@ export const Class = <
     requestError?: any
   } = { payload: {} }
 >() =>
-<const Tag extends string>(tag: Tag, _options: {
+<const Tag extends string>(/** @effect-identifier */ tag: Tag, _options: {
   readonly primaryKey: (payload: Config["payload"]) => string
 }): new(
   args: Types.EqualsWith<
