@@ -1,5 +1,38 @@
 # @effect/language-service
 
+## 0.45.1
+
+### Patch Changes
+
+- [#423](https://github.com/Effect-TS/language-service/pull/423) [`70d8734`](https://github.com/Effect-TS/language-service/commit/70d8734558c4ba3abfd69fafce785b7f58a70a52) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add code fix to rewrite Schema class constructor overrides as static 'new' methods
+
+  When detecting constructor overrides in Schema classes, the diagnostic now provides a new code fix option that automatically rewrites the constructor as a static 'new' method. This preserves the custom initialization logic while maintaining Schema's decoding behavior.
+
+  Example:
+
+  ```typescript
+  // Before (with constructor override)
+  class MyClass extends Schema.Class<MyClass>("MyClass")({ a: Schema.Number }) {
+    b: number;
+    constructor() {
+      super({ a: 42 });
+      this.b = 56;
+    }
+  }
+
+  // After (using static 'new' method)
+  class MyClass extends Schema.Class<MyClass>("MyClass")({ a: Schema.Number }) {
+    b: number;
+    public static new() {
+      const _this = new this({ a: 42 });
+      _this.b = 56;
+      return _this;
+    }
+  }
+  ```
+
+- [#421](https://github.com/Effect-TS/language-service/pull/421) [`8c455ed`](https://github.com/Effect-TS/language-service/commit/8c455ed7a459665d26c30f1e5d90338e48794815) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update dependencies to their latest versions including Effect 3.18.4, TypeScript 5.9.3, and various ESLint and build tooling packages
+
 ## 0.45.0
 
 ### Minor Changes
