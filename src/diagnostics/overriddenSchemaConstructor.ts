@@ -55,18 +55,78 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
           const members = node.members
           for (const member of members) {
             if (ts.isConstructorDeclaration(member)) {
+              // fix to rewrite as a static 'new' method
+              const fixAsStaticNew = {
+                fixName: "overriddenSchemaConstructor_static",
+                description: "Rewrite using the static 'new' pattern",
+                apply: Nano.gen(function*() {
+                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                  const visitor: ts.Visitor = (node) => {
+                    if (
+                      ts.isExpressionStatement(node) &&
+                      ts.isCallExpression(node.expression) && ts.isToken(node.expression.expression) &&
+                      node.expression.expression.kind === ts.SyntaxKind.SuperKeyword
+                    ) {
+                      const constructThis = ts.factory.createNewExpression(
+                        ts.factory.createIdentifier("this"),
+                        undefined,
+                        node.expression.arguments
+                      )
+                      return ts.factory.createVariableStatement(
+                        undefined,
+                        ts.factory.createVariableDeclarationList(
+                          [ts.factory.createVariableDeclaration(
+                            "_this",
+                            undefined,
+                            undefined,
+                            constructThis
+                          )],
+                          ts.NodeFlags.Const
+                        )
+                      )
+                    }
+                    if (ts.isToken(node) && node.kind === ts.SyntaxKind.ThisKeyword) {
+                      return ts.factory.createIdentifier("_this")
+                    }
+                    return ts.visitEachChild(node, visitor, ts.nullTransformationContext)
+                  }
+                  const newBody = visitor(member.body!)! as ts.Block
+                  const bodyWithReturn = ts.factory.updateBlock(
+                    newBody,
+                    newBody.statements.concat([
+                      ts.factory.createReturnStatement(ts.factory.createIdentifier("_this"))
+                    ])
+                  )
+
+                  const newMethod = ts.factory.createMethodDeclaration(
+                    ts.factory.createModifiersFromModifierFlags(ts.ModifierFlags.Public | ts.ModifierFlags.Static),
+                    undefined,
+                    "new",
+                    undefined,
+                    member.typeParameters,
+                    member.parameters,
+                    member.type,
+                    bodyWithReturn
+                  )
+
+                  changeTracker.replaceNode(sourceFile, member, newMethod)
+                })
+              }
+
               // Report diagnostic at the constructor location
               report({
                 location: member,
-                messageText: "Classes extending Schema must not override the constructor",
-                fixes: [{
+                messageText:
+                  "Classes extending Schema must not override the constructor; this is because it silently breaks the schema decoding behaviour. If that's needed, we recommend instead to use a static 'new' method that constructs the instance.",
+                fixes: (member.body ? [fixAsStaticNew] : []).concat([{
                   fixName: "overriddenSchemaConstructor_fix",
                   description: "Remove the constructor override",
                   apply: Nano.gen(function*() {
                     const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
                     changeTracker.delete(sourceFile, member)
                   })
-                }]
+                }])
               })
               break
             }
