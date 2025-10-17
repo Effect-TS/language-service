@@ -14,7 +14,7 @@ class UserRepository extends Effect.Service<UserRepository>()("UserRepository", 
   effect: Effect.as(Effect.zipRight(DbConnection, Cache), {})
 }) {}
 
-export const prepareSimple =[UserRepository.Default] as any as Layer.Layer<UserRepository>
+export const prepareSimple = UserRepository.Default
 
 export const prepareWithPipe = pipe(
   UserRepository.Default,

@@ -247,7 +247,7 @@ export const layerMagic = LSP.createRefactor({
       return pipe(
         extractLayers(atLocation, false),
         Nano.flatMap((extractedLayer) =>
-          extractedLayer.length < 1 ? TypeParser.TypeParserIssue.issue : Nano.succeed(extractedLayer)
+          extractedLayer.length <= 1 ? TypeParser.TypeParserIssue.issue : Nano.succeed(extractedLayer)
         ),
         Nano.map((extractedLayers) => ({
           kind: "refactor.rewrite.effect.layerMagicPrepare",
@@ -362,7 +362,7 @@ export const layerMagic = LSP.createRefactor({
             extractArrayLiteral(_targetLayer.castedStructure),
             Nano.orElse(() => extractLayers(_targetLayer.castedStructure, false)),
             Nano.flatMap((extractedLayer) =>
-              extractedLayer.length < 1 ? TypeParser.TypeParserIssue.issue : Nano.succeed(extractedLayer)
+              extractedLayer.length <= 1 ? TypeParser.TypeParserIssue.issue : Nano.succeed(extractedLayer)
             ),
             Nano.map((extractedLayers) => ({
               kind: "refactor.rewrite.effect.layerMagicBuild",
@@ -407,7 +407,8 @@ export const layerMagic = LSP.createRefactor({
                 const missingOutput = new Set<string>(outputIndexes)
                 const missingInternal = new Set<string>()
                 const outputEntry: Array<{ merges: boolean; provides: boolean; node: ts.Expression }> = []
-                for (const graphNode of sortedNodes) {
+                for (let i = 0; i < sortedNodes.length; i++) {
+                  const graphNode = sortedNodes[i]
                   const mergeOutput = graphNode.provides.filter((_) => missingOutput.has(_))
                   const provideInternal = graphNode.provides.filter((_) => missingInternal.has(_))
                   graphNode.requires.forEach((_) => missingInternal.add(_))
@@ -438,7 +439,18 @@ export const layerMagic = LSP.createRefactor({
                   )
                 )
 
-                changeTracker.replaceNode(sourceFile, atLocation, newDeclaration, {
+                const newDeclarationWithComment = missingOutput.size > 0
+                  ? ts.addSyntheticTrailingComment(
+                    newDeclaration,
+                    ts.SyntaxKind.MultiLineCommentTrivia,
+                    " Unable to find " + Array.fromIterable(missingOutput).map((key) => memory.get(key)!).map((_) =>
+                      typeChecker.typeToString(_, undefined, ts.TypeFormatFlags.NoTruncation)
+                    ).join(", ") + " in the provided layers. ",
+                    false
+                  ) :
+                  newDeclaration
+
+                changeTracker.replaceNode(sourceFile, atLocation, newDeclarationWithComment, {
                   leadingTriviaOption: ts.textChanges.LeadingTriviaOption.IncludeAll,
                   trailingTriviaOption: ts.textChanges.TrailingTriviaOption.Exclude
                 })
