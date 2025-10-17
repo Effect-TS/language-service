@@ -7,6 +7,7 @@ import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
@@ -17,6 +18,7 @@ export const leakingRequirements = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
     const parseLeakedRequirements = Nano.cachedBy(
       Nano.fn("leakingServices.checkServiceLeaking")(
@@ -82,7 +84,21 @@ export const leakingRequirements = LSP.createDiagnostic({
           }
           // ...and those at least 2 props must be or return effects
           if (sharedRequirementsKeys && sharedRequirementsKeys.length > 0 && effectMembers >= 2) {
-            return sharedRequirementsKeys.map((key) => memory.get(key)!)
+            return sharedRequirementsKeys.map((key) => memory.get(key)!).filter(
+              (type) => {
+                let symbol = type.symbol
+                if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+                  symbol = typeChecker.getAliasedSymbol(symbol)!
+                }
+                return !(symbol.declarations || []).some((declaration) => {
+                  const declarationSource = tsUtils.getSourceFileOfNode(declaration)
+                  if (!declarationSource) return false
+                  return (declarationSource.text.substring(declaration.pos, declaration.end).toLowerCase().indexOf(
+                    "@effect-leakable-service"
+                  ) > -1)
+                })
+              }
+            )
           }
           return []
         }
@@ -97,7 +113,7 @@ export const leakingRequirements = LSP.createDiagnostic({
         location: node,
         messageText: `This Service is leaking the ${
           requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
-        } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
+        } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can either safely disable this diagnostic for this line through quickfixes or mark the service declaration with a JSDoc @effect-leakable-service.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
         fixes: []
       })
     }
