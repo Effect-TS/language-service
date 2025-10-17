@@ -1,4 +1,4 @@
 Context.GenericTag<LeakingService>("LeakingService")
 13:26 - 13:78 | 2 | This Service is leaking the FileSystem requirement.
-If these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can safely disable this diagnostic for this line through quickfixes.
+If these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can either safely disable this diagnostic for this line through quickfixes or mark the service declaration with a JSDoc @effect-leakable-service.
 More info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)
