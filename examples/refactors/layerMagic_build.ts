@@ -1,4 +1,4 @@
-// 19:23,20:13,24:24,31:21,38:20
+// 19:23,20:13,24:24,31:21,38:20,42:18,44:20
 import { Effect, Layer } from "effect"
 
 class DbConnection extends Effect.Service<DbConnection>()("DbConnection", {
@@ -38,3 +38,7 @@ export const prepareSomewhatComplex2 = [
 export const provideRequireSame = [FileSystem.bothInAndOut, FileSystem.Default, Cache.Default] as any as Layer.Layer<
   Cache | FileSystem
 >
+
+export const tooLessOutput = [Cache.Default] as any as Layer.Layer<Cache>
+
+export const missingImplementations = [UserRepository.Default, FileSystem.Default] as any as Layer.Layer<Cache>

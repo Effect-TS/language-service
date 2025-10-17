@@ -1,4 +1,4 @@
-// Result of running refactor layerMagic at position 19:23
+// Result of running refactor layerMagic at position 44:20
 import { Effect, Layer } from "effect"
 
 class DbConnection extends Effect.Service<DbConnection>()("DbConnection", {
@@ -16,7 +16,10 @@ class UserRepository extends Effect.Service<UserRepository>()("UserRepository", 
   effect: Effect.as(Effect.zipRight(DbConnection, Cache), {})
 }) {}
 
-export const expect_Cache_provideMergeFileSystem =Cache.Default.pipe(Layer.provideMerge(FileSystem.Default))
+export const expect_Cache_provideMergeFileSystem = [
+  FileSystem.Default,
+  Cache.Default
+] as any as Layer.Layer<FileSystem>
 
 export const prepareSomewhatComplex = [
   DbConnection.Default,
@@ -38,4 +41,4 @@ export const provideRequireSame = [FileSystem.bothInAndOut, FileSystem.Default, 
 
 export const tooLessOutput = [Cache.Default] as any as Layer.Layer<Cache>
 
-export const missingImplementations = [UserRepository.Default, FileSystem.Default] as any as Layer.Layer<Cache>
+export const missingImplementations =FileSystem.Default.pipe(Layer.provide(UserRepository.Default)) /* Unable to find Cache in the provided layers. */

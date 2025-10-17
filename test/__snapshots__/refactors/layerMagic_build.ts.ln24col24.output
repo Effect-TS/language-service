@@ -33,3 +33,7 @@ export const prepareSomewhatComplex2 = [
 export const provideRequireSame = [FileSystem.bothInAndOut, FileSystem.Default, Cache.Default] as any as Layer.Layer<
   Cache | FileSystem
 >
+
+export const tooLessOutput = [Cache.Default] as any as Layer.Layer<Cache>
+
+export const missingImplementations = [UserRepository.Default, FileSystem.Default] as any as Layer.Layer<Cache>

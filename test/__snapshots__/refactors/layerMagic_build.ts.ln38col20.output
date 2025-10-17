@@ -36,3 +36,7 @@ export const prepareSomewhatComplex2 = [
 ] as any as Layer.Layer<UserRepository | Cache | FileSystem>
 
 export const provideRequireSame =Cache.Default.pipe(Layer.provide(FileSystem.bothInAndOut), Layer.provideMerge(FileSystem.Default))
+
+export const tooLessOutput = [Cache.Default] as any as Layer.Layer<Cache>
+
+export const missingImplementations = [UserRepository.Default, FileSystem.Default] as any as Layer.Layer<Cache>
