@@ -227,6 +227,13 @@ export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(
   return effectCompletions
 })
 
+interface CommentNextLineOverride {
+  pos: number
+  end: number
+  level: string
+  commentRange: ts.CommentRange
+}
+
 const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")(
   function*(sourceFile: ts.SourceFile) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
@@ -250,7 +257,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
 
     const lineOverrides: Record<
       string,
-      Array<{ pos: number; end: number; level: string }>
+      Array<CommentNextLineOverride>
     > = {}
     const sectionOverrides: Record<
       string,
@@ -286,7 +293,8 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
                   lineOverrides[ruleName].unshift({
                     pos: foundNode.node.pos,
                     end: foundNode.node.end,
-                    level: ruleLevel
+                    level: ruleLevel,
+                    commentRange: foundNode.commentRange
                   })
                 }
               } else {
@@ -384,6 +392,9 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           })
         })
 
+        // create a list of all the comment ranges
+        const unusedLineOverrides = new Set<CommentNextLineOverride>(lineOverrides[ruleNameLowered] || [])
+
         // loop through rules
         for (const emitted of applicableDiagnostics.slice(0)) {
           // by default, use the overriden level from the plugin options
@@ -394,6 +405,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           )
           if (lineOverride) {
             newLevel = lineOverride.level
+            unusedLineOverrides.delete(lineOverride)
           } else {
             // then attempt with section overrides
             const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) => _.pos < emitted.range.pos)
@@ -422,6 +434,20 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           }
         }
 
+        if (pluginOptions.missingDiagnosticNextLine !== "off" && unusedLineOverrides.size > 0) {
+          for (const unusedLineOverride of unusedLineOverrides) {
+            diagnostics.push({
+              file: sourceFile,
+              start: unusedLineOverride.commentRange.pos,
+              length: unusedLineOverride.commentRange.end - unusedLineOverride.commentRange.pos,
+              messageText:
+                `@effect-diagnostics-next-line ${rule.name}:${unusedLineOverride.level} has no effect, make sure you are suppressing the right rule.`,
+              category: levelToDiagnosticCategory[pluginOptions.missingDiagnosticNextLine],
+              code: -1,
+              source: "effect"
+            })
+          }
+        }
         return { diagnostics, codeFixes }
       })
 

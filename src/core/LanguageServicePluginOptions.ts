@@ -20,6 +20,7 @@ export interface LanguageServicePluginOptions {
   diagnostics: boolean
   diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
   diagnosticsName: boolean
+  missingDiagnosticNextLine: DiagnosticSeverity | "off"
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
   quickinfoMaximumLength: number
@@ -39,6 +40,10 @@ export interface LanguageServicePluginOptions {
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
 
+function isValidSeverityLevel(value: string): value is DiagnosticSeverity | "off" {
+  return value === "off" || value === "error" || value === "warning" || value === "message" || value === "suggestion"
+}
+
 function parseDiagnosticSeverity(config: Record<PropertyKey, unknown>): Record<string, DiagnosticSeverity | "off"> {
   if (!isRecord(config)) return {}
   return Object.fromEntries(
@@ -46,9 +51,7 @@ function parseDiagnosticSeverity(config: Record<PropertyKey, unknown>): Record<s
       Object.entries(config),
       Array.filter(([key, value]) => isString(key) && isString(value)),
       Array.map(([key, value]) => [String(key).toLowerCase(), String(value).toLowerCase()]),
-      Array.filter(([_, value]) =>
-        value === "off" || value === "error" || value === "warning" || value === "message" || value === "suggestion"
-      )
+      Array.filter(([_, value]) => isValidSeverityLevel(value))
     )
   )
 }
@@ -58,6 +61,7 @@ export const defaults: LanguageServicePluginOptions = {
   diagnostics: true,
   diagnosticSeverity: {},
   diagnosticsName: true,
+  missingDiagnosticNextLine: "warning",
   quickinfo: true,
   quickinfoEffectParameters: "whentruncated",
   quickinfoMaximumLength: -1,
@@ -120,6 +124,10 @@ export function parse(config: any): LanguageServicePluginOptions {
     diagnosticsName: isObject(config) && hasProperty(config, "diagnosticsName") && isBoolean(config.diagnosticsName)
       ? config.diagnosticsName
       : defaults.diagnosticsName,
+    missingDiagnosticNextLine: isObject(config) && hasProperty(config, "missingDiagnosticNextLine") &&
+        isString(config.missingDiagnosticNextLine) && isValidSeverityLevel(config.missingDiagnosticNextLine)
+      ? config.missingDiagnosticNextLine as DiagnosticSeverity | "off"
+      : defaults.missingDiagnosticNextLine,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
       : defaults.quickinfo,
