@@ -1,5 +1,50 @@
 # @effect/language-service
 
+## 0.46.0
+
+### Minor Changes
+
+- [#424](https://github.com/Effect-TS/language-service/pull/424) [`4bbfdb0`](https://github.com/Effect-TS/language-service/commit/4bbfdb0a4894ee442e93b0a6cfa845447a2a045f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support to mark a service as "leakable" via JSDoc tag. Services marked with `@effect-leakable-service` will be excluded from the leaking requirements diagnostic, allowing requirements that are expected to be provided per method invocation (e.g. HttpServerRequest).
+
+  Example:
+
+  ```ts
+  /**
+   * @effect-leakable-service
+   */
+  export class FileSystem extends Context.Tag("FileSystem")<
+    FileSystem,
+    {
+      writeFile: (content: string) => Effect.Effect<void>;
+    }
+  >() {}
+  ```
+
+- [#428](https://github.com/Effect-TS/language-service/pull/428) [`ebaa8e8`](https://github.com/Effect-TS/language-service/commit/ebaa8e85d1c372fb3f584a49b6ea3600c467ac33) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add diagnostic to warn when `@effect-diagnostics-next-line` comments have no effect. This helps identify unused suppression comments that don't actually suppress any diagnostics, improving code cleanliness.
+
+  The new `missingDiagnosticNextLine` option controls the severity of this diagnostic (default: "warning"). Set to "off" to disable.
+
+  Example:
+
+  ```ts
+  // This comment will trigger a warning because it doesn't suppress any diagnostic
+  // @effect-diagnostics-next-line effect/floatingEffect:off
+  const x = 1;
+
+  // This comment is correctly suppressing a diagnostic
+  // @effect-diagnostics-next-line effect/floatingEffect:off
+  Effect.succeed(1);
+  ```
+
+### Patch Changes
+
+- [#426](https://github.com/Effect-TS/language-service/pull/426) [`22717bd`](https://github.com/Effect-TS/language-service/commit/22717bda12a889f00bc4b78719a487e62da74bef) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve Layer Magic refactor with enhanced dependency sorting and cycle detection
+
+  The Layer Magic refactor now includes:
+
+  - Better handling of complex layer composition scenarios
+  - Support for detecting missing layer implementations with helpful error messages
+
 ## 0.45.1
 
 ### Patch Changes
