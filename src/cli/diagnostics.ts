@@ -55,7 +55,7 @@ export const diagnostics = Command.make(
     let warningsCount = 0
     let messagesCount = 0
 
-    const { service } = createProjectService()
+    const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
     if (Option.isSome(file)) {
       filesToCheck.add(path.resolve(file.value))
@@ -141,6 +141,7 @@ export const diagnostics = Command.make(
       } finally {
         service.closeClientFile(filePath)
       }
+      yield* Effect.yieldNow()
     }
     console.log(
       `Checked ${checkedFilesCount} files out of ${filesToCheck.size} files. \n${errorsCount} errors, ${warningsCount} warnings and ${messagesCount} messages.`
