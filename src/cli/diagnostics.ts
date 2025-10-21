@@ -67,8 +67,10 @@ export const diagnostics = Command.make(
         const tsconfigPath = tsconfigToHandle.shift()!
         const tsconfigAbsolutePath = path.resolve(tsconfigPath)
         const configFile = tsInstance.readConfigFile(tsconfigAbsolutePath, tsInstance.sys.readFile)
-        if (configFile.error && !tsconfigAbsolutePath.endsWith("tsconfig.json")) {
-          tsconfigToHandle = [...tsconfigToHandle, path.resolve(tsconfigPath, "tsconfig.json")]
+        if (configFile.error) {
+          if (!tsconfigAbsolutePath.endsWith("tsconfig.json")) {
+            tsconfigToHandle = [...tsconfigToHandle, path.resolve(tsconfigPath, "tsconfig.json")]
+          }
           continue
         }
         const parsedConfig = tsInstance.parseJsonConfigFileContent(
