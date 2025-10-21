@@ -1,5 +1,18 @@
 # @effect/language-service
 
+## 0.47.0
+
+### Minor Changes
+
+- [#429](https://github.com/Effect-TS/language-service/pull/429) [`351d7fb`](https://github.com/Effect-TS/language-service/commit/351d7fbec1158294f6cf309eafdb99f5260de8d5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new `diagnostics` CLI command to check Effect-specific diagnostics for files or projects
+
+  The new `effect-language-service diagnostics` command provides a way to get Effect-specific diagnostics through the CLI without patching your TypeScript installation. It supports:
+
+  - `--file` option to get diagnostics for a specific file
+  - `--project` option with a tsconfig file to check an entire project
+
+  The command outputs diagnostics in the same format as the TypeScript compiler, showing errors, warnings, and messages with their locations and descriptions.
+
 ## 0.46.0
 
 ### Minor Changes
