@@ -43,6 +43,8 @@ const extractEffectLspOptions = (compilerOptions: ts.CompilerOptions) => {
     : []).find((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service")
 }
 
+const BATCH_SIZE = 50
+
 export const diagnostics = Command.make(
   "diagnostics",
   { file, project },
@@ -55,8 +57,6 @@ export const diagnostics = Command.make(
     let warningsCount = 0
     let messagesCount = 0
 
-    const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
-
     if (Option.isSome(file)) {
       filesToCheck.add(path.resolve(file.value))
     }
@@ -66,13 +66,11 @@ export const diagnostics = Command.make(
       while (tsconfigToHandle.length > 0) {
         const tsconfigPath = tsconfigToHandle.shift()!
         const tsconfigAbsolutePath = path.resolve(tsconfigPath)
-        // process the project references, which may be a folder with a contained tsconfig.json file
         const configFile = tsInstance.readConfigFile(tsconfigAbsolutePath, tsInstance.sys.readFile)
         if (configFile.error && !tsconfigAbsolutePath.endsWith("tsconfig.json")) {
           tsconfigToHandle = [...tsconfigToHandle, path.resolve(tsconfigPath, "tsconfig.json")]
           continue
         }
-        // parse the config file
         const parsedConfig = tsInstance.parseJsonConfigFileContent(
           configFile.config,
           tsInstance.sys,
@@ -87,62 +85,69 @@ export const diagnostics = Command.make(
       return yield* new NoFilesToCheckError()
     }
 
-    for (const filePath of filesToCheck) {
-      service.openClientFile(filePath)
-      try {
-        const scriptInfo = service.getScriptInfo(filePath)
-        if (!scriptInfo) continue
+    const filesToCheckArray = Array.fromIterable(filesToCheck)
+    const batches = Array.chunksOf(filesToCheckArray, BATCH_SIZE)
 
-        const project = scriptInfo.getDefaultProject()
-        const languageService = project.getLanguageService(true)
-        const program = languageService.getProgram()
-        if (!program) continue
-        const sourceFile = program.getSourceFile(filePath)
-        if (!sourceFile) continue
-        const pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
-        if (!pluginConfig) continue
+    for (const batch of batches) {
+      const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
-        // run the diagnostics and pipe them into addDiagnostic
-        const results = pipe(
-          LSP.getSemanticDiagnosticsWithCodeFixes(diagnosticsDefinitions, sourceFile),
-          TypeParser.nanoLayer,
-          TypeCheckerUtils.nanoLayer,
-          TypeScriptUtils.nanoLayer,
-          Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-          Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-          Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
-          Nano.provideService(
-            LanguageServicePluginOptions.LanguageServicePluginOptions,
-            LanguageServicePluginOptions.parse(pluginConfig)
-          ),
-          Nano.run,
-          Either.map((_) => _.diagnostics),
-          Either.map(
-            Array.map((_) =>
-              _.category === tsInstance.DiagnosticCategory.Suggestion
-                ? { ..._, category: tsInstance.DiagnosticCategory.Message }
-                : _
-            )
-          ),
-          Either.getOrElse(() => [])
-        )
-        checkedFilesCount++
-        errorsCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Error).length
-        warningsCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Warning).length
-        messagesCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Message).length
-        if (results.length === 0) continue
-        // pretty print the results
-        const formattedResults = tsInstance.formatDiagnosticsWithColorAndContext(results, {
-          getCanonicalFileName: (fileName) => path.resolve(fileName),
-          getCurrentDirectory: () => path.resolve("."),
-          getNewLine: () => "\n"
-        })
-        console.log(formattedResults)
-      } finally {
-        service.closeClientFile(filePath)
+      for (const filePath of batch) {
+        service.openClientFile(filePath)
+        try {
+          const scriptInfo = service.getScriptInfo(filePath)
+          if (!scriptInfo) continue
+
+          const project = scriptInfo.getDefaultProject()
+          const languageService = project.getLanguageService(true)
+          const program = languageService.getProgram()
+          if (!program) continue
+          const sourceFile = program.getSourceFile(filePath)
+          if (!sourceFile) continue
+          const pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
+          if (!pluginConfig) continue
+
+          const results = pipe(
+            LSP.getSemanticDiagnosticsWithCodeFixes(diagnosticsDefinitions, sourceFile),
+            TypeParser.nanoLayer,
+            TypeCheckerUtils.nanoLayer,
+            TypeScriptUtils.nanoLayer,
+            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+            Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+            Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
+            Nano.provideService(
+              LanguageServicePluginOptions.LanguageServicePluginOptions,
+              LanguageServicePluginOptions.parse(pluginConfig)
+            ),
+            Nano.run,
+            Either.map((_) => _.diagnostics),
+            Either.map(
+              Array.map((_) =>
+                _.category === tsInstance.DiagnosticCategory.Suggestion
+                  ? { ..._, category: tsInstance.DiagnosticCategory.Message }
+                  : _
+              )
+            ),
+            Either.getOrElse(() => [])
+          )
+          checkedFilesCount++
+          errorsCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Error).length
+          warningsCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Warning).length
+          messagesCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Message).length
+          if (results.length > 0) {
+            const formattedResults = tsInstance.formatDiagnosticsWithColorAndContext(results, {
+              getCanonicalFileName: (fileName) => path.resolve(fileName),
+              getCurrentDirectory: () => path.resolve("."),
+              getNewLine: () => "\n"
+            })
+            console.log(formattedResults)
+          }
+        } finally {
+          service.closeClientFile(filePath)
+        }
       }
       yield* Effect.yieldNow()
     }
+
     console.log(
       `Checked ${checkedFilesCount} files out of ${filesToCheck.size} files. \n${errorsCount} errors, ${warningsCount} warnings and ${messagesCount} messages.`
     )
