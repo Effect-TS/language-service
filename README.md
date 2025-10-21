@@ -156,7 +156,7 @@ If everything goes smoothly, something along these lines should be printed out:
 /node_modules/typescript/lib/_tsc.js patched successfully.
 ```
 
-Now the CLI has patched the tsc binary and the typescript library to raise effect diagnostics even at build time if the plugin is configured in your tsconfig!
+Now the CLI has patched the tsc binary and the typescript library to raise Effect diagnostics even at build time if the plugin is configured in your tsconfig!
 
 As the command output suggests, you may need to delete your tsbuildinfo files or perform a full rebuild in order to re-check previously existing files.
 
@@ -204,13 +204,29 @@ index.ts:3:1 - error TS3: Effect must be yielded or assigned to a variable.
 Found 1 error in index.ts:3 
 ```
 
+## Effect-Language-Service CLI
+
+The effect language service plugin comes with a builtin CLI tool that can be used to perform various utilities, checks and setups. Since it relies on typescript, we recommend to install it locally and run it locally to ensure it loads the same typescript version of your project rather than a global installation that may resolve to use a different TS version from the one of your project.
+
+### `effect-language-service diagnostics`
+Provides a way to get through a CLI the list of Effect specific diagnostics; without patching your typescript installation. A --file option may be used to get diagnostics for a specific file, or --project with a tsconfig file to get an entire project.
+
+### `effect-language-service check`
+This command runs a check of the setup of the patching mechanism of the LSP, to understand if typescript has been patched or not.
+
+### `effect-language-service patch`
+Patches (or re-patches) your local TypeScript installation to provide Effect diagnostics at build time.
+
+### `effect-language-service unpatch`
+Revery any previously applied patch to the local TypeScript installation.
+
 ## Configuring diagnostics
 
 You can either disable or change the severity of specific diagnostics by using comments in your code.
 
 ```ts
 // @effect-diagnostics effect/floatingEffect:off
-Effect.succeed(1); // This will not be reported as a floating effect
+Effect.succeed(1); // This will not be reported as a floating Effect
 
 // @effect-diagnostics effect/floatingEffect:error
 Effect.succeed(1); // This will be reported as a floating effect
@@ -304,6 +320,7 @@ and will be used as follows:
 ```ts
 export class UserRepo extends Repository("Hello")<UserRepo, { /** ... */ }>() {}
 ```
+
 
 ## Known gotchas
 
