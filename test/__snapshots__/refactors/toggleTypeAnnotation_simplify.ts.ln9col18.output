@@ -11,3 +11,9 @@ export const simpleRequire: Effect.Effect<Context.Context<Service>, never, Servi
 export const inUnion = Math.random() > 0.1 ? Effect.succeed(true) : Effect.succeed(42)
 
 export const asArrowResult = () => Effect.succeed(true)
+
+declare const withOverloads:
+  & ((a: 1) => Effect.Effect<boolean, never, never>)
+  & ((a: 2) => Effect.Effect<never, string, never>)
+
+export const simplifyIntersection = withOverloads

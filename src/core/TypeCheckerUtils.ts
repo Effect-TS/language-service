@@ -382,7 +382,18 @@ export function makeTypeCheckerUtils(
         if (!memberNode) return fallbackStandard()
         typeNodes.push(memberNode)
       }
-      return ts.factory.createUnionTypeNode(typeNodes)
+      return tsUtils.simplifyTypeNode(ts.factory.createUnionTypeNode(typeNodes))
+    }
+    // A & B & B -> process each member
+    if (type.flags & ts.TypeFlags.Intersection) {
+      const intersectionType = type as ts.IntersectionType
+      const typeNodes: Array<ts.TypeNode> = []
+      for (const member of intersectionType.types) {
+        const memberNode = typeToSimplifiedTypeNode(member, enclosingNode, flags)
+        if (!memberNode) return fallbackStandard()
+        typeNodes.push(memberNode)
+      }
+      return tsUtils.simplifyTypeNode(ts.factory.createIntersectionTypeNode(typeNodes))
     }
     // Effect<number, never, never> -> Effect<number>
     if (type.flags & ts.TypeFlags.Object && (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
@@ -399,11 +410,11 @@ export function makeTypeCheckerUtils(
         const typeArgument = typeReference.typeArguments![i]
         const defaultType = typeChecker.getDefaultFromTypeParameter(typeParameter)
         if (defaultType !== typeArgument || i === 0) {
-          return ts.factory.updateTypeReferenceNode(
+          return tsUtils.simplifyTypeNode(ts.factory.updateTypeReferenceNode(
             standard,
             standard.typeName,
             ts.factory.createNodeArray((standard.typeArguments || []).slice(0, Math.min(typeParametersCount, i + 1)))
-          )
+          ))
         }
       }
       return standard
@@ -419,12 +430,12 @@ export function makeTypeCheckerUtils(
       if (!returnType) return standard
       const returnTypeNode = typeToSimplifiedTypeNode(returnType, enclosingNode, flags)
       if (!returnTypeNode) return standard
-      return ts.factory.updateFunctionTypeNode(
+      return tsUtils.simplifyTypeNode(ts.factory.updateFunctionTypeNode(
         standard,
         standard.typeParameters,
         standard.parameters,
         returnTypeNode
-      )
+      ))
     }
 
     return fallbackStandard()
