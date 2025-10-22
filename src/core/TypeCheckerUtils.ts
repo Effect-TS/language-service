@@ -5,6 +5,7 @@ import type * as ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeCheckerApi from "./TypeCheckerApi"
 import * as TypeScriptApi from "./TypeScriptApi"
+import * as TypeScriptUtils from "./TypeScriptUtils"
 
 export interface TypeCheckerUtils {
   isUnion: (type: ts.Type) => type is ts.UnionType
@@ -19,6 +20,11 @@ export interface TypeCheckerUtils {
   deterministicTypeOrder: Order.Order<ts.Type>
   getInferredReturnType: (declaration: ConvertibleDeclaration) => ts.Type | undefined
   expectedAndRealType: (sourceFile: ts.SourceFile) => Array<ExpectedAndRealType>
+  typeToSimplifiedTypeNode: (
+    type: ts.Type,
+    enclosingNode: ts.Node | undefined,
+    flags: ts.NodeBuilderFlags | undefined
+  ) => ts.TypeNode | undefined
 }
 
 export const TypeCheckerUtils = Nano.Tag<TypeCheckerUtils>("TypeCheckerUtils")
@@ -30,7 +36,8 @@ export const nanoLayer = <A, E, R>(
     Nano.service(TypeScriptApi.TypeScriptApi),
     Nano.flatMap((ts) =>
       Nano.flatMap(Nano.service(TypeCheckerApi.TypeCheckerApi), (typeChecker) =>
-        pipe(fa, Nano.provideService(TypeCheckerUtils, makeTypeCheckerUtils(ts, typeChecker))))
+        Nano.flatMap(Nano.service(TypeScriptUtils.TypeScriptUtils), (typeScriptUtils) =>
+          pipe(fa, Nano.provideService(TypeCheckerUtils, makeTypeCheckerUtils(ts, typeChecker, typeScriptUtils)))))
     )
   )
 
@@ -49,7 +56,8 @@ type ConvertibleDeclaration =
 
 export function makeTypeCheckerUtils(
   ts: TypeScriptApi.TypeScriptApi,
-  typeChecker: TypeCheckerApi.TypeCheckerApi
+  typeChecker: TypeCheckerApi.TypeCheckerApi,
+  tsUtils: TypeScriptUtils.TypeScriptUtils
 ): TypeCheckerUtils {
   function isUnion(type: ts.Type): type is ts.UnionType {
     return !!(type.flags & ts.TypeFlags.Union)
@@ -354,6 +362,85 @@ export function makeTypeCheckerUtils(
     return result
   }
 
+  function typeToSimplifiedTypeNode(
+    type: ts.Type,
+    enclosingNode: ts.Node | undefined,
+    flags: ts.NodeBuilderFlags | undefined
+  ): ts.TypeNode | undefined {
+    const fallbackStandard = () => {
+      const typeNode = typeChecker.typeToTypeNode(type, enclosingNode, flags)
+      if (!typeNode) return undefined
+      return tsUtils.simplifyTypeNode(typeNode)
+    }
+    const members = unrollUnionMembers(type)
+    // A | B | C -> process each member
+    if (members.length > 1) {
+      const typeNodes: Array<ts.TypeNode> = []
+      members.sort(deterministicTypeOrder)
+      for (const member of members) {
+        const memberNode = typeToSimplifiedTypeNode(member, enclosingNode, flags)
+        if (!memberNode) return fallbackStandard()
+        typeNodes.push(memberNode)
+      }
+      return tsUtils.simplifyTypeNode(ts.factory.createUnionTypeNode(typeNodes))
+    }
+    // A & B & B -> process each member
+    if (type.flags & ts.TypeFlags.Intersection) {
+      const intersectionType = type as ts.IntersectionType
+      const typeNodes: Array<ts.TypeNode> = []
+      for (const member of intersectionType.types) {
+        const memberNode = typeToSimplifiedTypeNode(member, enclosingNode, flags)
+        if (!memberNode) return fallbackStandard()
+        typeNodes.push(memberNode)
+      }
+      return tsUtils.simplifyTypeNode(ts.factory.createIntersectionTypeNode(typeNodes))
+    }
+    // Effect<number, never, never> -> Effect<number>
+    if (type.flags & ts.TypeFlags.Object && (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
+      const typeReference = type as ts.TypeReference
+      // compute the standard type reference node and ensure we get the same amount of type arguments
+      const standard = fallbackStandard()
+      if (!standard) return undefined
+      if (!ts.isTypeReferenceNode(standard)) return standard
+      if (typeReference.target.typeParameters?.length !== typeReference.typeArguments?.length) return standard
+      if (standard.typeArguments?.length !== typeReference.typeArguments?.length) return standard
+      const typeParametersCount = (typeReference.target.typeParameters || []).length
+      for (let i = typeParametersCount - 1; i >= 0; i--) {
+        const typeParameter = typeReference.target.typeParameters![i]
+        const typeArgument = typeReference.typeArguments![i]
+        const defaultType = typeChecker.getDefaultFromTypeParameter(typeParameter)
+        if (defaultType !== typeArgument || i === 0) {
+          return tsUtils.simplifyTypeNode(ts.factory.updateTypeReferenceNode(
+            standard,
+            standard.typeName,
+            ts.factory.createNodeArray((standard.typeArguments || []).slice(0, Math.min(typeParametersCount, i + 1)))
+          ))
+        }
+      }
+      return standard
+    }
+    // () => Effect<number, never, never> -> () => Effect<number>
+    if (type.flags & ts.TypeFlags.Object) {
+      const standard = fallbackStandard()
+      if (!standard) return undefined
+      if (!ts.isFunctionTypeNode(standard)) return standard
+      const signatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
+      if (signatures.length !== 1) return standard
+      const returnType = typeChecker.getReturnTypeOfSignature(signatures[0])
+      if (!returnType) return standard
+      const returnTypeNode = typeToSimplifiedTypeNode(returnType, enclosingNode, flags)
+      if (!returnTypeNode) return standard
+      return tsUtils.simplifyTypeNode(ts.factory.updateFunctionTypeNode(
+        standard,
+        standard.typeParameters,
+        standard.parameters,
+        returnTypeNode
+      ))
+    }
+
+    return fallbackStandard()
+  }
+
   return {
     isUnion,
     getTypeParameterAtPosition,
@@ -362,6 +449,7 @@ export function makeTypeCheckerUtils(
     appendToUniqueTypesMap,
     deterministicTypeOrder,
     getInferredReturnType,
-    expectedAndRealType
+    expectedAndRealType,
+    typeToSimplifiedTypeNode
   }
 }

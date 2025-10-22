@@ -8,5 +8,5 @@ class Person extends Schema.TaggedClass<Person>("Person")("Person", {
   name: Schema.NonEmptyString,
   age: Schema.Int
 }) {
-  static decode: (i: { readonly name: string; readonly age: number; readonly _tag: "Person" }, overrideOptions?: ParseOption.ParseOptions) => Effect.Effect<Person, ParseResult.ParseError, never> = Schema.decode(Person)
+  static decode: (i: { readonly name: string; readonly age: number; readonly _tag: "Person" }, overrideOptions?: ParseOption.ParseOptions) => Effect.Effect<Person, ParseResult.ParseError> = Schema.decode(Person)
 }

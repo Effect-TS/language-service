@@ -4,6 +4,7 @@ import * as Option from "effect/Option"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
@@ -14,6 +15,7 @@ export const toggleTypeAnnotation = LSP.createRefactor({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const maybeNode = pipe(
       tsUtils.getAncestorNodesInRange(sourceFile, textRange),
@@ -40,13 +42,13 @@ export const toggleTypeAnnotation = LSP.createRefactor({
 
           const initializer = node.initializer!
           const initializerType = typeChecker.getTypeAtLocation(initializer)
-          const initializerTypeNode = Option.fromNullable(typeChecker.typeToTypeNode(
+          const initializerTypeNode = Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
             initializerType,
             node,
             ts.NodeBuilderFlags.NoTruncation
           )).pipe(
             Option.orElse(() =>
-              Option.fromNullable(typeChecker.typeToTypeNode(
+              Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
                 initializerType,
                 undefined,
                 ts.NodeBuilderFlags.NoTruncation
@@ -58,7 +60,7 @@ export const toggleTypeAnnotation = LSP.createRefactor({
             changeTracker.insertNodeAt(
               sourceFile,
               node.name.end,
-              tsUtils.simplifyTypeNode(initializerTypeNode),
+              initializerTypeNode,
               {
                 prefix: ": "
               }
