@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.47.2
+
+### Patch Changes
+
+- [#433](https://github.com/Effect-TS/language-service/pull/433) [`f359cdb`](https://github.com/Effect-TS/language-service/commit/f359cdb1069b03b978259dac74c1ba209dd26ae6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve memory by properly evicting older cached members
+
 ## 0.47.1
 
 ### Patch Changes
