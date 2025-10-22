@@ -4,7 +4,6 @@ import * as Option from "effect/Option"
 import type * as ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -15,7 +14,6 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
   apply: Nano.fn("toggleReturnTypeAnnotation.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     function addReturnTypeAnnotation(
@@ -91,7 +89,7 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
     const returnType = typeCheckerUtils.getInferredReturnType(node)
     if (!returnType) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
-    const returnTypeNode = typeChecker.typeToTypeNode(
+    const returnTypeNode = typeCheckerUtils.typeToSimplifiedTypeNode(
       returnType,
       node,
       ts.NodeBuilderFlags.NoTruncation
@@ -104,9 +102,7 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
       description: "Toggle return type annotation",
       apply: pipe(
         Nano.service(TypeScriptApi.ChangeTracker),
-        Nano.map((changeTracker) =>
-          addReturnTypeAnnotation(sourceFile, changeTracker, node, tsUtils.simplifyTypeNode(returnTypeNode))
-        )
+        Nano.map((changeTracker) => addReturnTypeAnnotation(sourceFile, changeTracker, node, returnTypeNode))
       )
     })
   })
