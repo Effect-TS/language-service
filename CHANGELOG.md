@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.47.3
+
+### Patch Changes
+
+- [#437](https://github.com/Effect-TS/language-service/pull/437) [`e583192`](https://github.com/Effect-TS/language-service/commit/e583192cf73404da7c777f1e7fafd2d6ed968a96) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - In toggle return type refactors, skip type parameters if they are the same as the function default in some cases.
+
 ## 0.47.2
 
 ### Patch Changes
