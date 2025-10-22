@@ -365,6 +365,11 @@ const importProvidersCache = new Map<string, AutoImportProvider>()
 export const getOrMakeAutoImportProvider = Nano.fn("getOrMakeAutoImportProvider")(function*(
   sourceFile: ts.SourceFile
 ) {
+  // NOTE: evict the oldest entry when the cache is full to avoid unbounded memory growth
+  while (importProvidersCache.size > 5) {
+    const oldest = importProvidersCache.keys().next().value
+    if (oldest) importProvidersCache.delete(oldest)
+  }
   const autoImportProvider = importProvidersCache.get(sourceFile.fileName) ||
     (yield* makeAutoImportProvider(sourceFile))
   importProvidersCache.set(sourceFile.fileName, autoImportProvider)

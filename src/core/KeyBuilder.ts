@@ -80,6 +80,11 @@ const keyBuilderCache = new Map<string, KeyBuilder>()
 export const getOrMakeKeyBuilder = Nano.fn("getOrMakeKeyBuilder")(function*(
   sourceFile: ts.SourceFile
 ) {
+  // NOTE: evict the oldest entry when the cache is full to avoid unbounded memory growth
+  while (keyBuilderCache.size > 5) {
+    const oldest = keyBuilderCache.keys().next().value
+    if (oldest) keyBuilderCache.delete(oldest)
+  }
   const keyBuilder = keyBuilderCache.get(sourceFile.fileName) ||
     (yield* makeKeyBuilder(sourceFile))
   keyBuilderCache.set(sourceFile.fileName, keyBuilder)

@@ -105,6 +105,10 @@ const init = (
     >()
     const runDiagnosticsAndCacheCodeFixes = (fileName: string) => {
       const program = languageService.getProgram()
+      while (effectCodeFixesForFile.size > 5) {
+        const oldest = effectCodeFixesForFile.keys().next().value
+        if (oldest) effectCodeFixesForFile.delete(oldest)
+      }
       if (languageServicePluginOptions.diagnostics && program) {
         effectCodeFixesForFile.delete(fileName)
         const sourceFile = program.getSourceFile(fileName)
