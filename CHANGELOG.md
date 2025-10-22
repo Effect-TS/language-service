@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.47.1
+
+### Patch Changes
+
+- [#431](https://github.com/Effect-TS/language-service/pull/431) [`acbbc55`](https://github.com/Effect-TS/language-service/commit/acbbc55f30a4223a14623d69b2b3097c74644647) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix nested project references relative paths in CLI diagnostics command
+
+  The CLI diagnostics command now correctly resolves paths for nested project references by:
+
+  - Using absolute paths when parsing tsconfig files
+  - Correctly resolving the base directory for relative paths in project references
+  - Processing files in batches to improve memory usage and prevent leaks
+
 ## 0.47.0
 
 ### Minor Changes
