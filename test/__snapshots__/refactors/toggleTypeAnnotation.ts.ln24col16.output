@@ -22,7 +22,7 @@ export const test6 = withOverloads
 declare const functIntersection: ((a: 1) => boolean) & ((a: 2) => string)
 
 export const test7: {
-    (a: 1): false | true;
+    (a: 1): boolean;
     (a: 2): string
 } = functIntersection
 
