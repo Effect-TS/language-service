@@ -1,0 +1,12 @@
+// code fix deterministicKeys_skipNextLine  output for range 442 - 450
+// @effect-diagnostics deterministicKeys:error
+// @test-config { "keyPatterns": [ { "target": "service", "pattern": "default-hashed" }, { "target": "error", "pattern": "default-hashed" } ] }
+import * as Context from "effect/Context"
+import * as Data from "effect/Data"
+
+export class ExpectedServiceIdentifier
+  extends Context.Tag("ExpectedServiceIdentifier")<ExpectedServiceIdentifier, {}>()
+{}
+
+// @effect-diagnostics-next-line deterministicKeys:off
+export class ErrorA extends Data.TaggedError("ErrorA")<{}> {}

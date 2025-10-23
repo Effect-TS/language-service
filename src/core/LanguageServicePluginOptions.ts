@@ -11,7 +11,7 @@ export type KeyBuilderKind = "service" | "error" | "custom"
 
 export interface LanguageServicePluginOptionsKeyPattern {
   target: KeyBuilderKind
-  pattern: "package-identifier" | "default"
+  pattern: "package-identifier" | "default" | "default-hashed"
   skipLeadingPath: Array<string>
 }
 
@@ -94,11 +94,11 @@ function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePlugin
     result.push({
       target: hasProperty(entry, "target") && isString(entry.target) &&
           ["service", "error", "custom"].includes(entry.target.toLowerCase())
-        ? entry.target.toLowerCase() as "service" | "error"
+        ? entry.target.toLowerCase() as LanguageServicePluginOptionsKeyPattern["target"]
         : "service",
       pattern: hasProperty(entry, "pattern") && isString(entry.pattern) &&
-          ["package-identifier", "default"].includes(entry.pattern.toLowerCase())
-        ? entry.pattern.toLowerCase() as "package-identifier" | "default"
+          ["package-identifier", "default", "default-hashed"].includes(entry.pattern.toLowerCase())
+        ? entry.pattern.toLowerCase() as LanguageServicePluginOptionsKeyPattern["pattern"]
         : "default",
       skipLeadingPath:
         hasProperty(entry, "skipLeadingPath") && isArray(entry.skipLeadingPath) && entry.skipLeadingPath.every(isString)
