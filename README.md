@@ -296,6 +296,10 @@ If the filename and the class identifier are the same, they won't be repeated, b
 
 The skipLeadingPath array can contain a set of prefixes to remove from the subpath part of the path. By default "src/" is removed for example.
 
+### Pattern: default-hashed
+
+If you are concerned potentially showing service names in builds, this pattern is the same as default; but the string will be then hashed.
+
 ### Pattern: package-identifier
 
 This pattern uses the package name + identifier. This usually works great if you have a flat structure, with one file per service/error.

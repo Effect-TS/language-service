@@ -1,5 +1,6 @@
 import type ts from "typescript"
 import * as LanguageServicePluginOptions from "./LanguageServicePluginOptions.js"
+import * as LSP from "./LSP.js"
 import * as Nano from "./Nano.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
@@ -65,7 +66,10 @@ export const makeKeyBuilder = Nano.fn("KeyBuilder")(
         )
 
         // return them joined
-        return parts.filter((_) => String(_).trim().length > 0).join("/")
+        const fullKey = parts.filter((_) => String(_).trim().length > 0).join("/")
+
+        // if requested so, hash it
+        return keyPattern.pattern === "default-hashed" ? LSP.cyrb53(fullKey) : fullKey
       }
     }
 
