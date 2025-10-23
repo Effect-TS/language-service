@@ -1,5 +1,33 @@
 # @effect/language-service
 
+## 0.48.0
+
+### Minor Changes
+
+- [#441](https://github.com/Effect-TS/language-service/pull/441) [`ed1db9e`](https://github.com/Effect-TS/language-service/commit/ed1db9ef2432d9d94df80e1835eb42491f0cfbf2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `default-hashed` pattern for deterministic keys
+
+  A new `default-hashed` pattern option is now available for service and error key patterns. This pattern works like the `default` pattern but hashes the resulting string, which is useful when you want deterministic keys but are concerned about potentially exposing service names in builds.
+
+  Example configuration:
+
+  ```json
+  {
+    "keyPatterns": [
+      { "target": "service", "pattern": "default-hashed" },
+      { "target": "error", "pattern": "default-hashed" }
+    ]
+  }
+  ```
+
+### Patch Changes
+
+- [#442](https://github.com/Effect-TS/language-service/pull/442) [`44f4304`](https://github.com/Effect-TS/language-service/commit/44f43041ced08ef1e6e6242baccbc855e056dfa7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Tone down try/catch message to ignore try/finally blocks
+
+- [#439](https://github.com/Effect-TS/language-service/pull/439) [`b73c231`](https://github.com/Effect-TS/language-service/commit/b73c231dc13fc2db31eaeb3475a129cdeeca21dc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix regression in type unification for union types and prevent infinite recursion in layerMagic refactor
+
+  - Fixed `toggleTypeAnnotation` refactor to properly unify boolean types instead of expanding them to `true | false`
+  - Fixed infinite recursion issue in `layerMagic` refactor's `adjustedNode` function when processing variable and property declarations
+
 ## 0.47.3
 
 ### Patch Changes
