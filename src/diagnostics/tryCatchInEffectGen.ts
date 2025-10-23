@@ -25,7 +25,7 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
       ts.forEachChild(node, appendNodeToVisit)
 
       // Check if this is a try statement
-      if (ts.isTryStatement(node)) {
+      if (ts.isTryStatement(node) && node.catchClause) {
         // Find the containing generator function
         // go up until we meet the causing generator/function
         const generatorOrRegularFunction = ts.findAncestor(
