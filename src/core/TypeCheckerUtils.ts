@@ -367,18 +367,30 @@ export function makeTypeCheckerUtils(
     enclosingNode: ts.Node | undefined,
     flags: ts.NodeBuilderFlags | undefined
   ): ts.TypeNode | undefined {
+    return typeToSimplifiedTypeNodeWorker(type, enclosingNode, flags, 0)
+  }
+
+  function typeToSimplifiedTypeNodeWorker(
+    type: ts.Type,
+    enclosingNode: ts.Node | undefined,
+    flags: ts.NodeBuilderFlags | undefined,
+    depth: number
+  ): ts.TypeNode | undefined {
     const fallbackStandard = () => {
       const typeNode = typeChecker.typeToTypeNode(type, enclosingNode, flags)
       if (!typeNode) return undefined
       return tsUtils.simplifyTypeNode(typeNode)
     }
+    // prevent infinite recursion
+    if (depth > 20) return fallbackStandard()
+
     const members = unrollUnionMembers(type)
     // A | B | C -> process each member
-    if (members.length > 1) {
+    if (members.length > 1 && !(type.flags & ts.TypeFlags.Boolean)) {
       const typeNodes: Array<ts.TypeNode> = []
       members.sort(deterministicTypeOrder)
       for (const member of members) {
-        const memberNode = typeToSimplifiedTypeNode(member, enclosingNode, flags)
+        const memberNode = typeToSimplifiedTypeNodeWorker(member, enclosingNode, flags, depth + 1)
         if (!memberNode) return fallbackStandard()
         typeNodes.push(memberNode)
       }
@@ -389,7 +401,7 @@ export function makeTypeCheckerUtils(
       const intersectionType = type as ts.IntersectionType
       const typeNodes: Array<ts.TypeNode> = []
       for (const member of intersectionType.types) {
-        const memberNode = typeToSimplifiedTypeNode(member, enclosingNode, flags)
+        const memberNode = typeToSimplifiedTypeNodeWorker(member, enclosingNode, flags, depth + 1)
         if (!memberNode) return fallbackStandard()
         typeNodes.push(memberNode)
       }
@@ -428,7 +440,7 @@ export function makeTypeCheckerUtils(
       if (signatures.length !== 1) return standard
       const returnType = typeChecker.getReturnTypeOfSignature(signatures[0])
       if (!returnType) return standard
-      const returnTypeNode = typeToSimplifiedTypeNode(returnType, enclosingNode, flags)
+      const returnTypeNode = typeToSimplifiedTypeNodeWorker(returnType, enclosingNode, flags, depth + 1)
       if (!returnTypeNode) return standard
       return tsUtils.simplifyTypeNode(ts.factory.updateFunctionTypeNode(
         standard,

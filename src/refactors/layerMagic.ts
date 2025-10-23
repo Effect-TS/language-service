@@ -227,11 +227,14 @@ export const layerMagic = LSP.createRefactor({
       )
 
     const adjustedNode = (node: ts.Node): ts.Node => {
-      if (ts.isIdentifier(node) && ts.isVariableDeclaration(node.parent) && node.parent.initializer) {
-        return adjustedNode(node.parent.initializer)
-      }
-      if (ts.isIdentifier(node) && ts.isPropertyDeclaration(node.parent) && node.parent.initializer) {
-        return adjustedNode(node.parent.initializer)
+      if (
+        node.parent &&
+        (ts.isVariableDeclaration(node.parent) || ts.isPropertyDeclaration(node.parent)) &&
+        ts.isIdentifier(node) &&
+        node.parent.initializer &&
+        node.parent.name === node
+      ) {
+        return node.parent.initializer
       }
       return node
     }
