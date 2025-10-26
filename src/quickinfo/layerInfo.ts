@@ -7,14 +7,15 @@ import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
+import { buildNamedLayerOutline, generateNamedLayerOutlineMermaidUri } from "./layerOutline"
 
-interface LayerGraphContext {
+export interface LayerGraphContext {
   services: Map<string, ts.Type>
   serviceTypeToString: Map<string, string>
   nextId: () => string
 }
 
-class UnableToProduceLayerGraphError {
+export class UnableToProduceLayerGraphError {
   readonly _tag = "@effect/language-service/UnableToProduceLayerGraphError"
   constructor(
     readonly message: string,
@@ -22,7 +23,7 @@ class UnableToProduceLayerGraphError {
   ) {}
 }
 
-class GraphNodeLeaf {
+export class GraphNodeLeaf {
   readonly _tag = "GraphNodeLeaf"
 
   constructor(
@@ -33,7 +34,7 @@ class GraphNodeLeaf {
   ) {}
 }
 
-class GraphNodeCompoundTransform {
+export class GraphNodeCompoundTransform {
   readonly _tag = "GraphNodeCompoundTransform"
 
   constructor(
@@ -45,7 +46,7 @@ class GraphNodeCompoundTransform {
   ) {}
 }
 
-type LayerGraphNode =
+export type LayerGraphNode =
   | GraphNodeLeaf
   | GraphNodeCompoundTransform
 
@@ -190,6 +191,30 @@ function processLayerGraphNode(
   })
 }
 
+export interface LayerGraphBuildResult {
+  context: LayerGraphContext
+  rootNode: LayerGraphNode
+}
+
+export function buildLayerGraph(
+  layerNode: ts.Node
+): Nano.Nano<
+  LayerGraphBuildResult,
+  UnableToProduceLayerGraphError,
+  TypeCheckerApi.TypeCheckerApi | TypeScriptApi.TypeScriptApi | TypeParser.TypeParser
+> {
+  return Nano.gen(function*() {
+    let lastId = 0
+    const graphCtx: LayerGraphContext = {
+      services: new Map(),
+      serviceTypeToString: new Map(),
+      nextId: () => "id" + lastId++
+    }
+    const rootNode = yield* processLayerGraphNode(graphCtx, layerNode, undefined)
+    return { rootNode, context: graphCtx }
+  })
+}
+
 // returns the innermost node that provides that
 function findInnermostGraphEdge(graph: LayerGraphNode, kind: "rin" | "rout", key: string): Array<LayerGraphNode> {
   switch (graph._tag) {
@@ -315,7 +340,7 @@ function processNodeMermaid(
   })
 }
 
-function generateMarmaidUri(
+export function generateLayerMermaidUri(
   graph: LayerGraphNode,
   ctxL: LayerGraphContext
 ): Nano.Nano<string, never, TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi> {
@@ -360,16 +385,9 @@ export function layerInfo(
 
       if (Option.isNone(maybeLayer)) return quickInfo
 
-      let lastId = 0
-      const graphCtx: LayerGraphContext = {
-        services: new Map(),
-        serviceTypeToString: new Map(),
-        nextId: () => "id" + (lastId++)
-      }
-
       const layerInfoDisplayParts = yield* pipe(
-        processLayerGraphNode(graphCtx, layerNode, undefined),
-        Nano.flatMap((rootNode) =>
+        buildLayerGraph(layerNode),
+        Nano.flatMap(({ rootNode, context: graphCtx }) =>
           Nano.gen(function*() {
             yield* Nano.succeed(undefined)
             const lines: Array<string> = []
@@ -400,12 +418,23 @@ export function layerInfo(
               const requiresNode = findInnermostGraphEdge(rootNode, "rin", requiresKey)
               appendInfo(requiresNode, graphCtx.services.get(requiresKey)!, "required")
             }
-            const mermaidUri = yield* Nano.option(generateMarmaidUri(rootNode, graphCtx))
+            const mermaidUri = yield* Nano.option(generateLayerMermaidUri(rootNode, graphCtx))
+            const outlineNodes = buildNamedLayerOutline(rootNode, graphCtx)
+            const outlineMermaidUri = outlineNodes.length > 0
+              ? generateNamedLayerOutlineMermaidUri(outlineNodes)
+              : undefined
             const linkParts: Array<ts.SymbolDisplayPart> = []
             if (Option.isSome(mermaidUri)) {
               linkParts.push({ kind: "space", text: "\n" })
               linkParts.push({ kind: "link", text: "{@link " })
               linkParts.push({ kind: "linkText", text: mermaidUri.value + " Show full Layer graph" })
+              linkParts.push({ kind: "link", text: "}" })
+              linkParts.push({ kind: "space", text: "\n" })
+            }
+            if (outlineMermaidUri) {
+              linkParts.push({ kind: "space", text: "\n" })
+              linkParts.push({ kind: "link", text: "{@link " })
+              linkParts.push({ kind: "linkText", text: outlineMermaidUri + " Show outline Layer graph" })
               linkParts.push({ kind: "link", text: "}" })
               linkParts.push({ kind: "space", text: "\n" })
             }
