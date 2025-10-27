@@ -1,0 +1,12 @@
+flowchart TD
+  0["DbConnection.Default"]
+  1["Layer.merge(DbConnection.Default)"]
+  2["Cache.Default"]
+  3["Layer.provideMerge(Cache.Default)"]
+  4["UserRepository.Default"]
+  5["UserRepository.Default.pipe(<br/>  Layer.provideMerge(Cache.Default),<br/>  Layer.merge(DbConnection.Default)<br/>)"]
+  1 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 0
+  3 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 2
+  3 -->|"{\"relationship\":\"pipe\"}"| 4
+  1 -->|"{\"relationship\":\"pipe\"}"| 3
+  5 -->|"{\"relationship\":\"pipe\"}"| 1

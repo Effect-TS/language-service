@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Layer Graph  > generics.ts 1`] = `
+[
+  "NoComment",
+]
+`;
+
+exports[`Layer Graph  > multiple.ts 1`] = `
+[
+  "AppLive",
+]
+`;
+
+exports[`Layer Graph  > simple.ts 1`] = `
+[
+  "expect",
+  "simplePipeIn",
+  "liveWithPipeable",
+]
+`;
+
+exports[`Layer Graph  > simple.ts 2`] = `
+"digraph G {
+  "0" [label="DbConnection.Default"];
+  "1" [label="Layer.merge(DbConnection.Default)"];
+  "2" [label="Cache.Default"];
+  "3" [label="Layer.provideMerge(Cache.Default)"];
+  "4" [label="UserRepository.Default"];
+  "1" -> "0" [label="call 0"];
+  "3" -> "2" [label="call 0"];
+}"
+`;

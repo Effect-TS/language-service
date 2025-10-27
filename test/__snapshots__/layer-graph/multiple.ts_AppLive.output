@@ -1,0 +1,28 @@
+flowchart TD
+  0["AppService.Default"]
+  1["Layer.provideMerge(AppService.Default)"]
+  2["EventService.Default"]
+  3["Layer.provideMerge(EventService.Default)"]
+  4["UserService.Default"]
+  5["Layer.provideMerge(UserService.Default)"]
+  6["Analytics.Default"]
+  7["Layer.merge(Analytics.Default)"]
+  8["EventsRepository.Default"]
+  9["Layer.provideMerge(EventsRepository.Default)"]
+  10["UserRepository.Default"]
+  11["Layer.provideMerge(UserRepository.Default)"]
+  12["DatabaseLive"]
+  13["pipe(<br/>  DatabaseLive,<br/>  Layer.provideMerge(UserRepository.Default),<br/>  Layer.provideMerge(EventsRepository.Default),<br/>  Layer.merge(Analytics.Default),<br/>  Layer.provideMerge(UserService.Default),<br/>  Layer.provideMerge(EventService.Default),<br/>  Layer.provideMerge(AppService.Default)<br/>)"]
+  1 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 0
+  3 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 2
+  5 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 4
+  7 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 6
+  9 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 8
+  11 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 10
+  11 -->|"{\"relationship\":\"pipe\"}"| 12
+  9 -->|"{\"relationship\":\"pipe\"}"| 11
+  7 -->|"{\"relationship\":\"pipe\"}"| 9
+  5 -->|"{\"relationship\":\"pipe\"}"| 7
+  3 -->|"{\"relationship\":\"pipe\"}"| 5
+  1 -->|"{\"relationship\":\"pipe\"}"| 3
+  13 -->|"{\"relationship\":\"pipe\"}"| 1

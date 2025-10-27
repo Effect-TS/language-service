@@ -1,10 +1,12 @@
 import * as Array from "effect/Array"
 import * as Encoding from "effect/Encoding"
 import { pipe } from "effect/Function"
+import * as Graph from "effect/Graph"
 import * as Option from "effect/Option"
 import * as pako from "pako"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
+import * as LayerGraph from "../core/LayerGraph"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
@@ -455,6 +457,16 @@ export function layerInfo(
       if (!maybeNodes) return quickInfo
       const { layerNode, node } = maybeNodes
 
+      const layerGraph = yield* LayerGraph.extractLayerGraph(layerNode, {
+        arrayLiteralAsMerge: false,
+        explodeOnlyLayerCalls: false
+      })
+      const outlineGraph = yield* LayerGraph.extractOutlineGraph(layerGraph)
+      const outlineMermaidCode = Graph.toMermaid(outlineGraph, {
+        nodeLabel: (node) => sourceFile.text.substring(node.node.pos, node.node.end).trim(),
+        edgeLabel: () => ""
+      })
+
       const layerInfoDisplayParts = yield* pipe(
         parseLayerGraph(sourceFile, layerNode),
         Nano.flatMap(({ mermaidCode, textualExplanation }) =>
@@ -462,9 +474,14 @@ export function layerInfo(
             const linkParts: Array<ts.SymbolDisplayPart> = []
             if (!options.noExternal) {
               const mermaidUri = yield* generateMarmaidUri(mermaidCode)
+              const outlineMermaidUri = yield* generateMarmaidUri(outlineMermaidCode)
               linkParts.push({ kind: "space", text: "\n" })
               linkParts.push({ kind: "link", text: "{@link " })
               linkParts.push({ kind: "linkText", text: mermaidUri + " Show full Layer graph" })
+              linkParts.push({ kind: "link", text: "}" })
+              linkParts.push({ kind: "text", text: " - " })
+              linkParts.push({ kind: "link", text: "{@link " })
+              linkParts.push({ kind: "linkText", text: outlineMermaidUri + " Show Layer outline" })
               linkParts.push({ kind: "link", text: "}" })
               linkParts.push({ kind: "space", text: "\n" })
             }
