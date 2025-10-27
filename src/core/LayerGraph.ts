@@ -276,13 +276,3 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
 
   return Graph.endMutation(mutableGraph)
 })
-
-// takes in a OutlineLayerGraph and returns a re-arranged set of provide/provideMerge with target output
-export const extractLayerMagic = Nano.fn("extractLayerMagic")(
-  function*(outlineGraph: LayerOutlineGraph, targetOutput: ts.Type) {
-    const _typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
-
-    const _targetOutputServices = typeCheckerUtils.unrollUnionMembers(targetOutput)
-  }
-)

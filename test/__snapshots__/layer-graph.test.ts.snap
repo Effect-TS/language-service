@@ -1,5 +1,11 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Layer Graph  > duplicated.ts 1`] = `
+[
+  "AppLive",
+]
+`;
+
 exports[`Layer Graph  > generics.ts 1`] = `
 [
   "NoComment",
