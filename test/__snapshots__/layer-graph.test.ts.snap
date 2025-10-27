@@ -25,15 +25,3 @@ exports[`Layer Graph  > simple.ts 1`] = `
   "liveWithPipeable",
 ]
 `;
-
-exports[`Layer Graph  > simple.ts 2`] = `
-"digraph G {
-  "0" [label="DbConnection.Default"];
-  "1" [label="Layer.merge(DbConnection.Default)"];
-  "2" [label="Cache.Default"];
-  "3" [label="Layer.provideMerge(Cache.Default)"];
-  "4" [label="UserRepository.Default"];
-  "1" -> "0" [label="call 0"];
-  "3" -> "2" [label="call 0"];
-}"
-`;
