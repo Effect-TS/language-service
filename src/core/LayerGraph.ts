@@ -214,6 +214,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
     }
 
     // PANIC! We got something we don't understand.
+    return yield* Nano.fail(TypeParser.TypeParserIssue.issue)
   }
 
   return Graph.endMutation(mutableGraph)
@@ -276,3 +277,51 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
 
   return Graph.endMutation(mutableGraph)
 })
+
+export interface LayerMagicNode {
+  merges: boolean
+  provides: boolean
+  layerExpression: ts.Expression
+}
+
+export interface LayerMagicResult {
+  layerMagicNodes: Array<LayerMagicNode>
+  missingOutputTypes: Set<ts.Type>
+}
+
+// converts an outline graph into a set of provide/provideMerge with target output
+export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLayerMagic")(
+  function*(outlineGraph: LayerOutlineGraph, targetOutput: ts.Type) {
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+    const result: Array<LayerMagicNode> = []
+
+    const missingOutputTypes = new Set(typeCheckerUtils.unrollUnionMembers(targetOutput))
+    const currentRequiredTypes = new Set<ts.Type>()
+
+    // no need to filter because the outline graph is already deduplicated and only keeping childs
+    const rootIndexes = Array.from(Graph.indices(Graph.externals(outlineGraph, { direction: "incoming" })))
+    const allNodes = Array.from(Graph.values(Graph.dfs(outlineGraph, { start: rootIndexes })))
+    for (const nodeInfo of allNodes) {
+      if (!ts.isExpression(nodeInfo.node)) continue
+      const reallyProvidedTypes = nodeInfo.provides.filter((_) => nodeInfo.requires.indexOf(_) === -1)
+      const shouldMerge = reallyProvidedTypes.some((_) => missingOutputTypes.has(_))
+      if (shouldMerge) {
+        reallyProvidedTypes.forEach((_) => missingOutputTypes.delete(_))
+      }
+      nodeInfo.provides.forEach((_) => currentRequiredTypes.delete(_))
+      nodeInfo.requires.forEach((_) => currentRequiredTypes.add(_))
+      result.push({
+        merges: shouldMerge,
+        provides: true,
+        layerExpression: nodeInfo.node
+      })
+    }
+
+    return {
+      layerMagicNodes: result,
+      missingOutputTypes
+    }
+  }
+)
