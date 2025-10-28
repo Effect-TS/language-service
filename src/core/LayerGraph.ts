@@ -301,8 +301,9 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
     const currentRequiredTypes = new Set<ts.Type>()
 
     // no need to filter because the outline graph is already deduplicated and only keeping childs
-    const rootIndexes = Array.from(Graph.indices(Graph.externals(outlineGraph, { direction: "incoming" })))
-    const allNodes = Array.from(Graph.values(Graph.dfs(outlineGraph, { start: rootIndexes })))
+    const reversedGraph = Graph.mutate(outlineGraph, Graph.reverse)
+    const rootIndexes = Array.from(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
+    const allNodes = Array.from(Graph.values(Graph.dfsPostOrder(reversedGraph, { start: rootIndexes })))
     for (const nodeInfo of allNodes) {
       if (!ts.isExpression(nodeInfo.node)) continue
       const reallyProvidedTypes = nodeInfo.provides.filter((_) => nodeInfo.requires.indexOf(_) === -1)
