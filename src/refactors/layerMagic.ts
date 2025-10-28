@@ -2,6 +2,7 @@ import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Graph from "effect/Graph"
 import * as Option from "effect/Option"
+import * as Order from "effect/Order"
 import type ts from "typescript"
 import * as LayerGraph from "../core/LayerGraph.js"
 import * as LSP from "../core/LSP.js"
@@ -67,7 +68,11 @@ export const layerMagic = LSP.createRefactor({
                 Graph.values(Graph.nodes(extractedLayers)),
                 Array.fromIterable,
                 Array.map((_) => _.node),
-                Array.filter(ts.isExpression)
+                Array.filter(ts.isExpression),
+                Array.sort(Order.mapInput(
+                  Order.number,
+                  (_: ts.Node) => _.pos
+                ))
               )
 
               const previouslyProvided = yield* pipe(
