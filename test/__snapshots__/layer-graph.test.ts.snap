@@ -25,3 +25,9 @@ exports[`Layer Graph  > simple.ts 1`] = `
   "liveWithPipeable",
 ]
 `;
+
+exports[`Layer Graph  > specialChars.ts 1`] = `
+[
+  "NoComment",
+]
+`;

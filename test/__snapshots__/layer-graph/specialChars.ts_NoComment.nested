@@ -1,0 +1,12 @@
+flowchart TB
+  subgraph 0 ["`withSpecialCharsLayer<br/>_at ln 15 col 25_`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_provides [Provides]
+        0_provides_0["IsGeneric#lt;#quot;With#lt;Special#gt;Chars#!#quot;#gt;"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
