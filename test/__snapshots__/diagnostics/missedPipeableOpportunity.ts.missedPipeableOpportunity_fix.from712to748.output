@@ -13,7 +13,7 @@ export const shouldReport1 = toString(double(addOne(5)))
 
 // Should trigger diagnostic: 3-level nesting
 const triple = (e: Effect.Effect<number>) => Effect.map(e, (n) => n * 3)
-export const shouldReport2 = addOne(10).pipe(toString, triple, double)
+export const shouldReport2 = addOne(10).pipe(double, triple, toString)
 
 // Should report: two level nesting can benefit from pipe style
 export const shouldReport4 = double(addOne(5))
