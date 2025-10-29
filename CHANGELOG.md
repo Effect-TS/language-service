@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.49.0
+
+### Minor Changes
+
+- [#445](https://github.com/Effect-TS/language-service/pull/445) [`fe0e390`](https://github.com/Effect-TS/language-service/commit/fe0e390f02d12f959966d651bfec256c4f313ffb) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Use the Graph module for outline line graph and layer magic
+
+### Patch Changes
+
+- [#449](https://github.com/Effect-TS/language-service/pull/449) [`ff11b7d`](https://github.com/Effect-TS/language-service/commit/ff11b7da9b55a3da91131c4b5932c93c6af71fc8) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update effect package version to 97ff1dc. This version improves handling of special characters in layer graph mermaid diagrams by properly escaping HTML entities (parentheses, braces, quotes) to ensure correct rendering.
+
 ## 0.48.0
 
 ### Minor Changes
