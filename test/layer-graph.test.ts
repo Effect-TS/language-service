@@ -62,6 +62,7 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
         const providersAndRequirers = yield* LayerGraph.extractProvidersAndRequirers(layerGraph)
         return {
           layerGraph: yield* LayerGraph.formatLayerGraph(layerGraph),
+          layerNestedGraph: yield* LayerGraph.formatNestedLayerGraph(layerGraph),
           outlineGraph: yield* LayerGraph.formatLayerOutlineGraph(outlineGraph),
           providersAndRequirers: yield* LayerGraph.formatLayerProvidersAndRequirersInfo(providersAndRequirers)
         }
@@ -93,6 +94,7 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
     }
 
     await expect(maybeGraph.right.layerGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".output")
+    await expect(maybeGraph.right.layerNestedGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".nested")
     await expect(maybeGraph.right.outlineGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
     await expect(maybeGraph.right.providersAndRequirers).toMatchFileSnapshot(baseSnapshotFilePath + ".quickinfo")
   }

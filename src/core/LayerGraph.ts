@@ -233,6 +233,90 @@ export const formatLayerGraph = Nano.fn("formatLayerGraph")(function*(layerGraph
   })
 })
 
+export const formatNestedLayerGraph = Nano.fn("formatNestedLayerGraph")(function*(layerGraph: LayerGraph) {
+  const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+  const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
+  const mermaidSafe = (value: string) =>
+    value.replace(/\n/g, " ").replace(
+      /\s+/g,
+      " "
+    ).substring(0, 50).replace(/"/g, "#quot;").replace(/</mg, "#lt;").replace(/>/mg, "#gt;").trim()
+
+  const typeNameCache = new Map<ts.Type, string>()
+  const typeName = (type: ts.Type) => {
+    if (typeNameCache.has(type)) return typeNameCache.get(type)!
+    const name = typeChecker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation)
+    typeNameCache.set(type, name)
+    return name
+  }
+
+  let result: Array<string> = []
+
+  // create the boxes first
+  for (const [graphNodeIndex, graphNode] of Graph.entries(Graph.nodes(layerGraph))) {
+    let subgraphDefs: Array<string> = []
+    for (const kind of ["requires", "provides"] as const) {
+      const typesMermaidNodes: Array<string> = []
+      for (let i = 0; i < graphNode[kind].length; i++) {
+        typesMermaidNodes.push(`${graphNodeIndex}_${kind}_${i}["${mermaidSafe(typeName(graphNode[kind][i]))}"]`)
+      }
+      if (typesMermaidNodes.length > 0) {
+        subgraphDefs = [
+          ...subgraphDefs,
+          `subgraph ${graphNodeIndex}_${kind} [${kind === "provides" ? "Provides" : "Requires"}]`,
+          ...typesMermaidNodes.map((_) => `  ${_}`),
+          `end`,
+          `style ${graphNodeIndex}_${kind} stroke:none`
+        ]
+      }
+    }
+    subgraphDefs = [
+      `subgraph ${graphNodeIndex}_wrap[" "]`,
+      ...subgraphDefs.map((_) => `  ${_}`),
+      `end`,
+      `style ${graphNodeIndex}_wrap fill:transparent`,
+      `style ${graphNodeIndex}_wrap stroke:none`
+    ]
+    const sourceFile = tsUtils.getSourceFileOfNode(graphNode.node)!
+    const nodePosition = graphNode.node.getStart(sourceFile, false)
+    const { character, line } = ts.getLineAndCharacterOfPosition(sourceFile, nodePosition)
+    const nodeText = sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+    result = [
+      ...result,
+      `subgraph ${graphNodeIndex} ["\`${mermaidSafe(nodeText)}<br/>_at ln ${line + 1} col ${character}_\`"]`,
+      ...subgraphDefs.map((_) => `  ${_}`),
+      `end`,
+      `style ${graphNodeIndex} fill:transparent`
+    ]
+  }
+
+  // and then the edges
+  for (const edgeInfo of Graph.values(Graph.edges(layerGraph))) {
+    const sourceData = layerGraph.nodes.get(edgeInfo.source)!
+    const targetData = layerGraph.nodes.get(edgeInfo.target)!
+    let connected: boolean = false
+    for (const kind of ["requires", "provides"] as const) {
+      for (let i = 0; i < sourceData[kind].length; i++) {
+        const targetIdx = targetData[kind].indexOf(sourceData[kind][i])
+        if (targetIdx > -1) {
+          result.push(`${edgeInfo.source}_${kind}_${i} -.-> ${edgeInfo.target}_${kind}_${targetIdx}`)
+          connected = true
+        }
+      }
+    }
+    if (!connected) {
+      result.push(`${edgeInfo.source} -.-x ${edgeInfo.target}`)
+    }
+  }
+
+  return [
+    `flowchart TB`,
+    ...result.map((_) => `  ${_}`)
+  ].join("\n")
+})
+
 export interface LayerOutlineGraphNodeInfo {
   node: ts.Node
   requires: Array<ts.Type>
