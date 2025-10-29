@@ -1,5 +1,50 @@
 # @effect/language-service
 
+## 0.51.0
+
+### Minor Changes
+
+- [#452](https://github.com/Effect-TS/language-service/pull/452) [`fb0ae8b`](https://github.com/Effect-TS/language-service/commit/fb0ae8bf7b8635c791a085022b51bf1a914c0b46) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `strictEffectProvide` diagnostic to warn when using Effect.provide with Layer outside of application entry points
+
+  This new diagnostic helps developers identify potential scope lifetime issues by detecting when `Effect.provide` is called with a Layer argument in locations that are not application entry points.
+
+  **Example:**
+
+  ```typescript
+  // Will trigger diagnostic
+  export const program = Effect.void.pipe(Effect.provide(MyService.Default));
+  ```
+
+  **Message:**
+
+  > Effect.provide with a Layer should only be used at application entry points. If this is an entry point, you can safely disable this diagnostic. Otherwise, using Effect.provide may break scope lifetimes. Compose all layers at your entry point and provide them at once.
+
+  **Configuration:**
+
+  - **Default severity**: `"off"` (opt-in)
+  - **Diagnostic name**: `strictEffectProvide`
+
+  This diagnostic is disabled by default and can be enabled via tsconfig.json:
+
+  ```json
+  {
+    "compilerOptions": {
+      "plugins": [
+        {
+          "name": "@effect/language-service",
+          "diagnosticSeverity": {
+            "strictEffectProvide": "warning"
+          }
+        }
+      ]
+    }
+  }
+  ```
+
+### Patch Changes
+
+- [#455](https://github.com/Effect-TS/language-service/pull/455) [`11743b5`](https://github.com/Effect-TS/language-service/commit/11743b5144cf5189ae2fce554113688c56ce6b9c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Bug fix for `missedPipeableOpportunity` diagnostic
+
 ## 0.50.0
 
 ### Minor Changes
