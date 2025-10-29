@@ -63,8 +63,8 @@ devDependencies:
     specifier: ^3.2.4
     version: 3.2.4(vitest@3.2.4)
   effect:
-    specifier: https://pkg.pr.new/Effect-TS/effect@cb3ed89
-    version: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+    specifier: https://pkg.pr.new/Effect-TS/effect@97ff1dc
+    version: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
   eslint:
     specifier: ^9.37.0
     version: 9.37.0
@@ -509,7 +509,7 @@ packages:
       '@effect/platform': 0.92.1(effect@3.18.4)
       '@effect/printer': 0.46.0(@effect/typeclass@0.37.0)(effect@3.18.4)
       '@effect/printer-ansi': 0.46.0(@effect/typeclass@0.37.0)(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       ini: 4.1.3
       toml: 3.0.0
       yaml: 2.8.1
@@ -528,7 +528,7 @@ packages:
       '@effect/rpc': 0.71.0(@effect/platform@0.92.1)(effect@3.18.4)
       '@effect/sql': 0.46.0(@effect/experimental@0.56.0)(@effect/platform@0.92.1)(effect@3.18.4)
       '@effect/workflow': 0.11.3(@effect/platform@0.92.1)(@effect/rpc@0.71.0)(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
     dev: true
 
   /@effect/eslint-plugin@0.3.2:
@@ -553,7 +553,7 @@ packages:
         optional: true
     dependencies:
       '@effect/platform': 0.92.1(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       uuid: 11.1.0
     dev: true
 
@@ -571,7 +571,7 @@ packages:
       '@effect/rpc': 0.71.0(@effect/platform@0.92.1)(effect@3.18.4)
       '@effect/sql': 0.46.0(@effect/experimental@0.56.0)(@effect/platform@0.92.1)(effect@3.18.4)
       '@parcel/watcher': 2.5.1
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       multipasta: 0.2.7
       ws: 8.18.3
     transitivePeerDependencies:
@@ -593,7 +593,7 @@ packages:
       '@effect/platform-node-shared': 0.51.4(@effect/cluster@0.50.4)(@effect/platform@0.92.1)(@effect/rpc@0.71.0)(@effect/sql@0.46.0)(effect@3.18.4)
       '@effect/rpc': 0.71.0(@effect/platform@0.92.1)(effect@3.18.4)
       '@effect/sql': 0.46.0(@effect/experimental@0.56.0)(@effect/platform@0.92.1)(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       mime: 3.0.0
       undici: 7.16.0
       ws: 8.18.3
@@ -607,7 +607,7 @@ packages:
     peerDependencies:
       effect: ^3.18.1
     dependencies:
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       find-my-way-ts: 0.1.6
       msgpackr: 1.11.5
       multipasta: 0.2.7
@@ -621,7 +621,7 @@ packages:
     dependencies:
       '@effect/printer': 0.46.0(@effect/typeclass@0.37.0)(effect@3.18.4)
       '@effect/typeclass': 0.37.0(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
     dev: true
 
   /@effect/printer@0.46.0(@effect/typeclass@0.37.0)(effect@3.18.4):
@@ -631,7 +631,7 @@ packages:
       effect: ^3.18.0
     dependencies:
       '@effect/typeclass': 0.37.0(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
     dev: true
 
   /@effect/rpc@0.71.0(@effect/platform@0.92.1)(effect@3.18.4):
@@ -641,7 +641,7 @@ packages:
       effect: ^3.18.0
     dependencies:
       '@effect/platform': 0.92.1(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       msgpackr: 1.11.5
     dev: true
 
@@ -654,7 +654,7 @@ packages:
     dependencies:
       '@effect/experimental': 0.56.0(@effect/platform@0.92.1)(effect@3.18.4)
       '@effect/platform': 0.92.1(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
       uuid: 11.1.0
     dev: true
 
@@ -663,7 +663,7 @@ packages:
     peerDependencies:
       effect: ^3.18.0
     dependencies:
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
     dev: true
 
   /@effect/workflow@0.11.3(@effect/platform@0.92.1)(@effect/rpc@0.71.0)(effect@3.18.4):
@@ -675,7 +675,7 @@ packages:
     dependencies:
       '@effect/platform': 0.92.1(effect@3.18.4)
       '@effect/rpc': 0.71.0(@effect/platform@0.92.1)(effect@3.18.4)
-      effect: '@pkg.pr.new/Effect-TS/effect@cb3ed89'
+      effect: '@pkg.pr.new/Effect-TS/effect@97ff1dc'
     dev: true
 
   /@emnapi/core@1.5.0:
@@ -6553,8 +6553,8 @@ packages:
     hasBin: true
     dev: true
 
-  '@pkg.pr.new/Effect-TS/effect@cb3ed89':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect@cb3ed89}
+  '@pkg.pr.new/Effect-TS/effect@97ff1dc':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect@97ff1dc}
     name: effect
     version: 3.18.4
     dependencies:

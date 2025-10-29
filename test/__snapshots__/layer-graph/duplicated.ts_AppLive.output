@@ -1,38 +1,38 @@
 flowchart TD
   0["AppService.Default"]
-  1["Layer.provideMerge(AppService.Default)"]
+  1["Layer.provideMerge#40;AppService.Default#41;"]
   2["EventService.Default"]
-  3["Layer.provideMerge(EventService.Default)"]
+  3["Layer.provideMerge#40;EventService.Default#41;"]
   4["Analytics.Default"]
-  5["Layer.merge(Analytics.Default)"]
+  5["Layer.merge#40;Analytics.Default#41;"]
   6["EventsRepository.Default"]
-  7["Layer.provideMerge(EventsRepository.Default)"]
+  7["Layer.provideMerge#40;EventsRepository.Default#41;"]
   8["Database.Default"]
-  9["pipe(<br/>      Database.Default,<br/>      Layer.provideMerge(EventsRepository.Default),<br/>      Layer.merge(Analytics.Default),<br/>      Layer.provideMerge(EventService.Default)<br/>    )"]
-  10["Layer.merge(<br/>    pipe(<br/>      Database.Default,<br/>      Layer.provideMerge(EventsRepository.Default),<br/>      Layer.merge(Analytics.Default),<br/>      Layer.provideMerge(EventService.Default)<br/>    )<br/>  )"]
+  9["pipe#40;<br/>      Database.Default,<br/>      Layer.provideMerge#40;EventsRepository.Default#41;,<br/>      Layer.merge#40;Analytics.Default#41;,<br/>      Layer.provideMerge#40;EventService.Default#41;<br/>    #41;"]
+  10["Layer.merge#40;<br/>    pipe#40;<br/>      Database.Default,<br/>      Layer.provideMerge#40;EventsRepository.Default#41;,<br/>      Layer.merge#40;Analytics.Default#41;,<br/>      Layer.provideMerge#40;EventService.Default#41;<br/>    #41;<br/>  #41;"]
   11["UserService.Default"]
-  12["Layer.provideMerge(UserService.Default)"]
+  12["Layer.provideMerge#40;UserService.Default#41;"]
   13["Analytics.Default"]
-  14["Layer.merge(Analytics.Default)"]
+  14["Layer.merge#40;Analytics.Default#41;"]
   15["UserRepository.Default"]
-  16["Layer.provideMerge(UserRepository.Default)"]
+  16["Layer.provideMerge#40;UserRepository.Default#41;"]
   17["Database.Default"]
-  18["pipe(<br/>  Database.Default,<br/>  Layer.provideMerge(UserRepository.Default),<br/>  Layer.merge(Analytics.Default),<br/>  Layer.provideMerge(UserService.Default),<br/>  Layer.merge(<br/>    pipe(<br/>      Database.Default,<br/>      Layer.provideMerge(EventsRepository.Default),<br/>      Layer.merge(Analytics.Default),<br/>      Layer.provideMerge(EventService.Default)<br/>    )<br/>  ),<br/>  Layer.provideMerge(AppService.Default)<br/>)"]
-  1 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 0
-  3 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 2
-  5 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 4
-  7 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 6
-  7 -->|"{\"relationship\":\"pipe\"}"| 8
-  5 -->|"{\"relationship\":\"pipe\"}"| 7
-  3 -->|"{\"relationship\":\"pipe\"}"| 5
-  9 -->|"{\"relationship\":\"pipe\"}"| 3
-  10 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 9
-  12 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 11
-  14 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 13
-  16 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 15
-  16 -->|"{\"relationship\":\"pipe\"}"| 17
-  14 -->|"{\"relationship\":\"pipe\"}"| 16
-  12 -->|"{\"relationship\":\"pipe\"}"| 14
-  10 -->|"{\"relationship\":\"pipe\"}"| 12
-  1 -->|"{\"relationship\":\"pipe\"}"| 10
-  18 -->|"{\"relationship\":\"pipe\"}"| 1
+  18["pipe#40;<br/>  Database.Default,<br/>  Layer.provideMerge#40;UserRepository.Default#41;,<br/>  Layer.merge#40;Analytics.Default#41;,<br/>  Layer.provideMerge#40;UserService.Default#41;,<br/>  Layer.merge#40;<br/>    pipe#40;<br/>      Database.Default,<br/>      Layer.provideMerge#40;EventsRepository.Default#41;,<br/>      Layer.merge#40;Analytics.Default#41;,<br/>      Layer.provideMerge#40;EventService.Default#41;<br/>    #41;<br/>  #41;,<br/>  Layer.provideMerge#40;AppService.Default#41;<br/>#41;"]
+  1 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 0
+  3 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 2
+  5 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 4
+  7 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 6
+  7 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 8
+  5 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 7
+  3 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 5
+  9 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 3
+  10 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 9
+  12 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 11
+  14 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 13
+  16 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 15
+  16 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 17
+  14 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 16
+  12 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 14
+  10 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 12
+  1 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 10
+  18 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 1

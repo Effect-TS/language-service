@@ -1,8 +1,8 @@
 flowchart TD
   0["Cache.Default"]
-  1["Layer.provide(Cache.Default)"]
+  1["Layer.provide#40;Cache.Default#41;"]
   2["UserRepository.Default"]
-  3["UserRepository.Default.pipe(Layer.provide(Cache.Default))"]
-  1 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 0
-  1 -->|"{\"relationship\":\"pipe\"}"| 2
-  3 -->|"{\"relationship\":\"pipe\"}"| 1
+  3["UserRepository.Default.pipe#40;Layer.provide#40;Cache.Default#41;#41;"]
+  1 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 0
+  1 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 2
+  3 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 1

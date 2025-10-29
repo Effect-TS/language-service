@@ -63,7 +63,7 @@
     "@typescript-eslint/parser": "^8.46.1",
     "@typescript-eslint/project-service": "^8.46.1",
     "@vitest/coverage-v8": "^3.2.4",
-    "effect": "https://pkg.pr.new/Effect-TS/effect@cb3ed89",
+    "effect": "https://pkg.pr.new/Effect-TS/effect@97ff1dc",
     "eslint": "^9.37.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-codegen": "^0.34.0",
