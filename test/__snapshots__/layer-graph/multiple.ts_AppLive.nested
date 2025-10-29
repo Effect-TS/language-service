@@ -1,0 +1,306 @@
+flowchart TB
+  subgraph 0 ["`AppService.Default<br/>_at ln 40 col 21_`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_requires [Requires]
+        0_requires_0["EventService"]
+        0_requires_1["UserService"]
+      end
+      style 0_requires stroke:none
+      subgraph 0_provides [Provides]
+        0_provides_0["AppService"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
+  subgraph 1 ["`Layer.provideMerge(AppService.Default)<br/>_at ln 40 col 2_`"]
+    subgraph 1_wrap[" "]
+      subgraph 1_requires [Requires]
+        1_requires_0["EventsRepository"]
+        1_requires_1["EventService"]
+        1_requires_2["Analytics"]
+        1_requires_3["Database"]
+        1_requires_4["UserRepository"]
+        1_requires_5["UserService"]
+      end
+      style 1_requires stroke:none
+      subgraph 1_provides [Provides]
+        1_provides_0["EventsRepository"]
+        1_provides_1["EventService"]
+        1_provides_2["Analytics"]
+        1_provides_3["Database"]
+        1_provides_4["UserRepository"]
+        1_provides_5["UserService"]
+        1_provides_6["AppService"]
+      end
+      style 1_provides stroke:none
+    end
+    style 1_wrap fill:transparent
+    style 1_wrap stroke:none
+  end
+  style 1 fill:transparent
+  subgraph 2 ["`EventService.Default<br/>_at ln 39 col 21_`"]
+    subgraph 2_wrap[" "]
+      subgraph 2_requires [Requires]
+        2_requires_0["EventsRepository"]
+        2_requires_1["Analytics"]
+      end
+      style 2_requires stroke:none
+      subgraph 2_provides [Provides]
+        2_provides_0["EventService"]
+      end
+      style 2_provides stroke:none
+    end
+    style 2_wrap fill:transparent
+    style 2_wrap stroke:none
+  end
+  style 2 fill:transparent
+  subgraph 3 ["`Layer.provideMerge(EventService.Default)<br/>_at ln 39 col 2_`"]
+    subgraph 3_wrap[" "]
+      subgraph 3_requires [Requires]
+        3_requires_0["EventsRepository"]
+        3_requires_1["Analytics"]
+        3_requires_2["Database"]
+        3_requires_3["UserRepository"]
+      end
+      style 3_requires stroke:none
+      subgraph 3_provides [Provides]
+        3_provides_0["EventsRepository"]
+        3_provides_1["EventService"]
+        3_provides_2["Analytics"]
+        3_provides_3["Database"]
+        3_provides_4["UserRepository"]
+        3_provides_5["UserService"]
+      end
+      style 3_provides stroke:none
+    end
+    style 3_wrap fill:transparent
+    style 3_wrap stroke:none
+  end
+  style 3 fill:transparent
+  subgraph 4 ["`UserService.Default<br/>_at ln 38 col 21_`"]
+    subgraph 4_wrap[" "]
+      subgraph 4_requires [Requires]
+        4_requires_0["Analytics"]
+        4_requires_1["UserRepository"]
+      end
+      style 4_requires stroke:none
+      subgraph 4_provides [Provides]
+        4_provides_0["UserService"]
+      end
+      style 4_provides stroke:none
+    end
+    style 4_wrap fill:transparent
+    style 4_wrap stroke:none
+  end
+  style 4 fill:transparent
+  subgraph 5 ["`Layer.provideMerge(UserService.Default)<br/>_at ln 38 col 2_`"]
+    subgraph 5_wrap[" "]
+      subgraph 5_requires [Requires]
+        5_requires_0["Analytics"]
+        5_requires_1["Database"]
+        5_requires_2["UserRepository"]
+      end
+      style 5_requires stroke:none
+      subgraph 5_provides [Provides]
+        5_provides_0["EventsRepository"]
+        5_provides_1["Analytics"]
+        5_provides_2["Database"]
+        5_provides_3["UserRepository"]
+        5_provides_4["UserService"]
+      end
+      style 5_provides stroke:none
+    end
+    style 5_wrap fill:transparent
+    style 5_wrap stroke:none
+  end
+  style 5 fill:transparent
+  subgraph 6 ["`Analytics.Default<br/>_at ln 37 col 14_`"]
+    subgraph 6_wrap[" "]
+      subgraph 6_provides [Provides]
+        6_provides_0["Analytics"]
+      end
+      style 6_provides stroke:none
+    end
+    style 6_wrap fill:transparent
+    style 6_wrap stroke:none
+  end
+  style 6 fill:transparent
+  subgraph 7 ["`Layer.merge(Analytics.Default)<br/>_at ln 37 col 2_`"]
+    subgraph 7_wrap[" "]
+      subgraph 7_requires [Requires]
+        7_requires_0["Database"]
+      end
+      style 7_requires stroke:none
+      subgraph 7_provides [Provides]
+        7_provides_0["EventsRepository"]
+        7_provides_1["Analytics"]
+        7_provides_2["Database"]
+        7_provides_3["UserRepository"]
+      end
+      style 7_provides stroke:none
+    end
+    style 7_wrap fill:transparent
+    style 7_wrap stroke:none
+  end
+  style 7 fill:transparent
+  subgraph 8 ["`EventsRepository.Default<br/>_at ln 36 col 21_`"]
+    subgraph 8_wrap[" "]
+      subgraph 8_requires [Requires]
+        8_requires_0["Database"]
+      end
+      style 8_requires stroke:none
+      subgraph 8_provides [Provides]
+        8_provides_0["EventsRepository"]
+      end
+      style 8_provides stroke:none
+    end
+    style 8_wrap fill:transparent
+    style 8_wrap stroke:none
+  end
+  style 8 fill:transparent
+  subgraph 9 ["`Layer.provideMerge(EventsRepository.Default)<br/>_at ln 36 col 2_`"]
+    subgraph 9_wrap[" "]
+      subgraph 9_requires [Requires]
+        9_requires_0["Database"]
+      end
+      style 9_requires stroke:none
+      subgraph 9_provides [Provides]
+        9_provides_0["EventsRepository"]
+        9_provides_1["Database"]
+        9_provides_2["UserRepository"]
+      end
+      style 9_provides stroke:none
+    end
+    style 9_wrap fill:transparent
+    style 9_wrap stroke:none
+  end
+  style 9 fill:transparent
+  subgraph 10 ["`UserRepository.Default<br/>_at ln 35 col 21_`"]
+    subgraph 10_wrap[" "]
+      subgraph 10_requires [Requires]
+        10_requires_0["Database"]
+      end
+      style 10_requires stroke:none
+      subgraph 10_provides [Provides]
+        10_provides_0["UserRepository"]
+      end
+      style 10_provides stroke:none
+    end
+    style 10_wrap fill:transparent
+    style 10_wrap stroke:none
+  end
+  style 10 fill:transparent
+  subgraph 11 ["`Layer.provideMerge(UserRepository.Default)<br/>_at ln 35 col 2_`"]
+    subgraph 11_wrap[" "]
+      subgraph 11_requires [Requires]
+        11_requires_0["Database"]
+      end
+      style 11_requires stroke:none
+      subgraph 11_provides [Provides]
+        11_provides_0["Database"]
+        11_provides_1["UserRepository"]
+      end
+      style 11_provides stroke:none
+    end
+    style 11_wrap fill:transparent
+    style 11_wrap stroke:none
+  end
+  style 11 fill:transparent
+  subgraph 12 ["`DatabaseLive<br/>_at ln 34 col 2_`"]
+    subgraph 12_wrap[" "]
+      subgraph 12_provides [Provides]
+        12_provides_0["Database"]
+      end
+      style 12_provides stroke:none
+    end
+    style 12_wrap fill:transparent
+    style 12_wrap stroke:none
+  end
+  style 12 fill:transparent
+  subgraph 13 ["`pipe( DatabaseLive, Layer.provideMerge(UserReposit<br/>_at ln 33 col 23_`"]
+    subgraph 13_wrap[" "]
+      subgraph 13_requires [Requires]
+        13_requires_0["EventsRepository"]
+        13_requires_1["EventService"]
+        13_requires_2["Analytics"]
+        13_requires_3["Database"]
+        13_requires_4["UserRepository"]
+        13_requires_5["UserService"]
+      end
+      style 13_requires stroke:none
+      subgraph 13_provides [Provides]
+        13_provides_0["EventsRepository"]
+        13_provides_1["EventService"]
+        13_provides_2["Analytics"]
+        13_provides_3["Database"]
+        13_provides_4["UserRepository"]
+        13_provides_5["UserService"]
+        13_provides_6["AppService"]
+      end
+      style 13_provides stroke:none
+    end
+    style 13_wrap fill:transparent
+    style 13_wrap stroke:none
+  end
+  style 13 fill:transparent
+  1_requires_1 -.-> 0_requires_0
+  1_requires_5 -.-> 0_requires_1
+  1_provides_6 -.-> 0_provides_0
+  3_requires_0 -.-> 2_requires_0
+  3_requires_1 -.-> 2_requires_1
+  3_provides_1 -.-> 2_provides_0
+  5_requires_0 -.-> 4_requires_0
+  5_requires_2 -.-> 4_requires_1
+  5_provides_4 -.-> 4_provides_0
+  7_provides_1 -.-> 6_provides_0
+  9_requires_0 -.-> 8_requires_0
+  9_provides_0 -.-> 8_provides_0
+  11_requires_0 -.-> 10_requires_0
+  11_provides_1 -.-> 10_provides_0
+  11_provides_0 -.-> 12_provides_0
+  9_requires_0 -.-> 11_requires_0
+  9_provides_1 -.-> 11_provides_0
+  9_provides_2 -.-> 11_provides_1
+  7_requires_0 -.-> 9_requires_0
+  7_provides_0 -.-> 9_provides_0
+  7_provides_2 -.-> 9_provides_1
+  7_provides_3 -.-> 9_provides_2
+  5_requires_1 -.-> 7_requires_0
+  5_provides_0 -.-> 7_provides_0
+  5_provides_1 -.-> 7_provides_1
+  5_provides_2 -.-> 7_provides_2
+  5_provides_3 -.-> 7_provides_3
+  3_requires_1 -.-> 5_requires_0
+  3_requires_2 -.-> 5_requires_1
+  3_requires_3 -.-> 5_requires_2
+  3_provides_0 -.-> 5_provides_0
+  3_provides_2 -.-> 5_provides_1
+  3_provides_3 -.-> 5_provides_2
+  3_provides_4 -.-> 5_provides_3
+  3_provides_5 -.-> 5_provides_4
+  1_requires_0 -.-> 3_requires_0
+  1_requires_2 -.-> 3_requires_1
+  1_requires_3 -.-> 3_requires_2
+  1_requires_4 -.-> 3_requires_3
+  1_provides_0 -.-> 3_provides_0
+  1_provides_1 -.-> 3_provides_1
+  1_provides_2 -.-> 3_provides_2
+  1_provides_3 -.-> 3_provides_3
+  1_provides_4 -.-> 3_provides_4
+  1_provides_5 -.-> 3_provides_5
+  13_requires_0 -.-> 1_requires_0
+  13_requires_1 -.-> 1_requires_1
+  13_requires_2 -.-> 1_requires_2
+  13_requires_3 -.-> 1_requires_3
+  13_requires_4 -.-> 1_requires_4
+  13_requires_5 -.-> 1_requires_5
+  13_provides_0 -.-> 1_provides_0
+  13_provides_1 -.-> 1_provides_1
+  13_provides_2 -.-> 1_provides_2
+  13_provides_3 -.-> 1_provides_3
+  13_provides_4 -.-> 1_provides_4
+  13_provides_5 -.-> 1_provides_5
+  13_provides_6 -.-> 1_provides_6

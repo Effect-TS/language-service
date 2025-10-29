@@ -1,0 +1,38 @@
+flowchart TD
+  0["AppService.Default"]
+  1["Layer.provideMerge(AppService.Default)"]
+  2["EventService.Default"]
+  3["Layer.provideMerge(EventService.Default)"]
+  4["Analytics.Default"]
+  5["Layer.merge(Analytics.Default)"]
+  6["EventsRepository.Default"]
+  7["Layer.provideMerge(EventsRepository.Default)"]
+  8["Database.Default"]
+  9["pipe(<br/>      Database.Default,<br/>      Layer.provideMerge(EventsRepository.Default),<br/>      Layer.merge(Analytics.Default),<br/>      Layer.provideMerge(EventService.Default)<br/>    )"]
+  10["Layer.merge(<br/>    pipe(<br/>      Database.Default,<br/>      Layer.provideMerge(EventsRepository.Default),<br/>      Layer.merge(Analytics.Default),<br/>      Layer.provideMerge(EventService.Default)<br/>    )<br/>  )"]
+  11["UserService.Default"]
+  12["Layer.provideMerge(UserService.Default)"]
+  13["Analytics.Default"]
+  14["Layer.merge(Analytics.Default)"]
+  15["UserRepository.Default"]
+  16["Layer.provideMerge(UserRepository.Default)"]
+  17["Database.Default"]
+  18["pipe(<br/>  Database.Default,<br/>  Layer.provideMerge(UserRepository.Default),<br/>  Layer.merge(Analytics.Default),<br/>  Layer.provideMerge(UserService.Default),<br/>  Layer.merge(<br/>    pipe(<br/>      Database.Default,<br/>      Layer.provideMerge(EventsRepository.Default),<br/>      Layer.merge(Analytics.Default),<br/>      Layer.provideMerge(EventService.Default)<br/>    )<br/>  ),<br/>  Layer.provideMerge(AppService.Default)<br/>)"]
+  1 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 0
+  3 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 2
+  5 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 4
+  7 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 6
+  7 -->|"{\"relationship\":\"pipe\"}"| 8
+  5 -->|"{\"relationship\":\"pipe\"}"| 7
+  3 -->|"{\"relationship\":\"pipe\"}"| 5
+  9 -->|"{\"relationship\":\"pipe\"}"| 3
+  10 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 9
+  12 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 11
+  14 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 13
+  16 -->|"{\"relationship\":\"call\",\"argumentIndex\":0}"| 15
+  16 -->|"{\"relationship\":\"pipe\"}"| 17
+  14 -->|"{\"relationship\":\"pipe\"}"| 16
+  12 -->|"{\"relationship\":\"pipe\"}"| 14
+  10 -->|"{\"relationship\":\"pipe\"}"| 12
+  1 -->|"{\"relationship\":\"pipe\"}"| 10
+  18 -->|"{\"relationship\":\"pipe\"}"| 1

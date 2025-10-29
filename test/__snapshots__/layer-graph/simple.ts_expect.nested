@@ -1,0 +1,17 @@
+flowchart TB
+  subgraph 0 ["`UserRepository.Default<br/>_at ln 16 col 22_`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_requires [Requires]
+        0_requires_0["Cache"]
+        0_requires_1["DbConnection"]
+      end
+      style 0_requires stroke:none
+      subgraph 0_provides [Provides]
+        0_provides_0["UserRepository"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
