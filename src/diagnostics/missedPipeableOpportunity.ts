@@ -1,0 +1,81 @@
+import { pipe } from "effect/Function"
+import type ts from "typescript"
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
+import * as LSP from "../core/LSP.js"
+import * as Nano from "../core/Nano.js"
+import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeParser from "../core/TypeParser.js"
+import * as TypeScriptApi from "../core/TypeScriptApi.js"
+
+export const missedPipeableOpportunity = LSP.createDiagnostic({
+  name: "missedPipeableOpportunity",
+  code: 26,
+  severity: "off",
+  apply: Nano.fn("missedPipeableOpportunity.apply")(function*(sourceFile, report) {
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
+
+    const nodeToVisit: Array<ts.Node> = [sourceFile]
+    const prependNodeToVisit = (node: ts.Node) => {
+      nodeToVisit.unshift(node)
+      return undefined
+    }
+
+    const callChainNodes = new WeakMap<ts.Node, Array<ts.CallExpression>>()
+
+    while (nodeToVisit.length > 0) {
+      const node = nodeToVisit.shift()!
+
+      if (ts.isCallExpression(node) && node.arguments.length === 1 && node.parent) {
+        // this node contributes to the chain.
+        const parentChain = callChainNodes.get(node.parent) || []
+        callChainNodes.set(node, parentChain.concat(node))
+      } else if (node.parent && callChainNodes.has(node.parent) && ts.isExpression(node)) {
+        // we broke the chain.
+        const parentChain: Array<ts.Expression> = callChainNodes.get(node.parent) || []
+        const originalParentChain = parentChain.slice()
+        parentChain.push(node)
+        while (parentChain.length > options.pipeableMinArgCount) {
+          const subject = parentChain.pop()!
+          const resultType = typeChecker.getTypeAtLocation(subject)
+          const pipeableType = yield* pipe(typeParser.pipeableType(resultType, subject), Nano.orElse(() => Nano.void_))
+          if (pipeableType) {
+            report({
+              location: parentChain[0],
+              messageText: `Nested function calls can be converted to pipeable style for better readability.`,
+              fixes: [{
+                fixName: "missedPipeableOpportunity_fix",
+                description: "Convert to pipe style",
+                apply: Nano.gen(function*() {
+                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                  // Create the new pipe call: innermostCall.pipe(c, b, a)
+                  changeTracker.replaceNode(
+                    sourceFile,
+                    parentChain[0],
+                    ts.factory.createCallExpression(
+                      ts.factory.createPropertyAccessExpression(
+                        subject,
+                        "pipe"
+                      ),
+                      undefined,
+                      parentChain.filter(ts.isCallExpression).map((call) => call.expression)
+                    )
+                  )
+                })
+              }]
+            })
+            // delete the parent chain nodes that were affected by the fix, so we don't report the same issue again.
+            originalParentChain.forEach((node) => callChainNodes.delete(node))
+            break
+          }
+        }
+      }
+
+      // we always visit the children
+      ts.forEachChild(node, prependNodeToVisit)
+    }
+  })
+})

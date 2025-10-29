@@ -7,6 +7,7 @@ import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
+import { missedPipeableOpportunity } from "./diagnostics/missedPipeableOpportunity.js"
 import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
 import { missingEffectError } from "./diagnostics/missingEffectError.js"
 import { missingEffectServiceDependency } from "./diagnostics/missingEffectServiceDependency.js"
@@ -51,5 +52,6 @@ export const diagnostics = [
   overriddenSchemaConstructor,
   unsupportedServiceAccessors,
   nonObjectEffectServiceType,
-  deterministicKeys
+  deterministicKeys,
+  missedPipeableOpportunity
 ]
