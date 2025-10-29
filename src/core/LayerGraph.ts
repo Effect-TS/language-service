@@ -11,6 +11,14 @@ import * as TypeParser from "./TypeParser.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
 
+export class UnableToProduceLayerGraphError {
+  readonly _tag = "@effect/language-service/UnableToProduceLayerGraphError"
+  constructor(
+    readonly message: string,
+    readonly node?: ts.Node | undefined
+  ) {}
+}
+
 export interface LayerGraphNodeInfo {
   node: ts.Node
   layerType: ts.Type | undefined
@@ -216,7 +224,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
     }
 
     // PANIC! We got something we don't understand.
-    return yield* Nano.fail(TypeParser.TypeParserIssue.issue)
+    return yield* Nano.fail(new UnableToProduceLayerGraphError("Unable to produce layer graph for node", node))
   }
 
   return Graph.endMutation(mutableGraph)
