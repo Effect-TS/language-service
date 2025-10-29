@@ -1,4 +1,5 @@
-// code fix missedPipeableOpportunity_fix  output for range 1270 - 1307
+// code fix missedPipeableOpportunity_skipFile  output for range 1076 - 1116
+/** @effect-diagnostics missedPipeableOpportunity:skip-file */
 // @effect-diagnostics missedPipeableOpportunity:warning
 import { Effect } from "effect"
 
@@ -18,19 +19,19 @@ export const shouldReport2 = toString(triple(double(addOne(10))))
 // Should report: two level nesting can benefit from pipe style
 export const shouldReport4 = double(addOne(5))
 
-// Should NOT report: innermost doesn't return pipeable
+// Should report, but refactor to be wrapInEffect(regularFunction(5)).pipe(double)
 const regularFunction = (n: number) => n + 1
 const wrapInEffect = (n: number) => Effect.succeed(n)
 export const shouldNotReport2 = double(wrapInEffect(regularFunction(5)))
 
 // Should trigger diagnostic: proper pipeable chain with correct types
 const addHundred = (e: Effect.Effect<number>) => Effect.map(e, (n) => n + 100)
-export const shouldReport3 = addOne(7).pipe(triple, addHundred, double)
+export const shouldReport3 = triple(addHundred(double(addOne(7))))
 
 // Should NOT report: already using pipe
 export const shouldNotReport3 = addOne(5).pipe(double, toString)
 export const shouldNotReport4 = addOne(5).pipe(double)
 export const shouldNotReport5 = addOne(5).pipe(multiplyBy(2))
 
-// valid one-liner
+// Should trigger
 export const shouldReport = Effect.runPromise(Effect.log("Hello"))
