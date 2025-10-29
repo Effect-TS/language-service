@@ -1,5 +1,7 @@
 import { pipe } from "effect"
+import * as Array from "effect/Array"
 import * as Graph from "effect/Graph"
+import * as Option from "effect/Option"
 import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
 import * as Nano from "./Nano.js"
@@ -220,6 +222,17 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
   return Graph.endMutation(mutableGraph)
 })
 
+export const formatLayerGraph = Nano.fn("formatLayerGraph")(function*(layerGraph: LayerGraph) {
+  const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+  return Graph.toMermaid(layerGraph, {
+    edgeLabel: (edge) => JSON.stringify(edge),
+    nodeLabel: (graphNode) => {
+      const sourceFile = tsUtils.getSourceFileOfNode(graphNode.node)!
+      return sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+    }
+  })
+})
+
 export interface LayerOutlineGraphNodeInfo {
   node: ts.Node
   requires: Array<ts.Type>
@@ -278,6 +291,19 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
   return Graph.endMutation(mutableGraph)
 })
 
+export const formatLayerOutlineGraph = Nano.fn("formatLayerOutlineGraph")(
+  function*(layerOutlineGraph: LayerOutlineGraph) {
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    return Graph.toMermaid(layerOutlineGraph, {
+      edgeLabel: () => "",
+      nodeLabel: (graphNode) => {
+        const sourceFile = tsUtils.getSourceFileOfNode(graphNode.node)!
+        return sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+      }
+    })
+  }
+)
+
 export interface LayerMagicNode {
   merges: boolean
   provides: boolean
@@ -302,8 +328,8 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
 
     // no need to filter because the outline graph is already deduplicated and only keeping childs
     const reversedGraph = Graph.mutate(outlineGraph, Graph.reverse)
-    const rootIndexes = Array.from(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
-    const allNodes = Array.from(Graph.values(Graph.dfsPostOrder(reversedGraph, { start: rootIndexes })))
+    const rootIndexes = Array.fromIterable(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
+    const allNodes = Array.fromIterable(Graph.values(Graph.dfsPostOrder(reversedGraph, { start: rootIndexes })))
     for (const nodeInfo of allNodes) {
       if (!ts.isExpression(nodeInfo.node)) continue
       const reallyProvidedTypes = nodeInfo.provides.filter((_) => nodeInfo.requires.indexOf(_) === -1)
@@ -324,5 +350,146 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
       layerMagicNodes: result,
       missingOutputTypes
     }
+  }
+)
+
+// walk the graph and emit nodes matching the predicate, where no children match the predicate
+export const walkLeavesMatching = <N, E, T extends Graph.Kind = "directed">(
+  graph: Graph.Graph<N, E, T> | Graph.MutableGraph<N, E, T>,
+  predicate: (node: N) => boolean,
+  config: Graph.SearchConfig = {}
+): Graph.NodeWalker<N> => {
+  const start = config.start ?? []
+  const direction = config.direction ?? "outgoing"
+
+  return new Graph.Walker((f) => ({
+    [Symbol.iterator]: () => {
+      let queue = [...start]
+      const discovered = new Set<Graph.NodeIndex>()
+
+      const nextMapped = () => {
+        while (queue.length > 0) {
+          const current = queue.shift()!
+
+          if (discovered.has(current)) continue
+          discovered.add(current)
+
+          const neighbors = Graph.neighborsDirected(graph, current, direction)
+          const neighborsMatching: Array<Graph.NodeIndex> = []
+          for (const neighbor of neighbors) {
+            const neighborNode = Graph.getNode(graph, neighbor)
+            if (Option.isSome(neighborNode) && predicate(neighborNode.value)) {
+              neighborsMatching.push(neighbor)
+            }
+          }
+
+          if (neighborsMatching.length > 0) {
+            queue = [...queue, ...neighborsMatching]
+          } else {
+            const nodeData = Graph.getNode(graph, current)
+            if (Option.isSome(nodeData) && predicate(nodeData.value)) {
+              return { done: false, value: f(current, nodeData.value) }
+            }
+          }
+        }
+
+        return { done: true, value: undefined } as const
+      }
+
+      return { next: nextMapped }
+    }
+  }))
+}
+
+export interface LayerProvidersAndRequirersInfoItem {
+  kind: "provided" | "required"
+  type: ts.Type
+  nodes: Array<ts.Node>
+}
+
+export type LayerProvidersAndRequirersInfo = Array<LayerProvidersAndRequirersInfoItem>
+
+// given a layer graph, return the root providers and a list of nodes that introduced them, and same with requires
+export const extractProvidersAndRequirers = Nano.fn("extractProvidersAndRequirers")(
+  function*(layerGraph: LayerGraph) {
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+
+    const rootWalker = Graph.externals(layerGraph, { direction: "outgoing" })
+    const rootNodes = Array.fromIterable(Graph.values(rootWalker))
+    const rootNodeIndexes = Array.fromIterable(Graph.indices(rootWalker))
+    const result: LayerProvidersAndRequirersInfo = []
+
+    const walkTypes = (rootTypes: Set<ts.Type>, kind: "provided" | "required") => {
+      const sortedTypes = pipe(Array.fromIterable(rootTypes), Array.sort(typeCheckerUtils.deterministicTypeOrder))
+      for (const layerType of sortedTypes) {
+        const tsNodes: Array<ts.Node> = []
+        for (
+          const layerNode of Graph.values(
+            walkLeavesMatching(
+              layerGraph,
+              (_) => (kind === "provided" ? _.provides : _.requires).indexOf(layerType) > -1,
+              { start: rootNodeIndexes }
+            )
+          )
+        ) {
+          tsNodes.push(layerNode.node)
+        }
+        result.push({
+          kind,
+          type: layerType,
+          nodes: tsNodes
+        })
+      }
+    }
+
+    walkTypes(new Set(rootNodes.flatMap((_) => _.provides)), "provided")
+    walkTypes(new Set(rootNodes.flatMap((_) => _.requires)), "required")
+    return result
+  }
+)
+
+export const formatLayerProvidersAndRequirersInfo = Nano.fn("formatLayerProvidersAndRequirersInfo")(
+  function*(info: LayerProvidersAndRequirersInfo) {
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+
+    if (info.length === 0) return ""
+
+    const textualExplanation: Array<string> = []
+
+    const appendInfo = (infoNode: LayerProvidersAndRequirersInfoItem) => {
+      const typeString = typeChecker.typeToString(
+        infoNode.type,
+        undefined,
+        ts.TypeFormatFlags.NoTruncation
+      )
+
+      const positions = infoNode.nodes.map((_) => {
+        const sourceFile = tsUtils.getSourceFileOfNode(_)!
+        const nodePosition = ts.getTokenPosOfNode(_, sourceFile)
+        const { character, line } = ts.getLineAndCharacterOfPosition(sourceFile, nodePosition)
+        const nodeText = sourceFile.text.substring(_.pos, _.end).trim().replace(/\n/g, " ").substr(0, 50)
+        return `ln ${line + 1} col ${character} by \`${nodeText}\``
+      })
+
+      textualExplanation.push(`- ${typeString} ${infoNode.kind} at ${positions.join(", ")}`)
+    }
+
+    const providedItems = info.filter((_) => _.kind === "provided")
+    const requiredItems = info.filter((_) => _.kind === "required")
+    if (providedItems.length > 0) {
+      for (const item of providedItems) {
+        appendInfo(item)
+      }
+      if (textualExplanation.length > 0 && requiredItems.length > 0) textualExplanation.push("")
+    }
+    if (requiredItems.length > 0) {
+      for (const item of requiredItems) {
+        appendInfo(item)
+      }
+    }
+    return "/**\n" + textualExplanation.map((l) => " * " + l).join("\n") +
+      "\n */"
   }
 )

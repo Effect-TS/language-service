@@ -6,7 +6,6 @@ import * as TypeCheckerUtils from "@effect/language-service/core/TypeCheckerUtil
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
-import { Graph } from "effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as fs from "fs"
@@ -60,15 +59,11 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
           explodeOnlyLayerCalls: false
         })
         const outlineGraph = yield* LayerGraph.extractOutlineGraph(layerGraph)
+        const providersAndRequirers = yield* LayerGraph.extractProvidersAndRequirers(layerGraph)
         return {
-          layerGraph: Graph.toMermaid(layerGraph, {
-            edgeLabel: (edge) => JSON.stringify(edge),
-            nodeLabel: (node) => sourceFile.text.substring(node.node.pos, node.node.end).trim()
-          }),
-          outlineGraph: Graph.toMermaid(outlineGraph, {
-            nodeLabel: (node) => sourceFile.text.substring(node.node.pos, node.node.end).trim(),
-            edgeLabel: () => ""
-          })
+          layerGraph: yield* LayerGraph.formatLayerGraph(layerGraph),
+          outlineGraph: yield* LayerGraph.formatLayerOutlineGraph(outlineGraph),
+          providersAndRequirers: yield* LayerGraph.formatLayerProvidersAndRequirersInfo(providersAndRequirers)
         }
       }),
       TypeParser.nanoLayer,
@@ -99,6 +94,7 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
 
     await expect(maybeGraph.right.layerGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".output")
     await expect(maybeGraph.right.outlineGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
+    await expect(maybeGraph.right.providersAndRequirers).toMatchFileSnapshot(baseSnapshotFilePath + ".quickinfo")
   }
 }
 
