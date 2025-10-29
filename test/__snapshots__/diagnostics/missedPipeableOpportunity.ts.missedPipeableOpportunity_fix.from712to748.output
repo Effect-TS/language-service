@@ -1,0 +1,36 @@
+// code fix missedPipeableOpportunity_fix  output for range 712 - 748
+// @effect-diagnostics missedPipeableOpportunity:warning
+import { Effect } from "effect"
+
+// Helper functions that work with Effect
+const addOne = (n: number) => Effect.succeed(n + 1)
+const double = (e: Effect.Effect<number>) => Effect.map(e, (n) => n * 2)
+const multiplyBy = (n: number) => (e: Effect.Effect<number>) => Effect.map(e, (m) => m * n)
+const toString = (e: Effect.Effect<number>) => Effect.map(e, (n) => String(n))
+
+// Should trigger diagnostic: nested calls with innermost returning pipeable
+export const shouldReport1 = toString(double(addOne(5)))
+
+// Should trigger diagnostic: 3-level nesting
+const triple = (e: Effect.Effect<number>) => Effect.map(e, (n) => n * 3)
+export const shouldReport2 = addOne(10).pipe(toString, triple, double)
+
+// Should report: two level nesting can benefit from pipe style
+export const shouldReport4 = double(addOne(5))
+
+// Should report, but refactor to be wrapInEffect(regularFunction(5)).pipe(double)
+const regularFunction = (n: number) => n + 1
+const wrapInEffect = (n: number) => Effect.succeed(n)
+export const shouldNotReport2 = double(wrapInEffect(regularFunction(5)))
+
+// Should trigger diagnostic: proper pipeable chain with correct types
+const addHundred = (e: Effect.Effect<number>) => Effect.map(e, (n) => n + 100)
+export const shouldReport3 = triple(addHundred(double(addOne(7))))
+
+// Should NOT report: already using pipe
+export const shouldNotReport3 = addOne(5).pipe(double, toString)
+export const shouldNotReport4 = addOne(5).pipe(double)
+export const shouldNotReport5 = addOne(5).pipe(multiplyBy(2))
+
+// Should trigger
+export const shouldReport = Effect.runPromise(Effect.log("Hello"))

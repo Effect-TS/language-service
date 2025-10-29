@@ -36,6 +36,7 @@ export interface LanguageServicePluginOptions {
   importAliases: Record<string, string>
   renames: boolean
   noExternal: boolean
+  pipeableMinArgCount: number
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -84,7 +85,8 @@ export const defaults: LanguageServicePluginOptions = {
     pattern: "default",
     skipLeadingPath: ["src/"]
   }],
-  extendedKeyDetection: false
+  extendedKeyDetection: false,
+  pipeableMinArgCount: 1
 }
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
@@ -181,6 +183,10 @@ export function parse(config: any): LanguageServicePluginOptions {
     extendedKeyDetection:
       isObject(config) && hasProperty(config, "extendedKeyDetection") && isBoolean(config.extendedKeyDetection)
         ? config.extendedKeyDetection
-        : defaults.extendedKeyDetection
+        : defaults.extendedKeyDetection,
+    pipeableMinArgCount:
+      isObject(config) && hasProperty(config, "pipeableMinArgCount") && isNumber(config.pipeableMinArgCount)
+        ? config.pipeableMinArgCount
+        : defaults.pipeableMinArgCount
   }
 }
