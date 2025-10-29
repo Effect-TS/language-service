@@ -20,6 +20,7 @@ import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConst
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
+import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
 import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
@@ -53,5 +54,6 @@ export const diagnostics = [
   unsupportedServiceAccessors,
   nonObjectEffectServiceType,
   deterministicKeys,
-  missedPipeableOpportunity
+  missedPipeableOpportunity,
+  strictEffectProvide
 ]

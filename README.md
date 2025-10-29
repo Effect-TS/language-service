@@ -53,6 +53,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn on leaking requirements in Effect services
 - Warn on Scope as requirement of a Layer
 - Warn on subsequent `Effect.provide` anti-pattern
+- Warn when using `Effect.provide` with Layer outside of application entry points
 - Detect wrong `Self` type parameter for APIs like `Effect.Service` or `Schema.TaggedError` and similar 
 - Unnecessary usages of `Effect.gen` or `pipe()`
 - Warn when using `Effect.gen` with the old generator adapter pattern
