@@ -25,7 +25,7 @@ export const shouldNotReport2 = double(wrapInEffect(regularFunction(5)))
 
 // Should trigger diagnostic: proper pipeable chain with correct types
 const addHundred = (e: Effect.Effect<number>) => Effect.map(e, (n) => n + 100)
-export const shouldReport3 = addOne(7).pipe(triple, addHundred, double)
+export const shouldReport3 = addOne(7).pipe(double, addHundred, triple)
 
 // Should NOT report: already using pipe
 export const shouldNotReport3 = addOne(5).pipe(double, toString)

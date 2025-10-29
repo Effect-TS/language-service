@@ -1,3 +1,4 @@
+import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
@@ -61,7 +62,12 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
                         "pipe"
                       ),
                       undefined,
-                      parentChain.filter(ts.isCallExpression).map((call) => call.expression)
+                      pipe(
+                        parentChain,
+                        Array.filter(ts.isCallExpression),
+                        Array.map((call) => call.expression),
+                        Array.reverse
+                      )
                     )
                   )
                 })
