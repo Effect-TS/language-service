@@ -5,6 +5,8 @@ This package implements a TypeScript language service plugin that allows additio
 ## Installation
 
 1. `npm install @effect/language-service --save-dev` in your project
+   - For monorepos: We suggest installing `@effect/language-service` in the monorepo root and configuring it in the root `tsconfig.json` for consistent behavior across all packages
+   - For any other package: Install directly in the package where you want to use it
 2. Inside your tsconfig.json, you should add the plugin configuration as follows:
 ```jsonc
 {
