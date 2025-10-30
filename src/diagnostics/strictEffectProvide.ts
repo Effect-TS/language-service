@@ -21,16 +21,13 @@ export const strictEffectProvide = LSP.createDiagnostic({
         // Check if this is a call expression: Effect.provide(...)
         if (
           !ts.isCallExpression(node) ||
-          !ts.isPropertyAccessExpression(node.expression) ||
-          !ts.isIdentifier(node.expression.name) ||
-          ts.idText(node.expression.name) !== "provide" ||
           node.arguments.length === 0
         ) {
           return yield* TypeParser.typeParserIssue("Not an Effect.provide call")
         }
 
         // Check if the expression is from the Effect module
-        yield* typeParser.importedEffectModule(node.expression.expression)
+        yield* typeParser.isNodeReferenceToEffectModuleApi("provide")(node.expression)
 
         // Check if any argument is a Layer using firstSuccessOf
         return yield* Nano.firstSuccessOf(
