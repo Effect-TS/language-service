@@ -307,7 +307,7 @@ export function make(
           const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
           if (!moduleSymbol) continue
           const memberSymbol = typeChecker.tryGetMemberInModuleExports(memberName, moduleSymbol)
-          if (memberSymbol) result.push({ memberSymbol, moduleSymbol, sourceFile })
+          if (memberSymbol && memberSymbol === symbol) result.push({ memberSymbol, moduleSymbol, sourceFile })
         }
         if (result.length > 0) {
           return result
