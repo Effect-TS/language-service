@@ -32,15 +32,12 @@ export const multipleEffectProvide = LSP.createDiagnostic({
     const parseEffectProvideLayer = (node: ts.Node) => {
       if (
         ts.isCallExpression(node) &&
-        ts.isPropertyAccessExpression(node.expression) &&
-        ts.isIdentifier(node.expression.name) &&
-        ts.idText(node.expression.name) === "provide" &&
         node.arguments.length > 0
       ) {
         const layer = node.arguments[0]
         const type = typeChecker.getTypeAtLocation(layer)
         return pipe(
-          typeParser.importedEffectModule(node.expression.expression),
+          typeParser.isNodeReferenceToEffectModuleApi("provide")(node.expression),
           Nano.flatMap(() => typeParser.layerType(type, layer)),
           Nano.map(() => ({ layer, node })),
           Nano.orElse(() => Nano.void_)

@@ -31,6 +31,9 @@ export interface TypeParser {
   importedEffectModule: (
     node: ts.Node
   ) => Nano.Nano<ts.Node, TypeParserIssue>
+  isNodeReferenceToEffectModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
     node: ts.Node
   ) => Nano.Nano<
@@ -116,7 +119,6 @@ export interface TypeParser {
       args: ts.NodeArray<ts.Expression>
       Identifier: ts.Type
       keyStringLiteral: ts.StringLiteral | undefined
-      Tag: ts.Node
     },
     TypeParserIssue,
     never
@@ -129,7 +131,6 @@ export interface TypeParser {
       Identifier: ts.Type
       Service: ts.Type
       keyStringLiteral: ts.StringLiteral | undefined
-      Tag: ts.Node
     },
     TypeParserIssue,
     never
@@ -138,7 +139,6 @@ export interface TypeParser {
     {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
-      Schema: ts.Node
     },
     TypeParserIssue,
     never
@@ -149,7 +149,6 @@ export interface TypeParser {
       selfTypeNode: ts.TypeNode
       keyStringLiteral: ts.StringLiteral | undefined
       tagStringLiteral: ts.StringLiteral | undefined
-      Schema: ts.Node
     },
     TypeParserIssue,
     never
@@ -160,7 +159,16 @@ export interface TypeParser {
       selfTypeNode: ts.TypeNode
       keyStringLiteral: ts.StringLiteral | undefined
       tagStringLiteral: ts.StringLiteral | undefined
-      Schema: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsSchemaTaggedRequest: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      keyStringLiteral: ts.StringLiteral | undefined
+      tagStringLiteral: ts.StringLiteral | undefined
     },
     TypeParserIssue,
     never
@@ -183,17 +191,6 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
-  extendsSchemaTaggedRequest: (atLocation: ts.ClassDeclaration) => Nano.Nano<
-    {
-      className: ts.Identifier
-      selfTypeNode: ts.TypeNode
-      keyStringLiteral: ts.StringLiteral | undefined
-      tagStringLiteral: ts.StringLiteral | undefined
-      Schema: ts.Node
-    },
-    TypeParserIssue,
-    never
-  >
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -205,10 +202,11 @@ export const nanoLayer = <A, E, R>(
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+    const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
 
     return yield* pipe(
       fa,
-      Nano.provideService(TypeParser, make(ts, tsUtils, typeChecker, typeCheckerUtils))
+      Nano.provideService(TypeParser, make(ts, tsUtils, typeChecker, typeCheckerUtils, program))
     )
   })
 
@@ -229,8 +227,132 @@ export function make(
   ts: TypeScriptApi.TypeScriptApi,
   tsUtils: TypeScriptUtils.TypeScriptUtils,
   typeChecker: TypeCheckerApi.TypeCheckerApi,
-  typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils
+  typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils,
+  program: TypeScriptApi.TypeScriptProgram
 ): TypeParser {
+  const getSourceFilePackageInfo = Nano.cachedBy(
+    Nano.fn("TypeParser.getSourceFilePackageInfo")(function*(sourceFile: ts.SourceFile) {
+      return tsUtils.resolveModuleWithPackageInfoFromSourceFile(program, sourceFile)
+    }),
+    `TypeParser.getSourceFilePackageInfo`,
+    (sourceFile) => sourceFile
+  )
+
+  const getSourceFilesDeclaringSymbolModule = (
+    packageName: string
+  ) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.getSourceFilesDeclaringSymbolModule")(function*(symbol: ts.Symbol) {
+        const result: Array<ts.SourceFile> = []
+        if (!symbol.declarations) return yield* typeParserIssue("Symbol has no declarations", undefined, undefined)
+        for (const sourceFile of symbol.declarations) {
+          if (!ts.isSourceFile(sourceFile)) continue
+          const packageInfo = yield* getSourceFilePackageInfo(sourceFile)
+          if (!packageInfo || packageInfo.name.toLowerCase() !== packageName.toLowerCase()) continue
+          result.push(sourceFile)
+        }
+        if (result.length > 0) {
+          return result
+        }
+        return yield* typeParserIssue(`Symbol has no source file declarations`, undefined, undefined)
+      }),
+      `TypeParser.getSourceFilesDeclaringSymbolModule(${packageName})`,
+      (symbol) => symbol
+    )
+
+  const isSymbolReferenceToPackageModule = <T, E, R>(
+    givenSymbol: ts.Symbol,
+    packageName: string,
+    checkSourceFile: (sourceFile: ts.SourceFile) => Nano.Nano<T, E, R>
+  ) => {
+    let symbol = givenSymbol
+    while (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = typeChecker.getAliasedSymbol(symbol)
+    }
+    return pipe(
+      getSourceFilesDeclaringSymbolModule(packageName)(symbol),
+      Nano.flatMap((sourceFiles) =>
+        Nano.firstSuccessOf(
+          sourceFiles.map((_) => checkSourceFile(_))
+        )
+      )
+    )
+  }
+
+  const isNodeReferenceToPackageModule = <T, E, R>(
+    givenNode: ts.Node,
+    packageName: string,
+    isCorrectSourceFile: (
+      sourceFile: ts.SourceFile
+    ) => Nano.Nano<T, E, R>
+  ) => {
+    const symbol = typeChecker.getSymbolAtLocation(givenNode)
+    if (!symbol) return typeParserIssue("Node has no symbol", undefined, givenNode)
+    return isSymbolReferenceToPackageModule(symbol, packageName, isCorrectSourceFile)
+  }
+
+  const getSourceFilesDeclaringSymbolExportedUnderPackageModule = (
+    packageName: string,
+    memberName: string
+  ) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.getSourceFilesDeclaringSymbolUnderPackageExportedMember")(function*(symbol: ts.Symbol) {
+        const result: Array<{ memberSymbol: ts.Symbol; moduleSymbol: ts.Symbol; sourceFile: ts.SourceFile }> = []
+        if (!symbol.declarations) return yield* typeParserIssue("Symbol has no declarations", undefined, undefined)
+        for (const declaration of symbol.declarations) {
+          const sourceFile = tsUtils.getSourceFileOfNode(declaration)
+          if (!sourceFile) continue
+          const packageInfo = yield* getSourceFilePackageInfo(sourceFile)
+          if (!packageInfo || packageInfo.name.toLowerCase() !== packageName.toLowerCase()) continue
+          const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+          if (!moduleSymbol) continue
+          const memberSymbol = typeChecker.tryGetMemberInModuleExports(memberName, moduleSymbol)
+          if (memberSymbol) result.push({ memberSymbol, moduleSymbol, sourceFile })
+        }
+        if (result.length > 0) {
+          return result
+        }
+        return yield* typeParserIssue(`Symbol has no declarations`, undefined, undefined)
+      }),
+      `TypeParser.getSourceFilesDeclaringSymbolUnderPackageExportedMember(${packageName}, ${memberName})`,
+      (sym) => sym
+    )
+
+  const isSymbolExportOfPackageModule = <T, E, R>(
+    givenSymbol: ts.Symbol,
+    packageName: string,
+    memberName: string,
+    checkSourceFile: (sourceFile: ts.SourceFile, moduleSymbol: ts.Symbol, memberSymbol: ts.Symbol) => Nano.Nano<T, E, R>
+  ) => {
+    let symbol = givenSymbol
+    while (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = typeChecker.getAliasedSymbol(symbol)
+    }
+    return pipe(
+      getSourceFilesDeclaringSymbolExportedUnderPackageModule(packageName, memberName)(symbol),
+      Nano.flatMap((sourceFiles) =>
+        Nano.firstSuccessOf(
+          sourceFiles.map((_) => checkSourceFile(_.sourceFile, _.moduleSymbol, _.memberSymbol))
+        )
+      )
+    )
+  }
+
+  const isNodeReferenceToExportOfPackageModule = <T, E, R>(
+    givenNode: ts.Node,
+    packageName: string,
+    isCorrectSourceFile: (
+      sourceFile: ts.SourceFile,
+      moduleSymbol: ts.Symbol,
+      memberSymbol: ts.Symbol
+    ) => Nano.Nano<T, E, R>,
+    memberName: string
+  ) => {
+    const symbol = typeChecker.getSymbolAtLocation(givenNode)
+    if (!symbol) return typeParserIssue("Node has no symbol", undefined, givenNode)
+    return isSymbolExportOfPackageModule(symbol, packageName, memberName, isCorrectSourceFile)
+  }
+
   function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
     const signatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
     // Covariant<A> has only 1 type signature
@@ -398,6 +520,33 @@ export function make(
     (type) => type
   )
 
+  const isEffectTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const effectTypeSymbol = typeChecker.tryGetMemberInModuleExports("Effect", moduleSymbol)
+      if (!effectTypeSymbol) return yield* typeParserIssue("Effect type not found", undefined, sourceFile)
+      const type = typeChecker.getDeclaredTypeOfSymbol(effectTypeSymbol)
+      yield* effectType(type, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isEffectTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectTypeSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectModuleApi(${memberName})`,
+      (node) => node
+    )
+
   const layerType = Nano.cachedBy(
     Nano.fn("TypeParser.layerType")(function*(
       type: ts.Type,
@@ -480,42 +629,6 @@ export function make(
     (type) => type
   )
 
-  const importedSchemaModule = Nano.cachedBy(
-    Nano.fn("TypeParser.importedSchemaModule")(function*(
-      node: ts.Node
-    ) {
-      // should be an expression
-      if (!ts.isIdentifier(node)) {
-        return yield* typeParserIssue("Node is not an expression", undefined, node)
-      }
-      const type = typeChecker.getTypeAtLocation(node)
-      // if the type has a property "Class" that is a function
-      const propertySymbol = typeChecker.getPropertyOfType(type, "Class")
-      if (!propertySymbol) {
-        return yield* typeParserIssue("Type has no 'Class' property", type, node)
-      }
-      const sourceFile = tsUtils.getSourceFileOfNode(node)
-      if (!sourceFile) {
-        return yield* typeParserIssue("Node is not in a source file", undefined, node)
-      }
-      const schemaIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Schema"
-      )
-      if (!schemaIdentifier) {
-        return yield* typeParserIssue("Schema module not found", undefined, node)
-      }
-      if (ts.idText(node) !== schemaIdentifier) {
-        return yield* typeParserIssue("Node is not a schema module reference", undefined, node)
-      }
-      // return the node itself
-      return node
-    }),
-    "TypeParser.importedSchemaModule",
-    (node) => node
-  )
-
   const importedContextModule = Nano.cachedBy(
     Nano.fn("TypeParser.importedContextModule")(function*(
       node: ts.Node
@@ -552,29 +665,11 @@ export function make(
     (node) => node
   )
 
-  const importedEffectModule = Nano.cachedBy(
-    Nano.fn("TypeParser.importedEffectModule")(function*(
-      node: ts.Node
-    ) {
-      const type = typeChecker.getTypeAtLocation(node)
-      // if the type has a property "never"
-      const propertySymbol = typeChecker.getPropertyOfType(type, "never")
-      if (!propertySymbol) {
-        return yield* typeParserIssue("Type has no 'never' property", type, node)
-      }
-      // should be an expression
-      if (!ts.isExpression(node)) {
-        return yield* typeParserIssue("Node is not an expression", type, node)
-      }
-      // and the property type is an effect
-      const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, node)
-      yield* effectType(propertyType, node)
-      // return the node itself
-      return node
-    }),
-    "TypeParser.importedEffectModule",
-    (node) => node
-  )
+  const importedEffectModule = (node: ts.Node) =>
+    pipe(
+      isNodeReferenceToPackageModule(node, "effect", isEffectTypeSourceFile),
+      Nano.map(() => node)
+    )
 
   const importedDataModule = Nano.cachedBy(
     Nano.fn("TypeParser.importedDataModule")(function*(
@@ -635,16 +730,11 @@ export function make(
         return typeParserIssue("Node is not a property access expression", undefined, node)
       }
       const propertyAccess = node.expression
-      // gen
-      if (!(ts.isIdentifier(propertyAccess.name) && ts.idText(propertyAccess.name) === "gen")) {
-        return typeParserIssue("Call expression name is not 'gen'", undefined, node)
-      }
-      // check Effect module
       return pipe(
-        importedEffectModule(propertyAccess.expression),
-        Nano.map((effectModule) => ({
+        isNodeReferenceToEffectModuleApi("gen")(propertyAccess),
+        Nano.map(() => ({
           node,
-          effectModule,
+          effectModule: propertyAccess.expression,
           generatorFunction,
           body: generatorFunction.body
         }))
@@ -685,20 +775,11 @@ export function make(
         )
       }
       const propertyAccess = node.expression
-      // gen
-      if (!(ts.isIdentifier(propertyAccess.name) && ts.idText(propertyAccess.name) === "fnUntraced")) {
-        return typeParserIssue(
-          "Call expression name is not 'fnUntraced'",
-          undefined,
-          node
-        )
-      }
-      // check Effect module
       return pipe(
-        importedEffectModule(propertyAccess.expression),
-        Nano.map((effectModule) => ({
+        isNodeReferenceToEffectModuleApi("fnUntraced")(propertyAccess),
+        Nano.map(() => ({
           node,
-          effectModule,
+          effectModule: propertyAccess.expression,
           generatorFunction,
           body: generatorFunction.body
         }))
@@ -746,21 +827,12 @@ export function make(
         )
       }
       const propertyAccess = expressionToTest
-      // fn
-      if (!(ts.isIdentifier(propertyAccess.name) && ts.idText(propertyAccess.name) === "fn")) {
-        return typeParserIssue(
-          "Call expression name is not 'fn'",
-          undefined,
-          node
-        )
-      }
-      // check Effect module
       return pipe(
-        importedEffectModule(propertyAccess.expression),
-        Nano.map((effectModule) => ({
+        isNodeReferenceToEffectModuleApi("fn")(propertyAccess),
+        Nano.map(() => ({
           node,
           generatorFunction,
-          effectModule,
+          effectModule: propertyAccess.expression,
           body: generatorFunction.body
         }))
       )
@@ -889,6 +961,33 @@ export function make(
     "TypeParser.effectSchemaType",
     (type) => type
   )
+
+  const isEffectSchemaTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectSchemaTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const typeSymbol = typeChecker.tryGetMemberInModuleExports("Schema", moduleSymbol)
+      if (!typeSymbol) return yield* typeParserIssue("Schema type not found", undefined, sourceFile)
+      const type = typeChecker.getDeclaredTypeOfSymbol(typeSymbol)
+      yield* effectSchemaType(type, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isEffectSchemaTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectSchemaModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectSchemaModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectSchemaTypeSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectSchemaModuleApi(${memberName})`,
+      (node) => node
+    )
 
   const contextTagVarianceStruct = (
     type: ts.Type,
@@ -1068,24 +1167,14 @@ export function make(
               // Schema.Class<T>("name")({})
               const schemaCall = expression.expression
               if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
-                const selfTypeNode = schemaCall.typeArguments[0]!
-                const schemaIdentifier = schemaCall.expression
-                if (
-                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                  ts.idText(schemaIdentifier.name) === "Class"
-                ) {
-                  const expressionType = typeChecker.getTypeAtLocation(expression)
-                  const parsedSchemaModule = yield* pipe(
-                    effectSchemaType(expressionType, expression),
-                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
-                    Nano.option
-                  )
-                  if (Option.isSome(parsedSchemaModule)) {
-                    return {
-                      className: atLocation.name,
-                      selfTypeNode,
-                      Schema: parsedSchemaModule.value
-                    }
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModuleApi("Class")(schemaCall.expression),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectSchemaModuleApi)) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode: schemaCall.typeArguments[0]!
                   }
                 }
               }
@@ -1123,31 +1212,22 @@ export function make(
                 schemaTaggedClassTCall.typeArguments.length > 0
               ) {
                 const selfTypeNode = schemaTaggedClassTCall.typeArguments[0]!
-                const schemaIdentifier = schemaTaggedClassTCall.expression
-                if (
-                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                  ts.idText(schemaIdentifier.name) === "TaggedClass"
-                ) {
-                  const expressionType = typeChecker.getTypeAtLocation(expression)
-                  const parsedSchemaModule = yield* pipe(
-                    effectSchemaType(expressionType, expression),
-                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
-                    Nano.option
-                  )
-                  if (Option.isSome(parsedSchemaModule)) {
-                    return {
-                      className: atLocation.name,
-                      selfTypeNode,
-                      keyStringLiteral: schemaTaggedClassTCall.arguments.length > 0 &&
-                          ts.isStringLiteral(schemaTaggedClassTCall.arguments[0])
-                        ? schemaTaggedClassTCall.arguments[0]
-                        : undefined,
-                      tagStringLiteral: expression.arguments.length > 0 &&
-                          ts.isStringLiteral(expression.arguments[0])
-                        ? expression.arguments[0]
-                        : undefined,
-                      Schema: parsedSchemaModule.value
-                    }
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModuleApi("TaggedClass")(schemaTaggedClassTCall.expression),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectSchemaModuleApi)) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode,
+                    keyStringLiteral: schemaTaggedClassTCall.arguments.length > 0 &&
+                        ts.isStringLiteral(schemaTaggedClassTCall.arguments[0])
+                      ? schemaTaggedClassTCall.arguments[0]
+                      : undefined,
+                    tagStringLiteral: expression.arguments.length > 0 &&
+                        ts.isStringLiteral(expression.arguments[0])
+                      ? expression.arguments[0]
+                      : undefined
                   }
                 }
               }
@@ -1185,31 +1265,22 @@ export function make(
                 schemaTaggedErrorTCall.typeArguments.length > 0
               ) {
                 const selfTypeNode = schemaTaggedErrorTCall.typeArguments[0]!
-                const schemaIdentifier = schemaTaggedErrorTCall.expression
-                if (
-                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                  ts.idText(schemaIdentifier.name) === "TaggedError"
-                ) {
-                  const expressionType = typeChecker.getTypeAtLocation(expression)
-                  const parsedSchemaModule = yield* pipe(
-                    effectSchemaType(expressionType, expression),
-                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
-                    Nano.option
-                  )
-                  if (Option.isSome(parsedSchemaModule)) {
-                    return {
-                      className: atLocation.name,
-                      selfTypeNode,
-                      keyStringLiteral: schemaTaggedErrorTCall.arguments.length > 0 &&
-                          ts.isStringLiteral(schemaTaggedErrorTCall.arguments[0])
-                        ? schemaTaggedErrorTCall.arguments[0]
-                        : undefined,
-                      tagStringLiteral: expression.arguments.length > 0 &&
-                          ts.isStringLiteral(expression.arguments[0])
-                        ? expression.arguments[0]
-                        : undefined,
-                      Schema: parsedSchemaModule.value
-                    }
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModuleApi("TaggedError")(schemaTaggedErrorTCall.expression),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectSchemaModuleApi)) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode,
+                    keyStringLiteral: schemaTaggedErrorTCall.arguments.length > 0 &&
+                        ts.isStringLiteral(schemaTaggedErrorTCall.arguments[0])
+                      ? schemaTaggedErrorTCall.arguments[0]
+                      : undefined,
+                    tagStringLiteral: expression.arguments.length > 0 &&
+                        ts.isStringLiteral(expression.arguments[0])
+                      ? expression.arguments[0]
+                      : undefined
                   }
                 }
               }
@@ -1220,6 +1291,59 @@ export function make(
       return yield* typeParserIssue("Class does not extend Schema.TaggedError", undefined, atLocation)
     }),
     "TypeParser.extendsSchemaTaggedError",
+    (atLocation) => atLocation
+  )
+
+  const extendsSchemaTaggedRequest = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaTaggedRequest")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            // Schema.TaggedRequest<T>("name")("tag", {})
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.TaggedRequest<T>("name")
+              const schemaTaggedRequestTCall = expression.expression
+              if (
+                ts.isCallExpression(schemaTaggedRequestTCall) &&
+                schemaTaggedRequestTCall.typeArguments &&
+                schemaTaggedRequestTCall.typeArguments.length > 0
+              ) {
+                const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModuleApi("TaggedRequest")(schemaTaggedRequestTCall.expression),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectSchemaModuleApi)) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode,
+                    tagStringLiteral: expression.arguments.length > 0 && ts.isStringLiteral(expression.arguments[0])
+                      ? expression.arguments[0]
+                      : undefined,
+                    keyStringLiteral: schemaTaggedRequestTCall.arguments.length > 0 &&
+                        ts.isStringLiteral(schemaTaggedRequestTCall.arguments[0])
+                      ? schemaTaggedRequestTCall.arguments[0]
+                      : undefined
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.TaggedRequest", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaTaggedRequest",
     (atLocation) => atLocation
   )
 
@@ -1327,68 +1451,6 @@ export function make(
     (atLocation) => atLocation
   )
 
-  const extendsSchemaTaggedRequest = Nano.cachedBy(
-    Nano.fn("TypeParser.extendsSchemaTaggedRequest")(function*(
-      atLocation: ts.ClassDeclaration
-    ) {
-      if (!atLocation.name) {
-        return yield* typeParserIssue("Class has no name", undefined, atLocation)
-      }
-      const heritageClauses = atLocation.heritageClauses
-      if (!heritageClauses) {
-        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
-      }
-      for (const heritageClause of heritageClauses) {
-        for (const typeX of heritageClause.types) {
-          if (ts.isExpressionWithTypeArguments(typeX)) {
-            // Schema.TaggedRequest<T>("name")("tag", {})
-            const expression = typeX.expression
-            if (ts.isCallExpression(expression)) {
-              // Schema.TaggedRequest<T>("name")
-              const schemaTaggedRequestTCall = expression.expression
-              if (
-                ts.isCallExpression(schemaTaggedRequestTCall) &&
-                schemaTaggedRequestTCall.typeArguments &&
-                schemaTaggedRequestTCall.typeArguments.length > 0
-              ) {
-                const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
-                const schemaIdentifier = schemaTaggedRequestTCall.expression
-                if (
-                  ts.isPropertyAccessExpression(schemaIdentifier) && ts.isIdentifier(schemaIdentifier.name) &&
-                  ts.idText(schemaIdentifier.name) === "TaggedRequest"
-                ) {
-                  const expressionType = typeChecker.getTypeAtLocation(expression)
-                  const parsedSchemaModule = yield* pipe(
-                    effectSchemaType(expressionType, expression),
-                    Nano.flatMap(() => importedSchemaModule(schemaIdentifier.expression)),
-                    Nano.option
-                  )
-                  if (Option.isSome(parsedSchemaModule)) {
-                    return {
-                      className: atLocation.name,
-                      selfTypeNode,
-                      tagStringLiteral: expression.arguments.length > 0 && ts.isStringLiteral(expression.arguments[0])
-                        ? expression.arguments[0]
-                        : undefined,
-                      keyStringLiteral: schemaTaggedRequestTCall.arguments.length > 0 &&
-                          ts.isStringLiteral(schemaTaggedRequestTCall.arguments[0])
-                        ? schemaTaggedRequestTCall.arguments[0]
-                        : undefined,
-                      Schema: parsedSchemaModule.value
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      return yield* typeParserIssue("Class does not extend Schema.TaggedRequest", undefined, atLocation)
-    }),
-    "TypeParser.extendsSchemaTaggedRequest",
-    (atLocation) => atLocation
-  )
-
   const extendsContextTag = Nano.cachedBy(
     Nano.fn("TypeParser.extendsContextTag")(function*(
       atLocation: ts.ClassDeclaration
@@ -1459,6 +1521,10 @@ export function make(
       if (!heritageClauses) {
         return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
       }
+      const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+      if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+      const type = typeChecker.getTypeOfSymbol(classSym)
+      const tagType = yield* contextTag(type, atLocation)
       for (const heritageClause of heritageClauses) {
         for (const typeX of heritageClause.types) {
           if (ts.isExpressionWithTypeArguments(typeX)) {
@@ -1471,30 +1537,20 @@ export function make(
               ) {
                 const effectTagIdentifier = effectTagCall.expression
                 const selfTypeNode = wholeCall.typeArguments[0]!
-                if (
-                  ts.isPropertyAccessExpression(effectTagIdentifier) &&
-                  ts.isIdentifier(effectTagIdentifier.name) && ts.idText(effectTagIdentifier.name) === "Tag"
-                ) {
-                  const parsedEffectModule = yield* pipe(
-                    importedEffectModule(effectTagIdentifier.expression),
-                    Nano.option
-                  )
-                  if (Option.isSome(parsedEffectModule)) {
-                    const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
-                    if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
-                    const type = typeChecker.getTypeOfSymbol(classSym)
-                    const tagType = yield* contextTag(type, atLocation)
-                    return {
-                      className: atLocation.name,
-                      selfTypeNode,
-                      keyStringLiteral: ts.isStringLiteral(effectTagCall.arguments[0])
-                        ? effectTagCall.arguments[0]
-                        : undefined,
-                      args: effectTagCall.arguments,
-                      Identifier: tagType.Identifier,
-                      Service: tagType.Service,
-                      Tag: parsedEffectModule.value
-                    }
+                const isEffectTag = yield* pipe(
+                  isNodeReferenceToEffectModuleApi("Tag")(effectTagIdentifier),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectTag)) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode,
+                    keyStringLiteral: ts.isStringLiteral(effectTagCall.arguments[0])
+                      ? effectTagCall.arguments[0]
+                      : undefined,
+                    args: effectTagCall.arguments,
+                    Identifier: tagType.Identifier,
+                    Service: tagType.Service
                   }
                 }
               }
@@ -1531,16 +1587,16 @@ export function make(
               ) {
                 const effectServiceIdentifier = effectServiceCall.expression
                 const selfTypeNode = effectServiceCall.typeArguments[0]!
-                if (
-                  ts.isPropertyAccessExpression(effectServiceIdentifier) &&
-                  ts.isIdentifier(effectServiceIdentifier.name) && ts.idText(effectServiceIdentifier.name) === "Service"
-                ) {
+                const isEffectService = yield* pipe(
+                  isNodeReferenceToEffectModuleApi("Service")(effectServiceIdentifier),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectService)) {
                   const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
                   if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
                   const type = typeChecker.getTypeOfSymbol(classSym)
                   const parsedContextTag = yield* pipe(
-                    importedEffectModule(effectServiceIdentifier.expression),
-                    Nano.flatMap(() => contextTag(type, atLocation)),
+                    contextTag(type, atLocation),
                     Nano.option
                   )
                   if (Option.isSome(parsedContextTag)) {
@@ -1595,6 +1651,7 @@ export function make(
   )
 
   return {
+    isNodeReferenceToEffectModuleApi,
     effectType,
     strictEffectType,
     layerType,
