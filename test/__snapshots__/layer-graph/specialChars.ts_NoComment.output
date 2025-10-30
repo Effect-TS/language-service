@@ -1,2 +1,2 @@
 flowchart TD
-  0["withSpecialCharsLayer"]
+  0["withSpecialCharsLayer<br/>provides: IsGeneric#lt;#quot;With#lt;Special#gt;Chars#35;!#quot;#gt;<br/>requires: "]

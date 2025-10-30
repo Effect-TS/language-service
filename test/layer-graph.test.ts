@@ -93,10 +93,14 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
       return
     }
 
-    await expect(maybeGraph.right.layerGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".output")
-    await expect(maybeGraph.right.layerNestedGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".nested")
-    await expect(maybeGraph.right.outlineGraph).toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
-    await expect(maybeGraph.right.providersAndRequirers).toMatchFileSnapshot(baseSnapshotFilePath + ".quickinfo")
+    await expect(maybeGraph.right.layerGraph, "layerGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
+    await expect(maybeGraph.right.layerNestedGraph, "layerNestedGraph").toMatchFileSnapshot(
+      baseSnapshotFilePath + ".nested"
+    )
+    await expect(maybeGraph.right.outlineGraph, "outlineGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
+    await expect(maybeGraph.right.providersAndRequirers, "providersAndRequirers").toMatchFileSnapshot(
+      baseSnapshotFilePath + ".quickinfo"
+    )
   }
 }
 
