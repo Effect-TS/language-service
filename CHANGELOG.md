@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.51.1
+
+### Patch Changes
+
+- [#456](https://github.com/Effect-TS/language-service/pull/456) [`ddc3da8`](https://github.com/Effect-TS/language-service/commit/ddc3da8771f614aa2391f8753b44c6dad787bbd4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Bug fix for layer graph: properly display dependencies when they reference themselves
+
+  The layer graph now correctly identifies and displays dependencies even when using type assignment compatibility (e.g., when a layer provides a base type and another layer requires a subtype).
+
 ## 0.51.0
 
 ### Minor Changes
