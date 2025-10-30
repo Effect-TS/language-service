@@ -232,11 +232,23 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
 
 export const formatLayerGraph = Nano.fn("formatLayerGraph")(function*(layerGraph: LayerGraph) {
   const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+  const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+  const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+
   return Graph.toMermaid(layerGraph, {
     edgeLabel: (edge) => JSON.stringify(edge),
     nodeLabel: (graphNode) => {
       const sourceFile = tsUtils.getSourceFileOfNode(graphNode.node)!
-      return sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+      let text = sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+      text += "\nprovides: " +
+        (graphNode.provides.map((_) => typeChecker.typeToString(_, undefined, ts.TypeFormatFlags.NoTruncation)).join(
+          ", "
+        ))
+      text += "\nrequires: " +
+        graphNode.requires.map((_) => typeChecker.typeToString(_, undefined, ts.TypeFormatFlags.NoTruncation)).join(
+          ", "
+        )
+      return text
     }
   })
 })
@@ -339,7 +351,7 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
 
   const mutableGraph = Graph.beginMutation(Graph.directed<LayerOutlineGraphNodeInfo, {}>())
 
-  const providers = new WeakMap<ts.Type, Array<Graph.NodeIndex>>()
+  const providers = new Map<ts.Type, Array<Graph.NodeIndex>>()
   const knownSymbols = new WeakSet<ts.Symbol>()
 
   const leafNodes = Graph.values(Graph.externals(layerGraph, { direction: "outgoing" }))
@@ -374,8 +386,12 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
   // connect requires to providers
   for (const [nodeIndex, nodeInfo] of Graph.entries(Graph.nodes(mutableGraph))) {
     for (const requiredType of nodeInfo.requires) {
-      for (const providerNodeIndex of providers.get(requiredType) || []) {
-        Graph.addEdge(mutableGraph, nodeIndex, providerNodeIndex, {})
+      for (const [providedType, providerNodeIndexes] of providers.entries()) {
+        if (requiredType === providedType || typeChecker.isTypeAssignableTo(requiredType, providedType)) {
+          for (const providerNodeIndex of providerNodeIndexes) {
+            Graph.addEdge(mutableGraph, nodeIndex, providerNodeIndex, {})
+          }
+        }
       }
     }
   }
@@ -505,8 +521,9 @@ export type LayerProvidersAndRequirersInfo = Array<LayerProvidersAndRequirersInf
 export const extractProvidersAndRequirers = Nano.fn("extractProvidersAndRequirers")(
   function*(layerGraph: LayerGraph) {
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-    const rootWalker = Graph.externals(layerGraph, { direction: "outgoing" })
+    const rootWalker = Graph.externals(layerGraph, { direction: "incoming" })
     const rootNodes = Array.fromIterable(Graph.values(rootWalker))
     const rootNodeIndexes = Array.fromIterable(Graph.indices(rootWalker))
     const result: LayerProvidersAndRequirersInfo = []
@@ -519,7 +536,10 @@ export const extractProvidersAndRequirers = Nano.fn("extractProvidersAndRequirer
           const layerNode of Graph.values(
             walkLeavesMatching(
               layerGraph,
-              (_) => (kind === "provided" ? _.provides : _.requires).indexOf(layerType) > -1,
+              (_) =>
+                (kind === "provided" ? _.provides : _.requires).some((_) =>
+                  _ === layerType || typeChecker.isTypeAssignableTo(_, layerType)
+                ),
               { start: rootNodeIndexes }
             )
           )
