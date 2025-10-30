@@ -1,0 +1,39 @@
+// code fix catchUnfailableEffect_skipFile  output for range 147 - 162
+/** @effect-diagnostics catchUnfailableEffect:skip-file */
+// @effect-diagnostics catchUnfailableEffect:warning
+import { Effect, pipe } from "effect"
+
+export const shouldReport = Effect.succeed(42).pipe(
+  Effect.catchAll(() => Effect.void) // <- should report here
+)
+
+export const shouldNotReport = Effect.fail("error").pipe(
+  Effect.catchAll(() => Effect.succeed(42))
+)
+
+export const shouldReportPipe = pipe(
+  Effect.succeed(42),
+  Effect.catchAll(() => Effect.void) // <- should report here
+)
+
+export const shouldNotReportPipe = pipe(
+  Effect.fail("error"),
+  Effect.catchAll(() => Effect.succeed(42)) // <- should not report here
+)
+
+export const shouldTriggerThirdArg = Effect.succeed(42).pipe(
+  Effect.flatMap(() => Effect.fail("error")),
+  Effect.catchAll(() => Effect.succeed(42)) // <- should not report here
+)
+
+export const shouldNotTriggerThirdArgPipe = pipe(
+  Effect.succeed(42),
+  Effect.flatMap(() => Effect.fail("error")),
+  Effect.catchAll(() => Effect.succeed(42)) // <- should not report here
+)
+
+export const shouldTriggerThirdArgPipe = pipe(
+  Effect.succeed(42),
+  Effect.flatMap(() => Effect.void),
+  Effect.catchAll(() => Effect.succeed(42)) // <- should report here
+)

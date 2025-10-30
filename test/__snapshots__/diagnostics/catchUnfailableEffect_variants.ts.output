@@ -1,0 +1,14 @@
+Effect.catchAll
+6:2 - 6:17 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catchIf
+11:2 - 11:16 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catchSome
+16:2 - 16:18 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catchTag
+22:2 - 22:17 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catchTags
+27:2 - 27:18 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)

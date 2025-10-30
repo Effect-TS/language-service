@@ -68,6 +68,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn when schema classes override the default constructor behavior
 - Warn when `@effect-diagnostics-next-line` comments have no effect (i.e., they don't suppress any diagnostic)
 - Detect nested function calls that can be converted to pipeable style for better readability
+- Warn when using catch functions (`catchAll`, `catch`, `catchIf`, `catchSome`, `catchTag`, `catchTags`) on effects that never fail
 
 ### Completions
 

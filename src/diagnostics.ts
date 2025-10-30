@@ -1,3 +1,4 @@
+import { catchUnfailableEffect } from "./diagnostics/catchUnfailableEffect.js"
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
 import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
@@ -28,6 +29,7 @@ import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
 import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAccessors.js"
 
 export const diagnostics = [
+  catchUnfailableEffect,
   classSelfMismatch,
   duplicatePackage,
   effectGenUsesAdapter,
