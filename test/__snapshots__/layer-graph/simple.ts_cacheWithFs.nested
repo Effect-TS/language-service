@@ -1,6 +1,5 @@
 flowchart TB
-  subgraph 0 ["`FileSystem.Default
-<small>_ln 25 col 60_</small>`"]
+  subgraph 0 ["`FileSystem.Default<br/><small>_ln 25 col 60_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_provides [Provides]
         0_provides_0["FileSystem"]
@@ -11,8 +10,7 @@ flowchart TB
     style 0_wrap stroke:none
   end
   style 0 fill:transparent
-  subgraph 1 ["`Layer.provide(FileSystem.Default)
-<small>_ln 25 col 46_</small>`"]
+  subgraph 1 ["`Layer.provide(FileSystem.Default)<br/><small>_ln 25 col 46_</small>`"]
     subgraph 1_wrap[" "]
       subgraph 1_provides [Provides]
         1_provides_0["Cache"]
@@ -23,8 +21,7 @@ flowchart TB
     style 1_wrap stroke:none
   end
   style 1 fill:transparent
-  subgraph 2 ["`Cache.Default
-<small>_ln 25 col 27_</small>`"]
+  subgraph 2 ["`Cache.Default<br/><small>_ln 25 col 27_</small>`"]
     subgraph 2_wrap[" "]
       subgraph 2_requires [Requires]
         2_requires_0["FileSystem"]
@@ -39,8 +36,7 @@ flowchart TB
     style 2_wrap stroke:none
   end
   style 2 fill:transparent
-  subgraph 3 ["`Cache.Default.pipe(Layer.provide(FileSystem.Defaul
-<small>_ln 25 col 27_</small>`"]
+  subgraph 3 ["`cacheWithFs<br/><small>_ln 25 col 13_</small>`"]
     subgraph 3_wrap[" "]
       subgraph 3_provides [Provides]
         3_provides_0["Cache"]

@@ -11,6 +11,27 @@ import * as TypeParser from "./TypeParser.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
 
+const formatSourceFileName = (sourceFile: ts.SourceFile) => {
+  let fileName = sourceFile.fileName
+  if (fileName.indexOf("/") > -1) {
+    fileName = fileName.split("/").pop()!
+  }
+  return fileName
+}
+
+const formatSourceFileNameLineAndColumn = (
+  ts: TypeScriptApi.TypeScriptApi,
+  tsUtils: TypeScriptUtils.TypeScriptUtils,
+  node: ts.Node,
+  fromSourceFile: ts.SourceFile | undefined
+) => {
+  const nodeSourceFile = tsUtils.getSourceFileOfNode(node)!
+  const nodePosition = ts.getTokenPosOfNode(node, nodeSourceFile)
+  const { character, line } = ts.getLineAndCharacterOfPosition(nodeSourceFile, nodePosition)
+  if (!fromSourceFile || nodeSourceFile === fromSourceFile) return `ln ${line + 1} col ${character}`
+  return `in ${formatSourceFileName(nodeSourceFile)} at ln ${line + 1} col ${character}`
+}
+
 export class UnableToProduceLayerGraphError {
   readonly _tag = "@effect/language-service/UnableToProduceLayerGraphError"
   constructor(
@@ -21,6 +42,7 @@ export class UnableToProduceLayerGraphError {
 
 export interface LayerGraphNodeInfo {
   node: ts.Node
+  displayNode: ts.Node
   layerType: ts.Type | undefined
   provides: Array<ts.Type>
   requires: Array<ts.Type>
@@ -110,7 +132,13 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
       requires = typeCheckerUtils.unrollUnionMembers(layerTypes.RIn).filter((_) => !(_.flags & ts.TypeFlags.Never))
     }
 
-    return { node, layerType, layerTypes, provides, requires }
+    // for the display node, we want to use the name of the variable declaration if the node is the initializer
+    let displayNode = node
+    if (node.parent && ts.isVariableDeclaration(node.parent) && node.parent.initializer === node) {
+      displayNode = node.parent.name
+    }
+
+    return { node, displayNode, layerType, layerTypes, provides, requires }
   })
 
   const addNode = Nano.fn("addNode")(function*(node: ts.Node, nodeInfo?: LayerGraphNodeInfo) {
@@ -276,27 +304,6 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
   return Graph.endMutation(mutableGraph)
 })
 
-const formatSourceFileName = (sourceFile: ts.SourceFile) => {
-  let fileName = sourceFile.fileName
-  if (fileName.indexOf("/") > -1) {
-    fileName = fileName.split("/").pop()!
-  }
-  return fileName
-}
-
-const formatSourceFileNameLineAndColumn = (
-  ts: TypeScriptApi.TypeScriptApi,
-  tsUtils: TypeScriptUtils.TypeScriptUtils,
-  node: ts.Node,
-  fromSourceFile: ts.SourceFile | undefined
-) => {
-  const nodeSourceFile = tsUtils.getSourceFileOfNode(node)!
-  const nodePosition = ts.getTokenPosOfNode(node, nodeSourceFile)
-  const { character, line } = ts.getLineAndCharacterOfPosition(nodeSourceFile, nodePosition)
-  if (!fromSourceFile || nodeSourceFile === fromSourceFile) return `ln ${line + 1} col ${character}`
-  return `in ${formatSourceFileName(nodeSourceFile)} at ln ${line + 1} col ${character}`
-}
-
 export const formatLayerGraph = Nano.fn("formatLayerGraph")(
   function*(layerGraph: LayerGraph, _fromSourceFile: ts.SourceFile | undefined) {
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
@@ -369,12 +376,13 @@ export const formatNestedLayerGraph = Nano.fn("formatNestedLayerGraph")(
         `style ${graphNodeIndex}_wrap fill:transparent`,
         `style ${graphNodeIndex}_wrap stroke:none`
       ]
-      const sourceFile = tsUtils.getSourceFileOfNode(graphNode.node)!
-      const nodeText = sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+      const tsNode = graphNode.displayNode
+      const sourceFile = tsUtils.getSourceFileOfNode(tsNode)!
+      const nodeText = sourceFile.text.substring(tsNode.pos, tsNode.end).trim()
       result = [
         ...result,
-        `subgraph ${graphNodeIndex} ["\`${mermaidSafe(nodeText)}\n<small>_${
-          mermaidSafe(formatSourceFileNameLineAndColumn(ts, tsUtils, graphNode.node, fromSourceFile))
+        `subgraph ${graphNodeIndex} ["\`${mermaidSafe(nodeText)}<br/><small>_${
+          mermaidSafe(formatSourceFileNameLineAndColumn(ts, tsUtils, tsNode, fromSourceFile))
         }_</small>\`"]`,
         ...subgraphDefs.map((_) => `  ${_}`),
         `end`,
@@ -412,6 +420,7 @@ export const formatNestedLayerGraph = Nano.fn("formatNestedLayerGraph")(
 
 export interface LayerOutlineGraphNodeInfo {
   node: ts.Node
+  displayNode: ts.Node
   requires: Array<ts.Type>
   provides: Array<ts.Type>
 }
@@ -444,6 +453,7 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
   for (const leafNode of dedupedLeafNodes) {
     const nodeIndex = Graph.addNode(mutableGraph, {
       node: leafNode.node,
+      displayNode: leafNode.displayNode,
       requires: leafNode.requires,
       provides: leafNode.provides
     })
@@ -475,13 +485,15 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
 export const formatLayerOutlineGraph = Nano.fn("formatLayerOutlineGraph")(
   function*(layerOutlineGraph: LayerOutlineGraph, fromSourceFile: ts.SourceFile | undefined) {
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     return Graph.toMermaid(layerOutlineGraph, {
       edgeLabel: () => "",
       nodeLabel: (graphNode) => {
-        const sourceFile = tsUtils.getSourceFileOfNode(graphNode.node)!
-        const nodeText = sourceFile.text.substring(graphNode.node.pos, graphNode.node.end).trim()
+        const tsNode = graphNode.displayNode
+        const sourceFile = tsUtils.getSourceFileOfNode(tsNode)!
+        const nodeText = sourceFile.text.substring(tsNode.pos, tsNode.end).trim()
         if (sourceFile === fromSourceFile) return nodeText
-        return nodeText + "\n_in " + formatSourceFileName(sourceFile) + "_"
+        return `${nodeText}\n_${formatSourceFileNameLineAndColumn(ts, tsUtils, tsNode, fromSourceFile)}_`
       }
     })
   }
@@ -588,6 +600,7 @@ export interface LayerProvidersAndRequirersInfoItem {
   kind: "provided" | "required"
   type: ts.Type
   nodes: Array<ts.Node>
+  displayNodes: Array<ts.Node>
 }
 
 export type LayerProvidersAndRequirersInfo = Array<LayerProvidersAndRequirersInfoItem>
@@ -607,6 +620,7 @@ export const extractProvidersAndRequirers = Nano.fn("extractProvidersAndRequirer
       const sortedTypes = pipe(Array.fromIterable(rootTypes), Array.sort(typeCheckerUtils.deterministicTypeOrder))
       for (const layerType of sortedTypes) {
         const tsNodes: Array<ts.Node> = []
+        const tsDisplayNodes: Array<ts.Node> = []
         for (
           const layerNode of Graph.values(
             walkLeavesMatching(
@@ -620,11 +634,13 @@ export const extractProvidersAndRequirers = Nano.fn("extractProvidersAndRequirer
           )
         ) {
           tsNodes.push(layerNode.node)
+          tsDisplayNodes.push(layerNode.displayNode)
         }
         result.push({
           kind,
           type: layerType,
-          nodes: tsNodes
+          nodes: tsNodes,
+          displayNodes: tsDisplayNodes
         })
       }
     }
@@ -652,7 +668,7 @@ export const formatLayerProvidersAndRequirersInfo = Nano.fn("formatLayerProvider
         ts.TypeFormatFlags.NoTruncation
       )
 
-      const positions = infoNode.nodes.map((_) => {
+      const positions = infoNode.displayNodes.map((_) => {
         const sourceFile = tsUtils.getSourceFileOfNode(_)!
         const nodeText = sourceFile.text.substring(_.pos, _.end).trim().replace(/\n/g, " ").substr(0, 50)
         return `${formatSourceFileNameLineAndColumn(ts, tsUtils, _, fromSourceFile)} by \`${nodeText}\``

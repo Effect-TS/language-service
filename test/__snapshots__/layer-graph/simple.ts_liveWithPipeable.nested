@@ -1,6 +1,5 @@
 flowchart TB
-  subgraph 0 ["`DbConnection.Default
-<small>_ln 22 col 14_</small>`"]
+  subgraph 0 ["`DbConnection.Default<br/><small>_ln 22 col 14_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_provides [Provides]
         0_provides_0["DbConnection"]
@@ -11,8 +10,7 @@ flowchart TB
     style 0_wrap stroke:none
   end
   style 0 fill:transparent
-  subgraph 1 ["`Layer.merge(DbConnection.Default)
-<small>_ln 22 col 2_</small>`"]
+  subgraph 1 ["`Layer.merge(DbConnection.Default)<br/><small>_ln 22 col 2_</small>`"]
     subgraph 1_wrap[" "]
       subgraph 1_requires [Requires]
         1_requires_0["FileSystem"]
@@ -30,8 +28,7 @@ flowchart TB
     style 1_wrap stroke:none
   end
   style 1 fill:transparent
-  subgraph 2 ["`Cache.Default
-<small>_ln 21 col 21_</small>`"]
+  subgraph 2 ["`Cache.Default<br/><small>_ln 21 col 21_</small>`"]
     subgraph 2_wrap[" "]
       subgraph 2_requires [Requires]
         2_requires_0["FileSystem"]
@@ -46,8 +43,7 @@ flowchart TB
     style 2_wrap stroke:none
   end
   style 2 fill:transparent
-  subgraph 3 ["`Layer.provideMerge(Cache.Default)
-<small>_ln 21 col 2_</small>`"]
+  subgraph 3 ["`Layer.provideMerge(Cache.Default)<br/><small>_ln 21 col 2_</small>`"]
     subgraph 3_wrap[" "]
       subgraph 3_requires [Requires]
         3_requires_0["FileSystem"]
@@ -64,8 +60,7 @@ flowchart TB
     style 3_wrap stroke:none
   end
   style 3 fill:transparent
-  subgraph 4 ["`UserRepository.Default
-<small>_ln 20 col 32_</small>`"]
+  subgraph 4 ["`UserRepository.Default<br/><small>_ln 20 col 32_</small>`"]
     subgraph 4_wrap[" "]
       subgraph 4_requires [Requires]
         4_requires_0["Cache"]
@@ -81,8 +76,7 @@ flowchart TB
     style 4_wrap stroke:none
   end
   style 4 fill:transparent
-  subgraph 5 ["`UserRepository.Default.pipe( Layer.provideMerge(Ca
-<small>_ln 20 col 32_</small>`"]
+  subgraph 5 ["`liveWithPipeable<br/><small>_ln 20 col 13_</small>`"]
     subgraph 5_wrap[" "]
       subgraph 5_requires [Requires]
         5_requires_0["FileSystem"]
