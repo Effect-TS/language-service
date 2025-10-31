@@ -219,8 +219,8 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
       const nodeInfo = yield* extractNodeInfo(node)
       if (nodeInfo.layerTypes) {
         yield* addNode(node, nodeInfo)
-        continue
       }
+      continue
     }
 
     // PANIC! We got something we don't understand.
