@@ -61,17 +61,23 @@ function parseLayerGraph(
   layerNode: ts.Node
 ) {
   return Nano.gen(function*() {
+    const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+
     const layerGraph = yield* LayerGraph.extractLayerGraph(layerNode, {
       arrayLiteralAsMerge: false,
-      explodeOnlyLayerCalls: false
+      explodeOnlyLayerCalls: false,
+      followSymbolsDepth: options.layerGraphFollowDepth
     })
-    const nestedGraphMermaid = yield* LayerGraph.formatNestedLayerGraph(layerGraph)
+    const sourceFile = tsUtils.getSourceFileOfNode(layerNode)!
+    const nestedGraphMermaid = yield* LayerGraph.formatNestedLayerGraph(layerGraph, sourceFile)
 
     const outlineGraph = yield* LayerGraph.extractOutlineGraph(layerGraph)
-    const outlineGraphMermaid = yield* LayerGraph.formatLayerOutlineGraph(outlineGraph)
+    const outlineGraphMermaid = yield* LayerGraph.formatLayerOutlineGraph(outlineGraph, sourceFile)
     const providersAndRequirers = yield* LayerGraph.extractProvidersAndRequirers(layerGraph)
     const providersAndRequirersTextualExplanation = yield* LayerGraph.formatLayerProvidersAndRequirersInfo(
-      providersAndRequirers
+      providersAndRequirers,
+      sourceFile
     )
     return { nestedGraphMermaid, outlineGraphMermaid, providersAndRequirersTextualExplanation }
   })

@@ -37,6 +37,7 @@ export interface LanguageServicePluginOptions {
   renames: boolean
   noExternal: boolean
   pipeableMinArgCount: number
+  layerGraphFollowDepth: number
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -86,7 +87,8 @@ export const defaults: LanguageServicePluginOptions = {
     skipLeadingPath: ["src/"]
   }],
   extendedKeyDetection: false,
-  pipeableMinArgCount: 1
+  pipeableMinArgCount: 1,
+  layerGraphFollowDepth: 0
 }
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
@@ -187,6 +189,10 @@ export function parse(config: any): LanguageServicePluginOptions {
     pipeableMinArgCount:
       isObject(config) && hasProperty(config, "pipeableMinArgCount") && isNumber(config.pipeableMinArgCount)
         ? config.pipeableMinArgCount
-        : defaults.pipeableMinArgCount
+        : defaults.pipeableMinArgCount,
+    layerGraphFollowDepth:
+      isObject(config) && hasProperty(config, "layerGraphFollowDepth") && isNumber(config.layerGraphFollowDepth)
+        ? config.layerGraphFollowDepth
+        : defaults.layerGraphFollowDepth
   }
 }

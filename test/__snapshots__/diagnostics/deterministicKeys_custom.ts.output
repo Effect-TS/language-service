@@ -1,2 +1,5 @@
 "Hello"
 11:43 - 11:50 | 1 | Key should be '@effect/language-service/MyClass'    effect(deterministicKeys)
+
+"TTLRequest"
+17:5 - 17:17 | 1 | Key should be '@effect/language-service/TTLRequest'    effect(deterministicKeys)

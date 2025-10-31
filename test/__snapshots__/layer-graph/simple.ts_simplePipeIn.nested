@@ -1,5 +1,6 @@
 flowchart TB
-  subgraph 0 ["`Cache.Default<br/>_at ln 18 col 70_`"]
+  subgraph 0 ["`Cache.Default
+<small>_ln 18 col 70_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_requires [Requires]
         0_requires_0["FileSystem"]
@@ -14,7 +15,8 @@ flowchart TB
     style 0_wrap stroke:none
   end
   style 0 fill:transparent
-  subgraph 1 ["`Layer.provide(Cache.Default)<br/>_at ln 18 col 56_`"]
+  subgraph 1 ["`Layer.provide(Cache.Default)
+<small>_ln 18 col 56_</small>`"]
     subgraph 1_wrap[" "]
       subgraph 1_requires [Requires]
         1_requires_0["FileSystem"]
@@ -30,7 +32,8 @@ flowchart TB
     style 1_wrap stroke:none
   end
   style 1 fill:transparent
-  subgraph 2 ["`UserRepository.Default<br/>_at ln 18 col 28_`"]
+  subgraph 2 ["`UserRepository.Default
+<small>_ln 18 col 28_</small>`"]
     subgraph 2_wrap[" "]
       subgraph 2_requires [Requires]
         2_requires_0["Cache"]
@@ -46,7 +49,8 @@ flowchart TB
     style 2_wrap stroke:none
   end
   style 2 fill:transparent
-  subgraph 3 ["`UserRepository.Default.pipe(Layer.provide(Cache.De<br/>_at ln 18 col 28_`"]
+  subgraph 3 ["`UserRepository.Default.pipe(Layer.provide(Cache.De
+<small>_ln 18 col 28_</small>`"]
     subgraph 3_wrap[" "]
       subgraph 3_requires [Requires]
         3_requires_0["FileSystem"]

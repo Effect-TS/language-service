@@ -1,0 +1,6 @@
+/**
+ * - DbConnection provided at ln 7 col 95 by `DbConnection.Default`
+ * - UserRepository provided at ln 7 col 27 by `UserRepository.Default`
+ * 
+ * - DbConnection required at ln 7 col 27 by `UserRepository.Default`
+ */

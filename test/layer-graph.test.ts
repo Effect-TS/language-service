@@ -51,20 +51,34 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
       fileName + "_" + name
     )
 
+    const options = LanguageServicePluginOptions.parse({
+      ...LanguageServicePluginOptions.defaults,
+      completions: true,
+      refactors: false,
+      diagnostics: false,
+      quickinfo: false,
+      goto: false,
+      ...configFromSourceComment(sourceText)
+    })
+
     // check and assert the completions is executable
     const maybeGraph = pipe(
       Nano.gen(function*() {
         const layerGraph = yield* LayerGraph.extractLayerGraph(node, {
           arrayLiteralAsMerge: false,
-          explodeOnlyLayerCalls: false
+          explodeOnlyLayerCalls: false,
+          followSymbolsDepth: options.layerGraphFollowDepth
         })
         const outlineGraph = yield* LayerGraph.extractOutlineGraph(layerGraph)
         const providersAndRequirers = yield* LayerGraph.extractProvidersAndRequirers(layerGraph)
         return {
-          layerGraph: yield* LayerGraph.formatLayerGraph(layerGraph),
-          layerNestedGraph: yield* LayerGraph.formatNestedLayerGraph(layerGraph),
-          outlineGraph: yield* LayerGraph.formatLayerOutlineGraph(outlineGraph),
-          providersAndRequirers: yield* LayerGraph.formatLayerProvidersAndRequirersInfo(providersAndRequirers)
+          layerGraph: yield* LayerGraph.formatLayerGraph(layerGraph, sourceFile),
+          layerNestedGraph: yield* LayerGraph.formatNestedLayerGraph(layerGraph, sourceFile),
+          outlineGraph: yield* LayerGraph.formatLayerOutlineGraph(outlineGraph, sourceFile),
+          providersAndRequirers: yield* LayerGraph.formatLayerProvidersAndRequirersInfo(
+            providersAndRequirers,
+            sourceFile
+          )
         }
       }),
       TypeParser.nanoLayer,
@@ -75,15 +89,7 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
       Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
       Nano.provideService(
         LanguageServicePluginOptions.LanguageServicePluginOptions,
-        LanguageServicePluginOptions.parse({
-          ...LanguageServicePluginOptions.defaults,
-          completions: true,
-          refactors: false,
-          diagnostics: false,
-          quickinfo: false,
-          goto: false,
-          ...configFromSourceComment(sourceText)
-        })
+        options
       ),
       Nano.unsafeRun
     )

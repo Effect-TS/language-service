@@ -1,5 +1,6 @@
 flowchart TB
-  subgraph 0 ["`userLayer<br/>_at ln 19 col 25_`"]
+  subgraph 0 ["`userLayer
+<small>_ln 19 col 25_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_provides [Provides]
         0_provides_0["IsGeneric#lt;UserRepository#gt;"]

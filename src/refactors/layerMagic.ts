@@ -47,7 +47,8 @@ export const layerMagic = LSP.createRefactor({
       return pipe(
         LayerGraph.extractLayerGraph(atLocation, {
           arrayLiteralAsMerge: true,
-          explodeOnlyLayerCalls: true
+          explodeOnlyLayerCalls: true,
+          followSymbolsDepth: 0
         }),
         Nano.flatMap(LayerGraph.extractOutlineGraph),
         Nano.flatMap((extractedLayer) =>
@@ -166,7 +167,8 @@ export const layerMagic = LSP.createRefactor({
           pipe(
             LayerGraph.extractLayerGraph(_targetLayer.castedStructure, {
               arrayLiteralAsMerge: true,
-              explodeOnlyLayerCalls: true
+              explodeOnlyLayerCalls: true,
+              followSymbolsDepth: 0
             }),
             Nano.flatMap(LayerGraph.extractOutlineGraph),
             Nano.flatMap((extractedLayer) =>
