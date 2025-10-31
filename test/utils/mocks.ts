@@ -37,12 +37,10 @@ export function createMockLanguageServiceHost(
     },
     fileExists: (_fileName) => {
       if (_fileName === fileName) return true
-      if (_fileName.indexOf("simple.ts") > -1) console.log("fileExists", _fileName)
       return fs.existsSync(_fileName)
     },
     readFile: (_fileName) => {
       if (_fileName === fileName) return sourceText
-      if (_fileName.indexOf("simple.ts") > -1) console.log("readFile", _fileName)
       return fs.readFileSync(_fileName).toString()
     }
   }

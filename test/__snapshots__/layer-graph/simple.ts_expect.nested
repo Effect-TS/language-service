@@ -1,6 +1,5 @@
 flowchart TB
-  subgraph 0 ["`UserRepository.Default
-<small>_ln 16 col 22_</small>`"]
+  subgraph 0 ["`expect<br/><small>_ln 16 col 13_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_requires [Requires]
         0_requires_0["Cache"]

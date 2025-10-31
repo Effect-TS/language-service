@@ -1,6 +1,5 @@
 flowchart TB
-  subgraph 0 ["`DbConnection.Default
-<small>_ln 5 col 61_</small>`"]
+  subgraph 0 ["`DbConnection.Default<br/><small>_ln 5 col 61_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_provides [Provides]
         0_provides_0["DbConnection"]
@@ -11,8 +10,7 @@ flowchart TB
     style 0_wrap stroke:none
   end
   style 0 fill:transparent
-  subgraph 1 ["`Layer.provide(DbConnection.Default)
-<small>_ln 5 col 47_</small>`"]
+  subgraph 1 ["`Layer.provide(DbConnection.Default)<br/><small>_ln 5 col 47_</small>`"]
     subgraph 1_wrap[" "]
       subgraph 1_requires [Requires]
         1_requires_0["FileSystem"]
@@ -27,8 +25,7 @@ flowchart TB
     style 1_wrap stroke:none
   end
   style 1 fill:transparent
-  subgraph 2 ["`Cache.Default
-<small>_in simple.ts at ln 18 col 70_</small>`"]
+  subgraph 2 ["`Cache.Default<br/><small>_in simple.ts at ln 18 col 70_</small>`"]
     subgraph 2_wrap[" "]
       subgraph 2_requires [Requires]
         2_requires_0["FileSystem"]
@@ -43,8 +40,7 @@ flowchart TB
     style 2_wrap stroke:none
   end
   style 2 fill:transparent
-  subgraph 3 ["`Layer.provide(Cache.Default)
-<small>_in simple.ts at ln 18 col 56_</small>`"]
+  subgraph 3 ["`Layer.provide(Cache.Default)<br/><small>_in simple.ts at ln 18 col 56_</small>`"]
     subgraph 3_wrap[" "]
       subgraph 3_requires [Requires]
         3_requires_0["FileSystem"]
@@ -60,8 +56,7 @@ flowchart TB
     style 3_wrap stroke:none
   end
   style 3 fill:transparent
-  subgraph 4 ["`UserRepository.Default
-<small>_in simple.ts at ln 18 col 28_</small>`"]
+  subgraph 4 ["`UserRepository.Default<br/><small>_in simple.ts at ln 18 col 28_</small>`"]
     subgraph 4_wrap[" "]
       subgraph 4_requires [Requires]
         4_requires_0["Cache"]
@@ -77,8 +72,7 @@ flowchart TB
     style 4_wrap stroke:none
   end
   style 4 fill:transparent
-  subgraph 5 ["`UserRepository.Default.pipe(Layer.provide(Cache.De
-<small>_in simple.ts at ln 18 col 28_</small>`"]
+  subgraph 5 ["`simplePipeIn<br/><small>_in simple.ts at ln 18 col 13_</small>`"]
     subgraph 5_wrap[" "]
       subgraph 5_requires [Requires]
         5_requires_0["FileSystem"]
@@ -94,8 +88,7 @@ flowchart TB
     style 5_wrap stroke:none
   end
   style 5 fill:transparent
-  subgraph 6 ["`simplePipeIn
-<small>_ln 5 col 29_</small>`"]
+  subgraph 6 ["`simplePipeIn<br/><small>_ln 5 col 29_</small>`"]
     subgraph 6_wrap[" "]
       subgraph 6_requires [Requires]
         6_requires_0["FileSystem"]
@@ -111,8 +104,7 @@ flowchart TB
     style 6_wrap stroke:none
   end
   style 6 fill:transparent
-  subgraph 7 ["`simplePipeIn.pipe(Layer.provide(DbConnection.Defau
-<small>_ln 5 col 29_</small>`"]
+  subgraph 7 ["`followSymbols<br/><small>_ln 5 col 13_</small>`"]
     subgraph 7_wrap[" "]
       subgraph 7_requires [Requires]
         7_requires_0["FileSystem"]
