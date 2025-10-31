@@ -1,5 +1,48 @@
 # @effect/language-service
 
+## 0.52.0
+
+### Minor Changes
+
+- [#460](https://github.com/Effect-TS/language-service/pull/460) [`1ac81a0`](https://github.com/Effect-TS/language-service/commit/1ac81a0edb3fa98ffe90f5e8044d5d65de1f0027) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new diagnostic `catchUnfailableEffect` to warn when using catch functions on effects that never fail
+
+  This diagnostic detects when catch error handling functions are applied to effects that have a `never` error type (meaning they cannot fail). It supports all Effect catch variants:
+
+  - `Effect.catchAll`
+  - `Effect.catch`
+  - `Effect.catchIf`
+  - `Effect.catchSome`
+  - `Effect.catchTag`
+  - `Effect.catchTags`
+
+  Example:
+
+  ```typescript
+  // Will trigger diagnostic
+  const example = Effect.succeed(42).pipe(
+    Effect.catchAll(() => Effect.void) // <- Warns here
+  );
+
+  // Will not trigger diagnostic
+  const example2 = Effect.fail("error").pipe(
+    Effect.catchAll(() => Effect.succeed(42))
+  );
+  ```
+
+  The diagnostic works in both pipeable style (`Effect.succeed(x).pipe(Effect.catchAll(...))`) and data-first style (`pipe(Effect.succeed(x), Effect.catchAll(...))`), analyzing the error type at each position in the pipe chain.
+
+- [#458](https://github.com/Effect-TS/language-service/pull/458) [`372a9a7`](https://github.com/Effect-TS/language-service/commit/372a9a767bf69f733d54ab93e47eb4792e87b289) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor TypeParser internals to use symbol-based navigation instead of type-based navigation
+
+  This change improves the reliability and performance of the TypeParser by switching from type-based navigation to symbol-based navigation when identifying Effect, Schema, and other Effect ecosystem APIs. The new implementation:
+
+  - Uses TypeScript's symbol resolution APIs to accurately identify imports and references
+  - Supports package name resolution to verify that identifiers actually reference the correct packages
+  - Implements proper alias resolution for imported symbols
+  - Adds caching for source file package information lookups
+  - Provides new helper methods like `isNodeReferenceToEffectModuleApi` and `isNodeReferenceToEffectSchemaModuleApi`
+
+  This is an internal refactoring that doesn't change the public API or functionality, but provides a more robust foundation for the language service features.
+
 ## 0.51.1
 
 ### Patch Changes
