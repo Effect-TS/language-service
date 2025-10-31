@@ -2,7 +2,7 @@ import * as Command from "@effect/cli/Command"
 import * as Options from "@effect/cli/Options"
 import * as FileSystem from "@effect/platform/FileSystem"
 import * as Effect from "effect/Effect"
-import { getModuleFilePath, getUnpatchedSourceFile } from "./utils"
+import { getModuleFilePath, getSourceFileText, getUnpatchedSourceFile } from "./utils"
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
@@ -30,8 +30,11 @@ export const unpatch = Command.make(
       yield* Effect.logDebug(`Resolving ${moduleName}...`)
       const filePath = yield* getModuleFilePath(dirPath, moduleName)
 
+      yield* Effect.logDebug(`Reading ${moduleName} from ${filePath}...`)
+      const sourceText = yield* getSourceFileText(filePath)
+
       yield* Effect.logDebug(`Unpatching ${filePath}...`)
-      const sourceFile = yield* getUnpatchedSourceFile(filePath)
+      const sourceFile = yield* getUnpatchedSourceFile(filePath, sourceText)
 
       yield* Effect.logDebug(`Writing ${filePath}...`)
       yield* fs.writeFileString(filePath, sourceFile.text)

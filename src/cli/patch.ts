@@ -10,6 +10,7 @@ import {
   getEffectLspPatchUtils,
   getModuleFilePath,
   getPackageJsonData,
+  getSourceFileText,
   getTypeScript,
   getTypeScriptApisUtils,
   getUnpatchedSourceFile,
@@ -38,6 +39,15 @@ const moduleNames = Options.choice("module", [
   Options.repeated,
   Options.withDescription("The name of the module to patch.")
 )
+
+const force = Options.boolean("force").pipe(
+  Options.withDefault(false),
+  Options.withDescription("Force patch even if already patched.")
+)
+
+const getPatchedMarker = (version: string) => {
+  return `"use effect-lsp-patch-version ${version}";`
+}
 
 const getPatchesForModule = Effect.fn("getPatchesForModule")(
   function*(moduleName: "tsc" | "typescript", dirPath: string, version: string, sourceFile: ts.SourceFile) {
@@ -253,6 +263,18 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
       )
     )
 
+    // append a comment with the current version of the effect language service patch applied
+    patches.push(
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
+        insertCheckSourceFilePosition.value.position,
+        insertCheckSourceFilePosition.value.position,
+        getPatchedMarker(version) + "\n",
+        "\n",
+        version
+      )
+    )
+
     return patches
   }
 )
@@ -279,8 +301,8 @@ export const printRememberPrepareScript = Effect.fn("printRememberPrepareScript"
 
 export const patch = Command.make(
   "patch",
-  { dirPath, moduleNames },
-  Effect.fn("patch")(function*({ dirPath, moduleNames }) {
+  { dirPath, moduleNames, force },
+  Effect.fn("patch")(function*({ dirPath, force, moduleNames }) {
     const fs = yield* FileSystem.FileSystem
 
     // read my data
@@ -298,7 +320,20 @@ export const patch = Command.make(
       const filePath = yield* getModuleFilePath(dirPath, moduleName)
 
       yield* Effect.logDebug(`Reading ${moduleName} from ${filePath}...`)
-      const sourceFile = yield* getUnpatchedSourceFile(filePath)
+      const sourceText = yield* getSourceFileText(filePath)
+
+      // skip if already patched
+      yield* Effect.logDebug(
+        `Checking if ${filePath} is already patched with marker ${getPatchedMarker(effectLspVersion)}...`
+      )
+      if (!force && sourceText.indexOf(getPatchedMarker(effectLspVersion)) !== -1) {
+        yield* Effect.logInfo(`${filePath} is already patched with version ${effectLspVersion}, skipped.`)
+        continue
+      }
+
+      // parse the source file
+      yield* Effect.logDebug(`Parsing ${moduleName}...`)
+      const sourceFile = yield* getUnpatchedSourceFile(filePath, sourceText)
 
       // construct the patches to apply
       yield* Effect.logDebug(`Collecting patches for ${moduleName}...`)

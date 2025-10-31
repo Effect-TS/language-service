@@ -80,7 +80,8 @@ export const getModuleFilePath = Effect.fn("getModuleFilePath")(
 export const getTypeScriptApisUtils = Effect.fn("getTypeScriptApisFile")(
   function*(dirPath: string) {
     const filePath = yield* getModuleFilePath(dirPath, "typescript")
-    const sourceFile = yield* getUnpatchedSourceFile(filePath)
+    const sourceText = yield* getSourceFileText(filePath)
+    const sourceFile = yield* getUnpatchedSourceFile(filePath, sourceText)
     const bodyWithoutBundlerComment = yield* omitBundlerSourceFileComment(
       sourceFile.text.split("\n").map((line) => `    ${line}`).join("\n")
     )
@@ -209,30 +210,35 @@ export const applyTextChanges = Effect.fn("applyTextChanges")(
   }
 )
 
-export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(function*(filePath: string) {
+export const getSourceFileText = Effect.fn("getSourceFileText")(function*(filePath: string) {
   const fs = yield* FileSystem.FileSystem
-  const ts = yield* getTypeScript
-
-  const sourceText = yield* fs.readFileString(filePath)
-  const sourceFile = ts.createSourceFile(
-    filePath,
-    sourceText,
-    ts.ScriptTarget.ES2022,
-    true
-  )
-  const { revertChanges } = yield* extractAppliedEffectLspPatches(sourceFile)
-  // if there are no revert changes, return the original source file
-  if (revertChanges.length === 0) return sourceFile
-  // create a new source file with the reverted changes
-  const newSourceText = yield* applyTextChanges(sourceText, revertChanges)
-  const newSourceFile = ts.createSourceFile(
-    filePath,
-    newSourceText,
-    ts.ScriptTarget.ES2022,
-    true
-  )
-  return newSourceFile
+  return yield* fs.readFileString(filePath)
 })
+
+export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(
+  function*(filePath: string, sourceText: string) {
+    const ts = yield* getTypeScript
+
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      sourceText,
+      ts.ScriptTarget.ES2022,
+      true
+    )
+    const { revertChanges } = yield* extractAppliedEffectLspPatches(sourceFile)
+    // if there are no revert changes, return the original source file
+    if (revertChanges.length === 0) return sourceFile
+    // create a new source file with the reverted changes
+    const newSourceText = yield* applyTextChanges(sourceText, revertChanges)
+    const newSourceFile = ts.createSourceFile(
+      filePath,
+      newSourceText,
+      ts.ScriptTarget.ES2022,
+      true
+    )
+    return newSourceFile
+  }
+)
 
 export const omitBundlerSourceFileComment = Effect.fn("omitBundlerSourceFileComment")(
   function*(originalSourceText: string) {
