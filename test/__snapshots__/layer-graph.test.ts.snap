@@ -12,6 +12,13 @@ exports[`Layer Graph  > effect.ts 1`] = `
 ]
 `;
 
+exports[`Layer Graph  > followSymbols.ts 1`] = `
+[
+  "followSymbols",
+  "moreComplex",
+]
+`;
+
 exports[`Layer Graph  > generics.ts 1`] = `
 [
   "NoComment",
@@ -35,6 +42,7 @@ exports[`Layer Graph  > simple.ts 1`] = `
   "expect",
   "simplePipeIn",
   "liveWithPipeable",
+  "cacheWithFs",
 ]
 `;
 

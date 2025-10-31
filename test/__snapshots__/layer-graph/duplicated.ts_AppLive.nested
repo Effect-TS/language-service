@@ -1,5 +1,6 @@
 flowchart TB
-  subgraph 0 ["`AppService.Default<br/>_at ln 44 col 21_`"]
+  subgraph 0 ["`AppService.Default
+<small>_ln 44 col 21_</small>`"]
     subgraph 0_wrap[" "]
       subgraph 0_requires [Requires]
         0_requires_0["EventService"]
@@ -15,7 +16,8 @@ flowchart TB
     style 0_wrap stroke:none
   end
   style 0 fill:transparent
-  subgraph 1 ["`Layer.provideMerge(AppService.Default)<br/>_at ln 44 col 2_`"]
+  subgraph 1 ["`Layer.provideMerge(AppService.Default)
+<small>_ln 44 col 2_</small>`"]
     subgraph 1_wrap[" "]
       subgraph 1_requires [Requires]
         1_requires_0["EventsRepository"]
@@ -41,7 +43,8 @@ flowchart TB
     style 1_wrap stroke:none
   end
   style 1 fill:transparent
-  subgraph 2 ["`EventService.Default<br/>_at ln 41 col 25_`"]
+  subgraph 2 ["`EventService.Default
+<small>_ln 41 col 25_</small>`"]
     subgraph 2_wrap[" "]
       subgraph 2_requires [Requires]
         2_requires_0["EventsRepository"]
@@ -57,7 +60,8 @@ flowchart TB
     style 2_wrap stroke:none
   end
   style 2 fill:transparent
-  subgraph 3 ["`Layer.provideMerge(EventService.Default)<br/>_at ln 41 col 6_`"]
+  subgraph 3 ["`Layer.provideMerge(EventService.Default)
+<small>_ln 41 col 6_</small>`"]
     subgraph 3_wrap[" "]
       subgraph 3_requires [Requires]
         3_requires_0["EventsRepository"]
@@ -77,7 +81,8 @@ flowchart TB
     style 3_wrap stroke:none
   end
   style 3 fill:transparent
-  subgraph 4 ["`Analytics.Default<br/>_at ln 40 col 18_`"]
+  subgraph 4 ["`Analytics.Default
+<small>_ln 40 col 18_</small>`"]
     subgraph 4_wrap[" "]
       subgraph 4_provides [Provides]
         4_provides_0["Analytics"]
@@ -88,7 +93,8 @@ flowchart TB
     style 4_wrap stroke:none
   end
   style 4 fill:transparent
-  subgraph 5 ["`Layer.merge(Analytics.Default)<br/>_at ln 40 col 6_`"]
+  subgraph 5 ["`Layer.merge(Analytics.Default)
+<small>_ln 40 col 6_</small>`"]
     subgraph 5_wrap[" "]
       subgraph 5_requires [Requires]
         5_requires_0["Database"]
@@ -105,7 +111,8 @@ flowchart TB
     style 5_wrap stroke:none
   end
   style 5 fill:transparent
-  subgraph 6 ["`EventsRepository.Default<br/>_at ln 39 col 25_`"]
+  subgraph 6 ["`EventsRepository.Default
+<small>_ln 39 col 25_</small>`"]
     subgraph 6_wrap[" "]
       subgraph 6_requires [Requires]
         6_requires_0["Database"]
@@ -120,7 +127,8 @@ flowchart TB
     style 6_wrap stroke:none
   end
   style 6 fill:transparent
-  subgraph 7 ["`Layer.provideMerge(EventsRepository.Default)<br/>_at ln 39 col 6_`"]
+  subgraph 7 ["`Layer.provideMerge(EventsRepository.Default)
+<small>_ln 39 col 6_</small>`"]
     subgraph 7_wrap[" "]
       subgraph 7_requires [Requires]
         7_requires_0["Database"]
@@ -136,7 +144,8 @@ flowchart TB
     style 7_wrap stroke:none
   end
   style 7 fill:transparent
-  subgraph 8 ["`Database.Default<br/>_at ln 38 col 6_`"]
+  subgraph 8 ["`Database.Default
+<small>_ln 38 col 6_</small>`"]
     subgraph 8_wrap[" "]
       subgraph 8_provides [Provides]
         8_provides_0["Database"]
@@ -147,7 +156,8 @@ flowchart TB
     style 8_wrap stroke:none
   end
   style 8 fill:transparent
-  subgraph 9 ["`pipe( Database.Default, Layer.provideMerge(EventsR<br/>_at ln 37 col 4_`"]
+  subgraph 9 ["`pipe( Database.Default, Layer.provideMerge(EventsR
+<small>_ln 37 col 4_</small>`"]
     subgraph 9_wrap[" "]
       subgraph 9_requires [Requires]
         9_requires_0["EventsRepository"]
@@ -167,7 +177,8 @@ flowchart TB
     style 9_wrap stroke:none
   end
   style 9 fill:transparent
-  subgraph 10 ["`Layer.merge( pipe( Database.Default, Layer.provide<br/>_at ln 36 col 2_`"]
+  subgraph 10 ["`Layer.merge( pipe( Database.Default, Layer.provide
+<small>_ln 36 col 2_</small>`"]
     subgraph 10_wrap[" "]
       subgraph 10_requires [Requires]
         10_requires_0["EventsRepository"]
@@ -190,7 +201,8 @@ flowchart TB
     style 10_wrap stroke:none
   end
   style 10 fill:transparent
-  subgraph 11 ["`UserService.Default<br/>_at ln 35 col 21_`"]
+  subgraph 11 ["`UserService.Default
+<small>_ln 35 col 21_</small>`"]
     subgraph 11_wrap[" "]
       subgraph 11_requires [Requires]
         11_requires_0["Analytics"]
@@ -206,7 +218,8 @@ flowchart TB
     style 11_wrap stroke:none
   end
   style 11 fill:transparent
-  subgraph 12 ["`Layer.provideMerge(UserService.Default)<br/>_at ln 35 col 2_`"]
+  subgraph 12 ["`Layer.provideMerge(UserService.Default)
+<small>_ln 35 col 2_</small>`"]
     subgraph 12_wrap[" "]
       subgraph 12_requires [Requires]
         12_requires_0["Analytics"]
@@ -226,7 +239,8 @@ flowchart TB
     style 12_wrap stroke:none
   end
   style 12 fill:transparent
-  subgraph 13 ["`Analytics.Default<br/>_at ln 34 col 14_`"]
+  subgraph 13 ["`Analytics.Default
+<small>_ln 34 col 14_</small>`"]
     subgraph 13_wrap[" "]
       subgraph 13_provides [Provides]
         13_provides_0["Analytics"]
@@ -237,7 +251,8 @@ flowchart TB
     style 13_wrap stroke:none
   end
   style 13 fill:transparent
-  subgraph 14 ["`Layer.merge(Analytics.Default)<br/>_at ln 34 col 2_`"]
+  subgraph 14 ["`Layer.merge(Analytics.Default)
+<small>_ln 34 col 2_</small>`"]
     subgraph 14_wrap[" "]
       subgraph 14_requires [Requires]
         14_requires_0["Database"]
@@ -254,7 +269,8 @@ flowchart TB
     style 14_wrap stroke:none
   end
   style 14 fill:transparent
-  subgraph 15 ["`UserRepository.Default<br/>_at ln 33 col 21_`"]
+  subgraph 15 ["`UserRepository.Default
+<small>_ln 33 col 21_</small>`"]
     subgraph 15_wrap[" "]
       subgraph 15_requires [Requires]
         15_requires_0["Database"]
@@ -269,7 +285,8 @@ flowchart TB
     style 15_wrap stroke:none
   end
   style 15 fill:transparent
-  subgraph 16 ["`Layer.provideMerge(UserRepository.Default)<br/>_at ln 33 col 2_`"]
+  subgraph 16 ["`Layer.provideMerge(UserRepository.Default)
+<small>_ln 33 col 2_</small>`"]
     subgraph 16_wrap[" "]
       subgraph 16_requires [Requires]
         16_requires_0["Database"]
@@ -285,7 +302,8 @@ flowchart TB
     style 16_wrap stroke:none
   end
   style 16 fill:transparent
-  subgraph 17 ["`Database.Default<br/>_at ln 32 col 2_`"]
+  subgraph 17 ["`Database.Default
+<small>_ln 32 col 2_</small>`"]
     subgraph 17_wrap[" "]
       subgraph 17_provides [Provides]
         17_provides_0["Database"]
@@ -296,7 +314,8 @@ flowchart TB
     style 17_wrap stroke:none
   end
   style 17 fill:transparent
-  subgraph 18 ["`pipe( Database.Default, Layer.provideMerge(UserRep<br/>_at ln 31 col 23_`"]
+  subgraph 18 ["`pipe( Database.Default, Layer.provideMerge(UserRep
+<small>_ln 31 col 23_</small>`"]
     subgraph 18_wrap[" "]
       subgraph 18_requires [Requires]
         18_requires_0["EventsRepository"]

@@ -1,0 +1,157 @@
+flowchart TB
+  subgraph 0 ["`DbConnection.Default
+<small>_ln 7 col 95_</small>`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_provides [Provides]
+        0_provides_0["DbConnection"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
+  subgraph 1 ["`Layer.merge(DbConnection.Default)
+<small>_ln 7 col 83_</small>`"]
+    subgraph 1_wrap[" "]
+      subgraph 1_requires [Requires]
+        1_requires_0["DbConnection"]
+      end
+      style 1_requires stroke:none
+      subgraph 1_provides [Provides]
+        1_provides_0["UserRepository"]
+        1_provides_1["DbConnection"]
+      end
+      style 1_provides stroke:none
+    end
+    style 1_wrap fill:transparent
+    style 1_wrap stroke:none
+  end
+  style 1 fill:transparent
+  subgraph 2 ["`FileSystem.Default
+<small>_in simple.ts at ln 25 col 60_</small>`"]
+    subgraph 2_wrap[" "]
+      subgraph 2_provides [Provides]
+        2_provides_0["FileSystem"]
+      end
+      style 2_provides stroke:none
+    end
+    style 2_wrap fill:transparent
+    style 2_wrap stroke:none
+  end
+  style 2 fill:transparent
+  subgraph 3 ["`Layer.provide(FileSystem.Default)
+<small>_in simple.ts at ln 25 col 46_</small>`"]
+    subgraph 3_wrap[" "]
+      subgraph 3_provides [Provides]
+        3_provides_0["Cache"]
+      end
+      style 3_provides stroke:none
+    end
+    style 3_wrap fill:transparent
+    style 3_wrap stroke:none
+  end
+  style 3 fill:transparent
+  subgraph 4 ["`Cache.Default
+<small>_in simple.ts at ln 25 col 27_</small>`"]
+    subgraph 4_wrap[" "]
+      subgraph 4_requires [Requires]
+        4_requires_0["FileSystem"]
+      end
+      style 4_requires stroke:none
+      subgraph 4_provides [Provides]
+        4_provides_0["Cache"]
+      end
+      style 4_provides stroke:none
+    end
+    style 4_wrap fill:transparent
+    style 4_wrap stroke:none
+  end
+  style 4 fill:transparent
+  subgraph 5 ["`Cache.Default.pipe(Layer.provide(FileSystem.Defaul
+<small>_in simple.ts at ln 25 col 27_</small>`"]
+    subgraph 5_wrap[" "]
+      subgraph 5_provides [Provides]
+        5_provides_0["Cache"]
+      end
+      style 5_provides stroke:none
+    end
+    style 5_wrap fill:transparent
+    style 5_wrap stroke:none
+  end
+  style 5 fill:transparent
+  subgraph 6 ["`cacheWithFs
+<small>_ln 7 col 69_</small>`"]
+    subgraph 6_wrap[" "]
+      subgraph 6_provides [Provides]
+        6_provides_0["Cache"]
+      end
+      style 6_provides stroke:none
+    end
+    style 6_wrap fill:transparent
+    style 6_wrap stroke:none
+  end
+  style 6 fill:transparent
+  subgraph 7 ["`Layer.provide(cacheWithFs)
+<small>_ln 7 col 55_</small>`"]
+    subgraph 7_wrap[" "]
+      subgraph 7_requires [Requires]
+        7_requires_0["DbConnection"]
+      end
+      style 7_requires stroke:none
+      subgraph 7_provides [Provides]
+        7_provides_0["UserRepository"]
+      end
+      style 7_provides stroke:none
+    end
+    style 7_wrap fill:transparent
+    style 7_wrap stroke:none
+  end
+  style 7 fill:transparent
+  subgraph 8 ["`UserRepository.Default
+<small>_ln 7 col 27_</small>`"]
+    subgraph 8_wrap[" "]
+      subgraph 8_requires [Requires]
+        8_requires_0["Cache"]
+        8_requires_1["DbConnection"]
+      end
+      style 8_requires stroke:none
+      subgraph 8_provides [Provides]
+        8_provides_0["UserRepository"]
+      end
+      style 8_provides stroke:none
+    end
+    style 8_wrap fill:transparent
+    style 8_wrap stroke:none
+  end
+  style 8 fill:transparent
+  subgraph 9 ["`UserRepository.Default.pipe(Layer.provide(cacheWit
+<small>_ln 7 col 27_</small>`"]
+    subgraph 9_wrap[" "]
+      subgraph 9_requires [Requires]
+        9_requires_0["DbConnection"]
+      end
+      style 9_requires stroke:none
+      subgraph 9_provides [Provides]
+        9_provides_0["UserRepository"]
+        9_provides_1["DbConnection"]
+      end
+      style 9_provides stroke:none
+    end
+    style 9_wrap fill:transparent
+    style 9_wrap stroke:none
+  end
+  style 9 fill:transparent
+  1_provides_1 -.-> 0_provides_0
+  3 -.-x 2
+  3_provides_0 -.-> 4_provides_0
+  5_provides_0 -.-> 3_provides_0
+  6_provides_0 -.-> 5_provides_0
+  7 -.-x 6
+  7_requires_0 -.-> 8_requires_1
+  7_provides_0 -.-> 8_provides_0
+  1_requires_0 -.-> 7_requires_0
+  1_provides_0 -.-> 7_provides_0
+  9_requires_0 -.-> 1_requires_0
+  9_provides_0 -.-> 1_provides_0
+  9_provides_1 -.-> 1_provides_1

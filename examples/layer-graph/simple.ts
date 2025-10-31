@@ -1,15 +1,15 @@
 import { Effect, Layer } from "effect"
 
-class DbConnection extends Effect.Service<DbConnection>()("DbConnection", {
+export class DbConnection extends Effect.Service<DbConnection>()("DbConnection", {
   succeed: {}
 }) {}
-class FileSystem extends Effect.Service<FileSystem>()("FileSystem", {
+export class FileSystem extends Effect.Service<FileSystem>()("FileSystem", {
   succeed: {}
 }) {}
-class Cache extends Effect.Service<Cache>()("Cache", {
+export class Cache extends Effect.Service<Cache>()("Cache", {
   effect: Effect.as(FileSystem, {})
 }) {}
-class UserRepository extends Effect.Service<UserRepository>()("UserRepository", {
+export class UserRepository extends Effect.Service<UserRepository>()("UserRepository", {
   effect: Effect.as(Effect.zipRight(DbConnection, Cache), {})
 }) {}
 
@@ -21,3 +21,5 @@ export const liveWithPipeable = UserRepository.Default.pipe(
   Layer.provideMerge(Cache.Default),
   Layer.merge(DbConnection.Default)
 )
+
+export const cacheWithFs = Cache.Default.pipe(Layer.provide(FileSystem.Default))

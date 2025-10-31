@@ -1,3 +1,4 @@
+// code fix deterministicKeys_skipNextLine  output for range 530 - 542
 // @effect-diagnostics deterministicKeys:error
 // @test-config { "extendedKeyDetection": true }
 import * as Persistable from "@/diagnostics/utils"
@@ -12,6 +13,7 @@ export class MyClass extends MyConstructor("Hello")<MyClass, {}>() {
 }
 
 // referenced on another file
+// @effect-diagnostics-next-line deterministicKeys:off
 export class TTLRequest extends Persistable.Class<{
   payload: { id: number }
 }>()("TTLRequest", {

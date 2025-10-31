@@ -129,7 +129,8 @@ Few options can be provided alongside the initialization of the Language Service
         "topLevelNamedReexports": "ignore", // for namespaceImportPackages, how should top level named re-exports (e.g. {pipe} from "effect") be treated? "ignore" will leave them as is, "follow" will rewrite them to the re-exported module (e.g. {pipe} from "effect/Function")
         "importAliases": { "Array": "Arr" }, // allows to chose some different names for import name aliases (only when not chosing to import the whole module) (default: {})
         "noExternal": false, // disables features that provides links to external websites (such as links to mermaidchart.com) (default: false)
-        "keyPatterns": [{ "target": "service", "pattern": "default", "skipLeadingPath": ["src/"] }] // configure the key patterns; recommended reading more on the section "Configuring Key Patterns"
+        "keyPatterns": [{ "target": "service", "pattern": "default", "skipLeadingPath": ["src/"] }], // configure the key patterns; recommended reading more on the section "Configuring Key Patterns"
+        "layerGraphFollowDepth": 0 // controls the depth level that the layer graph will follow when resolving layer dependencies, depth is counted only when exiting the currently hovered/analyzed layer definition (default: 0)
       }
     ]
   }

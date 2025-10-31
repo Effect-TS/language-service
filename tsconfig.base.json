@@ -48,7 +48,8 @@
         "namespaceImportPackages": [
           "effect",
           "@effect/*"
-        ]
+        ],
+        "layerGraphFollowDepth": 1
       }
     ]
   }
