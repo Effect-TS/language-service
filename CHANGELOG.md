@@ -1,5 +1,25 @@
 # @effect/language-service
 
+## 0.53.0
+
+### Minor Changes
+
+- [#466](https://github.com/Effect-TS/language-service/pull/466) [`e76e9b9`](https://github.com/Effect-TS/language-service/commit/e76e9b90454de68cbf6e025ab63ecce5464168f3) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for following symbols in Layer Graph visualization
+
+  The layer graph feature now supports following symbol references to provide deeper visualization of layer dependencies. This is controlled by the new `layerGraphFollowDepth` configuration option (default: 0).
+
+  Example:
+
+  ```typescript
+  // With layerGraphFollowDepth: 1
+  export const myLayer = otherLayer.pipe(Layer.provide(DbConnection.Default));
+  // Now visualizes the full dependency tree by following the 'otherLayer' reference
+  ```
+
+### Patch Changes
+
+- [#464](https://github.com/Effect-TS/language-service/pull/464) [`4cbd549`](https://github.com/Effect-TS/language-service/commit/4cbd5499a5edd93cc70e77695163cbb50ad9e63e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix layer graph for expression nodes not returning layers directly
+
 ## 0.52.1
 
 ### Patch Changes
