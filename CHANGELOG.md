@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.52.1
+
+### Patch Changes
+
+- [#462](https://github.com/Effect-TS/language-service/pull/462) [`4931bbd`](https://github.com/Effect-TS/language-service/commit/4931bbd5d421b2b80bd0bc9eff71bd401b24f291) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Skip patching again by default, unless --force option is provided
+
 ## 0.52.0
 
 ### Minor Changes
