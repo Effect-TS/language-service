@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.53.1
+
+### Patch Changes
+
+- [#467](https://github.com/Effect-TS/language-service/pull/467) [`c2f6e50`](https://github.com/Effect-TS/language-service/commit/c2f6e5036b3b248201d855c61e2b206c3b8ed20d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix layer graph display improvements: properly render newlines in mermaid diagrams using `<br/>` tags, and improve readability by displaying variable declaration names instead of full expressions when available.
+
+  Example: Instead of showing the entire `pipe(Database.Default, Layer.provideMerge(UserRepository.Default))` expression in the graph node, it now displays the cleaner variable name `AppLive` when the layer is assigned to a variable.
+
 ## 0.53.0
 
 ### Minor Changes
