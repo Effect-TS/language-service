@@ -118,7 +118,7 @@ export const diagnostics = Command.make(
             Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
             Nano.provideService(
               LanguageServicePluginOptions.LanguageServicePluginOptions,
-              LanguageServicePluginOptions.parse(pluginConfig)
+              { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
             ),
             Nano.run,
             Either.map((_) => _.diagnostics),
@@ -136,11 +136,14 @@ export const diagnostics = Command.make(
           warningsCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Warning).length
           messagesCount += results.filter((_) => _.category === tsInstance.DiagnosticCategory.Message).length
           if (results.length > 0) {
-            const formattedResults = tsInstance.formatDiagnosticsWithColorAndContext(results, {
+            let formattedResults = tsInstance.formatDiagnosticsWithColorAndContext(results, {
               getCanonicalFileName: (fileName) => path.resolve(fileName),
               getCurrentDirectory: () => path.resolve("."),
               getNewLine: () => "\n"
             })
+            Object.values(diagnosticsDefinitions).forEach((_) =>
+              formattedResults = formattedResults.replace(new RegExp(`TS${_.code}:`, "g"), `effect(${_.name}):`)
+            )
             console.log(formattedResults)
           }
         } finally {
