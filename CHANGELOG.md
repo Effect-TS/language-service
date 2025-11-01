@@ -1,5 +1,20 @@
 # @effect/language-service
 
+## 0.53.3
+
+### Patch Changes
+
+- [#471](https://github.com/Effect-TS/language-service/pull/471) [`be70748`](https://github.com/Effect-TS/language-service/commit/be70748806682d9914512d363df05a0366fa1c56) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve CLI diagnostics output formatting by displaying rule names in a more readable format.
+
+  The CLI now displays diagnostic rule names using the format `effect(ruleName):` instead of `TS<code>:`, making it easier to identify which Effect diagnostic rule triggered the error. Additionally, the CLI now disables the `diagnosticsName` option internally to prevent duplicate rule name display in the message text.
+
+  Example output:
+
+  ```
+  Before: TS90001: Floating Effect detected...
+  After:  effect(floatingEffect): Floating Effect detected...
+  ```
+
 ## 0.53.2
 
 ### Patch Changes
