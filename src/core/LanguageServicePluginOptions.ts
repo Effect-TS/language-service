@@ -21,6 +21,7 @@ export interface LanguageServicePluginOptions {
   diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
   diagnosticsName: boolean
   missingDiagnosticNextLine: DiagnosticSeverity | "off"
+  reportSuggestionsAsWarningsInTsc: boolean
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
   quickinfoMaximumLength: number
@@ -64,6 +65,7 @@ export const defaults: LanguageServicePluginOptions = {
   diagnosticSeverity: {},
   diagnosticsName: true,
   missingDiagnosticNextLine: "warning",
+  reportSuggestionsAsWarningsInTsc: false,
   quickinfo: true,
   quickinfoEffectParameters: "whentruncated",
   quickinfoMaximumLength: -1,
@@ -132,6 +134,10 @@ export function parse(config: any): LanguageServicePluginOptions {
         isString(config.missingDiagnosticNextLine) && isValidSeverityLevel(config.missingDiagnosticNextLine)
       ? config.missingDiagnosticNextLine as DiagnosticSeverity | "off"
       : defaults.missingDiagnosticNextLine,
+    reportSuggestionsAsWarningsInTsc: isObject(config) && hasProperty(config, "reportSuggestionsAsWarningsInTsc") &&
+        isBoolean(config.reportSuggestionsAsWarningsInTsc)
+      ? config.reportSuggestionsAsWarningsInTsc
+      : defaults.reportSuggestionsAsWarningsInTsc,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
       : defaults.quickinfo,

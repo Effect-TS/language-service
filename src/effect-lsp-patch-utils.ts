@@ -56,6 +56,8 @@ export function checkSourceFileWorker(
   const pluginOptions = extractEffectLspOptions(compilerOptions)
   if (!pluginOptions) return
 
+  const parsedOptions = LanguageServicePluginOptions.parse(pluginOptions)
+
   // run the diagnostics and pipe them into addDiagnostic
   pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
@@ -67,15 +69,35 @@ export function checkSourceFileWorker(
     Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
     Nano.provideService(
       LanguageServicePluginOptions.LanguageServicePluginOptions,
-      LanguageServicePluginOptions.parse(pluginOptions)
+      parsedOptions
     ),
     Nano.unsafeRun,
     Either.map((_) => _.diagnostics),
     Either.map(
       Array.filter((_) =>
         _.category === tsInstance.DiagnosticCategory.Error ||
-        _.category === tsInstance.DiagnosticCategory.Warning
+        _.category === tsInstance.DiagnosticCategory.Warning ||
+        (parsedOptions.reportSuggestionsAsWarningsInTsc &&
+          (_.category === tsInstance.DiagnosticCategory.Suggestion ||
+            _.category === tsInstance.DiagnosticCategory.Message))
       )
+    ),
+    Either.map(
+      Array.map((_) => {
+        if (
+          parsedOptions.reportSuggestionsAsWarningsInTsc && (_.category === tsInstance.DiagnosticCategory.Suggestion ||
+            _.category === tsInstance.DiagnosticCategory.Message)
+        ) {
+          return {
+            ..._,
+            category: tsInstance.DiagnosticCategory.Warning,
+            messageText: typeof _.messageText === "string"
+              ? `[suggestion] ${_.messageText}`
+              : _.messageText
+          }
+        }
+        return _
+      })
     ),
     Either.getOrElse((e) => {
       console.error(e)

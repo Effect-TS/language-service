@@ -117,6 +117,7 @@ Few options can be provided alongside the initialization of the Language Service
         },
         "diagnosticsName": true, // controls whether to include the rule name in diagnostic messages (default: true)
         "missingDiagnosticNextLine": "warning", // controls the severity of warnings for unused @effect-diagnostics-next-line comments (default: "warning", allowed values: off,error,warning,message,suggestion)
+        "reportSuggestionsAsWarningsInTsc": false, // when enabled, diagnostics with "suggestion" or "message" severity will be reported as "warning" in TSC with "[suggestion]" prefix (default: false)
         "quickinfo": true, // controls Effect quickinfo (default: true)
         "quickinfoEffectParameters": "whenTruncated", // (default: "whenTruncated") controls when to display effect type parameters always,never,whenTruncated
         "quickinfoMaximumLength": -1, // controls how long can be the types in the quickinfo hover (helps with very long type to improve perfs, defaults to -1 for no truncation, can be any number eg. 1000 and TS will try to fit as much as possible in that budget, higher number means more info.)
