@@ -1,5 +1,30 @@
 # @effect/language-service
 
+## 0.53.3
+
+### Patch Changes
+
+- [#473](https://github.com/Effect-TS/language-service/pull/473) [`b29eca5`](https://github.com/Effect-TS/language-service/commit/b29eca54ae90283887e0f8c586c62e49a3b13737) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix memory leak in CLI diagnostics by properly disposing language services when they change between batches.
+
+  The CLI diagnostics command now tracks the language service instance and disposes of it when a new instance is created, preventing memory accumulation during batch processing of large codebases.
+
+- [#474](https://github.com/Effect-TS/language-service/pull/474) [`06b9ac1`](https://github.com/Effect-TS/language-service/commit/06b9ac143919cabd0f8a4836487f583c09772081) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix TSC patching mode to properly enable diagnosticsName option and simplify suggestion handling.
+
+  When using the language service in TSC patching mode, the `diagnosticsName` option is now automatically enabled to ensure diagnostic rule names are included in the output. Additionally, the handling of suggestion-level diagnostics has been simplified - when `reportSuggestionsAsWarningsInTsc` is enabled, suggestions are now converted to Message category instead of Warning category with a prefix.
+
+  This change ensures consistent diagnostic formatting across both IDE and CLI usage modes.
+
+- [#471](https://github.com/Effect-TS/language-service/pull/471) [`be70748`](https://github.com/Effect-TS/language-service/commit/be70748806682d9914512d363df05a0366fa1c56) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve CLI diagnostics output formatting by displaying rule names in a more readable format.
+
+  The CLI now displays diagnostic rule names using the format `effect(ruleName):` instead of `TS<code>:`, making it easier to identify which Effect diagnostic rule triggered the error. Additionally, the CLI now disables the `diagnosticsName` option internally to prevent duplicate rule name display in the message text.
+
+  Example output:
+
+  ```
+  Before: TS90001: Floating Effect detected...
+  After:  effect(floatingEffect): Floating Effect detected...
+  ```
+
 ## 0.53.2
 
 ### Patch Changes
