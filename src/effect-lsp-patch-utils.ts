@@ -56,7 +56,10 @@ export function checkSourceFileWorker(
   const pluginOptions = extractEffectLspOptions(compilerOptions)
   if (!pluginOptions) return
 
-  const parsedOptions = LanguageServicePluginOptions.parse(pluginOptions)
+  const parsedOptions: LanguageServicePluginOptions.LanguageServicePluginOptions = {
+    ...LanguageServicePluginOptions.parse(pluginOptions),
+    diagnosticsName: true
+  }
 
   // run the diagnostics and pipe them into addDiagnostic
   pipe(
@@ -77,24 +80,18 @@ export function checkSourceFileWorker(
       Array.filter((_) =>
         _.category === tsInstance.DiagnosticCategory.Error ||
         _.category === tsInstance.DiagnosticCategory.Warning ||
-        (parsedOptions.reportSuggestionsAsWarningsInTsc &&
-          (_.category === tsInstance.DiagnosticCategory.Suggestion ||
-            _.category === tsInstance.DiagnosticCategory.Message))
+        (parsedOptions.reportSuggestionsAsWarningsInTsc && (
+          _.category === tsInstance.DiagnosticCategory.Suggestion ||
+          _.category === tsInstance.DiagnosticCategory.Message
+        ))
       )
     ),
     Either.map(
       Array.map((_) => {
         if (
-          parsedOptions.reportSuggestionsAsWarningsInTsc && (_.category === tsInstance.DiagnosticCategory.Suggestion ||
-            _.category === tsInstance.DiagnosticCategory.Message)
+          parsedOptions.reportSuggestionsAsWarningsInTsc && _.category === tsInstance.DiagnosticCategory.Suggestion
         ) {
-          return {
-            ..._,
-            category: tsInstance.DiagnosticCategory.Warning,
-            messageText: typeof _.messageText === "string"
-              ? `[suggestion] ${_.messageText}`
-              : _.messageText
-          }
+          return { ..._, category: tsInstance.DiagnosticCategory.Message }
         }
         return _
       })
