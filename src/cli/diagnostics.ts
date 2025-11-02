@@ -90,6 +90,14 @@ export const diagnostics = Command.make(
     const filesToCheckArray = Array.fromIterable(filesToCheck)
     const batches = Array.chunksOf(filesToCheckArray, BATCH_SIZE)
 
+    let lastLanguageService: ts.LanguageService | undefined
+    const disposeIfLanguageServiceChanged = (languageService: ts.LanguageService | undefined) => {
+      if (lastLanguageService !== languageService) {
+        lastLanguageService?.dispose()
+        lastLanguageService = languageService
+      }
+    }
+
     for (const batch of batches) {
       const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
@@ -101,6 +109,7 @@ export const diagnostics = Command.make(
 
           const project = scriptInfo.getDefaultProject()
           const languageService = project.getLanguageService(true)
+          disposeIfLanguageServiceChanged(languageService)
           const program = languageService.getProgram()
           if (!program) continue
           const sourceFile = program.getSourceFile(filePath)
@@ -152,6 +161,7 @@ export const diagnostics = Command.make(
       }
       yield* Effect.yieldNow()
     }
+    disposeIfLanguageServiceChanged(undefined)
 
     console.log(
       `Checked ${checkedFilesCount} files out of ${filesToCheck.size} files. \n${errorsCount} errors, ${warningsCount} warnings and ${messagesCount} messages.`
