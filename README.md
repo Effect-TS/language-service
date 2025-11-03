@@ -69,6 +69,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn when `@effect-diagnostics-next-line` comments have no effect (i.e., they don't suppress any diagnostic)
 - Detect nested function calls that can be converted to pipeable style for better readability
 - Warn when using catch functions (`catchAll`, `catch`, `catchIf`, `catchSome`, `catchTag`, `catchTags`) on effects that never fail
+- Warn when catch callbacks in `Effect.tryPromise`, `Effect.tryMap`, or `Effect.tryMapPromise` return `unknown` or `any` types
 
 ### Completions
 
