@@ -23,6 +23,7 @@ import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
 import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
 import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
+import { unknownInEffectCatch } from "./diagnostics/unknownInEffectCatch.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
@@ -57,5 +58,6 @@ export const diagnostics = [
   nonObjectEffectServiceType,
   deterministicKeys,
   missedPipeableOpportunity,
-  strictEffectProvide
+  strictEffectProvide,
+  unknownInEffectCatch
 ]

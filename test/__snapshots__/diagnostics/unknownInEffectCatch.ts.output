@@ -1,0 +1,19 @@
+Effect.tryPromise
+4:23 - 4:40 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
+Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+
+Effect.tryPromise
+18:35 - 18:52 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
+Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+
+Effect.tryMapPromise
+28:60 - 28:80 | 0 | The 'catch' callback in Effect.tryMapPromise returns 'unknown'. The catch callback should be used to provide typed errors.
+Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+
+Effect.tryMap
+33:60 - 33:73 | 0 | The 'catch' callback in Effect.tryMap returns 'unknown'. The catch callback should be used to provide typed errors.
+Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+
+Effect.tryPromise
+38:41 - 38:58 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
+Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
