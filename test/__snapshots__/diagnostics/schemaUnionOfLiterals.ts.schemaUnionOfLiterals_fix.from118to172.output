@@ -1,0 +1,7 @@
+// code fix schemaUnionOfLiterals_fix  output for range 118 - 172
+// @effect-diagnostics schemaUnionOfLiterals:warning
+import { Schema } from "effect"
+
+export const thisShouldReport = Schema.Literal("A", "B")
+
+export const noSenseForSingleMemberUnion = Schema.Union(Schema.Literal("A"))
