@@ -20,6 +20,7 @@ import { outdatedEffectCodegen } from "./diagnostics/outdatedEffectCodegen.js"
 import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConstructor.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { runEffectInsideEffect } from "./diagnostics/runEffectInsideEffect.js"
+import { schemaUnionOfLiterals } from "./diagnostics/schemaUnionOfLiterals.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
 import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
@@ -61,5 +62,6 @@ export const diagnostics = [
   missedPipeableOpportunity,
   strictEffectProvide,
   unknownInEffectCatch,
-  runEffectInsideEffect
+  runEffectInsideEffect,
+  schemaUnionOfLiterals
 ]

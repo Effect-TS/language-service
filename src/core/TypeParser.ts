@@ -34,6 +34,9 @@ export interface TypeParser {
   isNodeReferenceToEffectModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectSchemaModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
     node: ts.Node
   ) => Nano.Nano<
@@ -1652,6 +1655,7 @@ export function make(
 
   return {
     isNodeReferenceToEffectModuleApi,
+    isNodeReferenceToEffectSchemaModuleApi,
     effectType,
     strictEffectType,
     layerType,
