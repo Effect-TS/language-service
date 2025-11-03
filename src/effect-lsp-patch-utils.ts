@@ -50,7 +50,8 @@ export function checkSourceFileWorker(
   program: ts.Program,
   sourceFile: ts.SourceFile,
   compilerOptions: ts.CompilerOptions,
-  addDiagnostic: (diagnostic: ts.Diagnostic) => void
+  addDiagnostic: (diagnostic: ts.Diagnostic) => void,
+  moduleName: string
 ) {
   // check if the plugin is enabled
   const pluginOptions = extractEffectLspOptions(compilerOptions)
@@ -80,7 +81,7 @@ export function checkSourceFileWorker(
       Array.filter((_) =>
         _.category === tsInstance.DiagnosticCategory.Error ||
         _.category === tsInstance.DiagnosticCategory.Warning ||
-        (parsedOptions.reportSuggestionsAsWarningsInTsc && (
+        (moduleName === "tsc" && parsedOptions.reportSuggestionsAsWarningsInTsc && (
           _.category === tsInstance.DiagnosticCategory.Suggestion ||
           _.category === tsInstance.DiagnosticCategory.Message
         ))
@@ -89,7 +90,8 @@ export function checkSourceFileWorker(
     Either.map(
       Array.map((_) => {
         if (
-          parsedOptions.reportSuggestionsAsWarningsInTsc && _.category === tsInstance.DiagnosticCategory.Suggestion
+          moduleName === "tsc" && parsedOptions.reportSuggestionsAsWarningsInTsc &&
+          _.category === tsInstance.DiagnosticCategory.Suggestion
         ) {
           return { ..._, category: tsInstance.DiagnosticCategory.Message }
         }
