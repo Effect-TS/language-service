@@ -1,5 +1,33 @@
 # @effect/language-service
 
+## 0.54.0
+
+### Minor Changes
+
+- [#476](https://github.com/Effect-TS/language-service/pull/476) [`9d5028c`](https://github.com/Effect-TS/language-service/commit/9d5028c92cdde20a881a30f5e3d25cc2c18741bc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `unknownInEffectCatch` diagnostic to warn when catch callbacks in `Effect.tryPromise`, `Effect.tryMap`, or `Effect.tryMapPromise` return `unknown` or `any` types. This helps ensure proper error typing by encouraging developers to wrap unknown errors into Effect's `Data.TaggedError` or narrow down the type to the specific error being raised.
+
+  Example:
+
+  ```typescript
+  // ❌ Will trigger diagnostic
+  const program = Effect.tryPromise({
+    try: () => fetch("http://something"),
+    catch: (e) => e, // returns unknown
+  });
+
+  // ✅ Proper typed error
+  class MyError extends Data.TaggedError("MyError")<{ cause: unknown }> {}
+
+  const program = Effect.tryPromise({
+    try: () => fetch("http://something"),
+    catch: (e) => new MyError({ cause: e }),
+  });
+  ```
+
+### Patch Changes
+
+- [#475](https://github.com/Effect-TS/language-service/pull/475) [`9f2425e`](https://github.com/Effect-TS/language-service/commit/9f2425e65e72099fba1e78948578a5e0b8598873) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix TSC patching mode to properly filter diagnostics by module name. The `reportSuggestionsAsWarningsInTsc` option now only affects the TSC module and not the TypeScript module, preventing suggestions from being incorrectly reported in non-TSC contexts.
+
 ## 0.53.3
 
 ### Patch Changes
