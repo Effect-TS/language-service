@@ -70,7 +70,6 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
             node.expression.end
           )
 
-          console.log(nodeIntroduceScope, isInEffectGen.value.generatorFunction)
           const messageText = nodeIntroduceScope && nodeIntroduceScope !== isInEffectGen.value.generatorFunction ?
             `Using ${nodeText} inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.\nConsider extracting the Runtime by using for example Effect.runtime and then use Runtime.run* with the extracted runtime instead.` :
             `Using ${nodeText} inside an Effect is not recommended. Effects inside generators can usually just be yielded.`
