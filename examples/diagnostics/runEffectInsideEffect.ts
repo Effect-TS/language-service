@@ -1,0 +1,25 @@
+import { Data, Effect } from "effect"
+
+class DebuggerError extends Data.TaggedError("DebuggerError")<{
+  cause: unknown
+}> {}
+
+export const program = Effect.gen(function*() {
+  const response = yield* Effect.tryPromise({
+    try: () => fetch("http://localhost:9229"),
+    catch: (e) => new DebuggerError({ cause: e })
+  })
+  const data = yield* Effect.promise(() => response.json())
+
+  const websocket = Effect.runSync(Effect.sync(() => new WebSocket(data.url)))
+  //                        ^- do not runSync in here
+
+  websocket.onmessage = (event) => {
+    const check = Effect.tryPromise({
+      try: () => fetch(event.data as string),
+      catch: (e) => new DebuggerError({ cause: e })
+    })
+    Effect.runPromise(check)
+    //        ^- no runPromise, use a runtime instead
+  }
+})
