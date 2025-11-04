@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.55.1
+
+### Patch Changes
+
+- [#482](https://github.com/Effect-TS/language-service/pull/482) [`9695bdf`](https://github.com/Effect-TS/language-service/commit/9695bdfec4412569150a5332405a1ec16b4fa085) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `missedPipeableOpportunity` diagnostic to correctly detect nested function call chains
+
+  The diagnostic now properly identifies when nested function calls can be converted to pipeable style. Previously, the chain detection logic incorrectly tracked parent-child relationships, causing false positives. This fix ensures that only valid pipeable chains are reported, such as `toString(double(addOne(5)))` which can be refactored to `addOne(5).pipe(double, toString)`.
+
+  Example:
+
+  ```typescript
+  // Before: incorrectly flagged or missed
+  identity(Schema.decodeUnknown(MyStruct)({ x: 42, y: 42 }));
+
+  // After: correctly handles complex nested calls
+  toString(double(addOne(5))); // ✓ Now correctly detected as pipeable
+  ```
+
 ## 0.55.0
 
 ### Minor Changes
