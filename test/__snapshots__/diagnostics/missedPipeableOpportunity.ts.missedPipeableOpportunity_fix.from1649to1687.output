@@ -1,5 +1,6 @@
-// code fix missedPipeableOpportunity_fix  output for range 1606 - 1644
+// code fix missedPipeableOpportunity_fix  output for range 1649 - 1687
 // @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 1}
 import { Effect } from "effect"
 
 // Helper functions that work with Effect

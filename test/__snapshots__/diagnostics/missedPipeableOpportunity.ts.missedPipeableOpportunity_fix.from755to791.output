@@ -1,5 +1,6 @@
-// code fix missedPipeableOpportunity_skipNextLine  output for range 1297 - 1334
+// code fix missedPipeableOpportunity_fix  output for range 755 - 791
 // @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 1}
 import { Effect } from "effect"
 
 // Helper functions that work with Effect
@@ -13,7 +14,7 @@ export const shouldReport1 = toString(double(addOne(5)))
 
 // Should trigger diagnostic: 3-level nesting
 const triple = (e: Effect.Effect<number>) => Effect.map(e, (n) => n * 3)
-export const shouldReport2 = toString(triple(double(addOne(10))))
+export const shouldReport2 = addOne(10).pipe(double, triple, toString)
 
 // Should report: two level nesting can benefit from pipe style
 export const shouldReport4 = double(addOne(5))
@@ -25,7 +26,6 @@ export const shouldNotReport2 = double(wrapInEffect(regularFunction(5)))
 
 // Should trigger diagnostic: proper pipeable chain with correct types
 const addHundred = (e: Effect.Effect<number>) => Effect.map(e, (n) => n + 100)
-// @effect-diagnostics-next-line missedPipeableOpportunity:off
 export const shouldReport3 = triple(addHundred(double(addOne(7))))
 
 // Should NOT report: already using pipe

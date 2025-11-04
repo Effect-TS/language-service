@@ -29,15 +29,14 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
     while (nodeToVisit.length > 0) {
       const node = nodeToVisit.shift()!
 
-      if (ts.isCallExpression(node) && node.arguments.length === 1 && node.parent) {
+      if (ts.isCallExpression(node) && node.arguments.length === 1) {
         // this node contributes to the chain.
-        const parentChain = callChainNodes.get(node.parent) || []
-        callChainNodes.set(node, parentChain.concat(node))
-      } else if (node.parent && callChainNodes.has(node.parent) && ts.isExpression(node)) {
+        const parentChain = callChainNodes.get(node) || []
+        callChainNodes.set(node.arguments[0], parentChain.concat(node))
+      } else if (callChainNodes.has(node) && ts.isExpression(node)) {
         // we broke the chain.
-        const parentChain: Array<ts.Expression> = callChainNodes.get(node.parent) || []
+        const parentChain: Array<ts.Expression> = (callChainNodes.get(node) || []).slice()
         const originalParentChain = parentChain.slice()
-        parentChain.push(node)
         while (parentChain.length > options.pipeableMinArgCount) {
           const subject = parentChain.pop()!
           const resultType = typeChecker.getTypeAtLocation(subject)

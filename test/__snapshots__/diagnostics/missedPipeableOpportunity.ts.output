@@ -1,17 +1,17 @@
 toString(double(addOne(5)))
-11:29 - 11:56 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
+12:29 - 12:56 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
 
 toString(triple(double(addOne(10))))
-15:29 - 15:65 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
+16:29 - 16:65 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
 
 double(addOne(5))
-18:29 - 18:46 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
+19:29 - 19:46 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
 
 double(wrapInEffect(regularFunction(5)))
-23:32 - 23:72 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
+24:32 - 24:72 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
 
 triple(addHundred(double(addOne(7))))
-27:29 - 27:66 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
+28:29 - 28:66 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
 
 Effect.runPromise(Effect.log("Hello"))
-35:28 - 35:66 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
+36:28 - 36:66 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)

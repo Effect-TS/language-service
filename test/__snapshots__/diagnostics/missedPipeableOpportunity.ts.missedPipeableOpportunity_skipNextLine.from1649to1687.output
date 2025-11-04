@@ -1,6 +1,6 @@
-// code fix missedPipeableOpportunity_skipFile  output for range 712 - 748
-/** @effect-diagnostics missedPipeableOpportunity:skip-file */
+// code fix missedPipeableOpportunity_skipNextLine  output for range 1649 - 1687
 // @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 1}
 import { Effect } from "effect"
 
 // Helper functions that work with Effect
@@ -34,4 +34,5 @@ export const shouldNotReport4 = addOne(5).pipe(double)
 export const shouldNotReport5 = addOne(5).pipe(multiplyBy(2))
 
 // Should trigger
+// @effect-diagnostics-next-line missedPipeableOpportunity:off
 export const shouldReport = Effect.runPromise(Effect.log("Hello"))
