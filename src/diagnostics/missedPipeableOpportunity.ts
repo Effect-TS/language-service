@@ -30,9 +30,23 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
 
       if (ts.isCallExpression(node) && node.arguments.length === 1) {
-        // this node contributes to the chain.
-        const parentChain = callChainNodes.get(node) || []
-        callChainNodes.set(node.arguments[0], parentChain.concat(node))
+        // ensure this is not a pipe call
+        const isPipeCall = yield* pipe(typeParser.pipeCall(node), Nano.orElse(() => Nano.void_))
+        if (!isPipeCall) {
+          // resolved signature should not be callable
+          const resolvedSignature = typeChecker.getResolvedSignature(node)
+          if (resolvedSignature) {
+            const returnType = typeChecker.getReturnTypeOfSignature(resolvedSignature)
+            if (returnType) {
+              const callSignatures = typeChecker.getSignaturesOfType(returnType, ts.SignatureKind.Call)
+              if (callSignatures.length === 0) {
+                // this node contributes to the chain.
+                const parentChain = callChainNodes.get(node) || []
+                callChainNodes.set(node.arguments[0], parentChain.concat(node))
+              }
+            }
+          }
+        }
       } else if (callChainNodes.has(node) && ts.isExpression(node)) {
         // we broke the chain.
         const parentChain: Array<ts.Expression> = (callChainNodes.get(node) || []).slice()
