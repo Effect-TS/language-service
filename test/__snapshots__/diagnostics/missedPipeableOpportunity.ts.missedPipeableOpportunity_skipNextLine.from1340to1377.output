@@ -1,5 +1,6 @@
-// code fix missedPipeableOpportunity_fix  output for range 1076 - 1116
+// code fix missedPipeableOpportunity_skipNextLine  output for range 1340 - 1377
 // @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 1}
 import { Effect } from "effect"
 
 // Helper functions that work with Effect
@@ -21,10 +22,11 @@ export const shouldReport4 = double(addOne(5))
 // Should report, but refactor to be wrapInEffect(regularFunction(5)).pipe(double)
 const regularFunction = (n: number) => n + 1
 const wrapInEffect = (n: number) => Effect.succeed(n)
-export const shouldNotReport2 = wrapInEffect(regularFunction(5)).pipe(double)
+export const shouldNotReport2 = double(wrapInEffect(regularFunction(5)))
 
 // Should trigger diagnostic: proper pipeable chain with correct types
 const addHundred = (e: Effect.Effect<number>) => Effect.map(e, (n) => n + 100)
+// @effect-diagnostics-next-line missedPipeableOpportunity:off
 export const shouldReport3 = triple(addHundred(double(addOne(7))))
 
 // Should NOT report: already using pipe

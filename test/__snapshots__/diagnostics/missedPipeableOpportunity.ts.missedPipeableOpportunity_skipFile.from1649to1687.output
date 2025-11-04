@@ -1,5 +1,7 @@
-// code fix missedPipeableOpportunity_skipNextLine  output for range 535 - 562
+// code fix missedPipeableOpportunity_skipFile  output for range 1649 - 1687
+/** @effect-diagnostics missedPipeableOpportunity:skip-file */
 // @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 1}
 import { Effect } from "effect"
 
 // Helper functions that work with Effect
@@ -9,7 +11,6 @@ const multiplyBy = (n: number) => (e: Effect.Effect<number>) => Effect.map(e, (m
 const toString = (e: Effect.Effect<number>) => Effect.map(e, (n) => String(n))
 
 // Should trigger diagnostic: nested calls with innermost returning pipeable
-// @effect-diagnostics-next-line missedPipeableOpportunity:off
 export const shouldReport1 = toString(double(addOne(5)))
 
 // Should trigger diagnostic: 3-level nesting
