@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.55.2
+
+### Patch Changes
+
+- [#484](https://github.com/Effect-TS/language-service/pull/484) [`7c18fa8`](https://github.com/Effect-TS/language-service/commit/7c18fa8b08c6e6cf0914a3ac140c8e9710868eb5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix edge cases in missedPipeableOpportunity diagnostic where it incorrectly flagged valid code patterns. The diagnostic now properly:
+  - Excludes `pipe` function calls from chain detection
+  - Ignores chains where the function returns a callable type (avoiding false positives for higher-order functions like `Schedule.whileOutput`)
+
 ## 0.55.1
 
 ### Patch Changes
