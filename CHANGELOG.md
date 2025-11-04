@@ -1,5 +1,71 @@
 # @effect/language-service
 
+## 0.55.0
+
+### Minor Changes
+
+- [#478](https://github.com/Effect-TS/language-service/pull/478) [`9a9d5f9`](https://github.com/Effect-TS/language-service/commit/9a9d5f9486df177dd2e9d9cf63e97569b0436de0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `runEffectInsideEffect` diagnostic to warn when using `Effect.runSync`, `Effect.runPromise`, `Effect.runFork`, or `Effect.runCallback` inside an Effect context (such as `Effect.gen`, `Effect.fn`, or `Effect.fnUntraced`).
+
+  Running effects inside effects is generally not recommended as it breaks the composability of the Effect system. Instead, developers should extract the Runtime and use `Runtime.runSync`, `Runtime.runPromise`, etc., or restructure their code to avoid running effects inside effects.
+
+  Example:
+
+  ```typescript
+  // ❌ Will trigger diagnostic
+  export const program = Effect.gen(function* () {
+    const data = yield* Effect.succeed(42);
+    const result = Effect.runSync(Effect.sync(() => data * 2)); // Not recommended
+    return result;
+  });
+
+  // ✅ Proper approach - extract runtime
+  export const program = Effect.gen(function* () {
+    const data = yield* Effect.succeed(42);
+    const runtime = yield* Effect.runtime();
+    const result = Runtime.runSync(runtime)(Effect.sync(() => data * 2));
+    return result;
+  });
+
+  // ✅ Better approach - compose effects
+  export const program = Effect.gen(function* () {
+    const data = yield* Effect.succeed(42);
+    const result = yield* Effect.sync(() => data * 2);
+    return result;
+  });
+  ```
+
+- [#480](https://github.com/Effect-TS/language-service/pull/480) [`f1a0ece`](https://github.com/Effect-TS/language-service/commit/f1a0ece931826bd40c35118833b3be2ae6c90ab7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `schemaUnionOfLiterals` diagnostic to warn when using `Schema.Union` with multiple `Schema.Literal` calls that can be simplified to a single `Schema.Literal` call.
+
+  This diagnostic helps improve code readability and maintainability by suggesting a more concise syntax for union of literals.
+
+  Example:
+
+  ```typescript
+  // ❌ Will trigger diagnostic
+  export const Status = Schema.Union(Schema.Literal("A"), Schema.Literal("B"));
+
+  // ✅ Simplified approach
+  export const Status = Schema.Literal("A", "B");
+  ```
+
+### Patch Changes
+
+- [#481](https://github.com/Effect-TS/language-service/pull/481) [`160e018`](https://github.com/Effect-TS/language-service/commit/160e018c6f2eef21d537cc5e4f2666a43beb4724) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update Effect ecosystem dependencies to latest versions:
+
+  - `@effect/cli`: 0.71.0 → 0.72.0
+  - `@effect/platform`: 0.92.1 → 0.93.0
+  - `@effect/platform-node`: 0.98.3 → 0.99.0
+  - `@effect/printer-ansi`: 0.46.0 → 0.47.0
+  - `@effect/rpc`: 0.71.0 → 0.72.0
+  - `effect`: Updated to stable version 3.19.0
+
+  Also updated development tooling dependencies:
+
+  - `vitest`: 3.2.4 → 4.0.6
+  - `@vitest/coverage-v8`: 3.2.4 → 4.0.6
+  - TypeScript ESLint packages: 8.46.1 → 8.46.3
+  - Various other minor dependency updates
+
 ## 0.54.0
 
 ### Minor Changes
