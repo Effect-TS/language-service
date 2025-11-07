@@ -19,10 +19,10 @@ export class UsesStringValue extends Effect.Service<UsesStringValue>()("UsesStri
 }) {}
 
 // should warn on "effect" key because it returns a function that returns an effect that resolves to a primitive
-// @effect-diagnostics-next-line nonObjectEffectServiceType:off
 export class UsesStringValueLazyEffect
   extends Effect.Service<UsesStringValueLazyEffect>()("UsesStringValueLazyEffect", {
     // @ts-expect-error
+    // @effect-diagnostics-next-line nonObjectEffectServiceType:off
     effect: (_: string) => Effect.succeed("test" as const)
   })
 {}

@@ -248,6 +248,14 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
           result = node
           return
         }
+        if (ts.isPropertyAssignment(node)) {
+          const realStart = ts.getTokenPosOfNode(node, sourceFile)
+          const starts = sourceFile.getLineStarts().filter((start) => start >= node.pos && start <= realStart)
+          if (starts.length > 0) {
+            result = node
+            return
+          }
+        }
         if (result) return
         if (node.parent) find(node.parent)
       }
