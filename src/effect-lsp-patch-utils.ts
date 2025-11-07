@@ -99,7 +99,7 @@ export function checkSourceFileWorker(
       })
     ),
     Either.getOrElse((e) => {
-      console.error(e)
+      console.error(e.message, "at", e.lastSpan)
       return []
     }),
     Array.map(addDiagnostic)
