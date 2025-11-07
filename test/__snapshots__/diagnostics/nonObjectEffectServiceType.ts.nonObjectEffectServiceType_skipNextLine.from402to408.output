@@ -7,9 +7,9 @@ export class ObjectService extends Effect.Service<ObjectService>()("ObjectServic
 }) {}
 
 // should warn on "effect" key because it returns an effect that resolves to a primitive
-// @effect-diagnostics-next-line nonObjectEffectServiceType:off
 export class UsesStringValueUnion extends Effect.Service<UsesStringValueUnion>()("UsesStringValueUnion", {
   // @ts-expect-error
+  // @effect-diagnostics-next-line nonObjectEffectServiceType:off
   effect: Effect.succeed("test" as ("test" | "other"))
 }) {}
 

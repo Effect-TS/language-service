@@ -41,9 +41,9 @@ export class UsesStringValueLazyScoped
 {}
 
 // should warn on "succeed" key because it is a primitive
-// @effect-diagnostics-next-line nonObjectEffectServiceType:off
 export class UsesStringValueSucceeds extends Effect.Service<UsesStringValueSucceeds>()("UsesStringValueSucceeds", {
   // @ts-expect-error
+  // @effect-diagnostics-next-line nonObjectEffectServiceType:off
   succeed: "test" as const
 }) {}
 

@@ -47,8 +47,8 @@ export class UsesStringValueSucceeds extends Effect.Service<UsesStringValueSucce
 }) {}
 
 // should warn on "sync" key because it is function that returns a primitive
-// @effect-diagnostics-next-line nonObjectEffectServiceType:off
 export class UsesStringValueSync extends Effect.Service<UsesStringValueSync>()("UsesStringValueSync", {
   // @ts-expect-error
+  // @effect-diagnostics-next-line nonObjectEffectServiceType:off
   sync: () => "test" as const
 }) {}

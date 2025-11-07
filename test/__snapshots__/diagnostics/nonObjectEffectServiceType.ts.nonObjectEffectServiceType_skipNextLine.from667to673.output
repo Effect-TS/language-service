@@ -13,9 +13,9 @@ export class UsesStringValueUnion extends Effect.Service<UsesStringValueUnion>()
 }) {}
 
 // should warn on "effect" key because it returns an effect that resolves to a primitive
-// @effect-diagnostics-next-line nonObjectEffectServiceType:off
 export class UsesStringValue extends Effect.Service<UsesStringValue>()("UsesStringValue", {
   // @ts-expect-error
+  // @effect-diagnostics-next-line nonObjectEffectServiceType:off
   effect: Effect.succeed("test" as const)
 }) {}
 
