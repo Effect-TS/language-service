@@ -67,7 +67,8 @@ type args = typeof args
 export class NanoDefectException {
   readonly _tag = "@effect/language-service/NanoDefectException"
   constructor(
-    readonly message: unknown
+    readonly message: unknown,
+    readonly lastSpan: string
   ) {}
 }
 
@@ -165,6 +166,7 @@ class NanoFiber {
   _services: Record<string, any> = {}
   _cache: Record<string, WeakMap<any, any>> = {}
   _perf: boolean = false
+  _lastSpan: string = ""
 
   runLoop(nano: Nano<any, any, any>) {
     let current: NanoPrimitive | NanoYield = nano
@@ -202,17 +204,21 @@ const WithSpanProto: NanoPrimitive = {
   [evaluate](fiber) {
     const [fa, name]: [Nano<any, any, any>, string] = this[args]
     if (!fiber._perf) return fa
+    const previousSpan = fiber._lastSpan
+    fiber._lastSpan = name
     const start = performance.now()
     timingsCount[name] = (timingsCount[name] || 0) + 1
     return match(fa, {
       onSuccess: (_) => {
         const end = performance.now()
         timings[name] = (timings[name] || 0) + (end - start)
+        fiber._lastSpan = previousSpan
         return succeed(_)
       },
       onFailure: (_) => {
         const end = performance.now()
         timings[name] = (timings[name] || 0) + (end - start)
+        fiber._lastSpan = previousSpan
         return fail(_)
       }
     })
@@ -230,6 +236,7 @@ export const withSpan = (
 
 export const unsafeRun = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
   const fiber = new NanoFiber()
+  ;(globalThis as any).currentFiber = fiber
   const result = fiber.runLoop(nano)!
   if (result._tag === "Success") {
     return Either.right(result.value)
@@ -238,10 +245,15 @@ export const unsafeRun = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | N
 }
 
 export const run = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
+  const fiber = new NanoFiber()
   try {
-    return unsafeRun(nano)
+    const result = fiber.runLoop(nano)!
+    if (result._tag === "Success") {
+      return Either.right(result.value)
+    }
+    return Either.left(result.value)
   } catch (e) {
-    return Either.left(new NanoDefectException(e))
+    return Either.left(new NanoDefectException(e, fiber._lastSpan))
   }
 }
 
@@ -422,7 +434,7 @@ const ServiceProto: NanoPrimitive = {
     const cont = fiber.getCont(contE)
     return cont
       ? cont[contE](tag, fiber)
-      : fiber.yieldWith(fail(new NanoDefectException(`Service ${tag.key} not found`)) as any)
+      : fiber.yieldWith(fail(new NanoDefectException(`Service ${tag.key} not found`, fiber._lastSpan)) as any)
   }
 }
 

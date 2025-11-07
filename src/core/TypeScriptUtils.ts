@@ -16,6 +16,21 @@ export interface ModuleWithPackageInfo {
   exportsKeys: Array<string>
 }
 
+/** @internal */
+export type OuterExpression =
+  | ts.ParenthesizedExpression
+  | ts.TypeAssertion
+  | ts.SatisfiesExpression
+  | ts.AsExpression
+  | ts.NonNullExpression
+  | ts.ExpressionWithTypeArguments
+  | ts.PartiallyEmittedExpression
+
+/** @internal */
+export type WrappedExpression<T extends ts.Expression> =
+  | OuterExpression & { readonly expression: WrappedExpression<T> }
+  | T
+
 export interface TypeScriptUtils {
   parsePackageContentNameAndVersionFromScope: (v: unknown) => ModuleWithPackageInfo | undefined
   findNodeWithLeadingCommentAtPosition: (
@@ -80,6 +95,10 @@ export interface TypeScriptUtils {
     program: ts.Program,
     sourceFile: ts.SourceFile
   ) => ModuleWithPackageInfo | undefined
+  isOuterExpression(node: ts.Node, kinds?: ts.OuterExpressionKinds): node is OuterExpression
+  skipOuterExpressions<T extends ts.Expression>(node: WrappedExpression<T>): T
+  skipOuterExpressions(node: ts.Expression, kinds?: ts.OuterExpressionKinds): ts.Expression
+  skipOuterExpressions(node: ts.Node, kinds?: ts.OuterExpressionKinds): ts.Node
 }
 export const TypeScriptUtils = Nano.Tag<TypeScriptUtils>("TypeScriptUtils")
 
@@ -764,6 +783,39 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     return node as ts.SourceFile
   }
 
+  function isOuterExpression(
+    node: ts.Node,
+    kinds: ts.OuterExpressionKinds = ts.OuterExpressionKinds.All
+  ): node is OuterExpression {
+    switch (node.kind) {
+      case ts.SyntaxKind.ParenthesizedExpression:
+        // NOTE(mattia): we don't support JSDoc type assertions yet
+        return (kinds & ts.OuterExpressionKinds.Parentheses) !== 0
+      case ts.SyntaxKind.TypeAssertionExpression:
+      case ts.SyntaxKind.AsExpression:
+        return (kinds & ts.OuterExpressionKinds.TypeAssertions) !== 0
+      case ts.SyntaxKind.SatisfiesExpression:
+        return (kinds & (ts.OuterExpressionKinds.TypeAssertions | ts.OuterExpressionKinds.Satisfies)) !== 0
+      case ts.SyntaxKind.ExpressionWithTypeArguments:
+        return (kinds & ts.OuterExpressionKinds.ExpressionsWithTypeArguments) !== 0
+      case ts.SyntaxKind.NonNullExpression:
+        return (kinds & ts.OuterExpressionKinds.NonNullAssertions) !== 0
+      case ts.SyntaxKind.PartiallyEmittedExpression:
+        return (kinds & ts.OuterExpressionKinds.PartiallyEmittedExpressions) !== 0
+    }
+    return false
+  }
+
+  function skipOuterExpressions<T extends ts.Expression>(node: WrappedExpression<T>): T
+  function skipOuterExpressions(node: ts.Expression, kinds?: ts.OuterExpressionKinds): ts.Expression
+  function skipOuterExpressions(node: ts.Node, kinds?: ts.OuterExpressionKinds): ts.Node
+  function skipOuterExpressions(node: ts.Node, kinds = ts.OuterExpressionKinds.All) {
+    while (isOuterExpression(node, kinds)) {
+      node = node.expression
+    }
+    return node
+  }
+
   return {
     findNodeAtPositionIncludingTrivia,
     parsePackageContentNameAndVersionFromScope,
@@ -784,6 +836,8 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     createEffectGenCallExpressionWithBlock,
     createReturnYieldStarStatement,
     parseAccessedExpressionForCompletion,
-    getSourceFileOfNode
+    getSourceFileOfNode,
+    isOuterExpression,
+    skipOuterExpressions
   }
 }
