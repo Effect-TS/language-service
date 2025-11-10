@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.55.3
+
+### Patch Changes
+
+- [#488](https://github.com/Effect-TS/language-service/pull/488) [`53eedea`](https://github.com/Effect-TS/language-service/commit/53eedeadae97401defa148d4db560aca1d84da0a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fixed `@effect-diagnostics-next-line` comment directive to properly work with diagnostics on property assignments within object literals. Previously, the directive would not suppress diagnostics for properties in the middle of an object literal.
+
+- [#486](https://github.com/Effect-TS/language-service/pull/486) [`3830d48`](https://github.com/Effect-TS/language-service/commit/3830d481c152ffd40dcab9d9805e20b2bf517a95) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fixed quick info feature to properly display Effect type parameters when hovering over code. This resolves issues where the quick info would fail to show Success, Failure, and Requirements types in certain contexts.
+
+- [#489](https://github.com/Effect-TS/language-service/pull/489) [`42ce900`](https://github.com/Effect-TS/language-service/commit/42ce90061927905296371ea3c2d292511a2c2538) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow to override Schema constructor as long parameters are just redirected
+
 ## 0.55.2
 
 ### Patch Changes
