@@ -15,6 +15,30 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
+    function isAllowedConstructor(node: ts.ConstructorDeclaration): boolean {
+      if (node.body && node.body.statements.length === 1) {
+        const expressionStatement = node.body.statements[0]
+        if (ts.isExpressionStatement(expressionStatement)) {
+          const maybeCallSuper = expressionStatement.expression
+          if (ts.isCallExpression(maybeCallSuper)) {
+            if (maybeCallSuper.expression.kind === ts.SyntaxKind.SuperKeyword) {
+              const expectedNames = node.parameters.map((_) => _.name).filter(ts.isIdentifier).map((_) => ts.idText(_))
+              if (expectedNames.length === 2 && expectedNames.length === node.parameters.length) {
+                const givenNames = maybeCallSuper.arguments.filter(ts.isIdentifier).map((_) => ts.idText(_))
+                if (
+                  givenNames.length === expectedNames.length &&
+                  givenNames.every((name, index) => name === expectedNames[index])
+                ) {
+                  return true
+                }
+              }
+            }
+          }
+        }
+      }
+      return false
+    }
+
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
       nodeToVisit.push(node)
@@ -55,6 +79,10 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
           const members = node.members
           for (const member of members) {
             if (ts.isConstructorDeclaration(member)) {
+              // is a valid one?
+              if (isAllowedConstructor(member)) {
+                continue
+              }
               // fix to rewrite as a static 'new' method
               const fixAsStaticNew = {
                 fixName: "overriddenSchemaConstructor_static",
