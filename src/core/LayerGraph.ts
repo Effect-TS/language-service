@@ -118,7 +118,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
           }
         }
       }
-    } else {
+    } else if (ts.isExpression(node)) {
       layerType = typeChecker.getTypeAtLocation(node)
     }
     if (layerType) {
@@ -265,7 +265,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
       let symbol = typeChecker.getSymbolAtLocation(node)
       if (symbol) {
         if (symbol.flags & ts.SymbolFlags.Alias) {
-          symbol = typeChecker.getAliasedSymbol(symbol)
+          symbol = typeChecker.getAliasedSymbol(symbol) || symbol
         }
         if (symbol.declarations && symbol.declarations.length === 1) {
           const declarationNode = getAdjustedNode(symbol.declarations[0])
