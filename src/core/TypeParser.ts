@@ -247,6 +247,7 @@ export function make(
     Nano.cachedBy(
       Nano.fn("TypeParser.getSourceFilesDeclaringSymbolModule")(function*(symbol: ts.Symbol) {
         const result: Array<ts.SourceFile> = []
+        if (!symbol) return result
         if (!symbol.declarations) return yield* typeParserIssue("Symbol has no declarations", undefined, undefined)
         for (const sourceFile of symbol.declarations) {
           if (!ts.isSourceFile(sourceFile)) continue
@@ -301,6 +302,7 @@ export function make(
     Nano.cachedBy(
       Nano.fn("TypeParser.getSourceFilesDeclaringSymbolUnderPackageExportedMember")(function*(symbol: ts.Symbol) {
         const result: Array<{ memberSymbol: ts.Symbol; moduleSymbol: ts.Symbol; sourceFile: ts.SourceFile }> = []
+        if (!symbol) return result
         if (!symbol.declarations) return yield* typeParserIssue("Symbol has no declarations", undefined, undefined)
         for (const declaration of symbol.declarations) {
           const sourceFile = tsUtils.getSourceFileOfNode(declaration)
@@ -636,15 +638,15 @@ export function make(
     Nano.fn("TypeParser.importedContextModule")(function*(
       node: ts.Node
     ) {
+      // should be an expression
+      if (!ts.isIdentifier(node)) {
+        return yield* typeParserIssue("Node is not an identifier", undefined, node)
+      }
       const type = typeChecker.getTypeAtLocation(node)
       // if the type has a property "Tag" that is a function
       const propertySymbol = typeChecker.getPropertyOfType(type, "Tag")
       if (!propertySymbol) {
         return yield* typeParserIssue("Type has no 'Tag' property", type, node)
-      }
-      // should be an expression
-      if (!ts.isIdentifier(node)) {
-        return yield* typeParserIssue("Node is not an identifier", type, node)
       }
       const sourceFile = tsUtils.getSourceFileOfNode(node)
       if (!sourceFile) {
@@ -678,15 +680,15 @@ export function make(
     Nano.fn("TypeParser.importedDataModule")(function*(
       node: ts.Node
     ) {
+      // should be an expression
+      if (!ts.isIdentifier(node)) {
+        return yield* typeParserIssue("Node is not an expression", undefined, node)
+      }
       const type = typeChecker.getTypeAtLocation(node)
       // if the type has a property "TaggedError" that is a function
       const propertySymbol = typeChecker.getPropertyOfType(type, "TaggedError")
       if (!propertySymbol) {
         return yield* typeParserIssue("Type has no 'TaggedError' property", type, node)
-      }
-      // should be an expression
-      if (!ts.isIdentifier(node)) {
-        return yield* typeParserIssue("Node is not an expression", type, node)
       }
       const sourceFile = tsUtils.getSourceFileOfNode(node)
       if (!sourceFile) {

@@ -88,9 +88,10 @@ export const leakingRequirements = LSP.createDiagnostic({
               (type) => {
                 let symbol = type.symbol
                 if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
-                  symbol = typeChecker.getAliasedSymbol(symbol)!
+                  symbol = typeChecker.getAliasedSymbol(symbol) || symbol
                 }
-                return !(symbol.declarations || []).some((declaration) => {
+                if (!symbol) return false
+                return !(symbol?.declarations || []).some((declaration) => {
                   const declarationSource = tsUtils.getSourceFileOfNode(declaration)
                   if (!declarationSource) return false
                   return (declarationSource.text.substring(declaration.pos, declaration.end).toLowerCase().indexOf(
