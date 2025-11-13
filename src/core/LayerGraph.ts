@@ -472,7 +472,9 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
       for (const [providedType, providerNodeIndexes] of providers.entries()) {
         if (requiredType === providedType || typeChecker.isTypeAssignableTo(requiredType, providedType)) {
           for (const providerNodeIndex of providerNodeIndexes) {
-            Graph.addEdge(mutableGraph, nodeIndex, providerNodeIndex, {})
+            if (!Graph.hasEdge(mutableGraph, nodeIndex, providerNodeIndex)) {
+              Graph.addEdge(mutableGraph, nodeIndex, providerNodeIndex, {})
+            }
           }
         }
       }
