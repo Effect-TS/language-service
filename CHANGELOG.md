@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.55.4
+
+### Patch Changes
+
+- [#490](https://github.com/Effect-TS/language-service/pull/490) [`7d2e6dc`](https://github.com/Effect-TS/language-service/commit/7d2e6dc5ccd8bc8c71fafaba86d0af68103ae1ab) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Optimize `getTypeAtLocation` usage to reduce unnecessary calls on non-expression nodes. This improves performance by ensuring type checking is only performed on expression nodes and adds additional null safety checks for symbol resolution.
+
 ## 0.55.3
 
 ### Patch Changes
