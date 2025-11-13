@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.55.5
+
+### Patch Changes
+
+- [#492](https://github.com/Effect-TS/language-service/pull/492) [`f2d2748`](https://github.com/Effect-TS/language-service/commit/f2d27489164b12fede92c31a50a8d07cf56e28cf) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fixed duplicate edges in layer outline graph that could occur when multiple type assignments matched between layer nodes
+
 ## 0.55.4
 
 ### Patch Changes
