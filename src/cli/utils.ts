@@ -2,6 +2,7 @@ import * as FileSystem from "@effect/platform/FileSystem"
 import * as Path from "@effect/platform/Path"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import * as Predicate from "effect/Predicate"
 import * as Schema from "effect/Schema"
 import type * as ts from "typescript"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
@@ -266,3 +267,35 @@ export const omitBundlerSourceFileComment = Effect.fn("omitBundlerSourceFileComm
     return yield* applyTextChanges(sourceFile.text, deleteChanges)
   }
 )
+
+export const extractEffectLspOptions = (compilerOptions: ts.CompilerOptions) => {
+  return (Predicate.hasProperty(compilerOptions, "plugins") && Array.isArray(compilerOptions.plugins)
+    ? compilerOptions.plugins
+    : []).find((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service")
+}
+
+export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(function*(tsconfigPath: string) {
+  const path = yield* Path.Path
+  const tsInstance = yield* getTypeScript
+  const filesToCheck = new Set<string>()
+  let tsconfigToHandle = [tsconfigPath]
+  while (tsconfigToHandle.length > 0) {
+    const tsconfigPath = tsconfigToHandle.shift()!
+    const tsconfigAbsolutePath = path.resolve(tsconfigPath)
+    const configFile = tsInstance.readConfigFile(tsconfigAbsolutePath, tsInstance.sys.readFile)
+    if (configFile.error) {
+      if (!tsconfigAbsolutePath.endsWith("tsconfig.json")) {
+        tsconfigToHandle = [...tsconfigToHandle, path.resolve(tsconfigPath, "tsconfig.json")]
+      }
+      continue
+    }
+    const parsedConfig = tsInstance.parseJsonConfigFileContent(
+      configFile.config,
+      tsInstance.sys,
+      path.dirname(tsconfigAbsolutePath)
+    )
+    tsconfigToHandle = [...tsconfigToHandle, ...parsedConfig.projectReferences?.map((_) => _.path) ?? []]
+    parsedConfig.fileNames.forEach((_) => filesToCheck.add(_))
+  }
+  return filesToCheck
+})

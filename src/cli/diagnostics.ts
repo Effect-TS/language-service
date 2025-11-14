@@ -8,7 +8,6 @@ import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
-import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as LSP from "../core/LSP"
@@ -19,7 +18,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
-import { getTypeScript } from "./utils"
+import { extractEffectLspOptions, getFileNamesInTsConfig, getTypeScript } from "./utils"
 
 export class NoFilesToCheckError extends Data.TaggedError("NoFilesToCheckError")<{}> {
   get message(): string {
@@ -37,12 +36,6 @@ const project = Options.file("project").pipe(
   Options.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
 )
 
-const extractEffectLspOptions = (compilerOptions: ts.CompilerOptions) => {
-  return (Predicate.hasProperty(compilerOptions, "plugins") && Array.isArray(compilerOptions.plugins)
-    ? compilerOptions.plugins
-    : []).find((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service")
-}
-
 const BATCH_SIZE = 50
 
 export const diagnostics = Command.make(
@@ -51,36 +44,18 @@ export const diagnostics = Command.make(
   Effect.fn("diagnostics")(function*({ file, project }) {
     const path = yield* Path.Path
     const tsInstance = yield* getTypeScript
-    const filesToCheck = new Set<string>()
+    let filesToCheck = new Set<string>()
     let checkedFilesCount = 0
     let errorsCount = 0
     let warningsCount = 0
     let messagesCount = 0
 
-    if (Option.isSome(file)) {
-      filesToCheck.add(path.resolve(file.value))
+    if (Option.isSome(project)) {
+      filesToCheck = yield* getFileNamesInTsConfig(project.value)
     }
 
-    if (Option.isSome(project)) {
-      let tsconfigToHandle = [project.value ?? ""]
-      while (tsconfigToHandle.length > 0) {
-        const tsconfigPath = tsconfigToHandle.shift()!
-        const tsconfigAbsolutePath = path.resolve(tsconfigPath)
-        const configFile = tsInstance.readConfigFile(tsconfigAbsolutePath, tsInstance.sys.readFile)
-        if (configFile.error) {
-          if (!tsconfigAbsolutePath.endsWith("tsconfig.json")) {
-            tsconfigToHandle = [...tsconfigToHandle, path.resolve(tsconfigPath, "tsconfig.json")]
-          }
-          continue
-        }
-        const parsedConfig = tsInstance.parseJsonConfigFileContent(
-          configFile.config,
-          tsInstance.sys,
-          path.dirname(tsconfigAbsolutePath)
-        )
-        tsconfigToHandle = [...tsconfigToHandle, ...parsedConfig.projectReferences?.map((_) => _.path) ?? []]
-        parsedConfig.fileNames.forEach((_) => filesToCheck.add(_))
-      }
+    if (Option.isSome(file)) {
+      filesToCheck.add(path.resolve(file.value))
     }
 
     if (filesToCheck.size === 0) {
