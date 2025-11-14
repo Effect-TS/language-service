@@ -37,12 +37,17 @@ const project = Options.file("project").pipe(
   Options.withDescription("The full path of the project tsconfig.json file to codegen.")
 )
 
+const verbose = Options.boolean("verbose").pipe(
+  Options.withDefault(false),
+  Options.withDescription("Verbose output.")
+)
+
 const BATCH_SIZE = 50
 
 export const codegen = Command.make(
   "codegen",
-  { file, project },
-  Effect.fn("codegen")(function*({ file, project }) {
+  { file, project, verbose },
+  Effect.fn("codegen")(function*({ file, project, verbose }) {
     const path = yield* Path.Path
     const fs = yield* FileSystem.FileSystem
     const tsInstance = yield* getTypeScript
@@ -154,6 +159,14 @@ export const codegen = Command.make(
           // only changes to this file
           const thisFileChanges = allFileChanges.filter((change) => change.fileName === sourceFile.fileName)
           const flattenedChanges = Array.flatten(thisFileChanges.map((change) => change.textChanges))
+
+          if (verbose) {
+            if (flattenedChanges.length > 0) {
+              console.log(`${filePath}: with ${flattenedChanges.length} changes`)
+            } else {
+              console.log(`${filePath}: no changes`)
+            }
+          }
           if (flattenedChanges.length === 0) continue
 
           // apply the changes

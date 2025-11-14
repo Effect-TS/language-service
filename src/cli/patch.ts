@@ -62,7 +62,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     > = Option.none()
 
     // nodes where to start finding (optimization to avoid the entire file)
-    const nodesToCheck: Array<ts.Node> = []
+    let nodesToCheck: Array<ts.Node> = []
     function findNodeAtPositionIncludingTrivia(
       sourceFile: ts.SourceFile,
       position: number
@@ -99,7 +99,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     if (!pushFunctionDeclarationNode("checkSourceFileWorker")) requiresFullScan = true
     if (!pushFunctionDeclarationNode("markPrecedingCommentDirectiveLine")) requiresFullScan = true
     if (!pushFunctionDeclarationNode("reportRelationError")) requiresFullScan = true
-    if (requiresFullScan) nodesToCheck.push(sourceFile)
+    if (requiresFullScan) nodesToCheck = [sourceFile]
 
     // then find the checkSourceFile function, and insert the call to checking the effect lsp diagnostics
     while (nodesToCheck.length > 0) {
