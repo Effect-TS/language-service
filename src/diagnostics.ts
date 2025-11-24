@@ -28,6 +28,7 @@ import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
 import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
 import { unknownInEffectCatch } from "./diagnostics/unknownInEffectCatch.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
+import { unnecessaryFailYieldableError } from "./diagnostics/unnecessaryFailYieldableError.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
 import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAccessors.js"
@@ -44,6 +45,7 @@ export const diagnostics = [
   floatingEffect,
   missingStarInYieldEffectGen,
   unnecessaryEffectGen,
+  unnecessaryFailYieldableError,
   missingReturnYieldStar,
   leakingRequirements,
   unnecessaryPipe,
