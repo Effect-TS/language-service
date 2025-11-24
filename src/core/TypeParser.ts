@@ -80,6 +80,7 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ A: ts.Type; I: ts.Type; R: ts.Type }, TypeParserIssue>
+  effectCauseYieldableErrorTypes: (fromSourceFile: ts.SourceFile) => Nano.Nano<Array<ts.Type>, TypeParserIssue, never>
   contextTag: (
     type: ts.Type,
     atLocation: ts.Node
@@ -357,6 +358,62 @@ export function make(
     if (!symbol) return typeParserIssue("Node has no symbol", undefined, givenNode)
     return isSymbolExportOfPackageModule(symbol, packageName, memberName, isCorrectSourceFile)
   }
+
+  const findSymbolsMatchingPackageAndExportedName = (
+    packageName: string,
+    exportedSymbolName: string
+  ) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.findSymbolsMatchingPackageAndExportedName")(function*(_fromSourceFile: ts.SourceFile) {
+        const result: Array<[symbol: ts.Symbol, sourceFile: ts.SourceFile]> = []
+        for (const sourceFile of program.getSourceFiles()) {
+          const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+          if (!moduleSymbol) continue
+          const symbol = typeChecker.tryGetMemberInModuleExports(exportedSymbolName, moduleSymbol)
+          if (!symbol) continue
+          const packageInfo = yield* getSourceFilePackageInfo(sourceFile)
+          if (!packageInfo || packageInfo.name.toLowerCase() !== packageName.toLowerCase()) continue
+          result.push([symbol, sourceFile])
+        }
+        return result
+      }),
+      `TypeParser.findSymbolsMatchingPackageAndExportedName(${packageName}, ${exportedSymbolName})`,
+      (sourceFile) => sourceFile
+    )
+
+  const isCauseTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isCauseTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const causeTypeSymbol = typeChecker.tryGetMemberInModuleExports("Cause", moduleSymbol)
+      if (!causeTypeSymbol) return yield* typeParserIssue("Cause type not found", undefined, sourceFile)
+      const type = typeChecker.getDeclaredTypeOfSymbol(causeTypeSymbol)
+      yield* pipeableType(type, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isCauseTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const effectCauseYieldableErrorTypes = Nano.cachedBy(
+    Nano.fn("TypeParser.effectCauseYieldableErrorTypes")(function*(
+      fromSourceFile: ts.SourceFile
+    ) {
+      const symbols = yield* findSymbolsMatchingPackageAndExportedName("effect", "YieldableError")(fromSourceFile)
+      const result: Array<ts.Type> = []
+      for (const [symbol, sourceFile] of symbols) {
+        const causeFile = yield* isCauseTypeSourceFile(sourceFile)
+        if (!causeFile) continue
+        const type = typeChecker.getDeclaredTypeOfSymbol(symbol)
+        result.push(type)
+      }
+      return result
+    }),
+    "TypeParser.effectCauseYieldableErrorTypes",
+    (fromSourceFile) => fromSourceFile
+  )
 
   function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
     const signatures = typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)
@@ -1667,6 +1724,7 @@ export function make(
     effectGen,
     effectFnUntracedGen,
     effectFnGen,
+    effectCauseYieldableErrorTypes,
     unnecessaryEffectGen,
     effectSchemaType,
     contextTag,
