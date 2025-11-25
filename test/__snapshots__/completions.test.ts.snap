@@ -157,7 +157,7 @@ exports[`Completion durationInput > durationInput_props.ts at 5:14 1`] = `
 exports[`Completion effectCodegensComment > effectCodegensComment.ts at 2:5 1`] = `
 [
   {
-    "insertText": "@effect-codegens \${1|accessors|} $0",
+    "insertText": "@effect-codegens \${1|accessors,annotate|} $0",
     "isSnippet": true,
     "kind": "string",
     "name": "@effect-codegens",

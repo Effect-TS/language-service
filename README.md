@@ -100,6 +100,11 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Toggle between pipe styles `X.pipe(Y)` and `pipe(X, Y)`
 - Layer Magic: Automatically compose and build layers based on service dependencies
 
+### Codegens
+
+- Automatically adds type annotations to exported constants based on their initializer types using `// @effect-codegens annotate`
+- Automatically implements service accessors in `Effect.Service`, `Context.Tag` or `Effect.Tag` declarations using `// @effect-codegens accessors`
+
 ### Miscellaneous
 - Renaming a class name, will rename the identifier as well for TaggedError, TaggedClass, etc...
 - "Go to definition" for RpcClient will resolve to the Rpc definition

@@ -1,0 +1,12 @@
+// code fix outdatedEffectCodegen_fix  output for range 114 - 122
+import * as Effect from "effect/Effect"
+
+export const shouldNotAnnotate = Effect.succeed(42)
+
+// @effect-codegens annotate:5fce15f7af06d924
+export const test: Effect.Effect<1, string> = Effect.gen(function*() {
+  if (Math.random() < 0.5) {
+    return yield* Effect.fail("error")
+  }
+  return 1 as const
+})
