@@ -102,32 +102,8 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 
 ### Codegens
 
-Codegens are automated code transformations that can be applied using `@effect-codegens` comments in your TypeScript files. These comments allow you to specify which codegens should be applied to specific sections of your code.
-
-- **annotate**: Automatically adds type annotations to exported constants based on their initializer types. Use `// @effect-codegens annotate` above variable declarations to add explicit type annotations.
-
-Example:
-```typescript
-// @effect-codegens annotate
-export const test = Effect.gen(function*() {
-  if (Math.random() < 0.5) {
-    return yield* Effect.fail("error")
-  }
-  return 1 as const
-})
-// Becomes:
-// @effect-codegens annotate:5fce15f7af06d924
-export const test: Effect.Effect<1, string, never> = Effect.gen(function*() {
-  if (Math.random() < 0.5) {
-    return yield* Effect.fail("error")
-  }
-  return 1 as const
-})
-```
-
-- **accessors**: Automatically implements service accessors in `Effect.Service`, `Context.Tag` or `Effect.Tag` declarations.
-
-You can also use the CLI command `effect-language-service codegen` to update codegens across your entire project or specific files.
+- Automatically adds type annotations to exported constants based on their initializer types using `// @effect-codegens annotate`
+- Automatically implements service accessors in `Effect.Service`, `Context.Tag` or `Effect.Tag` declarations using `// @effect-codegens accessors`
 
 ### Miscellaneous
 - Renaming a class name, will rename the identifier as well for TaggedError, TaggedClass, etc...
