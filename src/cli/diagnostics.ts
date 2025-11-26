@@ -113,6 +113,11 @@ const severity = Options.text("severity").pipe(
   Options.withDescription("Filter by severity levels (comma-separated: error,warning,message)")
 )
 
+const progress = Options.boolean("progress").pipe(
+  Options.withDefault(false),
+  Options.withDescription("Show progress as files are checked (outputs to stderr)")
+)
+
 const parseSeverityFilter = (
   severityOption: Option.Option<string>
 ): Set<SeverityLevel> | undefined => {
@@ -131,8 +136,8 @@ const BATCH_SIZE = 50
 
 export const diagnostics = Command.make(
   "diagnostics",
-  { file, project, format, strict, severity },
-  Effect.fn("diagnostics")(function*({ file, format, project, severity, strict }) {
+  { file, progress, project, format, strict, severity },
+  Effect.fn("diagnostics")(function*({ file, format, progress, project, severity, strict }) {
     const path = yield* Path.Path
     const tsInstance = yield* getTypeScript
     const severityFilter = parseSeverityFilter(severity)
@@ -153,6 +158,12 @@ export const diagnostics = Command.make(
 
     const filesToCheckArray = Array.fromIterable(filesToCheck)
     const batches = Array.chunksOf(filesToCheckArray, BATCH_SIZE)
+    const totalFiles = filesToCheck.size
+    const fileIndex = { current: 0 }
+
+    if (progress) {
+      process.stderr.write(`Starting diagnostics for ${totalFiles} files...\n`)
+    }
 
     const serviceTracker = { last: undefined as ts.LanguageService | undefined }
     const disposeIfLanguageServiceChanged = (languageService: ts.LanguageService | undefined) => {
@@ -166,6 +177,10 @@ export const diagnostics = Command.make(
       const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
       for (const filePath of batch) {
+        fileIndex.current++
+        if (progress) {
+          process.stderr.write(`\r[${fileIndex.current}/${totalFiles}] ${filePath.slice(-60).padStart(60)}`)
+        }
         service.openClientFile(filePath)
         try {
           const scriptInfo = service.getScriptInfo(filePath)
@@ -257,6 +272,10 @@ export const diagnostics = Command.make(
       yield* Effect.yieldNow()
     }
     disposeIfLanguageServiceChanged(undefined)
+
+    if (progress) {
+      process.stderr.write("\n")
+    }
 
     // Output JSON format as a single array
     if (format === "json") {
