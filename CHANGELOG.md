@@ -1,5 +1,45 @@
 # @effect/language-service
 
+## 0.57.0
+
+### Minor Changes
+
+- [#500](https://github.com/Effect-TS/language-service/pull/500) [`acc2d43`](https://github.com/Effect-TS/language-service/commit/acc2d43d62df686a3cef13112ddd3653cf0181d0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new `annotate` codegen that automatically adds type annotations to exported constants based on their initializer types. This codegen can be used by adding `// @effect-codegens annotate` comments above variable declarations.
+
+  Example:
+
+  ```typescript
+  // @effect-codegens annotate
+  export const test = Effect.gen(function* () {
+    if (Math.random() < 0.5) {
+      return yield* Effect.fail("error");
+    }
+    return 1 as const;
+  });
+  // Becomes:
+  // @effect-codegens annotate:5fce15f7af06d924
+  export const test: Effect.Effect<1, string, never> = Effect.gen(function* () {
+    if (Math.random() < 0.5) {
+      return yield* Effect.fail("error");
+    }
+    return 1 as const;
+  });
+  ```
+
+  The codegen automatically detects the type from the initializer and adds the appropriate type annotation, making code more explicit and type-safe.
+
+- [#497](https://github.com/Effect-TS/language-service/pull/497) [`b188b74`](https://github.com/Effect-TS/language-service/commit/b188b74204bfd81b64b2266dd59465a2c7d2d34f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new diagnostic `unnecessaryFailYieldableError` that warns when using `yield* Effect.fail()` with yieldable error types. The diagnostic suggests yielding the error directly instead of wrapping it with `Effect.fail()`, as yieldable errors (like `Data.TaggedError` and `Schema.TaggedError`) can be yielded directly in Effect generators.
+
+  Example:
+
+  ```typescript
+  // ❌ Unnecessary Effect.fail wrapper
+  yield * Effect.fail(new DataTaggedError());
+
+  // ✅ Direct yield of yieldable error
+  yield * new DataTaggedError();
+  ```
+
 ## 0.56.0
 
 ### Minor Changes
