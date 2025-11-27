@@ -28,17 +28,9 @@
  */
 
 import MagicString from "magic-string"
-import { findGenBlocks, hasGenBlocks, transformBlockContent } from "./scanner"
+import { findGenBlocks, type GenBlock, hasGenBlocks, transformBlockContent } from "./scanner"
 
-export { findGenBlocks, hasGenBlocks, transformBlockContent }
-
-export interface GenBlock {
-  start: number
-  end: number
-  content: string
-  /** Position of opening brace */
-  braceStart: number
-}
+export { findGenBlocks, type GenBlock, hasGenBlocks, transformBlockContent }
 
 export interface TransformResult {
   code: string
@@ -252,55 +244,4 @@ function transformBlock(s: MagicString, source: string, block: GenBlock): void {
 
   // 3. Add closing paren after the block's closing brace
   s.appendRight(block.end, ")")
-}
-
-/**
- * Legacy transform using content-based approach (for compatibility)
- * This version transforms the entire block content at once.
- */
-export function transformSourceLegacy(
-  source: string,
-  filename?: string
-): TransformResult {
-  if (!hasGenBlocks(source)) {
-    return { code: source, map: null, hasChanges: false, magicString: null }
-  }
-
-  const blocks = findGenBlocks(source)
-  if (blocks.length === 0) {
-    return { code: source, map: null, hasChanges: false, magicString: null }
-  }
-
-  const s = new MagicString(source)
-
-  // Process blocks from end to start to preserve positions
-  for (let i = blocks.length - 1; i >= 0; i--) {
-    const block = blocks[i]
-
-    // Transform the block content
-    const transformedContent = transformBlockContent(block.content)
-
-    // Build the replacement: Effect.gen(/* __EFFECT_SUGAR__ */ function* () { ... })
-    // The marker comment identifies blocks that came from gen {} syntax
-    const replacement = `Effect.gen(/* __EFFECT_SUGAR__ */ function* () {${transformedContent}})`
-
-    // Replace the entire gen block
-    s.overwrite(block.start, block.end, replacement)
-  }
-
-  const mapOptions: Parameters<MagicString["generateMap"]>[0] = {
-    includeContent: true,
-    hires: true
-  }
-  if (filename) {
-    mapOptions.source = filename
-    mapOptions.file = `${filename}.map`
-  }
-
-  return {
-    code: s.toString(),
-    map: s.generateMap(mapOptions),
-    hasChanges: true,
-    magicString: s
-  }
 }

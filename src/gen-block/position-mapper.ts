@@ -166,29 +166,6 @@ export function cacheTransformation(
 }
 
 /**
- * Legacy cache function for backward compatibility
- * Creates a basic mapping when no source map is available
- */
-export function cacheTransformationLegacy(
-  fileName: string,
-  originalSource: string,
-  transformedSource: string,
-  _blocks: Array<{ start: number; end: number; braceStart: number }>
-): PositionMapper {
-  // Create a minimal source map that maps everything 1:1
-  // This won't provide accurate position mapping but maintains API compatibility
-  const sourceMap: SourceMapData = {
-    version: 3,
-    sources: [fileName],
-    sourcesContent: [originalSource],
-    names: [],
-    mappings: ""
-  }
-
-  return cacheTransformation(fileName, originalSource, transformedSource, sourceMap)
-}
-
-/**
  * Get cached transformation for a file
  */
 export function getCachedTransformation(fileName: string): TransformCacheEntry | undefined {
