@@ -4,7 +4,8 @@
     "examples"
   ],
   "exclude": [
-    "examples/completions/**.ts"
+    "examples/completions/**.ts",
+    "examples/gen-block/**.ts"
   ],
   "references": [
     {
