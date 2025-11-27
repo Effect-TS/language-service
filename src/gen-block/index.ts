@@ -14,7 +14,6 @@ export {
   cacheTransformation,
   clearAllCachedTransformations,
   clearCachedTransformation,
-  createSegmentsFromTransformation,
   getCachedTransformation,
   getOriginalSource,
   getPositionMapper,
@@ -27,7 +26,7 @@ export {
   mapTransformedToOriginal,
   PositionMapper
 } from "./position-mapper"
-export type { Segment, TransformCacheEntry } from "./position-mapper"
+export type { SourceMapData, TransformCacheEntry } from "./position-mapper"
 
 // Language service host wrapper
 export { createWrappedLanguageServiceHost } from "./host-wrapper"

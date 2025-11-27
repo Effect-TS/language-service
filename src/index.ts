@@ -17,6 +17,7 @@ import * as TypeScriptUtils from "./core/TypeScriptUtils.js"
 import { diagnostics } from "./diagnostics.js"
 import { middlewareAutoImportQuickfixes } from "./diagnostics/middlewareAutoImportQuickfixes.js"
 import { createWrappedLanguageServiceHost, type WrappedHostResult } from "./gen-block/host-wrapper.js"
+import { getOriginalSource, getTransformedSource } from "./gen-block/position-mapper.js"
 import { goto } from "./goto.js"
 import { middlewareGenLike } from "./inlays/middlewareGenLike.js"
 import { quickInfo } from "./quickinfo.js"
@@ -499,7 +500,7 @@ const init = (
     }
 
     proxy.getDefinitionAndBoundSpan = (fileName, position, ...args) => {
-      // Map position for gen-block files
+      // Map position for gen-block files (original → transformed)
       let mappedPosition = position
       const isGenBlock = genBlockHostResult?.isTransformed(fileName)
       if (isGenBlock) {
@@ -509,14 +510,53 @@ const init = (
       const applicableDefinition = languageService.getDefinitionAndBoundSpan(fileName, mappedPosition, ...args)
 
       // Map textSpan (highlight at click location) back to original coordinates
+      // This is used for underlining during hover, which happens in the original source display
       if (isGenBlock && applicableDefinition?.textSpan) {
         applicableDefinition.textSpan = genBlockHostResult!.mapSpanToOriginal(fileName, applicableDefinition.textSpan)
       }
 
-      // NOTE: Definition textSpans should NOT be mapped!
-      // They stay in transformed coordinates because TypeScript converts
-      // positions to line:offset using the transformed source file.
-      // Mapping would give wrong line numbers.
+      // Map definition textSpans using a hybrid approach:
+      // - Get the ORIGINAL line/column for correct line AND column navigation
+      // - Then find the transformed position for that original line/column
+      // This ensures TypeScript's position→line/column conversion gives the right result
+      // (TypeScript's sourceFile contains transformed source, so we need positions that
+      // when converted to line/column give the original source coordinates)
+      if (applicableDefinition?.definitions) {
+        applicableDefinition.definitions = applicableDefinition.definitions.map((def) => {
+          if (!genBlockHostResult?.isTransformed(def.fileName)) {
+            return def
+          }
+
+          const transformedSpan = def.textSpan
+          const origSrc = getOriginalSource(def.fileName)
+          const transSrc = getTransformedSource(def.fileName)
+
+          if (!origSrc || !transSrc) {
+            return def
+          }
+
+          // Step 1: Map transformed position to original position
+          const originalPos = genBlockHostResult!.mapToOriginal(def.fileName, transformedSpan.start)
+
+          // Step 2: Calculate original line/column
+          const origLines = origSrc.slice(0, originalPos).split("\n")
+          const origLine = origLines.length
+          const origCol = origLines[origLines.length - 1].length
+
+          // Step 3: Find the transformed position for that original line/column
+          const transLines = transSrc.split("\n")
+          let transPos = 0
+          for (let i = 0; i < origLine - 1 && i < transLines.length; i++) {
+            transPos += transLines[i].length + 1 // +1 for newline
+          }
+          transPos += Math.min(origCol, transLines[origLine - 1]?.length ?? 0)
+
+          return {
+            ...def,
+            textSpan: { start: transPos, length: transformedSpan.length }
+          }
+        })
+      }
 
       if (languageServicePluginOptions.goto) {
         const program = languageService.getProgram()

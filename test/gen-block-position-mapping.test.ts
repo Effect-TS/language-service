@@ -1,9 +1,6 @@
+import { originalPositionFor, TraceMap } from "@jridgewell/trace-mapping"
 import { describe, expect, it } from "vitest"
-import {
-  cacheTransformation,
-  createSegmentsFromTransformation,
-  getPositionMapper
-} from "../src/gen-block/position-mapper"
+import { cacheTransformation, getPositionMapper, type SourceMapData } from "../src/gen-block/position-mapper"
 import { findGenBlocks, transformSource } from "../src/gen-block/transformer"
 
 describe("gen-block position mapping", () => {
@@ -31,15 +28,17 @@ describe("gen-block position mapping", () => {
   })
 }`
 
-    const blocks = findGenBlocks(original)
-    const result = transformSource(original)
+    const result = transformSource(original, "destruct.ts")
 
     console.log("\n=== Original ===")
     console.log(original)
     console.log("\n=== Transformed ===")
     console.log(result.code)
 
-    cacheTransformation("destruct.ts", original, result.code, blocks)
+    expect(result.hasChanges).toBe(true)
+    expect(result.map).not.toBeNull()
+
+    cacheTransformation("destruct.ts", original, result.code, result.map as SourceMapData)
     const mapper = getPositionMapper("destruct.ts")!
 
     // Find position of "config" in the destructuring pattern (not the return statement)
@@ -60,13 +59,6 @@ describe("gen-block position mapping", () => {
     const mappedLine = original.slice(0, mappedBack).split("\n").length
     console.log(`Original line: ${origLine}, Mapped line: ${mappedLine}`)
 
-    // Show segments for debugging
-    const segments = mapper.getSegments()
-    console.log(`\n=== Segments (${segments.length}) ===`)
-    segments.slice(0, 10).forEach((seg, i) => {
-      console.log(`${i}: orig[${seg.originalStart}-${seg.originalEnd}] -> trans[${seg.transformedStart}-${seg.transformedEnd}] ${seg.isIdentity ? "ID" : "NON-ID"}`)
-    })
-
     expect(mappedBack).toBe(configOrigPos)
   })
 
@@ -76,14 +68,13 @@ describe("gen-block position mapping", () => {
   return user
 }`
 
-    const blocks = findGenBlocks(original)
-    const result = transformSource(original)
+    const result = transformSource(original, "test.ts")
 
-    expect(blocks).toHaveLength(1)
     expect(result.hasChanges).toBe(true)
+    expect(result.map).not.toBeNull()
 
     // Cache the transformation
-    cacheTransformation("test.ts", original, result.code, blocks)
+    cacheTransformation("test.ts", original, result.code, result.map as SourceMapData)
 
     const mapper = getPositionMapper("test.ts")
     expect(mapper).toBeDefined()
@@ -105,41 +96,34 @@ describe("gen-block position mapping", () => {
     expect(transformedPos).toBe(transformedGetUserPos)
   })
 
-  it("creates correct segments for bind statements", () => {
+  it("creates correct source map for bind statements", () => {
     const original = `gen {
   user <- getUser(1)
 }`
 
-    const transformed = `Effect.gen(/* __EFFECT_SUGAR__ */ function* () {
-  const user = yield* getUser(1)
-})`
+    const result = transformSource(original, "test.ts")
 
-    const blocks = [
-      {
-        start: 0,
-        end: original.length,
-        braceStart: 3
-      }
-    ]
+    expect(result.hasChanges).toBe(true)
+    expect(result.map).not.toBeNull()
 
-    const segments = createSegmentsFromTransformation(original, transformed, blocks)
+    // Verify that the source map has proper structure
+    const map = result.map as SourceMapData
+    expect(map.version).toBe(3)
+    expect(map.sources).toContain("test.ts")
+    expect(map.mappings).toBeTruthy()
 
-    // Should have segments covering the entire original source
-    expect(segments.length).toBeGreaterThan(0)
+    // Use trace-mapping to verify mappings work
+    const tracer = new TraceMap(map as any)
 
-    // Check segments don't have gaps
-    const sortedSegments = [...segments].sort((a, b) => a.originalStart - b.originalStart)
+    // Find "getUser" in transformed code
+    const transformedLines = result.code.split("\n")
+    const getUserCol = transformedLines[1].indexOf("getUser")
 
-    // First segment should start at 0 or close to it
-    expect(sortedSegments[0]!.originalStart).toBeLessThanOrEqual(5) // Allow for "gen {" wrapper
+    // Trace back to original
+    const traced = originalPositionFor(tracer, { line: 2, column: getUserCol })
 
-    // Segments should be contiguous or overlapping (no gaps)
-    for (let i = 1; i < sortedSegments.length; i++) {
-      const prev = sortedSegments[i - 1]!
-      const curr = sortedSegments[i]!
-      // Current segment should start at or before previous segment ends
-      expect(curr.originalStart).toBeLessThanOrEqual(prev.originalEnd)
-    }
+    // Should map back to line 2 of original
+    expect(traced.line).toBe(2)
   })
 
   it("maps positions in expression with 1:1 precision", () => {
@@ -147,10 +131,12 @@ describe("gen-block position mapping", () => {
   result <- compute(1, 2, 3)
 }`
 
-    const blocks = findGenBlocks(original)
-    const result = transformSource(original)
+    const result = transformSource(original, "test2.ts")
 
-    cacheTransformation("test2.ts", original, result.code, blocks)
+    expect(result.hasChanges).toBe(true)
+    expect(result.map).not.toBeNull()
+
+    cacheTransformation("test2.ts", original, result.code, result.map as SourceMapData)
     const mapper = getPositionMapper("test2.ts")!
 
     // Test multiple positions within the expression
@@ -167,7 +153,7 @@ describe("gen-block position mapping", () => {
       const mappedBack = mapper.transformedToOriginal(transformedPos)
 
       // Round-trip mapping should get us back close to original
-      // (may not be exact due to non-identity segments)
+      // (may not be exact due to source map granularity)
       expect(Math.abs(mappedBack - pos)).toBeLessThan(20) // Allow some tolerance
     }
   })
@@ -176,12 +162,15 @@ describe("gen-block position mapping", () => {
     const original = `const a = gen { x <- foo() }
 const b = gen { y <- bar() }`
 
-    const blocks = findGenBlocks(original)
-    const result = transformSource(original)
+    const result = transformSource(original, "test3.ts")
 
+    expect(result.hasChanges).toBe(true)
+    expect(result.map).not.toBeNull()
+
+    const blocks = findGenBlocks(original)
     expect(blocks).toHaveLength(2)
 
-    cacheTransformation("test3.ts", original, result.code, blocks)
+    cacheTransformation("test3.ts", original, result.code, result.map as SourceMapData)
     const mapper = getPositionMapper("test3.ts")!
 
     // Map position in first block
@@ -212,8 +201,10 @@ const b = gen { y <- bar() }`
     const currentHash = calculateHash(rawConfig)
   }`
 
-    const blocks = findGenBlocks(original)
-    const result = transformSource(original)
+    const result = transformSource(original, "portkey.ts")
+
+    expect(result.hasChanges).toBe(true)
+    expect(result.map).not.toBeNull()
 
     console.log("\n=== Original source ===")
     const origLines = original.split("\n")
@@ -227,7 +218,7 @@ const b = gen { y <- bar() }`
       console.log(`${idx + 1}: ${line}`)
     })
 
-    cacheTransformation("portkey.ts", original, result.code, blocks)
+    cacheTransformation("portkey.ts", original, result.code, result.map as SourceMapData)
     const mapper = getPositionMapper("portkey.ts")!
 
     // Find position of "const rawConfig" in the definition (should be line 7)

@@ -10,8 +10,8 @@
 import * as fs from "node:fs"
 import * as path from "node:path"
 import type * as ts from "typescript"
-import { cacheTransformation, mapTransformedToOriginal } from "./position-mapper"
-import { findGenBlocks, hasGenBlocks, transformSource } from "./transformer"
+import { cacheTransformation, mapTransformedToOriginal, type SourceMapData } from "./position-mapper"
+import { hasGenBlocks, transformSource } from "./transformer"
 
 export interface GenBlockTypeCheckerOptions {
   /** TypeScript instance to use */
@@ -73,19 +73,16 @@ export function createTransformingCompilerHost(
       // Transform gen blocks
       const result = transformSource(sourceText, fileName)
 
-      if (result.hasChanges) {
+      if (result.hasChanges && result.map) {
         // Track this as a gen-block file
         genBlockFiles.add(fileName)
 
-        // Get blocks for position mapping
-        const blocks = findGenBlocks(sourceText)
-
-        // Cache transformation for position mapping
+        // Cache transformation for position mapping using the source map
         cacheTransformation(
           fileName,
           sourceText,
           result.code,
-          blocks
+          result.map as SourceMapData
         )
 
         // Create source file from transformed code

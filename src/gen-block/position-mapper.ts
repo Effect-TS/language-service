@@ -1,34 +1,26 @@
 /**
  * Position mapping utilities for gen-block transformations
  *
- * Provides bidirectional position mapping between original source (with gen {})
- * and transformed source (with Effect.gen()).
+ * Uses @jridgewell/trace-mapping for accurate bidirectional position mapping
+ * between original source (with gen {}) and transformed source (with Effect.gen()).
  *
- * Uses a segment-based approach where each segment tracks a region of the source
- * and its corresponding position in the transformed output.
+ * The source map approach ensures that positions within expressions are
+ * accurately mapped, fixing go-to-definition offset issues.
  */
 
+import { generatedPositionFor, originalPositionFor, TraceMap } from "@jridgewell/trace-mapping"
 import type * as ts from "typescript"
 
 /**
- * A segment represents a contiguous region of source code and how it maps
- * between original and transformed coordinates.
+ * Source map data structure from MagicString
  */
-export interface Segment {
-  /** Start position in original source */
-  originalStart: number
-  /** End position in original source */
-  originalEnd: number
-  /** Start position in transformed source */
-  transformedStart: number
-  /** End position in transformed source */
-  transformedEnd: number
-  /**
-   * Whether this segment has 1:1 character mapping.
-   * If true, positions within this segment can be mapped directly with offset.
-   * If false, positions within map to the start of the transformed segment.
-   */
-  isIdentity: boolean
+export interface SourceMapData {
+  version: number
+  file?: string
+  sources: Array<string>
+  sourcesContent?: Array<string | null>
+  names: Array<string>
+  mappings: string
 }
 
 export interface TransformCacheEntry {
@@ -36,323 +28,109 @@ export interface TransformCacheEntry {
   originalSource: string
   /** Transformed source code (with Effect.gen()) */
   transformedSource: string
-  /** Ordered segments for position mapping */
-  segments: Array<Segment>
+  /** Source map for position mapping */
+  sourceMap: SourceMapData
+  /** TraceMap instance for efficient lookups */
+  tracer: TraceMap
+  /** Filename for the source */
+  filename: string
 }
 
 /**
- * Position mapper using segment-based lookup
+ * Position mapper using source maps
+ *
+ * Provides accurate bidirectional position mapping using @jridgewell/trace-mapping.
  */
 export class PositionMapper {
-  private readonly segments: ReadonlyArray<Segment>
+  private readonly tracer: TraceMap
+  private readonly filename: string
+  private readonly originalSource: string
+  private readonly transformedSource: string
 
   constructor(
-    segments: Array<Segment>,
-    _originalLength: number,
-    _transformedLength: number
+    sourceMap: SourceMapData,
+    filename: string,
+    originalSource: string,
+    transformedSource: string
   ) {
-    // Sort by original position
-    this.segments = [...segments].sort((a, b) => a.originalStart - b.originalStart)
+    this.tracer = new TraceMap(sourceMap as any)
+    this.filename = filename
+    this.originalSource = originalSource
+    this.transformedSource = transformedSource
+  }
+
+  /**
+   * Convert an absolute position to line/column (1-based line, 0-based column)
+   */
+  private positionToLineColumn(source: string, pos: number): { line: number; column: number } {
+    const lines = source.slice(0, pos).split("\n")
+    return {
+      line: lines.length,
+      column: lines[lines.length - 1].length
+    }
+  }
+
+  /**
+   * Convert line/column to absolute position
+   */
+  private lineColumnToPosition(source: string, line: number, column: number): number {
+    const lines = source.split("\n")
+    let pos = 0
+    for (let i = 0; i < line - 1 && i < lines.length; i++) {
+      pos += lines[i].length + 1 // +1 for newline
+    }
+    return pos + column
   }
 
   /**
    * Map a position from original source to transformed source
    */
   originalToTransformed(pos: number): number {
-    // Find the segment containing this position
-    for (const seg of this.segments) {
-      if (pos >= seg.originalStart && pos < seg.originalEnd) {
-        if (seg.isIdentity) {
-          // 1:1 mapping - calculate offset within segment
-          const offset = pos - seg.originalStart
-          return seg.transformedStart + offset
-        } else {
-          // Non-identity - map to start of transformed segment
-          return seg.transformedStart
-        }
-      }
+    const { column, line } = this.positionToLineColumn(this.originalSource, pos)
+
+    const generated = generatedPositionFor(this.tracer, {
+      source: this.filename,
+      line,
+      column
+    })
+
+    if (generated.line === null || generated.column === null) {
+      // Fallback: return the position as-is if no mapping found
+      return pos
     }
 
-    // Position is between segments or after all segments
-    // Find cumulative offset from the last segment before this position
-    let cumulativeOffset = 0
-    for (const seg of this.segments) {
-      if (seg.originalEnd <= pos) {
-        // This segment is before our position - update cumulative offset
-        cumulativeOffset = seg.transformedEnd - seg.originalEnd
-      } else {
-        break
-      }
-    }
-
-    return pos + cumulativeOffset
+    return this.lineColumnToPosition(this.transformedSource, generated.line, generated.column)
   }
 
   /**
    * Map a position from transformed source back to original source
    */
   transformedToOriginal(pos: number): number {
-    // Sort segments by transformed position for this lookup
-    const byTransformed = [...this.segments].sort(
-      (a, b) => a.transformedStart - b.transformedStart
-    )
+    const { column, line } = this.positionToLineColumn(this.transformedSource, pos)
 
-    // Find the segment containing this position
-    for (const seg of byTransformed) {
-      if (pos >= seg.transformedStart && pos < seg.transformedEnd) {
-        if (seg.isIdentity) {
-          // 1:1 mapping - calculate offset within segment
-          const offset = pos - seg.transformedStart
-          return seg.originalStart + offset
-        } else {
-          // Non-identity - map to start of original segment
-          return seg.originalStart
-        }
-      }
+    const original = originalPositionFor(this.tracer, { line, column })
+
+    if (original.line === null || original.column === null) {
+      // Fallback: return the position as-is if no mapping found
+      return pos
     }
 
-    // Position is between segments or after all segments
-    let cumulativeOffset = 0
-    for (const seg of byTransformed) {
-      if (seg.transformedEnd <= pos) {
-        cumulativeOffset = seg.transformedEnd - seg.originalEnd
-      } else {
-        break
-      }
-    }
-
-    return pos - cumulativeOffset
+    return this.lineColumnToPosition(this.originalSource, original.line, original.column)
   }
 
   /**
-   * Get segments for debugging
+   * Get the original source
    */
-  getSegments(): ReadonlyArray<Segment> {
-    return this.segments
-  }
-}
-
-/**
- * Create segments from a gen block transformation
- *
- * This builds the mapping table by tracking how each part of the original
- * source maps to the transformed output.
- */
-export function createSegmentsFromTransformation(
-  originalSource: string,
-  _transformedSource: string,
-  blocks: Array<{ start: number; end: number; braceStart: number }>
-): Array<Segment> {
-  const segments: Array<Segment> = []
-
-  let origPos = 0
-  let transPos = 0
-
-  for (const block of blocks) {
-    // 1. Content before this block (identity mapping)
-    if (block.start > origPos) {
-      const len = block.start - origPos
-      segments.push({
-        originalStart: origPos,
-        originalEnd: block.start,
-        transformedStart: transPos,
-        transformedEnd: transPos + len,
-        isIdentity: true
-      })
-      origPos = block.start
-      transPos = transPos + len
-    }
-
-    // 2. The "gen {" -> "Effect.gen(/* __EFFECT_SUGAR__ */ function* () {" wrapper
-    const genWrapperTransformed = "Effect.gen(/* __EFFECT_SUGAR__ */ function* () {"
-    const origWrapperEnd = block.braceStart + 1
-    const transWrapperEnd = transPos + genWrapperTransformed.length
-
-    segments.push({
-      originalStart: origPos,
-      originalEnd: origWrapperEnd,
-      transformedStart: transPos,
-      transformedEnd: transWrapperEnd,
-      isIdentity: false // Structural change, don't interpolate
-    })
-
-    origPos = origWrapperEnd
-    transPos = transWrapperEnd
-
-    // 3. Content inside the block - process line by line
-    const contentEnd = block.end - 1 // Position of closing brace
-    const originalContent = originalSource.slice(origPos, contentEnd)
-    const lines = originalContent.split("\n")
-
-    let lineOrigOffset = origPos
-    let lineTransOffset = transPos
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i] ?? ""
-      const isLastLine = i === lines.length - 1
-      const lineLen = line.length + (isLastLine ? 0 : 1) // +1 for newline except last
-
-      // Check if this is a bind statement
-      const trimmed = line.trim()
-      const bindMatch = trimmed.match(/^(\w+|\[[\w\s,]+\])\s*<-\s*(.+)$/)
-
-      if (bindMatch) {
-        // Bind statement: "  x <- expr" -> "  const x = yield* expr"
-        // Create fine-grained segments for precise position mapping
-        //
-        // Original:    "  [config, llmConfig] <- Effect.all(["
-        // Transformed: "  const [config, llmConfig] = yield* Effect.all(["
-        //
-        // Segments:
-        // 1. Indent: "  " -> "  const " (non-identity)
-        // 2. Variable: "[config, llmConfig]" -> "[config, llmConfig]" (IDENTITY!)
-        // 3. Arrow: " <- " -> " = yield* " (non-identity)
-        // 4. Expression: "Effect.all([" -> "Effect.all([" (identity)
-        // 5. Rest: semicolon/newline (identity)
-
-        const indent = line.match(/^\s*/)?.[0] ?? ""
-        const varPart = bindMatch[1] ?? ""
-        const exprPart = bindMatch[2]?.replace(/;?\s*$/, "") ?? ""
-        const hasSemi = trimmed.endsWith(";")
-
-        const origLineStart = lineOrigOffset
-        const transLineStart = lineTransOffset
-
-        // Transformed line: "  const [config, llmConfig] = yield* Effect.all(["
-        const transformedLine = `${indent}const ${varPart} = yield* ${exprPart}${hasSemi ? ";" : ""}`
-        const transformedLineLen = transformedLine.length + (isLastLine ? 0 : 1)
-
-        // Find positions in original line
-        const varStartInLine = indent.length // Variable starts after indent
-        const arrowPos = line.indexOf("<-")
-        const arrowEndPos = arrowPos + 2
-        // Skip whitespace after arrow to find expression start
-        let exprStartInLine = arrowEndPos
-        while (exprStartInLine < line.length && /\s/.test(line[exprStartInLine] ?? "")) {
-          exprStartInLine++
-        }
-
-        // Segment 1: Indent (non-identity)
-        // Original: "  " -> Transformed: "  const "
-        if (indent.length > 0) {
-          segments.push({
-            originalStart: origLineStart,
-            originalEnd: origLineStart + indent.length,
-            transformedStart: transLineStart,
-            transformedEnd: transLineStart + indent.length + 6, // "const " = 6 chars
-            isIdentity: false
-          })
-        }
-
-        // Segment 2: Variable name (IDENTITY - same in both!)
-        // Original: "[config, llmConfig]" -> Transformed: "[config, llmConfig]"
-        const varOrigStart = origLineStart + varStartInLine
-        const varOrigEnd = origLineStart + arrowPos // Up to but not including arrow
-        // Trim trailing whitespace from variable end
-        let varOrigEndTrimmed = varOrigEnd
-        while (varOrigEndTrimmed > varOrigStart && /\s/.test(originalSource[varOrigEndTrimmed - 1] ?? "")) {
-          varOrigEndTrimmed--
-        }
-        const varTransStart = transLineStart + indent.length + 6 // After "  const "
-        const varTransEnd = varTransStart + (varOrigEndTrimmed - varOrigStart)
-        segments.push({
-          originalStart: varOrigStart,
-          originalEnd: varOrigEndTrimmed,
-          transformedStart: varTransStart,
-          transformedEnd: varTransEnd,
-          isIdentity: true
-        })
-
-        // Segment 3: Arrow/whitespace -> " = yield* " (non-identity)
-        // Original: " <- " -> Transformed: " = yield* "
-        const arrowOrigStart = varOrigEndTrimmed
-        const arrowOrigEnd = origLineStart + exprStartInLine
-        const arrowTransStart = varTransEnd
-        const arrowTransEnd = arrowTransStart + 10 // " = yield* " = 10 chars
-        segments.push({
-          originalStart: arrowOrigStart,
-          originalEnd: arrowOrigEnd,
-          transformedStart: arrowTransStart,
-          transformedEnd: arrowTransEnd,
-          isIdentity: false
-        })
-
-        // Segment 4: Expression (identity)
-        const exprOrigStart = origLineStart + exprStartInLine
-        const exprOrigEnd = origLineStart + line.trimEnd().length - (hasSemi ? 1 : 0)
-        const exprTransStart = arrowTransEnd
-        const exprTransEnd = exprTransStart + (exprOrigEnd - exprOrigStart)
-        if (exprOrigEnd > exprOrigStart) {
-          segments.push({
-            originalStart: exprOrigStart,
-            originalEnd: exprOrigEnd,
-            transformedStart: exprTransStart,
-            transformedEnd: exprTransEnd,
-            isIdentity: true
-          })
-        }
-
-        // Segment 5: Semicolon and newline (identity)
-        const restOrigStart = exprOrigEnd
-        const restOrigEnd = origLineStart + lineLen
-        const restTransStart = exprTransEnd
-        const restTransEnd = transLineStart + transformedLineLen
-        if (restOrigEnd > restOrigStart) {
-          segments.push({
-            originalStart: restOrigStart,
-            originalEnd: restOrigEnd,
-            transformedStart: restTransStart,
-            transformedEnd: restTransEnd,
-            isIdentity: true
-          })
-        }
-
-        lineOrigOffset += lineLen
-        lineTransOffset += transformedLineLen
-      } else {
-        // Unchanged line - identity mapping
-        segments.push({
-          originalStart: lineOrigOffset,
-          originalEnd: lineOrigOffset + lineLen,
-          transformedStart: lineTransOffset,
-          transformedEnd: lineTransOffset + lineLen,
-          isIdentity: true
-        })
-
-        lineOrigOffset += lineLen
-        lineTransOffset += lineLen
-      }
-    }
-
-    origPos = contentEnd
-    transPos = lineTransOffset
-
-    // 4. Closing brace "}" -> "})"
-    segments.push({
-      originalStart: contentEnd,
-      originalEnd: block.end,
-      transformedStart: transPos,
-      transformedEnd: transPos + 2, // "})"
-      isIdentity: false
-    })
-
-    origPos = block.end
-    transPos = transPos + 2
+  getOriginalSource(): string {
+    return this.originalSource
   }
 
-  // 5. Content after all blocks
-  if (origPos < originalSource.length) {
-    const remainingLen = originalSource.length - origPos
-    segments.push({
-      originalStart: origPos,
-      originalEnd: originalSource.length,
-      transformedStart: transPos,
-      transformedEnd: transPos + remainingLen,
-      isIdentity: true
-    })
+  /**
+   * Get the transformed source
+   */
+  getTransformedSource(): string {
+    return this.transformedSource
   }
-
-  return segments
 }
 
 /**
@@ -362,26 +140,52 @@ const transformCache = new Map<string, TransformCacheEntry>()
 
 /**
  * Store a transformation result for later position mapping
+ *
+ * @param fileName - The file name
+ * @param originalSource - Original source code
+ * @param transformedSource - Transformed source code
+ * @param sourceMap - Source map from MagicString
  */
 export function cacheTransformation(
   fileName: string,
   originalSource: string,
   transformedSource: string,
-  blocks: Array<{ start: number; end: number; braceStart: number }>
+  sourceMap: SourceMapData
 ): PositionMapper {
-  const segments = createSegmentsFromTransformation(
-    originalSource,
-    transformedSource,
-    blocks
-  )
+  const tracer = new TraceMap(sourceMap as any)
 
   transformCache.set(fileName, {
     originalSource,
     transformedSource,
-    segments
+    sourceMap,
+    tracer,
+    filename: sourceMap.sources[0] || fileName
   })
 
-  return new PositionMapper(segments, originalSource.length, transformedSource.length)
+  return new PositionMapper(sourceMap, sourceMap.sources[0] || fileName, originalSource, transformedSource)
+}
+
+/**
+ * Legacy cache function for backward compatibility
+ * Creates a basic mapping when no source map is available
+ */
+export function cacheTransformationLegacy(
+  fileName: string,
+  originalSource: string,
+  transformedSource: string,
+  _blocks: Array<{ start: number; end: number; braceStart: number }>
+): PositionMapper {
+  // Create a minimal source map that maps everything 1:1
+  // This won't provide accurate position mapping but maintains API compatibility
+  const sourceMap: SourceMapData = {
+    version: 3,
+    sources: [fileName],
+    sourcesContent: [originalSource],
+    names: [],
+    mappings: ""
+  }
+
+  return cacheTransformation(fileName, originalSource, transformedSource, sourceMap)
 }
 
 /**
@@ -397,7 +201,12 @@ export function getCachedTransformation(fileName: string): TransformCacheEntry |
 export function getPositionMapper(fileName: string): PositionMapper | undefined {
   const cached = transformCache.get(fileName)
   if (!cached) return undefined
-  return new PositionMapper(cached.segments, cached.originalSource.length, cached.transformedSource.length)
+  return new PositionMapper(
+    cached.sourceMap,
+    cached.filename,
+    cached.originalSource,
+    cached.transformedSource
+  )
 }
 
 /**

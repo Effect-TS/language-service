@@ -15,9 +15,10 @@ import {
   mapOriginalToTransformed,
   mapTextSpan,
   mapTransformedToOriginal,
-  type PositionMapper
+  type PositionMapper,
+  type SourceMapData
 } from "./position-mapper"
-import { findGenBlocks, hasGenBlocks, transformSource } from "./transformer"
+import { hasGenBlocks, transformSource } from "./transformer"
 
 /**
  * Transformation state for a single file
@@ -137,25 +138,22 @@ export function createWrappedLanguageServiceHost(
       return undefined
     }
 
-    // Find blocks for position mapping
-    const blocks = findGenBlocks(originalSource)
-
     // Transform the source
     const result = transformSource(originalSource, fileName)
 
-    if (!result.hasChanges) {
+    if (!result.hasChanges || !result.map) {
       transformStates.delete(fileName)
       snapshotCache.delete(fileName)
       clearCachedTransformation(fileName)
       return undefined
     }
 
-    // Cache the transformation for position mapping
+    // Cache the transformation for position mapping using the source map
     cacheTransformation(
       fileName,
       originalSource,
       result.code,
-      blocks
+      result.map as SourceMapData
     )
 
     // Get the mapper
