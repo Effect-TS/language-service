@@ -1,5 +1,31 @@
 # @effect/language-service
 
+## 0.57.1
+
+### Patch Changes
+
+- [#503](https://github.com/Effect-TS/language-service/pull/503) [`857e43e`](https://github.com/Effect-TS/language-service/commit/857e43e2580312963681d867e4f5daa409e1da78) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add codefix to `runEffectInsideEffect` diagnostic that automatically transforms `Effect.run*` calls to use `Runtime.run*` when inside nested Effect contexts. The codefix will extract or reuse an existing Effect runtime and replace the direct Effect run call with the appropriate Runtime method.
+
+  Example:
+
+  ```typescript
+  // Before
+  Effect.gen(function* () {
+    websocket.onmessage = (event) => {
+      Effect.runPromise(check);
+    };
+  });
+
+  // After applying codefix
+  Effect.gen(function* () {
+    const effectRuntime = yield* Effect.runtime<never>();
+
+    websocket.onmessage = (event) => {
+      Runtime.runPromise(effectRuntime, check);
+    };
+  });
+  ```
+
 ## 0.57.0
 
 ### Minor Changes
