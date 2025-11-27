@@ -5,6 +5,7 @@ import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
 export const runEffectInsideEffect = LSP.createDiagnostic({
   name: "runEffectInsideEffect",
@@ -13,6 +14,13 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
   apply: Nano.fn("runEffectInsideEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+
+    const parseEffectMethod = (node: ts.Node, methodName: string) =>
+      pipe(
+        typeParser.isNodeReferenceToEffectModuleApi(methodName)(node),
+        Nano.map(() => ({ node, methodName }))
+      )
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -27,13 +35,14 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
 
       // Check if this is a call expression
       if (!ts.isCallExpression(node)) continue
+      if (node.arguments.length === 0) continue
 
       // Verify it's actually an Effect module call using TypeParser
       const isEffectRunCall = yield* pipe(
-        typeParser.isNodeReferenceToEffectModuleApi("runPromise")(node.expression),
-        Nano.orElse(() => typeParser.isNodeReferenceToEffectModuleApi("runSync")(node.expression)),
-        Nano.orElse(() => typeParser.isNodeReferenceToEffectModuleApi("runFork")(node.expression)),
-        Nano.orElse(() => typeParser.isNodeReferenceToEffectModuleApi("runCallback")(node.expression)),
+        parseEffectMethod(node.expression, "runPromise"),
+        Nano.orElse(() => parseEffectMethod(node.expression, "runSync")),
+        Nano.orElse(() => parseEffectMethod(node.expression, "runFork")),
+        Nano.orElse(() => parseEffectMethod(node.expression, "runCallback")),
         Nano.option
       )
 
@@ -64,21 +73,101 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
           Nano.option
         )
 
-        if (Option.isSome(isInEffectGen)) {
+        if (Option.isSome(isInEffectGen) && isInEffectGen.value.body.statements.length > 0) {
           const nodeText = sourceFile.text.substring(
             ts.getTokenPosOfNode(node.expression, sourceFile),
             node.expression.end
           )
 
-          const messageText = nodeIntroduceScope && nodeIntroduceScope !== isInEffectGen.value.generatorFunction ?
-            `Using ${nodeText} inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.\nConsider extracting the Runtime by using for example Effect.runtime and then use Runtime.run* with the extracted runtime instead.` :
-            `Using ${nodeText} inside an Effect is not recommended. Effects inside generators can usually just be yielded.`
+          if (nodeIntroduceScope && nodeIntroduceScope !== isInEffectGen.value.generatorFunction) {
+            const fixAddRuntime = Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+              const runtimeModuleIdentifier =
+                tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Runtime") ||
+                "Runtime"
+              const effectModuleIdentifier =
+                tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Effect") || "Effect"
+              let runtimeIdentifier: string | undefined = undefined
+              for (const statement of isInEffectGen.value.generatorFunction.body.statements) {
+                if (ts.isVariableStatement(statement) && statement.declarationList.declarations.length === 1) {
+                  const declaration = statement.declarationList.declarations[0]
+                  if (
+                    declaration.initializer && ts.isYieldExpression(declaration.initializer) &&
+                    declaration.initializer.asteriskToken && declaration.initializer.expression
+                  ) {
+                    const yieldedExpression = declaration.initializer.expression
+                    if (ts.isCallExpression(yieldedExpression)) {
+                      const maybeEffectRuntime = yield* pipe(
+                        typeParser.isNodeReferenceToEffectModuleApi("runtime")(yieldedExpression.expression),
+                        Nano.option
+                      )
+                      if (Option.isSome(maybeEffectRuntime) && ts.isIdentifier(declaration.name)) {
+                        runtimeIdentifier = ts.idText(declaration.name)
+                      }
+                    }
+                  }
+                }
+              }
+              if (!runtimeIdentifier) {
+                changeTracker.insertNodeAt(
+                  sourceFile,
+                  isInEffectGen.value.body.statements[0].pos,
+                  ts.factory.createVariableStatement(
+                    undefined,
+                    ts.factory.createVariableDeclarationList([ts.factory.createVariableDeclaration(
+                      "effectRuntime",
+                      undefined,
+                      undefined,
+                      ts.factory.createYieldExpression(
+                        ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+                        ts.factory.createCallExpression(
+                          ts.factory.createPropertyAccessExpression(
+                            ts.factory.createIdentifier(effectModuleIdentifier),
+                            "runtime"
+                          ),
+                          [ts.factory.createTypeReferenceNode("never")],
+                          []
+                        )
+                      )
+                    )], ts.NodeFlags.Const)
+                  ),
+                  {
+                    prefix: "\n",
+                    suffix: "\n"
+                  }
+                )
+              }
+              changeTracker.deleteRange(sourceFile, {
+                pos: ts.getTokenPosOfNode(node.expression, sourceFile),
+                end: node.arguments[0].pos
+              })
+              changeTracker.insertText(
+                sourceFile,
+                node.arguments[0].pos,
+                `${runtimeModuleIdentifier}.${isEffectRunCall.value.methodName}(${
+                  runtimeIdentifier || "effectRuntime"
+                }, `
+              )
+            })
 
-          report({
-            location: node.expression,
-            messageText,
-            fixes: []
-          })
+            report({
+              location: node.expression,
+              messageText:
+                `Using ${nodeText} inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.\nConsider extracting the Runtime by using for example Effect.runtime and then use Runtime.${isEffectRunCall.value.methodName} with the extracted runtime instead.`,
+              fixes: [{
+                fixName: "runEffectInsideEffect_fix",
+                description: "Use a runtime to run the Effect",
+                apply: fixAddRuntime
+              }]
+            })
+          } else {
+            report({
+              location: node.expression,
+              messageText:
+                `Using ${nodeText} inside an Effect is not recommended. Effects inside generators can usually just be yielded.`,
+              fixes: []
+            })
+          }
         }
 
         // Continue traversing up the parent chain
