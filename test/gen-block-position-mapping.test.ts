@@ -7,6 +7,69 @@ import {
 import { findGenBlocks, transformSource } from "../src/gen-block/transformer"
 
 describe("gen-block position mapping", () => {
+  it("maps destructuring bind variable positions correctly - multiline", () => {
+    // Exact structure from user's file - multiline bind expression
+    const original = `export const makePortkeyGatewayManager = (baseURL: string) => {
+  return Effect.succeed({
+    generate: (request: LLMRequest) => {
+      const startTime = Date.now()
+      return gen {
+        // Load both configurations
+        // eslint-disable-next-line
+        [config, llmConfig] <- Effect.all([
+          loadPortkeyConfig(),
+          loadLLMManagerConfig()
+        ])
+        // Use model preference
+        const model =
+          request.preferences?.model ||
+          config.defaults?.general ||
+          'gpt-3.5-turbo'
+        return model
+      }
+    }
+  })
+}`
+
+    const blocks = findGenBlocks(original)
+    const result = transformSource(original)
+
+    console.log("\n=== Original ===")
+    console.log(original)
+    console.log("\n=== Transformed ===")
+    console.log(result.code)
+
+    cacheTransformation("destruct.ts", original, result.code, blocks)
+    const mapper = getPositionMapper("destruct.ts")!
+
+    // Find position of "config" in the destructuring pattern (not the return statement)
+    const configOrigPos = original.indexOf("[config,") + 1 // +1 to get to 'c'
+    const configTransPos = result.code.indexOf("[config,") + 1 // +1 to get to 'c'
+
+    console.log(`\n=== config positions ===`)
+    console.log(`Original 'config' at: ${configOrigPos}`)
+    console.log(`Transformed 'config' at: ${configTransPos}`)
+
+    // Map from transformed back to original (this is what go-to-definition does)
+    const mappedBack = mapper.transformedToOriginal(configTransPos)
+    console.log(`Mapped back from ${configTransPos} -> ${mappedBack}`)
+    console.log(`Expected: ${configOrigPos}`)
+
+    // Check line numbers
+    const origLine = original.slice(0, configOrigPos).split("\n").length
+    const mappedLine = original.slice(0, mappedBack).split("\n").length
+    console.log(`Original line: ${origLine}, Mapped line: ${mappedLine}`)
+
+    // Show segments for debugging
+    const segments = mapper.getSegments()
+    console.log(`\n=== Segments (${segments.length}) ===`)
+    segments.slice(0, 10).forEach((seg, i) => {
+      console.log(`${i}: orig[${seg.originalStart}-${seg.originalEnd}] -> trans[${seg.transformedStart}-${seg.transformedEnd}] ${seg.isIdentity ? "ID" : "NON-ID"}`)
+    })
+
+    expect(mappedBack).toBe(configOrigPos)
+  })
+
   it("maps positions correctly for a simple bind statement", () => {
     const original = `const program = gen {
   user <- getUser(1)

@@ -86,6 +86,18 @@ describe("gen-block scanner", () => {
       const output = transformBlockContent(input)
       expect(output).toBe("  const user = yield* getUser(id);")
     })
+
+    it("transforms array destructuring binds", () => {
+      const input = "  [config, llmConfig] <- Effect.all([loadConfig(), loadLLM()])"
+      const output = transformBlockContent(input)
+      expect(output).toBe("  const [config, llmConfig] = yield* Effect.all([loadConfig(), loadLLM()])")
+    })
+
+    it("transforms object destructuring binds", () => {
+      const input = "  { name, age } <- getUser(id)"
+      const output = transformBlockContent(input)
+      expect(output).toBe("  const { name, age } = yield* getUser(id)")
+    })
   })
 
   describe("transformSource", () => {

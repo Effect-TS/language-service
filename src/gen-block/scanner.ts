@@ -209,7 +209,8 @@ export function transformBlockContent(content: string): string {
     // Transform bind statements unless inside a nested function
     if (!insideNestedFunction) {
       // Look for pattern: identifier <- expression
-      const bindMatch = trimmed.match(/^(\w+)\s*<-\s*(.+)$/)
+      // Supports: simple vars (x), array destructuring ([a, b]), object destructuring ({ a, b })
+      const bindMatch = trimmed.match(/^(\w+|\[[\w\s,]+\]|\{[\w\s,:]+\})\s*<-\s*(.+)$/)
 
       if (bindMatch) {
         const [, varName, exprWithSemi] = bindMatch

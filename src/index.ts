@@ -152,9 +152,47 @@ const init = (
       return []
     }
 
+    // Helper to map diagnostic positions for gen-block files
+    const mapDiagnosticPositions = <T extends ts.Diagnostic>(
+      diagnostics: ReadonlyArray<T>,
+      fileName: string
+    ): Array<T> => {
+      if (!genBlockHostResult?.isTransformed(fileName)) {
+        return [...diagnostics]
+      }
+      return diagnostics.map((diagnostic) => {
+        if (diagnostic.start !== undefined) {
+          const mappedSpan = genBlockHostResult!.mapSpanToOriginal(fileName, {
+            start: diagnostic.start,
+            length: diagnostic.length ?? 0
+          })
+          return {
+            ...diagnostic,
+            start: mappedSpan.start,
+            length: mappedSpan.length
+          }
+        }
+        return diagnostic
+      })
+    }
+
     proxy.getSemanticDiagnostics = (fileName, ...args) => {
       const applicableDiagnostics = languageService.getSemanticDiagnostics(fileName, ...args)
-      return LSP.concatDiagnostics(runDiagnosticsAndCacheCodeFixes(fileName), applicableDiagnostics)
+      const combinedDiagnostics = LSP.concatDiagnostics(
+        runDiagnosticsAndCacheCodeFixes(fileName),
+        applicableDiagnostics
+      )
+      return mapDiagnosticPositions(combinedDiagnostics, fileName)
+    }
+
+    proxy.getSyntacticDiagnostics = (fileName, ...args) => {
+      const diagnostics = languageService.getSyntacticDiagnostics(fileName, ...args)
+      return mapDiagnosticPositions(diagnostics, fileName)
+    }
+
+    proxy.getSuggestionDiagnostics = (fileName, ...args) => {
+      const diagnostics = languageService.getSuggestionDiagnostics(fileName, ...args)
+      return mapDiagnosticPositions(diagnostics, fileName)
     }
 
     proxy.getSupportedCodeFixes = (...args) =>
@@ -470,11 +508,15 @@ const init = (
 
       const applicableDefinition = languageService.getDefinitionAndBoundSpan(fileName, mappedPosition, ...args)
 
-      // Map only the textSpan back to original coordinates
-      // Definitions stay in transformed coordinates for correct line/offset calculation
+      // Map textSpan (highlight at click location) back to original coordinates
       if (isGenBlock && applicableDefinition?.textSpan) {
         applicableDefinition.textSpan = genBlockHostResult!.mapSpanToOriginal(fileName, applicableDefinition.textSpan)
       }
+
+      // NOTE: Definition textSpans should NOT be mapped!
+      // They stay in transformed coordinates because TypeScript converts
+      // positions to line:offset using the transformed source file.
+      // Mapping would give wrong line numbers.
 
       if (languageServicePluginOptions.goto) {
         const program = languageService.getProgram()

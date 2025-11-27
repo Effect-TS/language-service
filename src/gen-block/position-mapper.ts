@@ -45,18 +45,14 @@ export interface TransformCacheEntry {
  */
 export class PositionMapper {
   private readonly segments: ReadonlyArray<Segment>
-  private readonly originalLength: number
-  private readonly transformedLength: number
 
   constructor(
     segments: Array<Segment>,
-    originalLength: number,
-    transformedLength: number
+    _originalLength: number,
+    _transformedLength: number
   ) {
     // Sort by original position
     this.segments = [...segments].sort((a, b) => a.originalStart - b.originalStart)
-    this.originalLength = originalLength
-    this.transformedLength = transformedLength
   }
 
   /**
@@ -144,7 +140,7 @@ export class PositionMapper {
  */
 export function createSegmentsFromTransformation(
   originalSource: string,
-  transformedSource: string,
+  _transformedSource: string,
   blocks: Array<{ start: number; end: number; braceStart: number }>
 ): Array<Segment> {
   const segments: Array<Segment> = []
@@ -202,7 +198,18 @@ export function createSegmentsFromTransformation(
 
       if (bindMatch) {
         // Bind statement: "  x <- expr" -> "  const x = yield* expr"
-        // We need to create segments that cover the ENTIRE line without gaps
+        // Create fine-grained segments for precise position mapping
+        //
+        // Original:    "  [config, llmConfig] <- Effect.all(["
+        // Transformed: "  const [config, llmConfig] = yield* Effect.all(["
+        //
+        // Segments:
+        // 1. Indent: "  " -> "  const " (non-identity)
+        // 2. Variable: "[config, llmConfig]" -> "[config, llmConfig]" (IDENTITY!)
+        // 3. Arrow: " <- " -> " = yield* " (non-identity)
+        // 4. Expression: "Effect.all([" -> "Effect.all([" (identity)
+        // 5. Rest: semicolon/newline (identity)
+
         const indent = line.match(/^\s*/)?.[0] ?? ""
         const varPart = bindMatch[1] ?? ""
         const exprPart = bindMatch[2]?.replace(/;?\s*$/, "") ?? ""
@@ -211,57 +218,91 @@ export function createSegmentsFromTransformation(
         const origLineStart = lineOrigOffset
         const transLineStart = lineTransOffset
 
-        // Transformed line
+        // Transformed line: "  const [config, llmConfig] = yield* Effect.all(["
         const transformedLine = `${indent}const ${varPart} = yield* ${exprPart}${hasSemi ? ";" : ""}`
         const transformedLineLen = transformedLine.length + (isLastLine ? 0 : 1)
 
-        // Create fine-grained segments for precise position mapping
-        // Original: "  user <- getUser(id);"
-        // Transformed: "  const user = yield* getUser(id);"
-
+        // Find positions in original line
+        const varStartInLine = indent.length // Variable starts after indent
         const arrowPos = line.indexOf("<-")
-        let exprOrigStart = origLineStart + arrowPos + 2
-        // Skip whitespace after arrow
-        while (exprOrigStart < origLineStart + line.length) {
-          const char = originalSource[exprOrigStart]
-          if (char && /\s/.test(char)) {
-            exprOrigStart++
-          } else {
-            break
-          }
+        const arrowEndPos = arrowPos + 2
+        // Skip whitespace after arrow to find expression start
+        let exprStartInLine = arrowEndPos
+        while (exprStartInLine < line.length && /\s/.test(line[exprStartInLine] ?? "")) {
+          exprStartInLine++
         }
-        const exprOrigEnd = origLineStart + line.trimEnd().length - (hasSemi ? 1 : 0)
 
-        // 1. Everything up to the expression (indent + var + arrow): non-identity
-        //    This maps any position before the expression to the start of transformed line
-        if (exprOrigStart > origLineStart) {
+        // Segment 1: Indent (non-identity)
+        // Original: "  " -> Transformed: "  const "
+        if (indent.length > 0) {
           segments.push({
             originalStart: origLineStart,
-            originalEnd: exprOrigStart,
+            originalEnd: origLineStart + indent.length,
             transformedStart: transLineStart,
-            transformedEnd: transLineStart + indent.length + 6 + varPart.length + 10, // up to "= yield* "
+            transformedEnd: transLineStart + indent.length + 6, // "const " = 6 chars
             isIdentity: false
           })
         }
 
-        // 2. The expression itself: identity mapping
-        const exprTransStart = transLineStart + indent.length + 6 + varPart.length + 10
-        const exprTransEnd = exprTransStart + exprPart.length
+        // Segment 2: Variable name (IDENTITY - same in both!)
+        // Original: "[config, llmConfig]" -> Transformed: "[config, llmConfig]"
+        const varOrigStart = origLineStart + varStartInLine
+        const varOrigEnd = origLineStart + arrowPos // Up to but not including arrow
+        // Trim trailing whitespace from variable end
+        let varOrigEndTrimmed = varOrigEnd
+        while (varOrigEndTrimmed > varOrigStart && /\s/.test(originalSource[varOrigEndTrimmed - 1] ?? "")) {
+          varOrigEndTrimmed--
+        }
+        const varTransStart = transLineStart + indent.length + 6 // After "  const "
+        const varTransEnd = varTransStart + (varOrigEndTrimmed - varOrigStart)
         segments.push({
-          originalStart: exprOrigStart,
-          originalEnd: exprOrigEnd,
-          transformedStart: exprTransStart,
-          transformedEnd: exprTransEnd,
+          originalStart: varOrigStart,
+          originalEnd: varOrigEndTrimmed,
+          transformedStart: varTransStart,
+          transformedEnd: varTransEnd,
           isIdentity: true
         })
 
-        // 3. Semicolon and newline: identity mapping
-        if (exprOrigEnd < origLineStart + lineLen) {
+        // Segment 3: Arrow/whitespace -> " = yield* " (non-identity)
+        // Original: " <- " -> Transformed: " = yield* "
+        const arrowOrigStart = varOrigEndTrimmed
+        const arrowOrigEnd = origLineStart + exprStartInLine
+        const arrowTransStart = varTransEnd
+        const arrowTransEnd = arrowTransStart + 10 // " = yield* " = 10 chars
+        segments.push({
+          originalStart: arrowOrigStart,
+          originalEnd: arrowOrigEnd,
+          transformedStart: arrowTransStart,
+          transformedEnd: arrowTransEnd,
+          isIdentity: false
+        })
+
+        // Segment 4: Expression (identity)
+        const exprOrigStart = origLineStart + exprStartInLine
+        const exprOrigEnd = origLineStart + line.trimEnd().length - (hasSemi ? 1 : 0)
+        const exprTransStart = arrowTransEnd
+        const exprTransEnd = exprTransStart + (exprOrigEnd - exprOrigStart)
+        if (exprOrigEnd > exprOrigStart) {
           segments.push({
-            originalStart: exprOrigEnd,
-            originalEnd: origLineStart + lineLen,
-            transformedStart: exprTransEnd,
-            transformedEnd: transLineStart + transformedLineLen,
+            originalStart: exprOrigStart,
+            originalEnd: exprOrigEnd,
+            transformedStart: exprTransStart,
+            transformedEnd: exprTransEnd,
+            isIdentity: true
+          })
+        }
+
+        // Segment 5: Semicolon and newline (identity)
+        const restOrigStart = exprOrigEnd
+        const restOrigEnd = origLineStart + lineLen
+        const restTransStart = exprTransEnd
+        const restTransEnd = transLineStart + transformedLineLen
+        if (restOrigEnd > restOrigStart) {
+          segments.push({
+            originalStart: restOrigStart,
+            originalEnd: restOrigEnd,
+            transformedStart: restTransStart,
+            transformedEnd: restTransEnd,
             isIdentity: true
           })
         }
