@@ -31,13 +31,15 @@ export interface GenBlock {
   start: number
   end: number
   content: string
+  /** Position of opening brace */
+  braceStart: number
 }
 
 export interface TransformResult {
   code: string
   map: ReturnType<MagicString["generateMap"]> | null
   hasChanges: boolean
-  /** The MagicString instance for position mapping */
+  /** The MagicString instance for source map generation */
   magicString: MagicString | null
 }
 

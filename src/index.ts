@@ -16,6 +16,7 @@ import * as TypeScriptApi from "./core/TypeScriptApi.js"
 import * as TypeScriptUtils from "./core/TypeScriptUtils.js"
 import { diagnostics } from "./diagnostics.js"
 import { middlewareAutoImportQuickfixes } from "./diagnostics/middlewareAutoImportQuickfixes.js"
+import { createWrappedLanguageServiceHost, type WrappedHostResult } from "./gen-block/host-wrapper.js"
 import { goto } from "./goto.js"
 import { middlewareGenLike } from "./inlays/middlewareGenLike.js"
 import { quickInfo } from "./quickinfo.js"
@@ -59,6 +60,25 @@ const init = (
 
     info.project.log("[@effect/language-service] Started!")
 
+    // Wrap the language service host for gen-block transformation
+    let genBlockHostResult: WrappedHostResult | undefined
+    try {
+      genBlockHostResult = createWrappedLanguageServiceHost({
+        typescript: modules.typescript,
+        host: info.languageServiceHost,
+        log: (msg) => info.project.log(msg)
+      }) // Replace the host's getScriptSnapshot with our wrapped version
+       // This allows transformed gen-block content to be used by TypeScript
+      // Note: genBlockHostResult stores the original function internally to avoid recursion
+      ;(info.languageServiceHost as any).getScriptSnapshot = (fileName: string) => {
+        return genBlockHostResult!.wrappedHost.getScriptSnapshot?.(fileName)
+      }
+
+      info.project.log("[@effect/language-service] Gen-block transformation enabled")
+    } catch (e) {
+      info.project.log("[@effect/language-service] Gen-block transformation disabled: " + e)
+    }
+
     // create the proxy and mark it as injected (to avoid double-applies)
     const proxy: ts.LanguageService = Object.create(null)
     ;(proxy as any)[LSP_INJECTED_URI] = true
@@ -66,6 +86,10 @@ const init = (
       // @ts-expect-error
       proxy[k] = (...args: Array<{}>) => languageService[k]!.apply(languageService, args)
     }
+
+    // Note: Position mapping for gen-block files is handled by genBlockHostResult
+    // The wrapped host transforms gen {} blocks before TypeScript sees them
+    // Position mapping utilities are available via genBlockHostResult if needed
 
     // this is the Nano runner used by all the endpoints
     // it will take a nano, provide some LSP services and run it.
@@ -304,7 +328,20 @@ const init = (
     }
 
     proxy.getQuickInfoAtPosition = (fileName, position, ...args) => {
-      const applicableQuickInfo = languageService.getQuickInfoAtPosition(fileName, position, ...args)
+      // Map position for gen-block files
+      let mappedPosition = position
+      const isGenBlock = genBlockHostResult?.isTransformed(fileName)
+
+      if (isGenBlock) {
+        mappedPosition = genBlockHostResult!.mapToTransformed(fileName, position)
+      }
+
+      const applicableQuickInfo = languageService.getQuickInfoAtPosition(fileName, mappedPosition, ...args)
+
+      // Map result textSpan back for gen-block files
+      if (isGenBlock && applicableQuickInfo?.textSpan) {
+        applicableQuickInfo.textSpan = genBlockHostResult!.mapSpanToOriginal(fileName, applicableQuickInfo.textSpan)
+      }
 
       if (languageServicePluginOptions.quickinfo) {
         const program = languageService.getProgram()
@@ -424,7 +461,20 @@ const init = (
     }
 
     proxy.getDefinitionAndBoundSpan = (fileName, position, ...args) => {
-      const applicableDefinition = languageService.getDefinitionAndBoundSpan(fileName, position, ...args)
+      // Map position for gen-block files
+      let mappedPosition = position
+      const isGenBlock = genBlockHostResult?.isTransformed(fileName)
+      if (isGenBlock) {
+        mappedPosition = genBlockHostResult!.mapToTransformed(fileName, position)
+      }
+
+      const applicableDefinition = languageService.getDefinitionAndBoundSpan(fileName, mappedPosition, ...args)
+
+      // Map only the textSpan back to original coordinates
+      // Definitions stay in transformed coordinates for correct line/offset calculation
+      if (isGenBlock && applicableDefinition?.textSpan) {
+        applicableDefinition.textSpan = genBlockHostResult!.mapSpanToOriginal(fileName, applicableDefinition.textSpan)
+      }
 
       if (languageServicePluginOptions.goto) {
         const program = languageService.getProgram()

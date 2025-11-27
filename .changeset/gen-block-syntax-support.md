@@ -45,7 +45,13 @@ const program = Effect.gen(function* () {
 
 ## Features
 
+### CLI
 - **Type checking**: Full TypeScript type checking with position mapping back to original source
 - **Error reporting**: Clear error messages with `[gen-block]` marker for transformed files
 - **JSON output**: Machine-readable format for CI/CD and tooling integration
-- **Source maps**: Internal position tracking for accurate error locations
+
+### VSCode Integration
+- **Hover**: Tooltips display correct type information at original source positions
+- **Go-to-definition**: Cmd+Click jumps to correct definition locations
+- **Completions**: Auto-complete works inside gen blocks
+- **Position mapping**: Segment-based mapping between original `gen {}` and transformed `Effect.gen()` code
