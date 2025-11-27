@@ -3,4 +3,4 @@ Effect.runSync
 
 Effect.runPromise
 22:4 - 22:21 | 2 | Using Effect.runPromise inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.
-Consider extracting the Runtime by using for example Effect.runtime and then use Runtime.run* with the extracted runtime instead.    effect(runEffectInsideEffect)
+Consider extracting the Runtime by using for example Effect.runtime and then use Runtime.runPromise with the extracted runtime instead.    effect(runEffectInsideEffect)
