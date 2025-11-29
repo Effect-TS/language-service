@@ -36,7 +36,7 @@ export class DiagnosticsFoundError extends Data.TaggedError("DiagnosticsFoundErr
   }
 }
 
-export type OutputFormat = "json" | "pretty" | "text"
+export type OutputFormat = "json" | "pretty" | "text" | "github-actions"
 export type SeverityLevel = "error" | "warning" | "message"
 
 interface DiagnosticOutput {
@@ -88,6 +88,31 @@ const formatDiagnosticForJson = (
   }
 }
 
+const severityToGitHubCommand = (severity: SeverityLevel): string => {
+  switch (severity) {
+    case "error":
+      return "error"
+    case "warning":
+      return "warning"
+    default:
+      return "notice"
+  }
+}
+
+const formatDiagnosticForGitHubActions = (
+  diagnostic: ts.Diagnostic,
+  tsInstance: typeof ts
+): string | undefined => {
+  const output = formatDiagnosticForJson(diagnostic, tsInstance)
+  if (!output) return undefined
+
+  const command = severityToGitHubCommand(output.severity)
+  const message = output.message.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")
+  const title = `effect(${output.name})`
+
+  return `::${command} file=${output.file},line=${output.line},col=${output.column},endLine=${output.endLine},endColumn=${output.endColumn},title=${title}::${message}`
+}
+
 const file = Options.file("file").pipe(
   Options.optional,
   Options.withDescription("The full path of the file to check for diagnostics.")
@@ -98,9 +123,9 @@ const project = Options.file("project").pipe(
   Options.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
 )
 
-const format = Options.choice("format", ["json", "pretty", "text"]).pipe(
+const format = Options.choice("format", ["json", "pretty", "text", "github-actions"]).pipe(
   Options.withDefault("pretty" as const),
-  Options.withDescription("Output format: json (machine-readable), pretty (colored with context), text (plain text)")
+  Options.withDescription("Output format: json (machine-readable), pretty (colored with context), text (plain text), github-actions (workflow commands)")
 )
 
 const strict = Options.boolean("strict").pipe(
@@ -239,6 +264,14 @@ export const diagnostics = Command.make(
                   allJsonDiagnostics.push(jsonDiagnostic)
                 }
               }
+            } else if (format === "github-actions") {
+              // GitHub Actions workflow commands
+              for (const diagnostic of results) {
+                const formatted = formatDiagnosticForGitHubActions(diagnostic, tsInstance)
+                if (formatted) {
+                  console.log(formatted)
+                }
+              }
             } else if (format === "pretty") {
               // Colored output with context (original behavior)
               const rawFormatted = tsInstance.formatDiagnosticsWithColorAndContext(results, {
@@ -290,7 +323,7 @@ export const diagnostics = Command.make(
         diagnostics: allJsonDiagnostics
       }
       console.log(JSON.stringify(output, null, 2))
-    } else {
+    } else if (format !== "github-actions") {
       console.log(
         `Checked ${counts.checked} files out of ${filesToCheck.size} files. \n${counts.errors} errors, ${counts.warnings} warnings and ${counts.messages} messages.`
       )
