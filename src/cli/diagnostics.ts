@@ -3,6 +3,7 @@ import * as Options from "@effect/cli/Options"
 import * as Path from "@effect/platform/Path"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Array from "effect/Array"
+import * as Console from "effect/Console"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
@@ -56,39 +57,6 @@ interface JsonFormattedDiagnostic {
   name: string
   message: string
 }
-
-const file = Options.file("file").pipe(
-  Options.optional,
-  Options.withDescription("The full path of the file to check for diagnostics.")
-)
-
-const project = Options.file("project").pipe(
-  Options.optional,
-  Options.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
-)
-
-const format = Options.choice("format", ["json", "pretty", "text", "github-actions"] as ReadonlyArray<OutputFormat>)
-  .pipe(
-    Options.withDefault("pretty" as const),
-    Options.withDescription(
-      "Output format: json (machine-readable), pretty (colored with context), text (plain text), github-actions (workflow commands)"
-    )
-  )
-
-const strict = Options.boolean("strict").pipe(
-  Options.withDefault(false),
-  Options.withDescription("Treat warnings as errors (affects exit code)")
-)
-
-const severity = Options.text("severity").pipe(
-  Options.optional,
-  Options.withDescription("Filter by severity levels (comma-separated: error,warning,message)")
-)
-
-const progress = Options.boolean("progress").pipe(
-  Options.withDefault(false),
-  Options.withDescription("Show progress as files are checked (outputs to stderr)")
-)
 
 export class NoFilesToCheckError extends Data.TaggedError("NoFilesToCheckError")<{}> {
   get message(): string {
@@ -188,19 +156,20 @@ const diagnosticPrettyFormatter = Effect.gen(function*() {
     onFile: () => Effect.void,
     onDiagnostics: (state, _filePath, diagnostics) =>
       Effect.sync(() => {
-        if (diagnostics.length === 0) return
         const rawFormatted = state.tsInstance.formatDiagnosticsWithColorAndContext(diagnostics, {
           getCanonicalFileName: (fileName) => path.resolve(fileName),
           getCurrentDirectory: () => path.resolve("."),
           getNewLine: () => "\n"
         })
-        const formattedResults = Object.values(diagnosticsDefinitions).reduce(
+        return Object.values(diagnosticsDefinitions).reduce(
           (text, def) => text.replace(new RegExp(`TS${def.code}:`, "g"), `effect(${def.name}):`),
           rawFormatted
         )
-        console.log(formattedResults)
-      }),
-    onEnd: () => Effect.void
+      }).pipe(Effect.flatMap(Console.log), Effect.when(() => diagnostics.length > 0)),
+    onEnd: (state) =>
+      Console.log(
+        `Checked ${state.checkedCount} files out of ${state.totalFilesCount} files. \n${state.errorsCount} errors, ${state.warningsCount} warnings and ${state.messagesCount} messages.`
+      )
   })
 })
 const diagnosticTextFormatter = Effect.gen(function*() {
@@ -210,62 +179,134 @@ const diagnosticTextFormatter = Effect.gen(function*() {
     onFile: () => Effect.void,
     onDiagnostics: (state, _filePath, diagnostics) =>
       Effect.sync(() => {
-        if (diagnostics.length === 0) return
         const rawFormatted = state.tsInstance.formatDiagnostics(diagnostics, {
           getCanonicalFileName: (fileName) => path.resolve(fileName),
           getCurrentDirectory: () => path.resolve("."),
           getNewLine: () => "\n"
         })
-        const formattedResults = Object.values(diagnosticsDefinitions).reduce(
+        return Object.values(diagnosticsDefinitions).reduce(
           (text, def) => text.replace(new RegExp(`TS${def.code}:`, "g"), `effect(${def.name}):`),
           rawFormatted
         )
-        console.log(formattedResults)
-      }),
-    onEnd: () => Effect.void
+      }).pipe(Effect.flatMap(Console.log), Effect.when(() => diagnostics.length > 0)),
+    onEnd: (state) =>
+      Console.log(
+        `Checked ${state.checkedCount} files out of ${state.totalFilesCount} files. \n${state.errorsCount} errors, ${state.warningsCount} warnings and ${state.messagesCount} messages.`
+      )
   })
 })
 
 const diagnosticJsonFormatter = Effect.gen(function*() {
-  const allJsonDiagnostics: Array<JsonFormattedDiagnostic> = []
+  let hasEmittedDiagnostics = false
   return identity<DiagnosticReporter>({
-    onBegin: () => Effect.void,
+    onBegin: () => Console.log(`{ "diagnostics": [`),
     onFile: () => Effect.void,
     onDiagnostics: (state, _filePath, diagnostics) =>
-      Effect.sync(() => {
-        if (diagnostics.length === 0) return
+      Effect.gen(function*() {
         for (const diagnostic of diagnostics) {
           const jsonDiagnostic = formatDiagnosticForJson(diagnostic, state.tsInstance)
           if (jsonDiagnostic) {
-            allJsonDiagnostics.push(jsonDiagnostic)
+            if (hasEmittedDiagnostics) yield* Console.log(", ")
+            yield* Console.log(JSON.stringify(jsonDiagnostic, null, 2))
+            hasEmittedDiagnostics = true
           }
         }
       }),
     onEnd: (state) =>
-      Effect.sync(() => {
-        console.log(JSON.stringify(
+      Console.log(`], "summary": ${
+        JSON.stringify(
           {
-            summary: {
-              filesChecked: state.checkedCount,
-              totalFiles: state.totalFilesCount,
-              errors: state.errorsCount,
-              warnings: state.warningsCount,
-              messages: state.messagesCount
-            },
-            diagnostics: allJsonDiagnostics
+            filesChecked: state.checkedCount,
+            totalFiles: state.totalFilesCount,
+            errors: state.errorsCount,
+            warnings: state.warningsCount,
+            messages: state.messagesCount
           },
           null,
           2
-        ))
-      })
+        )
+      } }`)
   })
 })
+
+const diagnosticGitHubActionsFormatter = Effect.gen(function*() {
+  return identity<DiagnosticReporter>({
+    onBegin: () => Effect.void,
+    onFile: () => Effect.void,
+    onDiagnostics: (state, _filePath, diagnostics) =>
+      Effect.gen(function*() {
+        if (diagnostics.length === 0) return
+        for (const diagnostic of diagnostics) {
+          const formatted = formatDiagnosticForGitHubActions(diagnostic, state.tsInstance)
+          if (formatted) {
+            yield* Console.log(formatted)
+          }
+        }
+      }),
+    onEnd: (state) =>
+      Console.log(
+        `Checked ${state.checkedCount} files out of ${state.totalFilesCount} files. \n${state.errorsCount} errors, ${state.warningsCount} warnings and ${state.messagesCount} messages.`
+      )
+  })
+})
+
+const withDiagnosticsProgressFormatter = (formatter: DiagnosticReporter) =>
+  Effect.gen(function*() {
+    return identity<DiagnosticReporter>({
+      onBegin: (state) =>
+        Effect.sync(() => process.stderr.write(`Starting diagnostics for ${state.totalFilesCount} files...\n`)).pipe(
+          Effect.flatMap(() => formatter.onBegin(state))
+        ),
+      onFile: (state, filePath) =>
+        Effect.sync(() =>
+          process.stderr.write(
+            `[${state.currentFileIndex}/${state.totalFilesCount}] ${filePath.slice(-60).padStart(60)}\r`
+          )
+        ).pipe(
+          Effect.flatMap(() => formatter.onFile(state, filePath))
+        ),
+      onDiagnostics: (state, filePath, diagnostics) => formatter.onDiagnostics(state, filePath, diagnostics),
+      onEnd: (state) =>
+        Effect.sync(() => process.stderr.write("\n")).pipe(
+          Effect.flatMap(() => formatter.onEnd(state))
+        )
+    })
+  })
 
 const BATCH_SIZE = 50
 
 export const diagnostics = Command.make(
   "diagnostics",
-  { file, progress, project, format, strict, severity },
+  {
+    file: Options.file("file").pipe(
+      Options.optional,
+      Options.withDescription("The full path of the file to check for diagnostics.")
+    ),
+    project: Options.file("project").pipe(
+      Options.optional,
+      Options.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
+    ),
+
+    format: Options.choice("format", ["json", "pretty", "text", "github-actions"] as ReadonlyArray<OutputFormat>)
+      .pipe(
+        Options.withDefault("pretty" as const),
+        Options.withDescription(
+          "Output format: json (machine-readable), pretty (colored with context), text (plain text), github-actions (workflow commands)"
+        )
+      ),
+    strict: Options.boolean("strict").pipe(
+      Options.withDefault(false),
+      Options.withDescription("Treat warnings as errors (affects exit code)")
+    ),
+    severity: Options.text("severity").pipe(
+      Options.optional,
+      Options.withDescription("Filter by severity levels (comma-separated: error,warning,message)")
+    ),
+    progress: Options.boolean("progress").pipe(
+      Options.withDefault(false),
+      Options.withDescription("Show progress as files are checked (outputs to stderr)")
+    )
+  },
   Effect.fn("diagnostics")(function*({ file, format, progress, project, severity, strict }) {
     const path = yield* Path.Path
     const severityFilter = parseSeverityFilter(severity)
@@ -279,8 +320,6 @@ export const diagnostics = Command.make(
       totalFilesCount: 0,
       currentFileIndex: 0
     }
-
-    const reporter = yield* (format === "pretty" ? diagnosticPrettyFormatter : diagnosticTextFormatter)
 
     const filesToCheck = Option.isSome(project)
       ? yield* getFileNamesInTsConfig(project.value)
@@ -296,9 +335,27 @@ export const diagnostics = Command.make(
 
     state.totalFilesCount = filesToCheck.size
 
-    if (progress) {
-      process.stderr.write(`Starting diagnostics for ${state.totalFilesCount} files...\n`)
+    let reporter: DiagnosticReporter | undefined
+    switch (format) {
+      case "pretty":
+        reporter = yield* diagnosticPrettyFormatter
+        break
+      case "text":
+        reporter = yield* diagnosticTextFormatter
+        break
+      case "json":
+        reporter = yield* diagnosticJsonFormatter
+        break
+      case "github-actions":
+        reporter = yield* diagnosticGitHubActionsFormatter
+        break
+      default:
+        reporter = yield* diagnosticPrettyFormatter
     }
+    if (progress) {
+      reporter = yield* withDiagnosticsProgressFormatter(reporter)
+    }
+
     yield* reporter.onBegin(state)
 
     const disposeIfLanguageServiceChanged = (languageService: ts.LanguageService | undefined) => {
@@ -313,12 +370,8 @@ export const diagnostics = Command.make(
 
       for (const filePath of batch) {
         state.currentFileIndex++
-        if (progress) {
-          process.stderr.write(
-            `\r[${state.currentFileIndex}/${state.totalFilesCount}] ${filePath.slice(-60).padStart(60)}`
-          )
-        }
         yield* reporter.onFile(state, filePath)
+
         service.openClientFile(filePath)
         try {
           const scriptInfo = service.getScriptInfo(filePath)
@@ -373,26 +426,6 @@ export const diagnostics = Command.make(
           ).length
 
           yield* reporter.onDiagnostics(state, filePath, results)
-
-          if (results.length > 0) {
-            if (format === "json") {
-              // Collect JSON diagnostics for batch output at the end
-              for (const diagnostic of results) {
-                const jsonDiagnostic = formatDiagnosticForJson(diagnostic, state.tsInstance)
-                if (jsonDiagnostic) {
-                  allJsonDiagnostics.push(jsonDiagnostic)
-                }
-              }
-            } else if (format === "github-actions") {
-              // GitHub Actions workflow commands
-              for (const diagnostic of results) {
-                const formatted = formatDiagnosticForGitHubActions(diagnostic, state.tsInstance)
-                if (formatted) {
-                  console.log(formatted)
-                }
-              }
-            }
-          }
         } finally {
           service.closeClientFile(filePath)
         }
@@ -401,28 +434,10 @@ export const diagnostics = Command.make(
     }
     disposeIfLanguageServiceChanged(undefined)
 
-    if (progress) {
-      process.stderr.write("\n")
-    }
-
     yield* reporter.onEnd(state)
-
-    // Output JSON format as a single array
-    if (format === "json") {
-    } else if (format !== "github-actions") {
-      console.log(
-        `Checked ${state.checkedCount} files out of ${state.totalFilesCount} files. \n${state.errorsCount} errors, ${state.warningsCount} warnings and ${state.messagesCount} messages.`
-      )
-    }
 
     // Determine if we should fail based on errors (and warnings if --strict)
     const hasFailures = state.errorsCount > 0 || (strict && state.warningsCount > 0)
-    if (hasFailures) {
-      return yield* new DiagnosticsFoundError({
-        errorsCount: state.errorsCount,
-        warningsCount: state.warningsCount,
-        messagesCount: state.messagesCount
-      })
-    }
+    if (hasFailures) return yield* Effect.sync(() => process.exit(1))
   })
 )
