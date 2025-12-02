@@ -313,7 +313,16 @@ export function make(
           const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
           if (!moduleSymbol) continue
           const memberSymbol = typeChecker.tryGetMemberInModuleExports(memberName, moduleSymbol)
-          if (memberSymbol && memberSymbol === symbol) result.push({ memberSymbol, moduleSymbol, sourceFile })
+          if (memberSymbol) {
+            if (memberSymbol === symbol) {
+              result.push({ memberSymbol, moduleSymbol, sourceFile })
+            } else if (memberSymbol.flags & ts.SymbolFlags.Alias) {
+              const aliased = typeChecker.getAliasedSymbol(memberSymbol)
+              if (aliased === symbol) {
+                result.push({ memberSymbol, moduleSymbol, sourceFile })
+              }
+            }
+          }
         }
         if (result.length > 0) {
           return result
