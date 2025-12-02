@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.58.4
+
+### Patch Changes
+
+- [#515](https://github.com/Effect-TS/language-service/pull/515) [`b77b7e5`](https://github.com/Effect-TS/language-service/commit/b77b7e5f3492b5d1262d26eaa5a695e7f14e6392) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix toggle type annotation and toggle return type annotation refactors to handle unnamed/unresolved types
+
+  The refactors now use `ts.NodeBuilderFlags.IgnoreErrors` flag when generating type annotations, allowing them to work correctly with types that have errors or are unnamed (e.g., `Schema.Struct({ ... }).make`). This prevents the refactors from failing when the type contains unresolved references or complex type expressions.
+
+- [#514](https://github.com/Effect-TS/language-service/pull/514) [`ddabde2`](https://github.com/Effect-TS/language-service/commit/ddabde26021d9982a8ea02d6fb96414c39c3fb57) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix symbol resolution for aliased module exports. The TypeParser now correctly handles cases where symbols are exported from a module with an alias, improving the accuracy of type analysis for Effect modules.
+
 ## 0.58.3
 
 ### Patch Changes
