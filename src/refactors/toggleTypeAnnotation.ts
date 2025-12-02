@@ -42,18 +42,12 @@ export const toggleTypeAnnotation = LSP.createRefactor({
 
           const initializer = node.initializer!
           const initializerType = typeChecker.getTypeAtLocation(initializer)
+          const enclosingNode = ts.findAncestor(node, (_) => tsUtils.isDeclarationKind(_.kind)) || sourceFile
           const initializerTypeNode = Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
             initializerType,
-            node,
+            enclosingNode,
             ts.NodeBuilderFlags.NoTruncation
           )).pipe(
-            Option.orElse(() =>
-              Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
-                initializerType,
-                undefined,
-                ts.NodeBuilderFlags.NoTruncation
-              ))
-            ),
             Option.getOrUndefined
           )
           if (initializerTypeNode) {
