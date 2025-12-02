@@ -1,5 +1,21 @@
 # @effect/language-service
 
+## 0.58.1
+
+### Patch Changes
+
+- [#508](https://github.com/Effect-TS/language-service/pull/508) [`1a4446c`](https://github.com/Effect-TS/language-service/commit/1a4446ce115c3e89925ecd7ed3613100605cc798) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `anyUnknownInErrorContext` diagnostic to exclude JSX elements from reporting false positives. The diagnostic will no longer incorrectly flag JSX tag names, self-closing elements, opening/closing elements, and attribute names.
+
+  Example:
+
+  ```tsx
+  // Before: Would incorrectly report diagnostic on <MyComponent />
+  const element = <MyComponent />;
+
+  // After: No diagnostic, JSX elements are properly excluded
+  const element = <MyComponent />;
+  ```
+
 ## 0.58.0
 
 ### Minor Changes
