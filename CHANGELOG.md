@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.58.2
+
+### Patch Changes
+
+- [#510](https://github.com/Effect-TS/language-service/pull/510) [`9064174`](https://github.com/Effect-TS/language-service/commit/90641746039377a60d4e2a6048bfc509518ebd8a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Extend `anyUnknownInErrorContext` diagnostic to also check Layer types
+
+  The `anyUnknownInErrorContext` diagnostic now checks both Effect and Layer types for `any` or `unknown` in their error and requirements channels. This helps catch more cases where type information is being lost in your Effect applications.
+
+  Example:
+
+  ```typescript
+  const effectUnknown = Effect.context<unknown>();
+  const layerUnknown = Layer.effectDiscard(effectUnknown);
+  // Now reports: This has unknown in the requirements channel which is not recommended.
+  ```
+
+  The diagnostic also now skips explicit Layer type annotations to avoid false positives on intentional type declarations.
+
 ## 0.58.1
 
 ### Patch Changes
