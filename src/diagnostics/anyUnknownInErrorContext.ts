@@ -41,9 +41,11 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
       // if this is a parameter or variable declaration, with explicit expected effect, skip
       if (ts.isParameter(node) || ts.isPropertyDeclaration(node) || ts.isVariableDeclaration(node)) {
         if (node.type) {
+          const typeNode = node.type
           const type = typeChecker.getTypeAtLocation(node.type)
           const expectedEffect = yield* pipe(
             typeParser.strictEffectType(type, node.type),
+            Nano.orElse(() => typeParser.layerType(type, typeNode)),
             Nano.orElse(() => Nano.void_)
           )
           if (expectedEffect) continue
@@ -70,8 +72,9 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
       // Check if it's an Effect type using typeParser
       yield* pipe(
         typeParser.strictEffectType(type, node),
-        Nano.map((effect) => {
-          const { E, R } = effect
+        Nano.orElse(() => pipe(typeParser.layerType(type, node), Nano.map(({ E, RIn }) => ({ E, R: RIn })))),
+        Nano.map((effectOrLayer) => {
+          const { E, R } = effectOrLayer
 
           // Check if requirements type or error type is any or unknown
           const hasAnyUnknownR = isAnyOrUnknown(R)
@@ -105,7 +108,7 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
               }
             }
 
-            const suggestions: Array<string> = [`This Effect has ${channels.join(" and ")} which is not recommended.`]
+            const suggestions: Array<string> = [`This has ${channels.join(" and ")} which is not recommended.`]
             if (hasAnyUnknownR) {
               suggestions.push(`Only service identifiers should appear in the requirements channel.`)
             }
