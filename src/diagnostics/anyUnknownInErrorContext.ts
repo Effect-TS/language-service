@@ -54,6 +54,10 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
 
       // Get type at location
       if (!ts.isExpression(node)) continue
+      if (node.parent && ts.isJsxSelfClosingElement(node.parent) && node.parent.tagName === node) continue
+      if (node.parent && ts.isJsxOpeningElement(node.parent) && node.parent.tagName === node) continue
+      if (node.parent && ts.isJsxClosingElement(node.parent) && node.parent.tagName === node) continue
+      if (node.parent && ts.isJsxAttribute(node.parent) && node.parent.name === node) continue
       let type = typeChecker.getTypeAtLocation(node)
       if (ts.isCallExpression(node)) {
         const resolvedSignature = typeChecker.getResolvedSignature(node)
