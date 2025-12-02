@@ -93,7 +93,7 @@ export const toggleReturnTypeAnnotation = LSP.createRefactor({
     const returnTypeNode = typeCheckerUtils.typeToSimplifiedTypeNode(
       returnType,
       enclosingNode,
-      ts.NodeBuilderFlags.NoTruncation
+      ts.NodeBuilderFlags.NoTruncation | ts.NodeBuilderFlags.IgnoreErrors
     )
 
     if (!returnTypeNode) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
