@@ -43,7 +43,7 @@ export const annotate = LSP.createCodegen({
           const initializerTypeNode = Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
             initializerType,
             enclosingNode,
-            ts.NodeBuilderFlags.NoTruncation
+            ts.NodeBuilderFlags.NoTruncation | ts.NodeBuilderFlags.IgnoreErrors
           )).pipe(
             Option.getOrUndefined
           )

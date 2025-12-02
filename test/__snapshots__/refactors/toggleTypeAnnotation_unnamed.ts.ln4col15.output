@@ -1,0 +1,6 @@
+// Result of running refactor toggleTypeAnnotation at position 4:15
+import * as Schema from "effect/Schema"
+
+export const debug: (props: { readonly id: import("node_modules/effect/dist/dts/Option").Option<number> }, options?: Schema.MakeOptions) => { readonly id: import("node_modules/effect/dist/dts/Option").Option<number> } = Schema.Struct({
+  id: Schema.Option(Schema.Number)
+}).make
