@@ -23,6 +23,7 @@ import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { runEffectInsideEffect } from "./diagnostics/runEffectInsideEffect.js"
 import { schemaStructWithTag } from "./diagnostics/schemaStructWithTag.js"
 import { schemaUnionOfLiterals } from "./diagnostics/schemaUnionOfLiterals.js"
+import { schemaUnsafeTypes } from "./diagnostics/schemaUnsafeTypes.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
 import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
@@ -69,5 +70,6 @@ export const diagnostics = [
   unknownInEffectCatch,
   runEffectInsideEffect,
   schemaUnionOfLiterals,
-  schemaStructWithTag
+  schemaStructWithTag,
+  schemaUnsafeTypes
 ]

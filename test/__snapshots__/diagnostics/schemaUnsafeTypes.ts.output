@@ -1,0 +1,26 @@
+Number
+4:18 - 4:24 | 0 | Schema.Number is unsafe. Use Schema.JsonNumber instead.    effect(schemaUnsafeTypes)
+
+Date
+5:18 - 5:22 | 0 | Schema.Date is unsafe. Use Schema.ValidDate instead.    effect(schemaUnsafeTypes)
+
+Number
+7:9 - 7:15 | 0 | Schema.Number is unsafe. Use Schema.JsonNumber instead.    effect(schemaUnsafeTypes)
+
+Date
+7:17 - 7:21 | 0 | Schema.Date is unsafe. Use Schema.ValidDate instead.    effect(schemaUnsafeTypes)
+
+Number
+9:11 - 9:17 | 0 | Schema.Number is unsafe. Use Schema.JsonNumber instead.    effect(schemaUnsafeTypes)
+
+Date
+10:11 - 10:15 | 0 | Schema.Date is unsafe. Use Schema.ValidDate instead.    effect(schemaUnsafeTypes)
+
+Number
+14:13 - 14:19 | 0 | Schema.Number is unsafe. Use Schema.JsonNumber instead.    effect(schemaUnsafeTypes)
+
+Date
+15:13 - 15:17 | 0 | Schema.Date is unsafe. Use Schema.ValidDate instead.    effect(schemaUnsafeTypes)
+
+Number
+17:17 - 17:23 | 0 | Schema.Number is unsafe. Use Schema.JsonNumber instead.    effect(schemaUnsafeTypes)

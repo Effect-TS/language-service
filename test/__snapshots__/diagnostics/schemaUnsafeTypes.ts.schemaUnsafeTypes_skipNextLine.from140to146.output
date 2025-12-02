@@ -1,0 +1,20 @@
+// code fix schemaUnsafeTypes_skipNextLine  output for range 140 - 146
+// @effect-diagnostics schemaUnsafeTypes:warning
+import { Schema } from "effect"
+
+const s1 = Schema.Number
+const s2 = Schema.Date
+
+// @effect-diagnostics-next-line schemaUnsafeTypes:off
+import { Number, Date } from "effect/Schema"
+
+const s3 = Number
+const s4 = Date
+
+import * as S from "effect/Schema"
+
+const s5 = S.Number
+const s6 = S.Date
+
+const N = Schema.Number
+const s7 = N

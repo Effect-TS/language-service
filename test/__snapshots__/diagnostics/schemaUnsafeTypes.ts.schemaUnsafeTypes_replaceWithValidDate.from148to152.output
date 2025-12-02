@@ -1,0 +1,19 @@
+// code fix schemaUnsafeTypes_replaceWithValidDate  output for range 148 - 152
+// @effect-diagnostics schemaUnsafeTypes:warning
+import { Schema } from "effect"
+
+const s1 = Schema.Number
+const s2 = Schema.Date
+
+import { Number, ValidDate } from "effect/Schema"
+
+const s3 = Number
+const s4 = Date
+
+import * as S from "effect/Schema"
+
+const s5 = S.Number
+const s6 = S.Date
+
+const N = Schema.Number
+const s7 = N

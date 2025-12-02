@@ -1,0 +1,24 @@
+// code fix schemaUnsafeTypes_skipNextLine  output for range 301 - 305
+// @effect-diagnostics schemaUnsafeTypes:warning
+import { Schema } from "effect"
+
+// Struct property
+const User = Schema.Struct({
+  id: Schema.Number,
+  createdAt: Schema.Date
+})
+
+// Class property
+class Product extends Schema.Class<Product>("Product")({
+  price: Schema.Number,
+  // @effect-diagnostics-next-line schemaUnsafeTypes:off
+  releaseDate: Schema.Date
+}) {}
+
+// Union member
+const ID = Schema.Union(Schema.Number, Schema.String)
+
+// Function argument
+const validate = (s: Schema.Schema<any>) => {}
+validate(Schema.Number)
+validate(Schema.Date)

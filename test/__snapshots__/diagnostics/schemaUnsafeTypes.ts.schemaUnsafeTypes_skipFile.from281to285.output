@@ -1,0 +1,20 @@
+// code fix schemaUnsafeTypes_skipFile  output for range 281 - 285
+/** @effect-diagnostics schemaUnsafeTypes:skip-file */
+// @effect-diagnostics schemaUnsafeTypes:warning
+import { Schema } from "effect"
+
+const s1 = Schema.Number
+const s2 = Schema.Date
+
+import { Number, Date } from "effect/Schema"
+
+const s3 = Number
+const s4 = Date
+
+import * as S from "effect/Schema"
+
+const s5 = S.Number
+const s6 = S.Date
+
+const N = Schema.Number
+const s7 = N
