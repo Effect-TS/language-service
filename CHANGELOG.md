@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.58.3
+
+### Patch Changes
+
+- [#512](https://github.com/Effect-TS/language-service/pull/512) [`e3dc38e`](https://github.com/Effect-TS/language-service/commit/e3dc38e9318324e8c733aeee60a186a34ea3caa0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix type annotation context resolution in toggle refactors. When toggling type annotations or return type annotations, the refactors now correctly use the enclosing declaration node as context instead of the local node, which improves type resolution and prevents issues with type parameter scope.
+
 ## 0.58.2
 
 ### Patch Changes
