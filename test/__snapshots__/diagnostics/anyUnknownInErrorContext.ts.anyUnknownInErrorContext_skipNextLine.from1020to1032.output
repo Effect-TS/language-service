@@ -1,3 +1,4 @@
+// code fix anyUnknownInErrorContext_skipNextLine  output for range 1020 - 1032
 // @effect-diagnostics anyUnknownInErrorContext:warning
 import { Effect, Layer } from "effect"
 
@@ -35,5 +36,6 @@ export class Test {
 }
 
 const effectUnkown = Effect.context<unknown>()
+// @effect-diagnostics-next-line anyUnknownInErrorContext:off
 const layerUnknown = Layer.effectDiscard(effectUnkown)
 export const composedLayerUnknown = Layer.empty.pipe(Layer.provide(layerUnknown))

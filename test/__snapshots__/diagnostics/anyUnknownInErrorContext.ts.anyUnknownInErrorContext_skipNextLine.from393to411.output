@@ -1,3 +1,4 @@
+// code fix anyUnknownInErrorContext_skipNextLine  output for range 393 - 411
 // @effect-diagnostics anyUnknownInErrorContext:warning
 import { Effect, Layer } from "effect"
 
@@ -13,6 +14,7 @@ export const withAnyFailure = Effect.gen(function*() {
   return yield* Effect.fail<any>(42)
 })
 
+// @effect-diagnostics-next-line anyUnknownInErrorContext:off
 export const withUnknownFailure = Effect.gen(function*() {
   return yield* Effect.fail<unknown>(42)
 })
