@@ -1,5 +1,55 @@
 # @effect/language-service
 
+## 0.59.0
+
+### Minor Changes
+
+- [#518](https://github.com/Effect-TS/language-service/pull/518) [`660549d`](https://github.com/Effect-TS/language-service/commit/660549d2c07ecf9ccd59d9f022f5c97467f6fc17) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add new `schemaStructWithTag` diagnostic that suggests using `Schema.TaggedStruct` instead of `Schema.Struct` when a `_tag` field with `Schema.Literal` is present. This makes the tag optional in the constructor, improving the developer experience.
+
+  Example:
+
+  ```typescript
+  // Before (triggers diagnostic)
+  export const User = Schema.Struct({
+    _tag: Schema.Literal("User"),
+    name: Schema.String,
+    age: Schema.Number,
+  });
+
+  // After (applying quick fix)
+  export const User = Schema.TaggedStruct("User", {
+    name: Schema.String,
+    age: Schema.Number,
+  });
+  ```
+
+  The diagnostic includes a quick fix that automatically converts the `Schema.Struct` call to `Schema.TaggedStruct`, extracting the tag value and removing the `_tag` property from the fields.
+
+### Patch Changes
+
+- [#521](https://github.com/Effect-TS/language-service/pull/521) [`61f28ba`](https://github.com/Effect-TS/language-service/commit/61f28babbd909ef08be25fdcd684c81af683cd62) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix auto-completion for directly imported Effect APIs. Completions now work when using direct imports like `import { Service } from "effect/Effect"` instead of only working with fully qualified names like `Effect.Service`.
+
+  This fix applies to:
+
+  - `Effect.Service` and `Effect.Tag` from `effect/Effect`
+  - `Schema.Class`, `Schema.TaggedError`, `Schema.TaggedClass`, and `Schema.TaggedRequest` from `effect/Schema`
+  - `Data.TaggedError` and `Data.TaggedClass` from `effect/Data`
+  - `Context.Tag` from `effect/Context`
+
+  Example:
+
+  ```typescript
+  // Now works with direct imports
+  import { Service } from "effect/Effect"
+  export class MyService extends Service // ✓ Completion available
+
+  // Still works with fully qualified names
+  import * as Effect from "effect/Effect"
+  export class MyService extends Effect.Service // ✓ Completion available
+  ```
+
+  Fixes #394
+
 ## 0.58.4
 
 ### Patch Changes
