@@ -37,6 +37,12 @@ export interface TypeParser {
   isNodeReferenceToEffectSchemaModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectDataModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectContextModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
     node: ts.Node
   ) => Nano.Nano<
@@ -700,80 +706,89 @@ export function make(
     (type) => type
   )
 
-  const importedContextModule = Nano.cachedBy(
-    Nano.fn("TypeParser.importedContextModule")(function*(
-      node: ts.Node
+  const isEffectContextSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectContextSourceFile")(function*(
+      sourceFile: ts.SourceFile
     ) {
-      // should be an expression
-      if (!ts.isIdentifier(node)) {
-        return yield* typeParserIssue("Node is not an identifier", undefined, node)
-      }
-      const type = typeChecker.getTypeAtLocation(node)
-      // if the type has a property "Tag" that is a function
-      const propertySymbol = typeChecker.getPropertyOfType(type, "Tag")
-      if (!propertySymbol) {
-        return yield* typeParserIssue("Type has no 'Tag' property", type, node)
-      }
-      const sourceFile = tsUtils.getSourceFileOfNode(node)
-      if (!sourceFile) {
-        return yield* typeParserIssue("Node is not in a source file", undefined, node)
-      }
-      const contextIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Context"
-      )
-      if (!contextIdentifier) {
-        return yield* typeParserIssue("Context module not found", undefined, node)
-      }
-      if (ts.idText(node) !== contextIdentifier) {
-        return yield* typeParserIssue("Node is not a context module reference", undefined, node)
-      }
-      // return the node itself
-      return node
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const contextSymbol = typeChecker.tryGetMemberInModuleExports("Context", moduleSymbol)
+      if (!contextSymbol) return yield* typeParserIssue("Context not found", undefined, sourceFile)
+      const tagSymbol = typeChecker.tryGetMemberInModuleExports("Tag", moduleSymbol)
+      if (!tagSymbol) return yield* typeParserIssue("Tag not found", undefined, sourceFile)
+      const tagType = typeChecker.getDeclaredTypeOfSymbol(tagSymbol)
+      yield* contextTag(tagType, sourceFile)
+      return sourceFile
     }),
+    "TypeParser.isEffectContextSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectContextModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectContextModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectContextSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectContextModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const importedContextModule = Nano.cachedBy(
+    (node: ts.Node) =>
+      pipe(
+        isNodeReferenceToPackageModule(node, "effect", isEffectContextSourceFile),
+        Nano.map(() => node)
+      ),
     "TypeParser.importedContextModule",
     (node) => node
   )
 
-  const importedEffectModule = (node: ts.Node) =>
-    pipe(
-      isNodeReferenceToPackageModule(node, "effect", isEffectTypeSourceFile),
-      Nano.map(() => node)
+  const importedEffectModule = Nano.cachedBy(
+    (node: ts.Node) =>
+      pipe(
+        isNodeReferenceToPackageModule(node, "effect", isEffectTypeSourceFile),
+        Nano.map(() => node)
+      ),
+    "TypeParser.importedEffectModule",
+    (node) => node
+  )
+
+  const isEffectDataSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectDataSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const taggedEnumSymbol = typeChecker.tryGetMemberInModuleExports("TaggedEnum", moduleSymbol)
+      if (!taggedEnumSymbol) return yield* typeParserIssue("TaggedEnum not found", undefined, sourceFile)
+      const taggedErrorSymbol = typeChecker.tryGetMemberInModuleExports("TaggedError", moduleSymbol)
+      if (!taggedErrorSymbol) return yield* typeParserIssue("TaggedError not found", undefined, sourceFile)
+
+      return sourceFile
+    }),
+    "TypeParser.isEffectDataSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectDataModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectDataModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectDataSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectDataModuleApi(${memberName})`,
+      (node) => node
     )
 
   const importedDataModule = Nano.cachedBy(
-    Nano.fn("TypeParser.importedDataModule")(function*(
-      node: ts.Node
-    ) {
-      // should be an expression
-      if (!ts.isIdentifier(node)) {
-        return yield* typeParserIssue("Node is not an expression", undefined, node)
-      }
-      const type = typeChecker.getTypeAtLocation(node)
-      // if the type has a property "TaggedError" that is a function
-      const propertySymbol = typeChecker.getPropertyOfType(type, "TaggedError")
-      if (!propertySymbol) {
-        return yield* typeParserIssue("Type has no 'TaggedError' property", type, node)
-      }
-      const sourceFile = tsUtils.getSourceFileOfNode(node)
-      if (!sourceFile) {
-        return yield* typeParserIssue("Node is not in a source file", undefined, node)
-      }
-      const dataIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
-        sourceFile,
-        "effect",
-        "Data"
-      )
-      if (!dataIdentifier) {
-        return yield* typeParserIssue("Data module not found", undefined, node)
-      }
-      if (ts.idText(node) !== dataIdentifier) {
-        return yield* typeParserIssue("Node is not a data module reference", undefined, node)
-      }
-      // return the node itself
-      return node
-    }),
+    (node: ts.Node) =>
+      pipe(
+        isNodeReferenceToPackageModule(node, "effect", isEffectDataSourceFile),
+        Nano.map(() => node)
+      ),
     "TypeParser.importedDataModule",
     (node) => node
   )
@@ -1724,6 +1739,8 @@ export function make(
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
+    isNodeReferenceToEffectDataModuleApi,
+    isNodeReferenceToEffectContextModuleApi,
     effectType,
     strictEffectType,
     layerType,
