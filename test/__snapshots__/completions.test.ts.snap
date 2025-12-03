@@ -16,6 +16,22 @@ exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] =
 ]
 `;
 
+exports[`Completion contextSelfInClasses > contextSelfInClasses_directImportTag.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 3,
+      "start": 139,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion contextSelfInClasses > contextSelfInClasses_identifierKey.ts at 5:40 1`] = `
 [
   {
@@ -197,6 +213,38 @@ exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
 ]
 `;
 
+exports[`Completion effectDataClasses > effectDataClasses_directImportTaggedClass.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedClass("MyClass")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass("MyClass")",
+    "replacementSpan": {
+      "length": 11,
+      "start": 139,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectDataClasses > effectDataClasses_directImportTaggedError.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedError("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError("MyError")",
+    "replacementSpan": {
+      "length": 11,
+      "start": 139,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:5 1`] = `
 [
   {
@@ -234,6 +282,70 @@ exports[`Completion effectJsdocComment > effectJsdocComment.ts at 2:6 1`] = `
     "replacementSpan": {
       "length": 1,
       "start": 71,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportClass.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Class<MyClass>("MyClass")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<MyClass>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 143,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedClass.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedClass<MyClass>("MyClass")("MyClass", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass<MyClass>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedError.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedError<MyError>("MyError")("MyError", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<MyError>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedRequest.ts at 4:44 1`] = `
+[
+  {
+    "insertText": "TaggedRequest<MyRequest>("MyRequest")("MyRequest", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedRequest<MyRequest>",
+    "replacementSpan": {
+      "length": 13,
+      "start": 153,
     },
     "sortText": "11",
   },
@@ -359,6 +471,38 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
     "replacementSpan": {
       "length": 7,
       "start": 141,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportService.ts at 4:39 1`] = `
+[
+  {
+    "insertText": "Service<MyService>()("@effect/language-service/MyService", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>",
+    "replacementSpan": {
+      "length": 7,
+      "start": 141,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportTag.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Tag("@effect/language-service/MyService")<MyService, {\${0}}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 3,
+      "start": 137,
     },
     "sortText": "11",
   },
