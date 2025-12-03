@@ -1,0 +1,21 @@
+// code fix schemaStructWithTag_skipFile  output for range 134 - 250
+/** @effect-diagnostics schemaStructWithTag:skip-file */
+import * as Schema from "effect/Schema"
+
+// this should trigger because this is a Schema.Struct with a _tag field
+export const User = Schema.Struct({
+  _tag: Schema.Literal("User"), // <- this is the tag
+  name: Schema.String,
+  age: Schema.Number
+})
+
+// so it can be rewritten as follows
+export const UserWithTag = Schema.TaggedStruct("User", {
+  name: Schema.String,
+  age: Schema.Number
+})
+
+export const OtherWithoutTag = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number
+})

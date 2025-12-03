@@ -243,6 +243,11 @@ describe("Diagnostics", () => {
       if (code === "1") continue // skip the diagnostic code 1 which is used for missingEffectContext and missingEffectError
       expect(count, "code " + code + " should be unique").toEqual(1)
     }
+
+    const maxCode = Math.max(...diagnostics.map((d) => d.code))
+    for (let code = 1; code <= maxCode; code++) {
+      expect(codes[code] > 0, "found missing diagnostic code, they should be subsequent numbers " + code).toBe(true)
+    }
   })
 })
 
