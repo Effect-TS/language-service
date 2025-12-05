@@ -13,14 +13,21 @@ import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 function generateMarmaidUri(
-  code: string
+  code: string,
+  mermaidProvider: LanguageServicePluginOptions.LanguageServicePluginOptions["mermaidProvider"]
 ): Nano.Nano<string, never, TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi> {
   return Nano.gen(function*() {
     const state = JSON.stringify({ code })
     const data = new TextEncoder().encode(state)
     const compressed = pako.deflate(data, { level: 9 })
     const pakoString = "pako:" + Encoding.encodeBase64Url(compressed)
-    return "https://www.mermaidchart.com/play#" + pakoString
+    if (mermaidProvider === "mermaid.com") {
+      return "https://www.mermaidchart.com/play#" + pakoString
+    } else if (mermaidProvider === "mermaid.live") {
+      return "https://mermaid.live/edit#" + pakoString
+    } else {
+      return mermaidProvider + "/edit#" + pakoString
+    }
   })
 }
 
@@ -119,8 +126,8 @@ export function layerInfo(
           Nano.gen(function*() {
             const linkParts: Array<ts.SymbolDisplayPart> = []
             if (!options.noExternal) {
-              const mermaidUri = yield* generateMarmaidUri(nestedGraphMermaid)
-              const outlineMermaidUri = yield* generateMarmaidUri(outlineGraphMermaid)
+              const mermaidUri = yield* generateMarmaidUri(nestedGraphMermaid, options.mermaidProvider)
+              const outlineMermaidUri = yield* generateMarmaidUri(outlineGraphMermaid, options.mermaidProvider)
               linkParts.push({ kind: "space", text: "\n" })
               linkParts.push({ kind: "link", text: "{@link " })
               linkParts.push({ kind: "linkText", text: mermaidUri + " Show full Layer graph" })
