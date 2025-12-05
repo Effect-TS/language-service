@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.60.0
+
+### Minor Changes
+
+- [#523](https://github.com/Effect-TS/language-service/pull/523) [`46ec3e1`](https://github.com/Effect-TS/language-service/commit/46ec3e14550edbf855f506a84c89c5096848ef85) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add configurable mermaid provider option
+
+  Adds a new `mermaidProvider` configuration option that allows users to choose between different Mermaid diagram providers:
+
+  - `"mermaid.com"` - Uses mermaidchart.com
+  - `"mermaid.live"` - Uses mermaid.live (default)
+  - Custom URL - Allows specifying a custom provider URL (e.g., `"http://localhost:8080"` for local mermaid-live-editor)
+
+  This enhances flexibility for users who prefer different Mermaid visualization services or need to use self-hosted instances.
+
 ## 0.59.0
 
 ### Minor Changes
