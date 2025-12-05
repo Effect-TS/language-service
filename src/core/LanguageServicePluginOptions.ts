@@ -39,6 +39,7 @@ export interface LanguageServicePluginOptions {
   noExternal: boolean
   pipeableMinArgCount: number
   layerGraphFollowDepth: number
+  mermaidProvider: "mermaid.com" | "mermaid.live" | ({} & string)
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -90,7 +91,8 @@ export const defaults: LanguageServicePluginOptions = {
   }],
   extendedKeyDetection: false,
   pipeableMinArgCount: 1,
-  layerGraphFollowDepth: 0
+  layerGraphFollowDepth: 0,
+  mermaidProvider: "mermaid.live"
 }
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
@@ -199,6 +201,10 @@ export function parse(config: any): LanguageServicePluginOptions {
     layerGraphFollowDepth:
       isObject(config) && hasProperty(config, "layerGraphFollowDepth") && isNumber(config.layerGraphFollowDepth)
         ? config.layerGraphFollowDepth
-        : defaults.layerGraphFollowDepth
+        : defaults.layerGraphFollowDepth,
+    mermaidProvider: isObject(config) && hasProperty(config, "mermaidProvider") &&
+        isString(config.mermaidProvider)
+      ? config.mermaidProvider
+      : defaults.mermaidProvider
   }
 }
