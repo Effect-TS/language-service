@@ -9,13 +9,14 @@ import { check } from "./cli/check"
 import { codegen } from "./cli/codegen"
 import { diagnostics } from "./cli/diagnostics"
 import { patch } from "./cli/patch"
+import { setup } from "./cli/setup"
 import { unpatch } from "./cli/unpatch"
 
 const cliCommand = Command.make(
   "effect-language-service",
   {},
   () => Console.log("Please select a command or run --help.")
-).pipe(Command.withSubcommands([patch, unpatch, check, diagnostics, codegen]))
+).pipe(Command.withSubcommands([setup, patch, unpatch, check, diagnostics, codegen]))
 
 const main = Command.run(cliCommand, {
   name: "effect-language-service",
