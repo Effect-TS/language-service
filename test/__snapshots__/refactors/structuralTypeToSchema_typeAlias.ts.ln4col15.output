@@ -1,7 +1,7 @@
-// Result of running refactor structuralTypeToSchema at position 4:14
+// Result of running refactor structuralTypeToSchema at position 4:15
 import * as Schema from "effect/Schema"
 
-Schema.Struct({
+export const MyTypeSchema = Schema.Struct({
     name: Schema.String,
     age: Schema.Number,
     isActive: Schema.Boolean

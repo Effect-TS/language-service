@@ -96,11 +96,9 @@ const processType: (
   function*(type, context) {
     const processingContext = context || createProcessingContext()
 
-    // Check cache first
-    const cached = processingContext.visitedTypes.get(type)
-    if (cached) {
-      return cached
-    }
+    // NOTE: Caching disabled because AST nodes cannot be reused in multiple parent positions
+    // When processing Array<string> twice, both would try to use the same Schema.String node
+    // which causes "Debug Failure" during printing
 
     // Check depth limit
     if (processingContext.depth >= processingContext.maxDepth) {
@@ -115,9 +113,6 @@ const processType: (
 
     // Process the type and get the schema expression
     const schemaExpr: ts.Expression = yield* processTypeImpl(type, nestedContext)
-
-    // Cache the result
-    processingContext.visitedTypes.set(type, schemaExpr)
 
     return schemaExpr
   }
@@ -205,8 +200,6 @@ const processTypeImpl: (
 
     // Handle object types (interfaces, type literals, etc.)
     if (type.flags & ts.TypeFlags.Object) {
-      const objectType = type as ts.ObjectType
-
       // Check if it's a special built-in type
       const symbol = type.symbol || type.aliasSymbol
       if (symbol) {
@@ -224,6 +217,7 @@ const processTypeImpl: (
       }
 
       // Handle object literal types and interfaces
+      const objectType = type as ts.ObjectType
       return yield* processObjectType(objectType, context)
     }
 
@@ -370,6 +364,7 @@ const processObjectType: (
     const properties = typeChecker.getPropertiesOfType(type)
     const propertyAssignments: Array<ts.PropertyAssignment> = []
 
+    // Process each property
     for (const property of properties) {
       const propertyName = typeChecker.symbolToString(property)
       const propertyType = typeChecker.getTypeOfSymbol(property)
@@ -382,9 +377,14 @@ const processObjectType: (
         ? createApiCall("optional", [propertySchema])
         : propertySchema
 
+      // Create property name - use identifier for valid JS identifiers, string literal otherwise
+      const propertyNameNode = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(propertyName)
+        ? ts.factory.createIdentifier(propertyName)
+        : ts.factory.createStringLiteral(propertyName)
+
       propertyAssignments.push(
         ts.factory.createPropertyAssignment(
-          ts.factory.createIdentifier(propertyName),
+          propertyNameNode,
           schemaExpr
         )
       )
@@ -392,7 +392,9 @@ const processObjectType: (
 
     // Handle index signatures
     const indexInfos = typeChecker.getIndexInfosOfType(type)
-    const records: Array<ts.ObjectLiteralExpression> = []
+    const args: Array<ts.Expression> = [
+      ts.factory.createObjectLiteralExpression(propertyAssignments, propertyAssignments.length > 0)
+    ]
 
     for (const indexInfo of indexInfos) {
       const keyType = indexInfo.keyType
@@ -401,7 +403,7 @@ const processObjectType: (
       const keySchema: ts.Expression = yield* processType(keyType, context)
       const valueSchema: ts.Expression = yield* processType(valueType, context)
 
-      records.push(
+      args.push(
         ts.factory.createObjectLiteralExpression([
           ts.factory.createPropertyAssignment("key", keySchema),
           ts.factory.createPropertyAssignment("value", valueSchema)
@@ -409,10 +411,7 @@ const processObjectType: (
       )
     }
 
-    return createApiCall(
-      "Struct",
-      [ts.factory.createObjectLiteralExpression(propertyAssignments, true)].concat(records)
-    )
+    return createApiCall("Struct", args)
   }
 )
 
@@ -432,7 +431,7 @@ const process = Nano.fn("StructuralSchemaGen.generateSchemaFromType")(
   }
 )
 
-export const findNodeToProcess = Nano.fn("SchemaGen.findNodeToProcess")(
+export const findNodeToProcess = Nano.fn("StructuralSchemaGen.findNodeToProcess")(
   function*(sourceFile: ts.SourceFile, textRange: ts.TextRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
@@ -450,20 +449,20 @@ export const findNodeToProcess = Nano.fn("SchemaGen.findNodeToProcess")(
   }
 )
 
-export const applyAtNode = Nano.fn("SchemaGen.applyAtNode")(
+export const applyAtNode = Nano.fn("StructuralSchemaGen.applyAtNode")(
   function*(
     sourceFile: ts.SourceFile,
     node: ts.TypeAliasDeclaration | ts.InterfaceDeclaration,
-    _identifier: ts.Identifier,
+    identifier: ts.Identifier,
     type: ts.Type,
     _preferClass: boolean
   ) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-    // Generate the schema from the type
-    const newNode = yield* pipe(
-      process(sourceFile, type, _identifier),
+    // Generate the schema expression from the type
+    const schemaExpr = yield* pipe(
+      process(sourceFile, type, identifier),
       Nano.orElse((error) =>
         Nano.succeed(ts.addSyntheticLeadingComment(
           ts.factory.createIdentifier(""),
@@ -473,6 +472,22 @@ export const applyAtNode = Nano.fn("SchemaGen.applyAtNode")(
         ))
       )
     )
+
+    // Wrap in a variable declaration statement
+    const schemaName = `${identifier.text}Schema`
+    const newNode = ts.factory.createVariableStatement(
+      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      ts.factory.createVariableDeclarationList(
+        [ts.factory.createVariableDeclaration(
+          ts.factory.createIdentifier(schemaName),
+          undefined,
+          undefined,
+          schemaExpr
+        )],
+        ts.NodeFlags.Const
+      )
+    )
+
     changeTracker.insertNodeBefore(sourceFile, node, newNode, true, {
       leadingTriviaOption: ts.textChanges.LeadingTriviaOption.StartLine
     })
