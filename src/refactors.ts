@@ -9,6 +9,7 @@ import { makeSchemaOpaque } from "./refactors/makeSchemaOpaque.js"
 import { makeSchemaOpaqueWithNs } from "./refactors/makeSchemaOpaqueWithNs.js"
 import { pipeableToDatafirst } from "./refactors/pipeableToDatafirst.js"
 import { removeUnnecessaryEffectGen } from "./refactors/removeUnnecessaryEffectGen.js"
+import { structuralTypeToSchema } from "./refactors/structuralTypeToSchema.js"
 import { toggleLazyConst } from "./refactors/toggleLazyConst.js"
 import { togglePipeStyle } from "./refactors/togglePipeStyle.js"
 import { toggleReturnTypeAnnotation } from "./refactors/toggleReturnTypeAnnotation.js"
@@ -28,6 +29,7 @@ export const refactors = [
   functionToArrow,
   typeToEffectSchema,
   typeToEffectSchemaClass,
+  structuralTypeToSchema,
   makeSchemaOpaque,
   makeSchemaOpaqueWithNs,
   pipeableToDatafirst,
