@@ -100,6 +100,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Wrap an `Effect` expression with `Effect.gen`
 - Toggle between pipe styles `X.pipe(Y)` and `pipe(X, Y)`
 - Layer Magic: Automatically compose and build layers based on service dependencies
+- Structural Type to Schema: Convert TypeScript interfaces and type aliases to Effect Schema classes, with automatic detection and reuse of existing schemas
 
 ### Codegens
 

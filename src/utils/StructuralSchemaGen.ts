@@ -156,10 +156,7 @@ const processType: (
     }
 
     // get the interface or type alias name
-    let hoistName = Array.fromIterable(nameToType.entries()).find(([_, existingType]) =>
-      existingType === type ||
-      (typeChecker.isTypeAssignableTo(type, existingType) && typeChecker.isTypeAssignableTo(existingType, type))
-    )?.[0]
+    let hoistName = Array.fromIterable(nameToType.entries()).find(([_, existingType]) => existingType === type)?.[0]
     if (!hoistName && type && type.symbol && type.symbol.declarations && type.symbol.declarations.length === 1) {
       const declaration = type.symbol.declarations[0]
       if (ts.isInterfaceDeclaration(declaration)) {
@@ -589,7 +586,12 @@ export const findNodeToProcess = Nano.fn("StructuralSchemaGen.findNodeToProcess"
 )
 
 export const process = Nano.fn("StructuralSchemaGen.process")(
-  function*(sourceFile: ts.SourceFile, scope: ts.Node, typeMap: Map<string, ts.Type>, isExported: boolean) {
+  function*(
+    sourceFile: ts.SourceFile,
+    scope: ts.Node,
+    typeMap: Map<string, ts.Type>,
+    isExported: boolean
+  ) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
