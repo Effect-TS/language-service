@@ -42,12 +42,17 @@ const verbose = Options.boolean("verbose").pipe(
   Options.withDescription("Verbose output.")
 )
 
+const force = Options.boolean("force").pipe(
+  Options.withDefault(false),
+  Options.withDescription("Force codegen even if no changes are needed.")
+)
+
 const BATCH_SIZE = 50
 
 export const codegen = Command.make(
   "codegen",
-  { file, project, verbose },
-  Effect.fn("codegen")(function*({ file, project, verbose }) {
+  { file, project, verbose, force },
+  Effect.fn("codegen")(function*({ file, force, project, verbose }) {
     const path = yield* Path.Path
     const fs = yield* FileSystem.FileSystem
     const tsInstance = yield* getTypeScript
@@ -122,7 +127,7 @@ export const codegen = Command.make(
                   LSP.getEditsForCodegen([codegen], sourceFile, range),
                   Nano.orElse(() => Nano.void_)
                 )
-                if (applicable && applicable.hash !== hash) {
+                if (applicable && (applicable.hash !== hash || force)) {
                   const changes = tsInstance.textChanges.ChangeTracker.with(
                     {
                       formatContext,

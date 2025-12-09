@@ -1,0 +1,13 @@
+// Result of running refactor structuralTypeToSchema at position 5:15
+import type { ExternalUser } from "@/utils/types"
+import * as Schema from "effect/Schema"
+export class Config extends Schema.Class<Config>("Config")({
+    id: Schema.Number,
+    name: Schema.String,
+    email: Schema.String,
+    isActive: Schema.Boolean,
+    metadata: Schema.optional(Schema.Union(Schema.Undefined, Schema.Struct({}, { key: Schema.String, value: Schema.String })))
+}) { }
+
+
+export type Config = ExternalUser

@@ -1,0 +1,6 @@
+// Result of running refactor structuralTypeToSchema at position 4:15
+import * as Schema from "effect/Schema"
+export const Status = Schema.Literal("pending", "active", "completed")
+
+
+export type Status = "pending" | "active" | "completed"
