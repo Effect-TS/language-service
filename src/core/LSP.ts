@@ -21,6 +21,7 @@ export interface RefactorDefinition {
   ) => Nano.Nano<
     ApplicableRefactorDefinition,
     RefactorNotApplicableError,
+    | TypeScriptApi.TypeScriptProgram
     | TypeScriptApi.TypeScriptApi
     | TypeScriptUtils.TypeScriptUtils
     | TypeCheckerApi.TypeCheckerApi
@@ -500,6 +501,7 @@ export interface CodegenDefinition {
     | TypeCheckerUtils.TypeCheckerUtils
     | TypeParser.TypeParser
     | LanguageServicePluginOptions.LanguageServicePluginOptions
+    | TypeScriptApi.TypeScriptProgram
   >
 }
 

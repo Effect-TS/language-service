@@ -31,6 +31,7 @@ export class UnsupportedTypeError {
 
 interface StructuralSchemaGenContext {
   ts: TypeScriptApi.TypeScriptApi
+  program: TypeScriptApi.TypeScriptProgram
   typeChecker: TypeCheckerApi.TypeCheckerApi
   typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils
   sourceFile: ts.SourceFile
@@ -49,6 +50,7 @@ const StructuralSchemaGenContext = Nano.Tag<StructuralSchemaGenContext>("Structu
 export const makeStructuralSchemaGenContext = Nano.fn("StructuralSchemaGen.makeContext")(
   function*(sourceFile: ts.SourceFile, schemaIdentifier?: string) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
@@ -56,6 +58,7 @@ export const makeStructuralSchemaGenContext = Nano.fn("StructuralSchemaGen.makeC
 
     return Function.identity<StructuralSchemaGenContext>({
       ts,
+      program,
       typeChecker,
       typeCheckerUtils,
       sourceFile,
@@ -275,7 +278,7 @@ const processTypeImpl: (
 
       // Handle union types
       if (typeCheckerUtils.isUnion(type)) {
-        return yield* processUnionType(type, context)
+        return yield* processUnionType(type.types, context)
       }
 
       // Handle intersection types
@@ -330,17 +333,17 @@ const processTypeImpl: (
  * Process union types as Schema.Union
  */
 const processUnionType: (
-  type: ts.UnionType,
+  types: Array<ts.Type>,
   context: ProcessingContext
 ) => Nano.Nano<[expr: ts.Expression, skipHoisting: boolean], UnsupportedTypeError, StructuralSchemaGenContext> = Nano
   .fn(
     "StructuralSchemaGen.processUnionType"
   )(
-    function*(type, context) {
+    function*(types, context) {
       const { createApiCall, ts } = yield* Nano.service(StructuralSchemaGenContext)
 
       // Check if all members are literals - can optimize to single Literal call
-      const allLiterals = type.types.every((t) =>
+      const allLiterals = types.every((t) =>
         (t.flags & ts.TypeFlags.StringLiteral) ||
         (t.flags & ts.TypeFlags.NumberLiteral) ||
         (t.flags & ts.TypeFlags.BooleanLiteral)
@@ -348,7 +351,7 @@ const processUnionType: (
 
       if (allLiterals) {
         const literals: Array<ts.Expression> = yield* Nano.all(
-          ...type.types.map((t) => processType(t, context))
+          ...types.map((t) => processType(t, context))
         )
         // Extract literal values from Schema.Literal calls
         const literalValues: Array<ts.Expression> = literals.map((expr: ts.Expression) => {
@@ -363,8 +366,12 @@ const processUnionType: (
 
       // Process each union member
       const members: Array<ts.Expression> = yield* Nano.all(
-        ...type.types.map((t) => processType(t, context))
+        ...types.map((t) => processType(t, context))
       )
+
+      if (members.length === 1) {
+        return [members[0], false]
+      }
 
       return [createApiCall("Union", members), false]
     }
@@ -465,8 +472,10 @@ const processObjectType: (
       const {
         createApiCall,
         createApiPropertyAccess,
+        program,
         ts,
-        typeChecker
+        typeChecker,
+        typeCheckerUtils
       } = yield* Nano
         .service(
           StructuralSchemaGenContext
@@ -480,14 +489,31 @@ const processObjectType: (
       for (const property of properties) {
         const propertyName = typeChecker.symbolToString(property)
         const propertyType = typeChecker.getTypeOfSymbol(property)
-        const propertySchema: ts.Expression = yield* processType(propertyType, context)
 
         // Check if property is optional
         const isOptional = (property.flags & ts.SymbolFlags.Optional) !== 0
 
-        const schemaExpr = isOptional
-          ? createApiCall("optional", [propertySchema])
-          : propertySchema
+        let schemaExpr: ts.Expression | undefined
+        if (isOptional) {
+          if (program.getCompilerOptions().exactOptionalPropertyTypes) {
+            if (typeCheckerUtils.isUnion(propertyType)) {
+              const typeWithoutMissing = propertyType.types.filter((t) => !typeCheckerUtils.isMissingIntrinsicType(t))
+              const [result, _] = yield* processUnionType(typeWithoutMissing, context)
+              schemaExpr = createApiCall("optionalWith", [
+                result,
+                ts.factory.createObjectLiteralExpression([
+                  ts.factory.createPropertyAssignment("exact", ts.factory.createTrue())
+                ])
+              ])
+            }
+          } else {
+            schemaExpr = yield* processType(propertyType, context)
+            schemaExpr = createApiCall("optional", [schemaExpr])
+          }
+        }
+        if (!schemaExpr) {
+          schemaExpr = yield* processType(propertyType, context)
+        }
 
         // Create property name - use identifier for valid JS identifiers, string literal otherwise
         const propertyNameNode = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(propertyName)

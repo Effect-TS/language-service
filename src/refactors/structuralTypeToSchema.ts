@@ -18,6 +18,7 @@ export const structuralTypeToSchema = LSP.createRefactor({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
 
     const maybeNode = yield* StructuralSchemaGen.findNodeToProcess(sourceFile, textRange)
 
@@ -36,7 +37,8 @@ export const structuralTypeToSchema = LSP.createRefactor({
         Nano.provideService(TypeScriptUtils.TypeScriptUtils, tsUtils),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
         Nano.provideService(TypeCheckerUtils.TypeCheckerUtils, typeCheckerUtils),
-        Nano.provideService(TypeParser.TypeParser, typeParser)
+        Nano.provideService(TypeParser.TypeParser, typeParser),
+        Nano.provideService(TypeScriptApi.TypeScriptProgram, program)
       )
     }
   })
