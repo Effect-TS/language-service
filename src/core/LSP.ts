@@ -564,7 +564,11 @@ export const getEditsForCodegen = Nano.fn("LSP.getEditsForCodegen")(function*(
     Nano.service(TypeScriptApi.ChangeTracker),
     Nano.map((changeTracker) => {
       changeTracker.deleteRange(sourceFile, range)
-      changeTracker.insertText(sourceFile, range.pos, `${codegen.name}:${edit.hash}`)
+      changeTracker.insertText(
+        sourceFile,
+        range.pos,
+        edit.hash.length > 0 ? `${codegen.name}:${edit.hash}` : codegen.name
+      )
     })
   )
   return {

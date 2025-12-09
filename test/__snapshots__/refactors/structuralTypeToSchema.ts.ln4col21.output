@@ -1,7 +1,6 @@
 // Result of running refactor structuralTypeToSchema at position 4:21
 import * as Schema from "effect/Schema"
-
-export const MyStructSchema = Schema.Struct({
+export class MyStruct extends Schema.Class<MyStruct>("MyStruct")({
     anyProp: Schema.Any,
     bigintProp: Schema.BigInt,
     booleanProp: Schema.Boolean,
@@ -33,7 +32,8 @@ export const MyStructSchema = Schema.Struct({
     optionalProp: Schema.optional(Schema.Union(Schema.Undefined, Schema.String)),
     prop: Schema.String,
     prop2: Schema.String
-})
+}) { }
+
 
 export interface MyStruct {
   anyProp: any
