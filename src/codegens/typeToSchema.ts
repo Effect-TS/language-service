@@ -18,6 +18,7 @@ export const typeToSchema = LSP.createCodegen({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
 
     const inThisFile = yield* LSP.getCodegensForSourceFile([typeToSchema], sourceFile)
     if (inThisFile.length > 1) {
@@ -106,7 +107,8 @@ export const typeToSchema = LSP.createCodegen({
             Nano.provideService(TypeScriptUtils.TypeScriptUtils, tsUtils),
             Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
             Nano.provideService(TypeCheckerUtils.TypeCheckerUtils, typeCheckerUtils),
-            Nano.provideService(TypeParser.TypeParser, typeParser)
+            Nano.provideService(TypeParser.TypeParser, typeParser),
+            Nano.provideService(TypeScriptApi.TypeScriptProgram, program)
           )
         }) satisfies LSP.ApplicableCodegenDefinition
       )

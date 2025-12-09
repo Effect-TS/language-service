@@ -48,7 +48,7 @@ The following steps can be skipped if no typescript file has been changed in thi
 
 ### 3. Documentation checks
 - if new diagnostics, completions or refactor are added, ensure they are already mentioned in the README.md. Ensure to read examples and test/__snapshots__ related to the change to ensure full understanding of whats changed
-- If in the git changes does not exists a new changeset file to be added, create a new one in the .changeset folder, the pattern is something like this:
+- If in the git changes against origin/main does not exists a new changeset file describing current changes, create a new one in the .changeset folder, the pattern is something like this:
 ```
 ---
 "@effect/language-service": ${patchType}

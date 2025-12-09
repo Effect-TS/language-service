@@ -9,6 +9,7 @@ import * as TypeScriptUtils from "./TypeScriptUtils"
 
 export interface TypeCheckerUtils {
   isUnion: (type: ts.Type) => type is ts.UnionType
+  isMissingIntrinsicType: (type: ts.Type) => boolean
   getTypeParameterAtPosition: (signature: ts.Signature, pos: number) => ts.Type
   getMissingTypeEntriesInTargetType: (realType: ts.Type, expectedType: ts.Type) => Array<ts.Type>
   unrollUnionMembers: (type: ts.Type) => Array<ts.Type>
@@ -69,6 +70,11 @@ export function makeTypeCheckerUtils(
 
   function isThisTypeParameter(type: ts.Type): boolean {
     return !!(type.flags & ts.TypeFlags.TypeParameter && (type as any).isThisType)
+  }
+
+  function isMissingIntrinsicType(type: ts.Type): boolean {
+    return (type.flags & ts.TypeFlags.Undefined) !== 0 && "debugIntrinsicName" in type &&
+      type.debugIntrinsicName === "missing"
   }
 
   function getTypeParameterAtPosition(signature: ts.Signature, pos: number): ts.Type {
@@ -455,6 +461,7 @@ export function makeTypeCheckerUtils(
 
   return {
     isUnion,
+    isMissingIntrinsicType,
     getTypeParameterAtPosition,
     getMissingTypeEntriesInTargetType,
     unrollUnionMembers,
