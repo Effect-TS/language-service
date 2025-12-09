@@ -106,6 +106,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 
 - Automatically adds type annotations to exported constants based on their initializer types using `// @effect-codegens annotate`
 - Automatically implements service accessors in `Effect.Service`, `Context.Tag` or `Effect.Tag` declarations using `// @effect-codegens accessors`
+- Automatically generates Effect Schema classes from TypeScript types using `// @effect-codegens typeToSchema`
 
 ### Miscellaneous
 - Renaming a class name, will rename the identifier as well for TaggedError, TaggedClass, etc...
