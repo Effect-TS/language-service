@@ -423,7 +423,7 @@ const processArrayType: (
     "StructuralSchemaGen.processArrayType"
   )(
     function*(type, context) {
-      const { createApiCall, typeChecker } = yield* Nano.service(StructuralSchemaGenContext)
+      const { createApiCall, typeChecker, typeCheckerUtils } = yield* Nano.service(StructuralSchemaGenContext)
 
       // Get the element type
       const typeArgs = typeChecker.getTypeArguments(type as ts.TypeReference)
@@ -432,7 +432,9 @@ const processArrayType: (
       }
 
       const elementSchema: ts.Expression = yield* processType(typeArgs[0], context)
-      return [createApiCall("Array", [elementSchema]), false]
+      const expr = createApiCall("Array", [elementSchema])
+      if (typeCheckerUtils.isReadonlyArrayType(type)) return [expr, false]
+      return [createApiCall("mutable", [expr]), false]
     }
   )
 
