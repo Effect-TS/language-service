@@ -1,5 +1,20 @@
 # @effect/language-service
 
+## 0.62.1
+
+### Patch Changes
+
+- [#532](https://github.com/Effect-TS/language-service/pull/532) [`8f189aa`](https://github.com/Effect-TS/language-service/commit/8f189aa7d21b8a638e3bc9cf4fc834c684f1b70f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix handling of read-only arrays in "Refactor to Schema (Recursive Structural)" code generation.
+
+  The refactor now correctly distinguishes between mutable arrays (`Array<T>`) and read-only arrays (`ReadonlyArray<T>` or `readonly T[]`):
+
+  - `Array<T>` is now converted to `Schema.mutable(Schema.Array(...))` to preserve mutability
+  - `ReadonlyArray<T>` and `readonly T[]` are converted to `Schema.Array(...)` (read-only by default)
+
+  This fixes compatibility issues with external libraries (like Stripe, BetterAuth) that expect mutable arrays in their API parameters.
+
+  Fixes #531
+
 ## 0.62.0
 
 ### Minor Changes
