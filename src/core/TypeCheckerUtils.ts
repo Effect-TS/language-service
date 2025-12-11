@@ -9,6 +9,7 @@ import * as TypeScriptUtils from "./TypeScriptUtils"
 
 export interface TypeCheckerUtils {
   isUnion: (type: ts.Type) => type is ts.UnionType
+  isReadonlyArrayType: (type: ts.Type) => boolean
   isMissingIntrinsicType: (type: ts.Type) => boolean
   getTypeParameterAtPosition: (signature: ts.Signature, pos: number) => ts.Type
   getMissingTypeEntriesInTargetType: (realType: ts.Type, expectedType: ts.Type) => Array<ts.Type>
@@ -60,6 +61,11 @@ export function makeTypeCheckerUtils(
   typeChecker: TypeCheckerApi.TypeCheckerApi,
   tsUtils: TypeScriptUtils.TypeScriptUtils
 ): TypeCheckerUtils {
+  const readonlyArraySymbol = typeChecker.resolveName("ReadonlyArray", undefined, ts.SymbolFlags.Type, false)
+  const globalReadonlyArrayType = readonlyArraySymbol
+    ? typeChecker.getDeclaredTypeOfSymbol(readonlyArraySymbol)
+    : undefined
+
   function isUnion(type: ts.Type): type is ts.UnionType {
     return !!(type.flags & ts.TypeFlags.Union)
   }
@@ -70,6 +76,10 @@ export function makeTypeCheckerUtils(
 
   function isThisTypeParameter(type: ts.Type): boolean {
     return !!(type.flags & ts.TypeFlags.TypeParameter && (type as any).isThisType)
+  }
+
+  function isReadonlyArrayType(type: ts.Type): boolean {
+    return type && "target" in type && (type as ts.TypeReference).target === globalReadonlyArrayType
   }
 
   function isMissingIntrinsicType(type: ts.Type): boolean {
@@ -461,6 +471,7 @@ export function makeTypeCheckerUtils(
 
   return {
     isUnion,
+    isReadonlyArrayType,
     isMissingIntrinsicType,
     getTypeParameterAtPosition,
     getMissingTypeEntriesInTargetType,

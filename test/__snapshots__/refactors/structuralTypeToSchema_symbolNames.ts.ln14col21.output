@@ -22,7 +22,7 @@ class Todo extends Schema.Class<Todo>("Todo")({
 
 export class AppState extends Schema.Class<AppState>("AppState")({
     users: User,
-    tasks: Schema.Array(Schema.Tuple(Todo, User))
+    tasks: Schema.mutable(Schema.Array(Schema.Tuple(Todo, User)))
 }) { }
 
 

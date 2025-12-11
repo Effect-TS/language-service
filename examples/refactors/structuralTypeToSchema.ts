@@ -14,6 +14,9 @@ export interface MyStruct {
   voidProp: void
   arrayTypeProp: Array<string>
   arrayProp: Array<string>
+  readonlyArrayProp: ReadonlyArray<string>
+  // eslint-disable-next-line @typescript-eslint/array-type
+  arrayWithReadonlyProp: readonly string[]
   dateProp: Date
   trueProp: true
   falseProp: false

@@ -11,8 +11,10 @@ export class MyStruct extends Schema.Class<MyStruct>("MyStruct")({
     undefinedProp: Schema.Undefined,
     unknownProp: Schema.Unknown,
     voidProp: Schema.Void,
-    arrayTypeProp: Schema.Array(Schema.String),
-    arrayProp: Schema.Array(Schema.String),
+    arrayTypeProp: Schema.mutable(Schema.Array(Schema.String)),
+    arrayProp: Schema.mutable(Schema.Array(Schema.String)),
+    readonlyArrayProp: Schema.Array(Schema.String),
+    arrayWithReadonlyProp: Schema.Array(Schema.String),
     dateProp: Schema.Date,
     trueProp: Schema.Literal(true),
     falseProp: Schema.Literal(false),
@@ -48,6 +50,9 @@ export interface MyStruct {
   voidProp: void
   arrayTypeProp: Array<string>
   arrayProp: Array<string>
+  readonlyArrayProp: ReadonlyArray<string>
+  // eslint-disable-next-line @typescript-eslint/array-type
+  arrayWithReadonlyProp: readonly string[]
   dateProp: Date
   trueProp: true
   falseProp: false
