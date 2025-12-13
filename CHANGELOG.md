@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.62.2
+
+### Patch Changes
+
+- [#535](https://github.com/Effect-TS/language-service/pull/535) [`361fc1e`](https://github.com/Effect-TS/language-service/commit/361fc1ee5b6cf7684e0cf1ff8806ef267936b9cd) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix duplicate schema names in "Refactor to Schema (Recursive Structural)" code generation.
+
+  When the refactor encountered types with conflicting names, it was generating a unique suffix but not properly tracking the usage count, causing duplicate schema identifiers with different contents to be generated.
+
+  This fix ensures that when a name conflict is detected and a unique suffix is added (e.g., `Tax`, `Tax_1`, `Tax_2`), the usage counter is properly incremented to prevent duplicate identifiers in the generated code.
+
+  Fixes #534
+
 ## 0.62.1
 
 ### Patch Changes
