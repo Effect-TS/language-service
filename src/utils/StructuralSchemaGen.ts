@@ -179,6 +179,7 @@ const processType: (
           // appends a counter to the name to avoid conflicts
           const usedCount = usedGlobalIdentifiers.get(hoistName) || 0
           hoistName = usedCount > 0 ? hoistName + "_" + usedCount : hoistName
+          usedGlobalIdentifiers.set(hoistName, usedCount + 1)
         }
       }
     }
