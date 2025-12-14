@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.62.3
+
+### Patch Changes
+
+- [#537](https://github.com/Effect-TS/language-service/pull/537) [`e31c03b`](https://github.com/Effect-TS/language-service/commit/e31c03b086eebb2bb55f23cfb9eb4c26344785d7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix counter increment timing in structural type to schema refactor to ensure proper naming of conflicting schemas (e.g., `User_1` instead of `User_0` for the first conflict)
+
 ## 0.62.2
 
 ### Patch Changes
