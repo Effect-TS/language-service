@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.62.4
+
+### Patch Changes
+
+- [#539](https://github.com/Effect-TS/language-service/pull/539) [`4cc88d2`](https://github.com/Effect-TS/language-service/commit/4cc88d2c72535ef7608c4c0b0ecdd8b676699874) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve layerMagic refactor to prioritize layers with more provided services
+
+  The layerMagic refactor now uses a heuristic that prioritizes nodes with more provided services when generating layer composition code. This ensures that telemetry and tracing layers (which typically provide fewer services) are positioned as late as possible in the dependency graph, resulting in more intuitive and correct layer ordering.
+
+  Example: When composing layers for services that depend on HttpClient with telemetry, the refactor now correctly places the telemetry layer (which provides fewer services) later in the composition chain.
+
 ## 0.62.3
 
 ### Patch Changes

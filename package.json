@@ -1,6 +1,6 @@
 {
   "name": "@effect/language-service",
-  "version": "0.62.3",
+  "version": "0.62.4",
   "packageManager": "pnpm@8.11.0",
   "publishConfig": {
     "access": "public",
