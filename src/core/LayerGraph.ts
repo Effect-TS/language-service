@@ -2,6 +2,7 @@ import { pipe } from "effect"
 import * as Array from "effect/Array"
 import * as Graph from "effect/Graph"
 import * as Option from "effect/Option"
+import * as Order from "effect/Order"
 import * as Predicate from "effect/Predicate"
 import type * as ts from "typescript"
 import * as Nano from "./Nano.js"
@@ -512,6 +513,69 @@ export interface LayerMagicResult {
   missingOutputTypes: Set<ts.Type>
 }
 
+export const dfsPostOrderWithOrder = <N, E, T extends Graph.Kind = "directed">(
+  graph: Graph.Graph<N, E, T> | Graph.MutableGraph<N, E, T>,
+  config: Graph.SearchConfig & { order: Order.Order<N> }
+): Graph.NodeWalker<N> => {
+  const start = config.start ?? []
+  const direction = config.direction ?? "outgoing"
+  const orderByIndex = Order.mapInput(config.order, (_: Graph.NodeIndex) => graph.nodes.get(_)!)
+
+  return new Graph.Walker((f) => ({
+    [Symbol.iterator]: () => {
+      const stack: Array<{ node: Graph.NodeIndex; visitedChildren: boolean }> = []
+      const discovered = new Set<Graph.NodeIndex>()
+      const finished = new Set<Graph.NodeIndex>()
+
+      const sortedStart = Array.sort(start, orderByIndex)
+
+      // Initialize stack with start nodes
+      for (let i = sortedStart.length - 1; i >= 0; i--) {
+        stack.push({ node: sortedStart[i], visitedChildren: false })
+      }
+
+      const nextMapped = () => {
+        while (stack.length > 0) {
+          const current = stack[stack.length - 1]
+
+          if (!discovered.has(current.node)) {
+            discovered.add(current.node)
+            current.visitedChildren = false
+          }
+
+          if (!current.visitedChildren) {
+            current.visitedChildren = true
+            const neighbors = Graph.neighborsDirected(graph, current.node, direction)
+            const sortedNeighbors = Array.sort(neighbors, orderByIndex)
+            for (let i = sortedNeighbors.length - 1; i >= 0; i--) {
+              const neighbor = sortedNeighbors[i]
+              if (!discovered.has(neighbor) && !finished.has(neighbor)) {
+                stack.push({ node: neighbor, visitedChildren: false })
+              }
+            }
+          } else {
+            const nodeToEmit = stack.pop()!.node
+
+            if (!finished.has(nodeToEmit)) {
+              finished.add(nodeToEmit)
+
+              const nodeData = Graph.getNode(graph, nodeToEmit)
+              if (Option.isSome(nodeData)) {
+                return { done: false, value: f(nodeToEmit, nodeData.value) }
+              }
+              return nextMapped()
+            }
+          }
+        }
+
+        return { done: true, value: undefined } as const
+      }
+
+      return { next: nextMapped }
+    }
+  }))
+}
+
 // converts an outline graph into a set of provide/provideMerge with target output
 export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLayerMagic")(
   function*(outlineGraph: LayerOutlineGraph, targetOutput: ts.Type) {
@@ -522,11 +586,17 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
 
     const missingOutputTypes = new Set(typeCheckerUtils.unrollUnionMembers(targetOutput))
     const currentRequiredTypes = new Set<ts.Type>()
+    const orderByProvidedCount = Order.mapInput(
+      Order.reverse(Order.number),
+      (_: LayerOutlineGraphNodeInfo) => _.provides.length
+    )
 
     // no need to filter because the outline graph is already deduplicated and only keeping childs
     const reversedGraph = Graph.mutate(outlineGraph, Graph.reverse)
     const rootIndexes = Array.fromIterable(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
-    const allNodes = Array.fromIterable(Graph.values(Graph.dfsPostOrder(reversedGraph, { start: rootIndexes })))
+    const allNodes = Array.fromIterable(
+      Graph.values(dfsPostOrderWithOrder(reversedGraph, { start: rootIndexes, order: orderByProvidedCount }))
+    )
     for (const nodeInfo of allNodes) {
       if (!ts.isExpression(nodeInfo.node)) continue
       const reallyProvidedTypes = nodeInfo.provides.filter((_) => nodeInfo.requires.indexOf(_) === -1)
