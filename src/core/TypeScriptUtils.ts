@@ -661,7 +661,9 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     } else {
       return
     }
-    return { accessedObject, outerNode, replacementSpan }
+    const importDeclaration = ts.findAncestor(accessedObject, ts.isImportDeclaration)
+    if (importDeclaration) return
+    return { accessedObject, outerNode, replacementSpan, insideImportDeclaration: !!importDeclaration }
   }
 
   function parseDataForExtendsClassCompletion(

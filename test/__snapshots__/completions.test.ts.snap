@@ -563,6 +563,8 @@ exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
 ]
 `;
 
+exports[`Completion genFunctionStar > genFunctionStar_imports.ts at 2:16 1`] = `[]`;
+
 exports[`Completion rpcMakeClasses > rpcMakeClasses.ts at 4:36 1`] = `
 [
   {
