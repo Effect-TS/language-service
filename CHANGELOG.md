@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.62.5
+
+### Patch Changes
+
+- [#543](https://github.com/Effect-TS/language-service/pull/543) [`0b13f3c`](https://github.com/Effect-TS/language-service/commit/0b13f3c862b69a84e2b3368ab301a35af8a8bf63) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix unwanted autocompletions inside import declarations
+
+  Previously, Effect.**, Option.**, and Either.\_\_ completions were incorrectly suggested inside import statements. This has been fixed by detecting when the completion is requested inside an import declaration and preventing these completions from appearing.
+
+  Closes #541
+
 ## 0.62.4
 
 ### Patch Changes
