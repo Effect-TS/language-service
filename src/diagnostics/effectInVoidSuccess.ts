@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const effectInVoidSuccess = LSP.createDiagnostic({
   name: "effectInVoidSuccess",
   code: 14,
+  description: "Detects nested Effects in void success channels that may cause unexecuted effects",
   severity: "warning",
   apply: Nano.fn("effectInVoidSuccess.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

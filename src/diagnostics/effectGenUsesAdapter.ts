@@ -8,6 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const effectGenUsesAdapter = LSP.createDiagnostic({
   name: "effectGenUsesAdapter",
   code: 23,
+  description: "Warns when using the deprecated adapter parameter in Effect.gen",
   severity: "warning",
   apply: Nano.fn("effectGenUsesAdapter.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const schemaUnionOfLiterals = LSP.createDiagnostic({
   name: "schemaUnionOfLiterals",
   code: 33,
+  description: "Simplifies Schema.Union of multiple Schema.Literal calls into single Schema.Literal",
   severity: "off",
   apply: Nano.fn("schemaUnionOfLiterals.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

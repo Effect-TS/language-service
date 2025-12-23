@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const overriddenSchemaConstructor = LSP.createDiagnostic({
   name: "overriddenSchemaConstructor",
   code: 30,
+  description: "Prevents overriding constructors in Schema classes which breaks decoding behavior",
   severity: "error",
   apply: Nano.fn("overriddenSchemaConstructor.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

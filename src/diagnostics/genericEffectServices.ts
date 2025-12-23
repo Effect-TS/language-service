@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const genericEffectServices = LSP.createDiagnostic({
   name: "genericEffectServices",
   code: 10,
+  description: "Prevents services with type parameters that cannot be discriminated at runtime",
   severity: "warning",
   apply: Nano.fn("genericEffectServices.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

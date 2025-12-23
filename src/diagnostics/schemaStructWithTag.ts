@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const schemaStructWithTag = LSP.createDiagnostic({
   name: "schemaStructWithTag",
   code: 34,
+  description: "Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field",
   severity: "suggestion",
   apply: Nano.fn("schemaStructWithTag.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

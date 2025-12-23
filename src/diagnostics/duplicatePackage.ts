@@ -13,6 +13,7 @@ const programResolvedCacheSize = new Map<string, number>()
 export const duplicatePackage = LSP.createDiagnostic({
   name: "duplicatePackage",
   code: 6,
+  description: "Detects when multiple versions of the same Effect package are loaded",
   severity: "warning",
   apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile, report) {
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)

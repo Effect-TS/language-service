@@ -12,6 +12,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
   code: 8,
+  description: "Detects implementation services leaked in service methods",
   severity: "suggestion",
   apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const strictEffectProvide = LSP.createDiagnostic({
   name: "strictEffectProvide",
   code: 27,
+  description: "Warns when using Effect.provide with layers outside of application entry points",
   severity: "off",
   apply: Nano.fn("strictEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

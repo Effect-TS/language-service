@@ -15,18 +15,11 @@ export interface DiagnosticInfo {
  * Get all available diagnostics with their metadata
  */
 export function getAllDiagnostics(): ReadonlyArray<DiagnosticInfo> {
-  return diagnostics.map((diagnostic, index) => ({
+  return diagnostics.map((diagnostic) => ({
     name: diagnostic.name,
     code: diagnostic.code,
     defaultSeverity: diagnostic.severity,
-    // Use long descriptions to test word wrapping/truncation behavior
-    description: index === 0
-      ? "This is a very long description to test how the CLI handles descriptions that exceed the terminal width and should be truncated or wrapped appropriately without breaking the layout"
-      : index === 1
-      ? "Another extremely lengthy diagnostic description that contains multiple technical terms, code examples, and detailed explanations about what this diagnostic does and why it exists in the language service"
-      : index === 2
-      ? "Short description"
-      : "Medium length description for testing various text lengths in the UI"
+    description: diagnostic.description
   }))
 }
 

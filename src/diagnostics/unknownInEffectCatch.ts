@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unknownInEffectCatch = LSP.createDiagnostic({
   name: "unknownInEffectCatch",
   code: 31,
+  description: "Warns when catch callbacks return unknown instead of typed errors",
   severity: "warning",
   apply: Nano.fn("unknownInEffectCatch.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

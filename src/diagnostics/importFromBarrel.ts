@@ -10,6 +10,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const importFromBarrel = LSP.createDiagnostic({
   name: "importFromBarrel",
   code: 12,
+  description: "Suggests importing from specific module paths instead of barrel exports",
   severity: "off",
   apply: Nano.fn("importFromBarrel.apply")(function*(sourceFile, report) {
     // requires namespaceImportPackages to be set

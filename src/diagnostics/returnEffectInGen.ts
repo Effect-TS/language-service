@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const returnEffectInGen = LSP.createDiagnostic({
   name: "returnEffectInGen",
   code: 11,
+  description: "Warns when returning an Effect in a generator causes nested Effect<Effect<...>>",
   severity: "suggestion",
   apply: Nano.fn("returnEffectInGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -10,6 +10,7 @@ import * as TypeParser from "../core/TypeParser.js"
 export const missingEffectContext = LSP.createDiagnostic({
   name: "missingEffectContext",
   code: 1,
+  description: "Reports missing service requirements in Effect context channel",
   severity: "error",
   apply: Nano.fn("missingEffectContext.apply")(function*(sourceFile, report) {
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
