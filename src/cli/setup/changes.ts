@@ -98,6 +98,55 @@ function getRootObject(
 }
 
 /**
+ * Delete a node from a list (array or object properties), handling commas properly
+ */
+function deleteNodeFromList<T extends ts.Node>(
+  tracker: any,
+  sourceFile: ts.SourceFile,
+  nodeArray: ts.NodeArray<T>,
+  nodeToDelete: T
+) {
+  const index = nodeArray.indexOf(nodeToDelete)
+  if (index === -1) return // Node not found in array
+
+  if (index === 0 && nodeArray.length > 1) {
+    // Deleting first element - delete from start of first to start of second
+    const secondElement = nodeArray[1]
+    const start = nodeToDelete.pos
+    const end = secondElement.pos
+    tracker.deleteRange(sourceFile, { pos: start, end })
+  } else if (index > 0) {
+    // Deleting non-first element - delete from end of previous to end of current
+    const previousElement = nodeArray[index - 1]
+    const start = previousElement.end
+    const end = nodeToDelete.end
+    tracker.deleteRange(sourceFile, { pos: start, end })
+  } else {
+    // Only element in the list - just delete it
+    tracker.delete(sourceFile, nodeToDelete)
+  }
+}
+
+/**
+ * Insert a node at the end of a list (array or object properties), handling commas properly
+ */
+function insertNodeAtEndOfList<T extends ts.Node>(
+  tracker: any,
+  sourceFile: ts.SourceFile,
+  nodeArray: ts.NodeArray<T>,
+  newNode: T
+) {
+  if (nodeArray.length === 0) {
+    // Empty list - just insert the node at the beginning
+    tracker.insertNodeAt(sourceFile, nodeArray.pos + 1, newNode)
+  } else {
+    // Non-empty list - insert node with comma prefix after last element
+    const lastElement = nodeArray[nodeArray.length - 1]
+    tracker.insertNodeAt(sourceFile, lastElement.end, newNode, { prefix: ",\n" })
+  }
+}
+
+/**
  * Create a minimal LanguageServiceHost for use with ChangeTracker
  */
 function createMinimalHost(_ts: TypeScriptApi): ts.LanguageServiceHost {
@@ -143,9 +192,6 @@ const computePackageJsonChanges = (
     const fileChanges = (ts as any).textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
       (tracker: any) => {
-        // Collect properties to add to root object
-        const newRootProperties: Array<ts.ObjectLiteralElementLike> = []
-
         // Handle @effect/language-service dependency
         if (Option.isSome(target.lspDependencyType)) {
           // User wants to install LSP
@@ -165,25 +211,20 @@ const computePackageJsonChanges = (
                 )
               ], false)
             )
-            newRootProperties.push(newDepsProp)
+            insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newDepsProp)
           } else if (ts.isObjectLiteralExpression(depsProperty.initializer)) {
             // dependencies/devDependencies exists, check if @effect/language-service is already there
             const lspProperty = findPropertyInObject(ts, depsProperty.initializer, "@effect/language-service")
 
             if (!lspProperty) {
-              // Add to existing dependencies using updateObjectLiteralExpression
+              // Add to existing dependencies
               const newLspProp = ts.factory.createPropertyAssignment(
                 ts.factory.createStringLiteral("@effect/language-service"),
                 ts.factory.createStringLiteral("workspace:*")
               )
 
               const depsObj = depsProperty.initializer
-              const updatedDepsObj = ts.factory.updateObjectLiteralExpression(
-                depsObj,
-                [...depsObj.properties, newLspProp]
-              )
-
-              tracker.replaceNode(current.sourceFile, depsObj, updatedDepsObj)
+              insertNodeAtEndOfList(tracker, current.sourceFile, depsObj.properties, newLspProp)
             }
           }
         } else if (Option.isSome(current.lspVersion)) {
@@ -197,13 +238,9 @@ const computePackageJsonChanges = (
           if (depsProperty && ts.isObjectLiteralExpression(depsProperty.initializer)) {
             const lspProperty = findPropertyInObject(ts, depsProperty.initializer, "@effect/language-service")
             if (lspProperty) {
-              // Remove using updateObjectLiteralExpression
+              // Remove from dependencies
               const depsObj = depsProperty.initializer
-              const updatedDepsObj = ts.factory.updateObjectLiteralExpression(
-                depsObj,
-                depsObj.properties.filter((prop) => prop !== lspProperty)
-              )
-              tracker.replaceNode(current.sourceFile, depsObj, updatedDepsObj)
+              deleteNodeFromList(tracker, current.sourceFile, depsObj.properties, lspProperty)
             }
           }
         }
@@ -226,13 +263,13 @@ const computePackageJsonChanges = (
                 )
               ], false)
             )
-            newRootProperties.push(newScriptsProp)
+            insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newScriptsProp)
           } else if (ts.isObjectLiteralExpression(scriptsProperty.initializer)) {
             // scripts exists, check if prepare script exists
             const prepareProperty = findPropertyInObject(ts, scriptsProperty.initializer, "prepare")
 
             if (!prepareProperty) {
-              // Add prepare script using updateObjectLiteralExpression
+              // Add prepare script
               descriptions.push("Add prepare script")
 
               const newPrepareProp = ts.factory.createPropertyAssignment(
@@ -241,11 +278,7 @@ const computePackageJsonChanges = (
               )
 
               const scriptsObj = scriptsProperty.initializer
-              const updatedScriptsObj = ts.factory.updateObjectLiteralExpression(
-                scriptsObj,
-                [...scriptsObj.properties, newPrepareProp]
-              )
-              tracker.replaceNode(current.sourceFile, scriptsObj, updatedScriptsObj)
+              insertNodeAtEndOfList(tracker, current.sourceFile, scriptsObj.properties, newPrepareProp)
             } else if (Option.isSome(current.prepareScript) && !current.prepareScript.value.hasPatch) {
               // Modify existing prepare script to add patch command
               descriptions.push("Update prepare script to include patch command")
@@ -272,24 +305,11 @@ const computePackageJsonChanges = (
           if (scriptsProperty && ts.isObjectLiteralExpression(scriptsProperty.initializer)) {
             const prepareProperty = findPropertyInObject(ts, scriptsProperty.initializer, "prepare")
             if (prepareProperty) {
-              // Remove using updateObjectLiteralExpression
+              // Remove prepare script
               const scriptsObj = scriptsProperty.initializer
-              const updatedScriptsObj = ts.factory.updateObjectLiteralExpression(
-                scriptsObj,
-                scriptsObj.properties.filter((prop) => prop !== prepareProperty)
-              )
-              tracker.replaceNode(current.sourceFile, scriptsObj, updatedScriptsObj)
+              deleteNodeFromList(tracker, current.sourceFile, scriptsObj.properties, prepareProperty)
             }
           }
-        }
-
-        // Apply accumulated root object property additions
-        if (newRootProperties.length > 0) {
-          const updatedRootObj = ts.factory.updateObjectLiteralExpression(
-            rootObj,
-            [...rootObj.properties, ...newRootProperties]
-          )
-          tracker.replaceNode(current.sourceFile, rootObj, updatedRootObj)
         }
       }
     )
@@ -382,12 +402,7 @@ const computeTsConfigChanges = (
 
             if (lspPluginElement) {
               descriptions.push("Remove @effect/language-service plugin from tsconfig")
-              // Remove using updateArrayLiteralExpression
-              const updatedPluginsArray = ts.factory.updateArrayLiteralExpression(
-                pluginsArray,
-                pluginsArray.elements.filter((el) => el !== lspPluginElement)
-              )
-              tracker.replaceNode(current.sourceFile, pluginsArray, updatedPluginsArray)
+              deleteNodeFromList(tracker, current.sourceFile, pluginsArray.elements, lspPluginElement)
             }
           }
         } else {
@@ -436,11 +451,7 @@ const computeTsConfigChanges = (
               ts.factory.createArrayLiteralExpression([pluginObject], true)
             )
 
-            const updatedCompilerOptions = ts.factory.updateObjectLiteralExpression(
-              compilerOptions,
-              [...compilerOptions.properties, newPluginsProp]
-            )
-            tracker.replaceNode(current.sourceFile, compilerOptions, updatedCompilerOptions)
+            insertNodeAtEndOfList(tracker, current.sourceFile, compilerOptions.properties, newPluginsProp)
           } else if (ts.isArrayLiteralExpression(pluginsProperty.initializer)) {
             const pluginsArray = pluginsProperty.initializer
 
@@ -463,14 +474,10 @@ const computeTsConfigChanges = (
               }
               // else: plugin exists and no changes needed
             } else {
-              // Add plugin to existing array using updateArrayLiteralExpression
+              // Add plugin to existing array
               descriptions.push("Add @effect/language-service plugin to existing plugins array")
 
-              const updatedPluginsArray = ts.factory.updateArrayLiteralExpression(
-                pluginsArray,
-                [...pluginsArray.elements, pluginObject]
-              )
-              tracker.replaceNode(current.sourceFile, pluginsArray, updatedPluginsArray)
+              insertNodeAtEndOfList(tracker, current.sourceFile, pluginsArray.elements, pluginObject)
             }
           }
         }
