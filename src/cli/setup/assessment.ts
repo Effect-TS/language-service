@@ -1,17 +1,24 @@
-import * as FileSystem from "@effect/platform/FileSystem"
-import * as Path from "@effect/platform/Path"
 import * as Array from "effect/Array"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import type * as ts from "typescript"
 import type { LanguageServicePluginOptions } from "../../core/LanguageServicePluginOptions"
 import { parse as parseOptions } from "../../core/LanguageServicePluginOptions"
-import { getTypeScript } from "../utils"
+import { type FileInput, TypeScriptContext } from "../utils"
 
 /**
  * Assessment namespace containing all assessment-related types
  */
 export namespace Assessment {
+  /**
+   * Input structure for assessment
+   */
+  export interface Input {
+    readonly packageJson: FileInput // Required
+    readonly tsconfig: FileInput // Required
+    readonly vscodeSettings: Option.Option<FileInput> // Optional
+  }
+
   /**
    * Package.json assessment result
    */
@@ -51,102 +58,74 @@ export namespace Assessment {
    * Complete assessment state collected during the assessment phase
    */
   export interface State {
-    readonly packageJson: Option.Option<PackageJson>
-    readonly tsconfig: Option.Option<TsConfig>
-    readonly vscodeSettings: Option.Option<VSCodeSettings>
+    readonly packageJson: PackageJson // Required
+    readonly tsconfig: TsConfig // Required
+    readonly vscodeSettings: Option.Option<VSCodeSettings> // Optional
   }
 }
 
 /**
- * Check if package.json exists and analyze it
+ * Assess package.json from input
  */
-export const assessPackageJson = Effect.gen(function*() {
-  const fs = yield* FileSystem.FileSystem
-  const path = yield* Path.Path
-  const ts = yield* getTypeScript
-  const packageJsonPath = path.resolve("package.json")
-
-  // Check if package.json exists
-  const exists = yield* fs.exists(packageJsonPath)
-  if (!exists) {
-    return Option.none<Assessment.PackageJson>()
-  }
-
-  // Read and parse package.json using TypeScript API
-  const content = yield* fs.readFileString(packageJsonPath)
-  const jsonSourceFile = ts.parseJsonText(packageJsonPath, content)
-  const errors: Array<ts.Diagnostic> = []
-  const packageJson = ts.convertToObject(jsonSourceFile, errors) as {
-    devDependencies?: Record<string, string>
-    dependencies?: Record<string, string>
-    scripts?: Record<string, string>
-  }
-
-  // Check for @effect/language-service in both dependencies and devDependencies
-  let lspVersion: Option.Option<
-    { readonly dependencyType: "dependencies" | "devDependencies"; readonly version: string }
-  > = Option.none()
-
-  if ("@effect/language-service" in (packageJson.devDependencies ?? {})) {
-    lspVersion = Option.some({
-      dependencyType: "devDependencies" as const,
-      version: packageJson.devDependencies!["@effect/language-service"]
-    })
-  } else if ("@effect/language-service" in (packageJson.dependencies ?? {})) {
-    lspVersion = Option.some({
-      dependencyType: "dependencies" as const,
-      version: packageJson.dependencies!["@effect/language-service"]
-    })
-  }
-
-  // Check for prepare script
-  const prepareScript = "prepare" in (packageJson.scripts ?? {})
-    ? Option.some({
-      script: packageJson.scripts!.prepare,
-      hasPatch: packageJson.scripts!.prepare.toLowerCase().includes("effect-language-service")
-    })
-    : Option.none()
-
-  return Option.some<Assessment.PackageJson>({
-    path: packageJsonPath,
-    sourceFile: jsonSourceFile,
-    lspVersion,
-    prepareScript
-  })
-})
-
-/**
- * Find all tsconfig files in the current directory
- */
-export const findTsConfigFiles = Effect.gen(function*() {
-  const fs = yield* FileSystem.FileSystem
-  const path = yield* Path.Path
-
-  // Read current directory
-  const currentDir = path.resolve(".")
-  const files = yield* fs.readDirectory(currentDir)
-
-  // Filter for tsconfig*.json or tsconfig*.jsonc files
-  const tsconfigFiles = Array.filter(files, (file) => {
-    const fileName = file.toLowerCase()
-    return (fileName.startsWith("tsconfig") && (fileName.endsWith(".json") || fileName.endsWith(".jsonc")))
-  })
-
-  // Return full paths
-  return Array.map(tsconfigFiles, (file) => path.join(currentDir, file))
-})
-
-/**
- * Analyze a specific tsconfig file
- */
-export const analyzeTsConfig = (tsconfigPath: string) =>
+const assessPackageJsonFromInput = (
+  input: FileInput
+): Effect.Effect<Assessment.PackageJson, never, TypeScriptContext> =>
   Effect.gen(function*() {
-    const fs = yield* FileSystem.FileSystem
-    const ts = yield* getTypeScript
+    const ts = yield* TypeScriptContext
 
-    // Read and parse tsconfig using TypeScript API
-    const content = yield* fs.readFileString(tsconfigPath)
-    const jsonSourceFile = ts.parseJsonText(tsconfigPath, content)
+    // Parse package.json using TypeScript API
+    const jsonSourceFile = ts.parseJsonText(input.fileName, input.text)
+    const errors: Array<ts.Diagnostic> = []
+    const packageJson = ts.convertToObject(jsonSourceFile, errors) as {
+      devDependencies?: Record<string, string>
+      dependencies?: Record<string, string>
+      scripts?: Record<string, string>
+    }
+
+    // Check for @effect/language-service in both dependencies and devDependencies
+    let lspVersion: Option.Option<
+      { readonly dependencyType: "dependencies" | "devDependencies"; readonly version: string }
+    > = Option.none()
+
+    if ("@effect/language-service" in (packageJson.devDependencies ?? {})) {
+      lspVersion = Option.some({
+        dependencyType: "devDependencies" as const,
+        version: packageJson.devDependencies!["@effect/language-service"]
+      })
+    } else if ("@effect/language-service" in (packageJson.dependencies ?? {})) {
+      lspVersion = Option.some({
+        dependencyType: "dependencies" as const,
+        version: packageJson.dependencies!["@effect/language-service"]
+      })
+    }
+
+    // Check for prepare script
+    const prepareScript = "prepare" in (packageJson.scripts ?? {})
+      ? Option.some({
+        script: packageJson.scripts!.prepare,
+        hasPatch: packageJson.scripts!.prepare.toLowerCase().includes("effect-language-service")
+      })
+      : Option.none()
+
+    return {
+      path: input.fileName,
+      sourceFile: jsonSourceFile,
+      lspVersion,
+      prepareScript
+    }
+  })
+
+/**
+ * Assess tsconfig from input
+ */
+const assessTsConfigFromInput = (
+  input: FileInput
+): Effect.Effect<Assessment.TsConfig, never, TypeScriptContext> =>
+  Effect.gen(function*() {
+    const ts = yield* TypeScriptContext
+
+    // Parse tsconfig using TypeScript API
+    const jsonSourceFile = ts.parseJsonText(input.fileName, input.text)
     const errors: Array<ts.Diagnostic> = []
     const tsconfig = ts.convertToObject(jsonSourceFile, errors) as {
       compilerOptions?: {
@@ -169,39 +148,56 @@ export const analyzeTsConfig = (tsconfigPath: string) =>
       ? Option.some(parseOptions(lspPlugin.value))
       : Option.none()
 
-    const result: Assessment.TsConfig = {
-      path: tsconfigPath,
+    return {
+      path: input.fileName,
       sourceFile: jsonSourceFile,
       hasPlugins,
       currentOptions
     }
-    return result
   })
 
 /**
- * Check if .vscode/settings.json exists and parse it
+ * Assess VSCode settings from input
  */
-export const assessVSCodeSettings = Effect.gen(function*() {
-  const fs = yield* FileSystem.FileSystem
-  const path = yield* Path.Path
-  const ts = yield* getTypeScript
-  const settingsPath = path.join(path.resolve("."), ".vscode", "settings.json")
+const assessVSCodeSettingsFromInput = (
+  input: FileInput
+): Effect.Effect<Assessment.VSCodeSettings, never, TypeScriptContext> =>
+  Effect.gen(function*() {
+    const ts = yield* TypeScriptContext
 
-  // Check if .vscode/settings.json exists
-  const exists = yield* fs.exists(settingsPath)
-  if (!exists) {
-    return Option.none<Assessment.VSCodeSettings>()
-  }
+    // Parse settings.json using TypeScript API
+    const jsonSourceFile = ts.parseJsonText(input.fileName, input.text)
+    const errors: Array<ts.Diagnostic> = []
+    const settings = ts.convertToObject(jsonSourceFile, errors) as Record<string, unknown>
 
-  // Read and parse settings.json using TypeScript API
-  const content = yield* fs.readFileString(settingsPath)
-  const jsonSourceFile = ts.parseJsonText(settingsPath, content)
-  const errors: Array<ts.Diagnostic> = []
-  const settings = ts.convertToObject(jsonSourceFile, errors) as Record<string, unknown>
-
-  return Option.some<Assessment.VSCodeSettings>({
-    path: settingsPath,
-    sourceFile: jsonSourceFile,
-    settings
+    return {
+      path: input.fileName,
+      sourceFile: jsonSourceFile,
+      settings
+    }
   })
-})
+
+/**
+ * Perform assessment from input data
+ */
+export const assess = (
+  input: Assessment.Input
+): Effect.Effect<Assessment.State, never, TypeScriptContext> =>
+  Effect.gen(function*() {
+    // Assess package.json (required)
+    const packageJson = yield* assessPackageJsonFromInput(input.packageJson)
+
+    // Assess tsconfig (required)
+    const tsconfig = yield* assessTsConfigFromInput(input.tsconfig)
+
+    // Assess VSCode settings (optional)
+    const vscodeSettings = Option.isSome(input.vscodeSettings)
+      ? Option.some(yield* assessVSCodeSettingsFromInput(input.vscodeSettings.value))
+      : Option.none<Assessment.VSCodeSettings>()
+
+    return {
+      packageJson,
+      tsconfig,
+      vscodeSettings
+    }
+  })

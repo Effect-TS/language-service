@@ -1,7 +1,9 @@
 import * as FileSystem from "@effect/platform/FileSystem"
 import * as Path from "@effect/platform/Path"
+import * as Context from "effect/Context"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import * as Layer from "effect/Layer"
 import * as Predicate from "effect/Predicate"
 import * as Schema from "effect/Schema"
 import type * as ts from "typescript"
@@ -51,11 +53,37 @@ export class UnableToFindInstalledTypeScriptPackage extends Data.TaggedError("Un
   }
 }
 
+export type TypeScriptApi = typeof ts
+
 export const getTypeScript = Effect.try({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   try: () => require("typescript") as typeof ts,
   catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
 })
+
+/**
+ * File input structure used across CLI commands
+ */
+export interface FileInput {
+  readonly fileName: string // full absolute path to the file
+  readonly text: string // file contents
+}
+
+/**
+ * TypeScript API context for CLI operations
+ */
+export class TypeScriptContext extends Context.Tag("TypeScriptContext")<
+  TypeScriptContext,
+  typeof ts
+>() {}
+
+/**
+ * Layer that provides the TypeScript API context
+ */
+export const TypeScriptContextLive = Layer.effect(
+  TypeScriptContext,
+  getTypeScript
+)
 
 export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(packageDir: string) {
   const path = yield* Path.Path

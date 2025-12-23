@@ -1,4 +1,4 @@
-import * as Option from "effect/Option"
+import type * as Option from "effect/Option"
 import type { DiagnosticSeverity } from "../../core/LanguageServicePluginOptions"
 
 /**
@@ -9,17 +9,15 @@ export namespace Target {
    * Target package.json configuration
    */
   export interface PackageJson {
-    readonly shouldInstallLsp: boolean
-    readonly shouldAddPrepareScript: boolean
+    readonly lspDependencyType: Option.Option<"devDependencies" | "dependencies">
+    readonly prepareScript: boolean
   }
 
   /**
    * Target tsconfig.json configuration
    */
   export interface TsConfig {
-    readonly path: string // Path to the tsconfig to configure
-    readonly shouldAddLspPlugin: boolean
-    readonly diagnosticSeverities: Record<string, DiagnosticSeverity | "off">
+    readonly diagnosticSeverities: Option.Option<Record<string, DiagnosticSeverity | "off">>
   }
 
   /**
@@ -33,8 +31,8 @@ export namespace Target {
    * Complete target state defining what configuration should be achieved
    */
   export interface State {
-    readonly packageJson: Option.Option<PackageJson>
-    readonly tsconfig: Option.Option<TsConfig>
+    readonly packageJson: PackageJson
+    readonly tsconfig: TsConfig
     readonly vscodeSettings: Option.Option<VSCodeSettings>
   }
 }
