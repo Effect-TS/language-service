@@ -4,7 +4,7 @@ import * as FileSystem from "@effect/platform/FileSystem"
 import { pipe } from "effect"
 import * as Array from "effect/Array"
 import * as Effect from "effect/Effect"
-import { extractAppliedEffectLspPatches, getModuleFilePath, getPackageJsonData, getTypeScript } from "./utils"
+import { extractAppliedEffectLspPatches, getModuleFilePath, getPackageJsonData, TypeScriptContext } from "./utils"
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
@@ -18,7 +18,7 @@ export const check = Command.make(
   { dirPath },
   Effect.fn("check")(function*({ dirPath }) {
     const fs = yield* FileSystem.FileSystem
-    const ts = yield* getTypeScript
+    const ts = yield* TypeScriptContext
 
     // read my data
     const { version: effectLspVersion } = yield* getPackageJsonData(__dirname)

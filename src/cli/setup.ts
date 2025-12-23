@@ -11,7 +11,7 @@ import { computeChanges } from "./setup/changes"
 import { FileReadError, PackageJsonNotFoundError } from "./setup/errors"
 import { gatherTargetState } from "./setup/target-prompt"
 import { selectTsConfigFile } from "./setup/tsconfig-prompt"
-import { type FileInput, TypeScriptContextLive } from "./utils"
+import { type FileInput } from "./utils"
 
 /**
  * Read files from file system and create assessment input
@@ -94,9 +94,7 @@ export const setup = Command.make(
       // Phase 3: Perform assessment
       // ========================================================================
 
-      const assessmentState = yield* assess(assessmentInput).pipe(
-        Effect.provide(TypeScriptContextLive)
-      )
+      const assessmentState = yield* assess(assessmentInput)
 
       // ========================================================================
       // Phase 4: Gather target state from user
@@ -106,9 +104,7 @@ export const setup = Command.make(
       // ========================================================================
       // Phase 5: Compute changes
       // ========================================================================
-      const changes = yield* computeChanges(assessmentState, targetState).pipe(
-        Effect.provide(TypeScriptContextLive)
-      )
+      const changes = yield* computeChanges(assessmentState, targetState)
 
       // ========================================================================
       // Phase 6: Review changes

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import { assess, type Assessment } from "../src/cli/setup/assessment"
 import { computeChanges } from "../src/cli/setup/changes"
 import type { Target } from "../src/cli/setup/target"
-import { TypeScriptContextLive } from "../src/cli/utils"
+import { TypeScriptContext } from "../src/cli/utils"
 
 /**
  * Apply text changes to original text and return the result
@@ -33,12 +33,12 @@ export async function expectSetupChanges(
 ) {
   // Run assessment
   const assessmentState = await Effect.runPromise(
-    assess(assessmentInput).pipe(Effect.provide(TypeScriptContextLive))
+    assess(assessmentInput).pipe(Effect.provide(TypeScriptContext.live))
   )
 
   // Compute changes
   const changes = await Effect.runPromise(
-    computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContextLive))
+    computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContext.live))
   )
 
   // 1. Snapshot of change summary (file + description)
@@ -344,6 +344,168 @@ describe("Setup CLI", () => {
               strict: true,
               target: "ES2022",
               plugins: [
+                {
+                  name: "@effect/language-service"
+                }
+              ]
+            }
+          },
+          null,
+          2
+        )
+      },
+      vscodeSettings: Option.none()
+    }
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspDependencyType: Option.none(),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none()
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should not override existing plugins when adding LSP plugin", async () => {
+    const assessmentInput = {
+      packageJson: {
+        fileName: "package.json",
+        text: JSON.stringify(
+          {
+            name: "test-project",
+            version: "1.0.0",
+            dependencies: {}
+          },
+          null,
+          2
+        )
+      },
+      tsconfig: {
+        fileName: "tsconfig.json",
+        text: JSON.stringify(
+          {
+            compilerOptions: {
+              strict: true,
+              target: "ES2022",
+              plugins: [
+                {
+                  name: "typescript-plugin-css-modules",
+                  options: {
+                    classnameTransform: "camelCase"
+                  }
+                },
+                {
+                  name: "another-typescript-plugin"
+                }
+              ]
+            }
+          },
+          null,
+          2
+        )
+      },
+      vscodeSettings: Option.none()
+    }
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspDependencyType: Option.some("devDependencies" as const),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.some({
+          "effect/floatingEffect": "error"
+        })
+      },
+      vscodeSettings: Option.none()
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should add LSP plugin alongside existing plugins", async () => {
+    const assessmentInput = {
+      packageJson: {
+        fileName: "package.json",
+        text: JSON.stringify(
+          {
+            name: "test-project",
+            version: "1.0.0",
+            dependencies: {}
+          },
+          null,
+          2
+        )
+      },
+      tsconfig: {
+        fileName: "tsconfig.json",
+        text: JSON.stringify(
+          {
+            compilerOptions: {
+              strict: true,
+              target: "ES2022",
+              plugins: [
+                {
+                  name: "typescript-plugin-css-modules"
+                }
+              ]
+            }
+          },
+          null,
+          2
+        )
+      },
+      vscodeSettings: Option.none()
+    }
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspDependencyType: Option.some("devDependencies" as const),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none()
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should remove only LSP plugin while preserving other plugins", async () => {
+    const assessmentInput = {
+      packageJson: {
+        fileName: "package.json",
+        text: JSON.stringify(
+          {
+            name: "test-project",
+            version: "1.0.0",
+            dependencies: {},
+            devDependencies: {
+              "@effect/language-service": "^0.1.0",
+              typescript: "^5.0.0"
+            }
+          },
+          null,
+          2
+        )
+      },
+      tsconfig: {
+        fileName: "tsconfig.json",
+        text: JSON.stringify(
+          {
+            compilerOptions: {
+              strict: true,
+              target: "ES2022",
+              plugins: [
+                {
+                  name: "typescript-plugin-css-modules"
+                },
                 {
                   name: "@effect/language-service"
                 }

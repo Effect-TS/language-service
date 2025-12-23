@@ -98,68 +98,6 @@ function getRootObject(
 }
 
 /**
- * Delete a property from an object literal, handling commas properly
- */
-function deletePropertyWithComma(
-  tracker: any,
-  sourceFile: ts.SourceFile,
-  property: ts.PropertyAssignment,
-  parent: ts.ObjectLiteralExpression
-) {
-  const propertyIndex = parent.properties.indexOf(property)
-  const isLast = propertyIndex === parent.properties.length - 1
-  const isFirst = propertyIndex === 0
-
-  // If it's not the last property, include the trailing comma in deletion
-  if (!isLast) {
-    const nextProperty = parent.properties[propertyIndex + 1]
-    const start = property.getFullStart()
-    const end = nextProperty.getFullStart()
-    tracker.deleteRange(sourceFile, { pos: start, end })
-  } else if (!isFirst) {
-    // If it's the last property but not the first, include the leading comma
-    const prevProperty = parent.properties[propertyIndex - 1]
-    const start = prevProperty.getEnd()
-    const end = property.getEnd()
-    tracker.deleteRange(sourceFile, { pos: start, end })
-  } else {
-    // It's the only property, just delete it
-    tracker.delete(sourceFile, property)
-  }
-}
-
-/**
- * Delete an element from an array literal, handling commas properly
- */
-function deleteElementWithComma(
-  tracker: any,
-  sourceFile: ts.SourceFile,
-  element: ts.Expression,
-  parent: ts.ArrayLiteralExpression
-) {
-  const elementIndex = parent.elements.indexOf(element)
-  const isLast = elementIndex === parent.elements.length - 1
-  const isFirst = elementIndex === 0
-
-  // If it's not the last element, include the trailing comma in deletion
-  if (!isLast) {
-    const nextElement = parent.elements[elementIndex + 1]
-    const start = element.getFullStart()
-    const end = nextElement.getFullStart()
-    tracker.deleteRange(sourceFile, { pos: start, end })
-  } else if (!isFirst) {
-    // If it's the last element but not the first, include the leading comma
-    const prevElement = parent.elements[elementIndex - 1]
-    const start = prevElement.getEnd()
-    const end = element.getEnd()
-    tracker.deleteRange(sourceFile, { pos: start, end })
-  } else {
-    // It's the only element, just delete it
-    tracker.delete(sourceFile, element)
-  }
-}
-
-/**
  * Create a minimal LanguageServiceHost for use with ChangeTracker
  */
 function createMinimalHost(_ts: TypeScriptApi): ts.LanguageServiceHost {
@@ -201,28 +139,12 @@ const computePackageJsonChanges = (
     const formatOptions = { indentSize: 2, tabSize: 2 } as ts.EditorSettings
     const formatContext = (ts as any).formatting.getFormatContext(formatOptions, { newLine: "\n" })
     const preferences = {} as ts.UserPreferences
-    const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
 
     const fileChanges = (ts as any).textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
       (tracker: any) => {
-        // Track which nodes have already had commas added after them
-        const nodesWithCommasAdded = new Set<ts.Node>()
-        const insertPropertyAfterWithCommaOnce = (
-          previousProperty: ts.ObjectLiteralElementLike,
-          newProperty: ts.ObjectLiteralElementLike
-        ) => {
-          // Manually insert comma + newline + property text
-          const newPropertyText = printer.printNode(ts.EmitHint.Unspecified, newProperty, current.sourceFile)
-          const insertPos = previousProperty.getEnd()
-
-          if (!nodesWithCommasAdded.has(previousProperty)) {
-            tracker.insertText(current.sourceFile, insertPos, `,\n${newPropertyText}`)
-            nodesWithCommasAdded.add(previousProperty)
-          } else {
-            tracker.insertText(current.sourceFile, insertPos, `\n${newPropertyText}`)
-          }
-        }
+        // Collect properties to add to root object
+        const newRootProperties: Array<ts.ObjectLiteralElementLike> = []
 
         // Handle @effect/language-service dependency
         if (Option.isSome(target.lspDependencyType)) {
@@ -233,7 +155,7 @@ const computePackageJsonChanges = (
           const depsProperty = findPropertyInObject(ts, rootObj, dependencyField)
 
           if (!depsProperty) {
-            // Need to add entire dependencies section
+            // Need to add entire dependencies section to root object
             const newDepsProp = ts.factory.createPropertyAssignment(
               ts.factory.createStringLiteral(dependencyField),
               ts.factory.createObjectLiteralExpression([
@@ -243,37 +165,25 @@ const computePackageJsonChanges = (
                 )
               ], false)
             )
-
-            // Insert after the last property
-            const lastProp = rootObj.properties[rootObj.properties.length - 1]
-            if (lastProp) {
-              insertPropertyAfterWithCommaOnce(lastProp, newDepsProp)
-            }
+            newRootProperties.push(newDepsProp)
           } else if (ts.isObjectLiteralExpression(depsProperty.initializer)) {
             // dependencies/devDependencies exists, check if @effect/language-service is already there
             const lspProperty = findPropertyInObject(ts, depsProperty.initializer, "@effect/language-service")
 
             if (!lspProperty) {
-              // Add to existing dependencies
+              // Add to existing dependencies using updateObjectLiteralExpression
               const newLspProp = ts.factory.createPropertyAssignment(
                 ts.factory.createStringLiteral("@effect/language-service"),
                 ts.factory.createStringLiteral("workspace:*")
               )
 
               const depsObj = depsProperty.initializer
-              if (depsObj.properties.length > 0) {
-                const lastProp = depsObj.properties[depsObj.properties.length - 1]
-                // Manually insert with comma
-                const newLspPropText = printer.printNode(ts.EmitHint.Unspecified, newLspProp, current.sourceFile)
-                tracker.insertText(current.sourceFile, lastProp.getEnd(), `,\n${newLspPropText}`)
-              } else {
-                // Empty dependencies object - insert at beginning
-                tracker.insertNodeAt(
-                  current.sourceFile,
-                  depsObj.getStart(current.sourceFile) + 1,
-                  newLspProp
-                )
-              }
+              const updatedDepsObj = ts.factory.updateObjectLiteralExpression(
+                depsObj,
+                [...depsObj.properties, newLspProp]
+              )
+
+              tracker.replaceNode(current.sourceFile, depsObj, updatedDepsObj)
             }
           }
         } else if (Option.isSome(current.lspVersion)) {
@@ -287,7 +197,13 @@ const computePackageJsonChanges = (
           if (depsProperty && ts.isObjectLiteralExpression(depsProperty.initializer)) {
             const lspProperty = findPropertyInObject(ts, depsProperty.initializer, "@effect/language-service")
             if (lspProperty) {
-              deletePropertyWithComma(tracker, current.sourceFile, lspProperty, depsProperty.initializer)
+              // Remove using updateObjectLiteralExpression
+              const depsObj = depsProperty.initializer
+              const updatedDepsObj = ts.factory.updateObjectLiteralExpression(
+                depsObj,
+                depsObj.properties.filter((prop) => prop !== lspProperty)
+              )
+              tracker.replaceNode(current.sourceFile, depsObj, updatedDepsObj)
             }
           }
         }
@@ -298,7 +214,7 @@ const computePackageJsonChanges = (
           const scriptsProperty = findPropertyInObject(ts, rootObj, "scripts")
 
           if (!scriptsProperty) {
-            // Need to add entire scripts section
+            // Need to add entire scripts section to root object
             descriptions.push("Add scripts section with prepare script")
 
             const newScriptsProp = ts.factory.createPropertyAssignment(
@@ -310,19 +226,13 @@ const computePackageJsonChanges = (
                 )
               ], false)
             )
-
-            const lastProp = rootObj.properties[rootObj.properties.length - 1]
-            if (lastProp) {
-              // Always insert scripts with comma manually (it might be after devDependencies which was just added)
-              const newScriptsPropText = printer.printNode(ts.EmitHint.Unspecified, newScriptsProp, current.sourceFile)
-              tracker.insertText(current.sourceFile, lastProp.getEnd(), `,\n${newScriptsPropText}`)
-            }
+            newRootProperties.push(newScriptsProp)
           } else if (ts.isObjectLiteralExpression(scriptsProperty.initializer)) {
             // scripts exists, check if prepare script exists
             const prepareProperty = findPropertyInObject(ts, scriptsProperty.initializer, "prepare")
 
             if (!prepareProperty) {
-              // Add prepare script
+              // Add prepare script using updateObjectLiteralExpression
               descriptions.push("Add prepare script")
 
               const newPrepareProp = ts.factory.createPropertyAssignment(
@@ -331,22 +241,11 @@ const computePackageJsonChanges = (
               )
 
               const scriptsObj = scriptsProperty.initializer
-              if (scriptsObj.properties.length > 0) {
-                const lastProp = scriptsObj.properties[scriptsObj.properties.length - 1]
-                // Manually insert with comma
-                const newPreparePropText = printer.printNode(
-                  ts.EmitHint.Unspecified,
-                  newPrepareProp,
-                  current.sourceFile
-                )
-                tracker.insertText(current.sourceFile, lastProp.getEnd(), `,\n${newPreparePropText}`)
-              } else {
-                tracker.insertNodeAt(
-                  current.sourceFile,
-                  scriptsObj.getStart(current.sourceFile) + 1,
-                  newPrepareProp
-                )
-              }
+              const updatedScriptsObj = ts.factory.updateObjectLiteralExpression(
+                scriptsObj,
+                [...scriptsObj.properties, newPrepareProp]
+              )
+              tracker.replaceNode(current.sourceFile, scriptsObj, updatedScriptsObj)
             } else if (Option.isSome(current.prepareScript) && !current.prepareScript.value.hasPatch) {
               // Modify existing prepare script to add patch command
               descriptions.push("Update prepare script to include patch command")
@@ -373,9 +272,24 @@ const computePackageJsonChanges = (
           if (scriptsProperty && ts.isObjectLiteralExpression(scriptsProperty.initializer)) {
             const prepareProperty = findPropertyInObject(ts, scriptsProperty.initializer, "prepare")
             if (prepareProperty) {
-              deletePropertyWithComma(tracker, current.sourceFile, prepareProperty, scriptsProperty.initializer)
+              // Remove using updateObjectLiteralExpression
+              const scriptsObj = scriptsProperty.initializer
+              const updatedScriptsObj = ts.factory.updateObjectLiteralExpression(
+                scriptsObj,
+                scriptsObj.properties.filter((prop) => prop !== prepareProperty)
+              )
+              tracker.replaceNode(current.sourceFile, scriptsObj, updatedScriptsObj)
             }
           }
+        }
+
+        // Apply accumulated root object property additions
+        if (newRootProperties.length > 0) {
+          const updatedRootObj = ts.factory.updateObjectLiteralExpression(
+            rootObj,
+            [...rootObj.properties, ...newRootProperties]
+          )
+          tracker.replaceNode(current.sourceFile, rootObj, updatedRootObj)
         }
       }
     )
@@ -443,7 +357,6 @@ const computeTsConfigChanges = (
     const formatOptions = { indentSize: 2, tabSize: 2 } as ts.EditorSettings
     const formatContext = (ts as any).formatting.getFormatContext(formatOptions, { newLine: "\n" })
     const preferences = {} as ts.UserPreferences
-    const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
 
     const fileChanges = textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
@@ -469,7 +382,12 @@ const computeTsConfigChanges = (
 
             if (lspPluginElement) {
               descriptions.push("Remove @effect/language-service plugin from tsconfig")
-              deleteElementWithComma(tracker, current.sourceFile, lspPluginElement, pluginsArray)
+              // Remove using updateArrayLiteralExpression
+              const updatedPluginsArray = ts.factory.updateArrayLiteralExpression(
+                pluginsArray,
+                pluginsArray.elements.filter((el) => el !== lspPluginElement)
+              )
+              tracker.replaceNode(current.sourceFile, pluginsArray, updatedPluginsArray)
             }
           }
         } else {
@@ -510,7 +428,7 @@ const computeTsConfigChanges = (
           const pluginObject = buildPluginObject(target.diagnosticSeverities)
 
           if (!pluginsProperty) {
-            // Add entire plugins array with LSP plugin
+            // Add entire plugins array with LSP plugin to compilerOptions
             descriptions.push("Add plugins array with @effect/language-service plugin")
 
             const newPluginsProp = ts.factory.createPropertyAssignment(
@@ -518,12 +436,11 @@ const computeTsConfigChanges = (
               ts.factory.createArrayLiteralExpression([pluginObject], true)
             )
 
-            const lastProp = compilerOptions.properties[compilerOptions.properties.length - 1]
-            if (lastProp) {
-              // Manually insert with comma
-              const newPluginsPropText = printer.printNode(ts.EmitHint.Unspecified, newPluginsProp, current.sourceFile)
-              tracker.insertText(current.sourceFile, lastProp.getEnd(), `,\n${newPluginsPropText}`)
-            }
+            const updatedCompilerOptions = ts.factory.updateObjectLiteralExpression(
+              compilerOptions,
+              [...compilerOptions.properties, newPluginsProp]
+            )
+            tracker.replaceNode(current.sourceFile, compilerOptions, updatedCompilerOptions)
           } else if (ts.isArrayLiteralExpression(pluginsProperty.initializer)) {
             const pluginsArray = pluginsProperty.initializer
 
@@ -546,22 +463,14 @@ const computeTsConfigChanges = (
               }
               // else: plugin exists and no changes needed
             } else {
-              // Add plugin to existing array
+              // Add plugin to existing array using updateArrayLiteralExpression
               descriptions.push("Add @effect/language-service plugin to existing plugins array")
 
-              if (pluginsArray.elements.length > 0) {
-                const lastElement = pluginsArray.elements[pluginsArray.elements.length - 1]
-                // Manually insert with comma
-                const pluginObjectText = printer.printNode(ts.EmitHint.Unspecified, pluginObject, current.sourceFile)
-                tracker.insertText(current.sourceFile, lastElement.getEnd(), `,\n${pluginObjectText}`)
-              } else {
-                // Empty array
-                tracker.insertNodeAt(
-                  current.sourceFile,
-                  pluginsArray.getStart(current.sourceFile) + 1,
-                  pluginObject
-                )
-              }
+              const updatedPluginsArray = ts.factory.updateArrayLiteralExpression(
+                pluginsArray,
+                [...pluginsArray.elements, pluginObject]
+              )
+              tracker.replaceNode(current.sourceFile, pluginsArray, updatedPluginsArray)
             }
           }
         }

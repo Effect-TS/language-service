@@ -5,12 +5,14 @@ import * as NodeContext from "@effect/platform-node/NodeContext"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
+import * as Layer from "effect/Layer"
 import { check } from "./cli/check"
 import { codegen } from "./cli/codegen"
 import { diagnostics } from "./cli/diagnostics"
 import { patch } from "./cli/patch"
 import { setup } from "./cli/setup"
 import { unpatch } from "./cli/unpatch"
+import { TypeScriptContext } from "./cli/utils"
 
 const cliCommand = Command.make(
   "effect-language-service",
@@ -23,8 +25,10 @@ const main = Command.run(cliCommand, {
   version: "0.0.2"
 })
 
+const cliLayers = Layer.merge(NodeContext.layer, TypeScriptContext.live)
+
 main(process.argv).pipe(
-  Effect.provide(NodeContext.layer),
+  Effect.provide(cliLayers),
   NodeRuntime.runMain({
     disableErrorReporting: false
   })

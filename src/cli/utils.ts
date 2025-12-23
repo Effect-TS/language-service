@@ -55,12 +55,6 @@ export class UnableToFindInstalledTypeScriptPackage extends Data.TaggedError("Un
 
 export type TypeScriptApi = typeof ts
 
-export const getTypeScript = Effect.try({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  try: () => require("typescript") as typeof ts,
-  catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
-})
-
 /**
  * File input structure used across CLI commands
  */
@@ -74,16 +68,17 @@ export interface FileInput {
  */
 export class TypeScriptContext extends Context.Tag("TypeScriptContext")<
   TypeScriptContext,
-  typeof ts
->() {}
-
-/**
- * Layer that provides the TypeScript API context
- */
-export const TypeScriptContextLive = Layer.effect(
-  TypeScriptContext,
-  getTypeScript
-)
+  TypeScriptApi
+>() {
+  static live = Layer.effect(
+    TypeScriptContext,
+    Effect.try({
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      try: () => require("typescript") as typeof ts,
+      catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
+    })
+  )
+}
 
 export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(packageDir: string) {
   const path = yield* Path.Path
@@ -183,7 +178,7 @@ export const makeEffectLspPatchChange = Effect.fn("makeEffectLspPatchChange")(
 
 export const extractAppliedEffectLspPatches = Effect.fn("extractAppliedEffectLspPatches")(
   function*(sourceFile: ts.SourceFile) {
-    const ts = yield* getTypeScript
+    const ts = yield* TypeScriptContext
     const tsUtils = TypeScriptUtils.makeTypeScriptUtils(ts)
 
     const regex = /@effect-lsp-patch(?:\s+)([a-zA-Z0-9+=/]+)/gm
@@ -246,7 +241,7 @@ export const getSourceFileText = Effect.fn("getSourceFileText")(function*(filePa
 
 export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(
   function*(filePath: string, sourceText: string) {
-    const ts = yield* getTypeScript
+    const ts = yield* TypeScriptContext
 
     const sourceFile = ts.createSourceFile(
       filePath,
@@ -271,7 +266,7 @@ export const getUnpatchedSourceFile = Effect.fn("getUnpatchedSourceFile")(
 
 export const omitBundlerSourceFileComment = Effect.fn("omitBundlerSourceFileComment")(
   function*(originalSourceText: string) {
-    const ts = yield* getTypeScript
+    const ts = yield* TypeScriptContext
 
     const deleteChanges: Array<ts.TextChange> = []
     const sourceFile = ts.createSourceFile(
@@ -304,7 +299,7 @@ export const extractEffectLspOptions = (compilerOptions: ts.CompilerOptions) => 
 
 export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(function*(tsconfigPath: string) {
   const path = yield* Path.Path
-  const tsInstance = yield* getTypeScript
+  const tsInstance = yield* TypeScriptContext
   const filesToCheck = new Set<string>()
   let tsconfigToHandle = [tsconfigPath]
   while (tsconfigToHandle.length > 0) {
