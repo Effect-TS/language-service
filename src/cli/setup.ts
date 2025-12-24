@@ -6,6 +6,7 @@ import * as Path from "@effect/platform/Path"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
+import packageJson from "../../package.json"
 import { assess, type Assessment } from "./setup/assessment"
 import { computeChanges } from "./setup/changes"
 import { FileReadError, PackageJsonNotFoundError } from "./setup/errors"
@@ -99,7 +100,9 @@ export const setup = Command.make(
       // ========================================================================
       // Phase 4: Gather target state from user
       // ========================================================================
-      const targetState = yield* gatherTargetState(assessmentState)
+      const targetState = yield* gatherTargetState(assessmentState, {
+        defaultLspVersion: `^${packageJson.version}`
+      })
 
       // ========================================================================
       // Phase 5: Compute changes

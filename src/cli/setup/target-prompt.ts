@@ -8,10 +8,18 @@ import { createDiagnosticPrompt } from "./diagnostic-prompt"
 import type { Target } from "./target"
 
 /**
+ * Context input for gathering target state
+ */
+export interface GatherTargetContext {
+  readonly defaultLspVersion: string // Default version to use when installing LSP
+}
+
+/**
  * Gather target state from user based on current assessment
  */
 export const gatherTargetState = (
-  assessment: Assessment.State
+  assessment: Assessment.State,
+  context: GatherTargetContext
 ): Effect.Effect<Target.State, QuitException, Terminal> =>
   Effect.gen(function*() {
     // Determine current LSP installation state
@@ -37,7 +45,7 @@ export const gatherTargetState = (
           selected: currentLspState === "dependencies"
         },
         {
-          title: "No",
+          title: "Uninstall",
           description: "Language service won't be installed or will be removed if already present",
           value: "no" as const
         }
@@ -48,7 +56,7 @@ export const gatherTargetState = (
     if (lspDependencyType === "no") {
       return {
         packageJson: {
-          lspDependencyType: Option.none(),
+          lspVersion: Option.none(),
           prepareScript: false
         },
         tsconfig: {
@@ -77,19 +85,18 @@ export const gatherTargetState = (
       ]
     })
 
+    const allDiagnostics = getAllDiagnostics()
+    const initialSeverities = Option.match(assessment.tsconfig.currentOptions, {
+      onNone: () => ({}),
+      onSome: (options) => options.diagnosticSeverity
+    })
+
     const diagnosticSeverities = shouldCustomizeDiagnostics
       ? Option.some(
-        yield* (function*() {
-          const allDiagnostics = getAllDiagnostics()
-          const initialSeverities = Option.match(assessment.tsconfig.currentOptions, {
-            onNone: () => ({}),
-            onSome: (options) => options.diagnosticSeverity
-          })
-          return yield* createDiagnosticPrompt(
-            allDiagnostics,
-            initialSeverities
-          )
-        })()
+        yield* createDiagnosticPrompt(
+          allDiagnostics,
+          initialSeverities
+        )
       )
       : Option.none()
 
@@ -121,7 +128,7 @@ export const gatherTargetState = (
     // Build target state
     return {
       packageJson: {
-        lspDependencyType: Option.some(lspDependencyType),
+        lspVersion: Option.some({ dependencyType: lspDependencyType, version: context.defaultLspVersion }),
         prepareScript
       },
       tsconfig: {

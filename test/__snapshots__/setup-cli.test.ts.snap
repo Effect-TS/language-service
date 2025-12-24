@@ -3,7 +3,7 @@
 exports[`Setup CLI > should add LSP plugin alongside existing plugins > change summary 1`] = `
 [
   {
-    "description": "Add @effect/language-service to devDependencies",
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
     "file": "package.json",
   },
   {
@@ -40,7 +40,7 @@ exports[`Setup CLI > should add LSP plugin alongside existing plugins > tsconfig
 exports[`Setup CLI > should generate changes for adding LSP with custom diagnostic severities > change summary 1`] = `
 [
   {
-    "description": "Add @effect/language-service to devDependencies",
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
     "file": "package.json",
   },
   {
@@ -80,7 +80,7 @@ exports[`Setup CLI > should generate changes for adding LSP with custom diagnost
 exports[`Setup CLI > should generate changes for adding LSP with defaults > change summary 1`] = `
 [
   {
-    "description": "Add @effect/language-service to devDependencies",
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
     "file": "package.json",
   },
   {
@@ -114,7 +114,7 @@ exports[`Setup CLI > should generate changes for adding LSP with defaults > tsco
 exports[`Setup CLI > should generate changes for adding LSP with prepare script > change summary 1`] = `
 [
   {
-    "description": "Add @effect/language-service to devDependencies; Add scripts section with prepare script",
+    "description": "Add @effect/language-service@workspace:* to devDependencies; Add scripts section with prepare script",
     "file": "package.json",
   },
   {
@@ -247,7 +247,7 @@ exports[`Setup CLI > should generate changes for updating existing LSP with new 
 exports[`Setup CLI > should not override existing plugins when adding LSP plugin > change summary 1`] = `
 [
   {
-    "description": "Add @effect/language-service to devDependencies",
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
     "file": "package.json",
   },
   {
@@ -326,6 +326,27 @@ exports[`Setup CLI > should remove only LSP plugin while preserving other plugin
         "name": "typescript-plugin-css-modules"
       }
     ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should update LSP version when already installed with older version > change summary 1`] = `
+[
+  {
+    "description": "Update @effect/language-service from ^0.1.0 to ^0.2.0",
+    "file": "package.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should update LSP version when already installed with older version > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@effect/language-service": "^0.2.0",
+    "typescript": "^5.0.0"
   }
 }"
 `;

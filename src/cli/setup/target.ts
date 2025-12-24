@@ -9,7 +9,10 @@ export namespace Target {
    * Target package.json configuration
    */
   export interface PackageJson {
-    readonly lspDependencyType: Option.Option<"devDependencies" | "dependencies">
+    readonly lspVersion: Option.Option<{
+      readonly dependencyType: "dependencies" | "devDependencies"
+      readonly version: string
+    }> // None = not installed
     readonly prepareScript: boolean
   }
 

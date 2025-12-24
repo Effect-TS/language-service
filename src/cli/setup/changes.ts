@@ -38,7 +38,7 @@ export const computeChanges = (
     const tsconfigChanges = yield* computeTsConfigChanges(
       assessment.tsconfig,
       target.tsconfig,
-      target.packageJson.lspDependencyType
+      target.packageJson.lspVersion
     )
     if (tsconfigChanges.textChanges.length > 0) {
       changes.push(tsconfigChanges)
@@ -193,34 +193,84 @@ const computePackageJsonChanges = (
       { host, formatContext, preferences },
       (tracker: any) => {
         // Handle @effect/language-service dependency
-        if (Option.isSome(target.lspDependencyType)) {
+        if (Option.isSome(target.lspVersion)) {
           // User wants to install LSP
-          const dependencyField = target.lspDependencyType.value
-          descriptions.push(`Add @effect/language-service to ${dependencyField}`)
+          const targetDepType = target.lspVersion.value.dependencyType
+          const targetVersion = target.lspVersion.value.version
 
-          const depsProperty = findPropertyInObject(ts, rootObj, dependencyField)
+          // Check if LSP is currently installed in a different dependency type
+          if (Option.isSome(current.lspVersion)) {
+            const currentDepType = current.lspVersion.value.dependencyType
+            const currentVersion = current.lspVersion.value.version
 
-          if (!depsProperty) {
-            // Need to add entire dependencies section to root object
-            const newDepsProp = ts.factory.createPropertyAssignment(
-              ts.factory.createStringLiteral(dependencyField),
-              ts.factory.createObjectLiteralExpression([
-                ts.factory.createPropertyAssignment(
-                  ts.factory.createStringLiteral("@effect/language-service"),
-                  ts.factory.createStringLiteral("workspace:*")
+            // If dependency type changed, remove from old location and add to new location
+            if (currentDepType !== targetDepType) {
+              descriptions.push(`Move @effect/language-service from ${currentDepType} to ${targetDepType}`)
+
+              // Remove from old location
+              const oldDepsProperty = findPropertyInObject(ts, rootObj, currentDepType)
+              if (oldDepsProperty && ts.isObjectLiteralExpression(oldDepsProperty.initializer)) {
+                const lspProperty = findPropertyInObject(ts, oldDepsProperty.initializer, "@effect/language-service")
+                if (lspProperty) {
+                  deleteNodeFromList(tracker, current.sourceFile, oldDepsProperty.initializer.properties, lspProperty)
+                }
+              }
+
+              // Add to new location
+              const newDepsProperty = findPropertyInObject(ts, rootObj, targetDepType)
+              const newLspProp = ts.factory.createPropertyAssignment(
+                ts.factory.createStringLiteral("@effect/language-service"),
+                ts.factory.createStringLiteral(targetVersion)
+              )
+
+              if (!newDepsProperty) {
+                // Need to add entire dependencies section
+                const newDepsProp = ts.factory.createPropertyAssignment(
+                  ts.factory.createStringLiteral(targetDepType),
+                  ts.factory.createObjectLiteralExpression([newLspProp], false)
                 )
-              ], false)
-            )
-            insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newDepsProp)
-          } else if (ts.isObjectLiteralExpression(depsProperty.initializer)) {
-            // dependencies/devDependencies exists, check if @effect/language-service is already there
-            const lspProperty = findPropertyInObject(ts, depsProperty.initializer, "@effect/language-service")
+                insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newDepsProp)
+              } else if (ts.isObjectLiteralExpression(newDepsProperty.initializer)) {
+                insertNodeAtEndOfList(tracker, current.sourceFile, newDepsProperty.initializer.properties, newLspProp)
+              }
+            } else if (currentVersion !== targetVersion) {
+              // Same dependency type, just update version
+              descriptions.push(`Update @effect/language-service from ${currentVersion} to ${targetVersion}`)
 
-            if (!lspProperty) {
+              const depsProperty = findPropertyInObject(ts, rootObj, targetDepType)
+              if (depsProperty && ts.isObjectLiteralExpression(depsProperty.initializer)) {
+                const lspProperty = findPropertyInObject(ts, depsProperty.initializer, "@effect/language-service")
+                if (lspProperty && ts.isStringLiteral(lspProperty.initializer)) {
+                  // Update just the version string value
+                  const newVersionLiteral = ts.factory.createStringLiteral(targetVersion)
+                  tracker.replaceNode(current.sourceFile, lspProperty.initializer, newVersionLiteral)
+                }
+              }
+            }
+            // If both dependency type and version are the same, no changes needed
+          } else {
+            // LSP not currently installed, add it
+            descriptions.push(`Add @effect/language-service@${targetVersion} to ${targetDepType}`)
+
+            const depsProperty = findPropertyInObject(ts, rootObj, targetDepType)
+
+            if (!depsProperty) {
+              // Need to add entire dependencies section to root object
+              const newDepsProp = ts.factory.createPropertyAssignment(
+                ts.factory.createStringLiteral(targetDepType),
+                ts.factory.createObjectLiteralExpression([
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createStringLiteral("@effect/language-service"),
+                    ts.factory.createStringLiteral(targetVersion)
+                  )
+                ], false)
+              )
+              insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newDepsProp)
+            } else if (ts.isObjectLiteralExpression(depsProperty.initializer)) {
               // Add to existing dependencies
               const newLspProp = ts.factory.createPropertyAssignment(
                 ts.factory.createStringLiteral("@effect/language-service"),
-                ts.factory.createStringLiteral("workspace:*")
+                ts.factory.createStringLiteral(targetVersion)
               )
 
               const depsObj = depsProperty.initializer
@@ -246,7 +296,7 @@ const computePackageJsonChanges = (
         }
 
         // Handle prepare script
-        if (target.prepareScript && Option.isSome(target.lspDependencyType)) {
+        if (target.prepareScript && Option.isSome(target.lspVersion)) {
           // User wants LSP and prepare script
           const scriptsProperty = findPropertyInObject(ts, rootObj, "scripts")
 
@@ -295,7 +345,7 @@ const computePackageJsonChanges = (
             }
           }
         } else if (
-          Option.isNone(target.lspDependencyType) && Option.isSome(current.prepareScript) &&
+          Option.isNone(target.lspVersion) && Option.isSome(current.prepareScript) &&
           current.prepareScript.value.hasPatch
         ) {
           // User wants to remove LSP and prepare script has patch command
@@ -333,7 +383,7 @@ const computePackageJsonChanges = (
 const computeTsConfigChanges = (
   current: Assessment.TsConfig,
   target: Target.TsConfig,
-  lspDependencyType: Option.Option<"devDependencies" | "dependencies">
+  lspVersion: Option.Option<{ readonly dependencyType: "devDependencies" | "dependencies"; readonly version: string }>
 ): Effect.Effect<FileChange, never, TypeScriptContext> => {
   return Effect.gen(function*() {
     const ts = yield* TypeScriptContext
@@ -384,7 +434,7 @@ const computeTsConfigChanges = (
         const pluginsProperty = findPropertyInObject(ts, compilerOptions, "plugins")
 
         // Check if we should remove the plugin (user doesn't want LSP installed)
-        if (Option.isNone(lspDependencyType)) {
+        if (Option.isNone(lspVersion)) {
           // User wants to remove LSP
           if (pluginsProperty && ts.isArrayLiteralExpression(pluginsProperty.initializer)) {
             const pluginsArray = pluginsProperty.initializer
