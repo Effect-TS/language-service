@@ -82,6 +82,8 @@ export const computeChanges = (
 
     // Add editor-specific setup instructions as messages
     if (Option.isSome(target.packageJson.lspVersion) && target.editors.length > 0) {
+      messages = [...messages, ""]
+
       if (target.editors.includes("vscode")) {
         messages = [
           ...messages,
@@ -418,7 +420,7 @@ const computePackageJsonChanges = (
 
                 // Add warning message for user to verify
                 messages.push(
-                  "⚠️  Your prepare script contained multiple commands. " +
+                  "WARNING: Your prepare script contained multiple commands. " +
                     "I attempted to automatically remove only the 'effect-language-service patch' command. " +
                     "Please verify that the prepare script is correct after this change."
                 )

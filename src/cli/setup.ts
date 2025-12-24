@@ -9,6 +9,7 @@ import * as Option from "effect/Option"
 import packageJson from "../../package.json"
 import { assess, type Assessment } from "./setup/assessment"
 import { computeChanges } from "./setup/changes"
+import { renderCodeActions } from "./setup/diff-renderer"
 import { FileReadError, PackageJsonNotFoundError } from "./setup/errors"
 import { gatherTargetState } from "./setup/target-prompt"
 import { selectTsConfigFile } from "./setup/tsconfig-prompt"
@@ -112,34 +113,11 @@ export const setup = Command.make(
       // ========================================================================
       // Phase 6: Review changes
       // ========================================================================
-      yield* Console.log("📋 Review Changes")
-      yield* Console.log("=================")
-      yield* Console.log("")
+      yield* renderCodeActions(result, assessmentState)
 
       if (result.codeActions.length === 0) {
-        yield* Console.log("✅ No changes needed - your configuration is already up to date!")
         return
       }
-
-      // Display changes by file
-      for (const codeAction of result.codeActions) {
-        const fileNames = codeAction.changes.map((fc) => fc.fileName).join(", ")
-        yield* Console.log(`📄 ${fileNames}`)
-        yield* Console.log(`  ${codeAction.description}`)
-        yield* Console.log("")
-      }
-
-      // Display any user messages (warnings, info)
-      if (result.messages.length > 0) {
-        for (const message of result.messages) {
-          yield* Console.log(message)
-        }
-        yield* Console.log("")
-      }
-
-      const totalFiles = result.codeActions.reduce((sum, ca) => sum + ca.changes.length, 0)
-      yield* Console.log(`Total: ${totalFiles} file(s) will be modified`)
-      yield* Console.log("")
 
       const shouldProceed = yield* Prompt.confirm({
         message: "Apply all changes?",
@@ -152,10 +130,63 @@ export const setup = Command.make(
       }
 
       // ========================================================================
-      // Phase 7: Apply changes (Placeholder - to be implemented)
+      // Phase 7: Apply changes
       // ========================================================================
       yield* Console.log("")
-      yield* Console.log("⚠️  Application phase not yet implemented")
-      yield* Console.log(`Would apply changes to ${result.codeActions.length} file(s)`)
+      yield* Console.log("Applying changes...")
+
+      const fs = yield* FileSystem.FileSystem
+
+      // Apply each code action
+      for (const codeAction of result.codeActions) {
+        for (const fileChange of codeAction.changes) {
+          const fileName = fileChange.fileName
+
+          // Check if file exists or if this is a new file
+          const fileExists = yield* fs.exists(fileName)
+
+          if (!fileExists && fileChange.isNewFile) {
+            // Create new file - ensure directory exists first
+            const dirName = path.dirname(fileName)
+            yield* fs.makeDirectory(dirName, { recursive: true }).pipe(
+              Effect.ignore // Ignore error if directory already exists
+            )
+
+            // For new files, just write the newText from the first change
+            // (assumption: new files have a single TextChange spanning the entire file)
+            const newContent = fileChange.textChanges.length > 0
+              ? fileChange.textChanges[0].newText
+              : ""
+
+            yield* fs.writeFileString(fileName, newContent)
+          } else if (fileExists) {
+            // Read existing file
+            const existingContent = yield* fs.readFileString(fileName)
+
+            // Apply all text changes to the file
+            // Sort changes in reverse order by position to avoid offset issues
+            const sortedChanges = [...fileChange.textChanges].sort((a, b) => b.span.start - a.span.start)
+
+            let newContent = existingContent
+            for (const textChange of sortedChanges) {
+              const start = textChange.span.start
+              const end = start + textChange.span.length
+
+              newContent = newContent.slice(0, start) + textChange.newText + newContent.slice(end)
+            }
+
+            // Write the modified content back
+            yield* fs.writeFileString(fileName, newContent)
+          }
+        }
+      }
+
+      yield* Console.log("Changes applied successfully!")
+      yield* Console.log("")
+
+      // Display any additional messages (e.g., editor setup instructions)
+      for (const message of result.messages) {
+        yield* Console.log(message)
+      }
     })
 )
