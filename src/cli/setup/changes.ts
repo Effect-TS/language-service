@@ -349,15 +349,40 @@ const computePackageJsonChanges = (
           current.prepareScript.value.hasPatch
         ) {
           // User wants to remove LSP and prepare script has patch command
-          descriptions.push("Remove prepare script with patch command")
-
           const scriptsProperty = findPropertyInObject(ts, rootObj, "scripts")
           if (scriptsProperty && ts.isObjectLiteralExpression(scriptsProperty.initializer)) {
             const prepareProperty = findPropertyInObject(ts, scriptsProperty.initializer, "prepare")
-            if (prepareProperty) {
-              // Remove prepare script
-              const scriptsObj = scriptsProperty.initializer
-              deleteNodeFromList(tracker, current.sourceFile, scriptsObj.properties, prepareProperty)
+            if (prepareProperty && ts.isStringLiteral(prepareProperty.initializer)) {
+              const currentScript = current.prepareScript.value.script
+
+              // Check if there are multiple commands (separated by && or ;)
+              const hasMultipleCommands = currentScript.includes("&&") || currentScript.includes(";")
+
+              if (hasMultipleCommands) {
+                // Remove only the patch command, keep other commands
+                descriptions.push("Remove effect-language-service patch command from prepare script")
+
+                // Remove the patch command and clean up separators
+                const newScript = currentScript
+                  .replace(/\s*&&\s*effect-language-service\s+patch/g, "") // Remove && patch
+                  .replace(/effect-language-service\s+patch\s*&&\s*/g, "") // Remove patch &&
+                  .replace(/\s*;\s*effect-language-service\s+patch/g, "") // Remove ; patch
+                  .replace(/effect-language-service\s+patch\s*;\s*/g, "") // Remove patch ;
+                  .trim()
+
+                if (ts.isStringLiteral(prepareProperty.initializer)) {
+                  tracker.replaceNode(
+                    current.sourceFile,
+                    prepareProperty.initializer,
+                    ts.factory.createStringLiteral(newScript)
+                  )
+                }
+              } else {
+                // Only command is the patch command, remove entire prepare script
+                descriptions.push("Remove prepare script with patch command")
+                const scriptsObj = scriptsProperty.initializer
+                deleteNodeFromList(tracker, current.sourceFile, scriptsObj.properties, prepareProperty)
+              }
             }
           }
         }

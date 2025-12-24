@@ -307,6 +307,47 @@ describe("Setup CLI", () => {
     await expectSetupChanges(assessmentInput, targetState)
   })
 
+  it("should remove only LSP patch command from prepare script with multiple commands", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        devDependencies: {
+          "@effect/language-service": "^0.1.0",
+          typescript: "^5.0.0"
+        },
+        scripts: {
+          prepare: "husky install && effect-language-service patch",
+          test: "vitest"
+        }
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022",
+          plugins: [
+            {
+              name: "@effect/language-service"
+            }
+          ]
+        }
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.none(),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none()
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
   it("should not override existing plugins when adding LSP plugin", async () => {
     const assessmentInput = createTestAssessmentInput(
       {

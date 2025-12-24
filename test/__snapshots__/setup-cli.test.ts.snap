@@ -292,6 +292,44 @@ exports[`Setup CLI > should not override existing plugins when adding LSP plugin
 }"
 `;
 
+exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies; Remove effect-language-service patch command from prepare script",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "test": "vitest"
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+    ]
+  }
+}"
+`;
+
 exports[`Setup CLI > should remove only LSP plugin while preserving other plugins > change summary 1`] = `
 [
   {
