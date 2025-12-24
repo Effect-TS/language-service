@@ -2,6 +2,11 @@ import type * as Option from "effect/Option"
 import type { DiagnosticSeverity } from "../../core/LanguageServicePluginOptions"
 
 /**
+ * Supported editor types
+ */
+export type Editor = "vscode" | "nvim" | "emacs"
+
+/**
  * Target namespace containing all target configuration types
  */
 export namespace Target {

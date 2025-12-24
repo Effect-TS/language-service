@@ -6,56 +6,71 @@ import type { Assessment } from "./assessment"
 import type { Target } from "./target"
 
 /**
- * Represents a text change to be applied to a file
+ * Result of computing changes for a single file
  */
-export interface FileChange {
-  readonly filePath: string
-  readonly sourceFile: ts.JsonSourceFile
-  readonly textChanges: ReadonlyArray<ts.TextChange>
-  readonly description: string // Human-readable description of what this change does
+interface ComputeFileChangesResult {
+  readonly codeActions: ReadonlyArray<ts.CodeAction>
+  readonly messages: ReadonlyArray<string>
+}
+
+/**
+ * Create an empty ComputeFileChangesResult
+ */
+function emptyFileChangesResult(): ComputeFileChangesResult {
+  return {
+    codeActions: [],
+    messages: []
+  }
+}
+
+/**
+ * Result of computing all changes
+ */
+export interface ComputeChangesResult {
+  readonly codeActions: ReadonlyArray<ts.CodeAction>
+  readonly messages: ReadonlyArray<string> // Warning/info messages for the user
 }
 
 /**
  * Compute the set of changes needed to go from assessment state to target state
+ * Returns CodeActions with descriptions and file changes, plus messages for the user
  */
 export const computeChanges = (
   assessment: Assessment.State,
   target: Target.State
-): Effect.Effect<ReadonlyArray<FileChange>, never, TypeScriptContext> => {
+): Effect.Effect<ComputeChangesResult, never, TypeScriptContext> => {
   return Effect.gen(function*() {
-    const changes: Array<FileChange> = []
+    let codeActions: ReadonlyArray<ts.CodeAction> = []
+    let messages: ReadonlyArray<string> = []
 
     // Compute package.json changes (always present)
-    const packageJsonChanges = yield* computePackageJsonChanges(
+    const packageJsonResult = yield* computePackageJsonChanges(
       assessment.packageJson,
       target.packageJson
     )
-    if (packageJsonChanges.textChanges.length > 0) {
-      changes.push(packageJsonChanges)
-    }
+    codeActions = [...codeActions, ...packageJsonResult.codeActions]
+    messages = [...messages, ...packageJsonResult.messages]
 
     // Compute tsconfig changes (always present)
-    const tsconfigChanges = yield* computeTsConfigChanges(
+    const tsconfigResult = yield* computeTsConfigChanges(
       assessment.tsconfig,
       target.tsconfig,
       target.packageJson.lspVersion
     )
-    if (tsconfigChanges.textChanges.length > 0) {
-      changes.push(tsconfigChanges)
-    }
+    codeActions = [...codeActions, ...tsconfigResult.codeActions]
+    messages = [...messages, ...tsconfigResult.messages]
 
     // Compute VSCode settings changes (optional)
     if (Option.isSome(target.vscodeSettings) && Option.isSome(assessment.vscodeSettings)) {
-      const vscodeChanges = yield* computeVSCodeSettingsChanges(
+      const vscodeResult = yield* computeVSCodeSettingsChanges(
         assessment.vscodeSettings.value,
         target.vscodeSettings.value
       )
-      if (vscodeChanges.textChanges.length > 0) {
-        changes.push(vscodeChanges)
-      }
+      codeActions = [...codeActions, ...vscodeResult.codeActions]
+      messages = [...messages, ...vscodeResult.messages]
     }
 
-    return changes
+    return { codeActions, messages }
   })
 }
 
@@ -168,28 +183,24 @@ function createMinimalHost(_ts: TypeScriptApi): ts.LanguageServiceHost {
 const computePackageJsonChanges = (
   current: Assessment.PackageJson,
   target: Target.PackageJson
-): Effect.Effect<FileChange, never, TypeScriptContext> => {
+): Effect.Effect<ComputeFileChangesResult, never, TypeScriptContext> => {
   return Effect.gen(function*() {
     const ts = yield* TypeScriptContext
     const descriptions: Array<string> = []
+    const messages: Array<string> = []
 
     const rootObj = getRootObject(ts, current.sourceFile)
     if (!rootObj) {
-      return {
-        filePath: current.path,
-        sourceFile: current.sourceFile,
-        textChanges: [],
-        description: "Unable to parse package.json structure"
-      }
+      return emptyFileChangesResult()
     }
 
     // Use ChangeTracker API
     const host = createMinimalHost(ts)
     const formatOptions = { indentSize: 2, tabSize: 2 } as ts.EditorSettings
-    const formatContext = (ts as any).formatting.getFormatContext(formatOptions, { newLine: "\n" })
+    const formatContext = ts.formatting.getFormatContext(formatOptions, host)
     const preferences = {} as ts.UserPreferences
 
-    const fileChanges = (ts as any).textChanges.ChangeTracker.with(
+    const fileChanges = ts.textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
       (tracker: any) => {
         // Handle @effect/language-service dependency
@@ -362,6 +373,13 @@ const computePackageJsonChanges = (
                 // Remove only the patch command, keep other commands
                 descriptions.push("Remove effect-language-service patch command from prepare script")
 
+                // Add warning message for user to verify
+                messages.push(
+                  "⚠️  Your prepare script contained multiple commands. " +
+                    "I attempted to automatically remove only the 'effect-language-service patch' command. " +
+                    "Please verify that the prepare script is correct after this change."
+                )
+
                 // Remove the patch command and clean up separators
                 const newScript = currentScript
                   .replace(/\s*&&\s*effect-language-service\s+patch/g, "") // Remove && patch
@@ -393,11 +411,21 @@ const computePackageJsonChanges = (
     const fileChange = fileChanges.find((fc: ts.FileTextChanges) => fc.fileName === current.path)
     const changes = fileChange ? fileChange.textChanges : []
 
+    // Return empty result if no changes
+    if (changes.length === 0) {
+      return { codeActions: [], messages }
+    }
+
+    // Create and return result with CodeAction and messages
     return {
-      filePath: current.path,
-      sourceFile: current.sourceFile,
-      textChanges: changes,
-      description: descriptions.join("; ")
+      codeActions: [{
+        description: descriptions.join("; "),
+        changes: [{
+          fileName: current.path,
+          textChanges: changes
+        }]
+      }],
+      messages
     }
   })
 }
@@ -409,48 +437,34 @@ const computeTsConfigChanges = (
   current: Assessment.TsConfig,
   target: Target.TsConfig,
   lspVersion: Option.Option<{ readonly dependencyType: "devDependencies" | "dependencies"; readonly version: string }>
-): Effect.Effect<FileChange, never, TypeScriptContext> => {
+): Effect.Effect<ComputeFileChangesResult, never, TypeScriptContext> => {
   return Effect.gen(function*() {
     const ts = yield* TypeScriptContext
     const descriptions: Array<string> = []
+    const messages: Array<string> = []
 
     const rootObj = getRootObject(ts, current.sourceFile)
     if (!rootObj) {
-      return {
-        filePath: current.path,
-        sourceFile: current.sourceFile,
-        textChanges: [],
-        description: "Unable to parse tsconfig.json structure"
-      }
+      return emptyFileChangesResult()
     }
 
     // Find or create compilerOptions
     const compilerOptionsProperty = findPropertyInObject(ts, rootObj, "compilerOptions")
     if (!compilerOptionsProperty) {
-      return {
-        filePath: current.path,
-        sourceFile: current.sourceFile,
-        textChanges: [],
-        description: "No compilerOptions found in tsconfig.json"
-      }
+      return emptyFileChangesResult()
     }
 
     if (!ts.isObjectLiteralExpression(compilerOptionsProperty.initializer)) {
-      return {
-        filePath: current.path,
-        sourceFile: current.sourceFile,
-        textChanges: [],
-        description: "compilerOptions is not an object"
-      }
+      return emptyFileChangesResult()
     }
 
     const compilerOptions = compilerOptionsProperty.initializer
 
     // Use ChangeTracker API
-    const textChanges = (ts as any).textChanges
+    const textChanges = ts.textChanges
     const host = createMinimalHost(ts)
     const formatOptions = { indentSize: 2, tabSize: 2 } as ts.EditorSettings
-    const formatContext = (ts as any).formatting.getFormatContext(formatOptions, { newLine: "\n" })
+    const formatContext = ts.formatting.getFormatContext(formatOptions, host)
     const preferences = {} as ts.UserPreferences
 
     const fileChanges = textChanges.ChangeTracker.with(
@@ -563,11 +577,21 @@ const computeTsConfigChanges = (
     const fileChange = fileChanges.find((fc: ts.FileTextChanges) => fc.fileName === current.path)
     const changes = fileChange ? fileChange.textChanges : []
 
+    // Return empty result if no changes
+    if (changes.length === 0) {
+      return { codeActions: [], messages }
+    }
+
+    // Create and return result with CodeAction and messages
     return {
-      filePath: current.path,
-      sourceFile: current.sourceFile,
-      textChanges: changes,
-      description: descriptions.join("; ")
+      codeActions: [{
+        description: descriptions.join("; "),
+        changes: [{
+          fileName: current.sourceFile.fileName,
+          textChanges: changes
+        }]
+      }],
+      messages
     }
   })
 }
@@ -578,10 +602,11 @@ const computeTsConfigChanges = (
 const computeVSCodeSettingsChanges = (
   current: Assessment.VSCodeSettings,
   target: Target.VSCodeSettings
-): Effect.Effect<FileChange> => {
+): Effect.Effect<ComputeFileChangesResult, never, TypeScriptContext> => {
   return Effect.gen(function*() {
     const textChanges: Array<ts.TextChange> = []
     const descriptions: Array<string> = []
+    const messages: Array<string> = []
 
     // TODO: Implement VSCode settings modification logic
     // - Merge target settings with current settings
@@ -596,11 +621,21 @@ const computeVSCodeSettingsChanges = (
       // TODO: Generate text changes for updating settings
     }
 
+    // Return empty result if no changes
+    if (textChanges.length === 0) {
+      return { codeActions: [], messages }
+    }
+
+    // Create and return result with CodeAction and messages
     return {
-      filePath: current.path,
-      sourceFile: current.sourceFile,
-      textChanges,
-      description: descriptions.join("; ")
+      codeActions: [{
+        description: descriptions.join("; "),
+        changes: [{
+          fileName: current.sourceFile.fileName,
+          textChanges
+        }]
+      }],
+      messages
     }
   })
 }

@@ -62,22 +62,26 @@ export async function expectSetupChanges(
     assess(assessmentInput).pipe(Effect.provide(TypeScriptContext.live))
   )
 
-  // Compute changes
-  const changes = await Effect.runPromise(
+  // Compute changes (returns { codeActions, messages })
+  const result = await Effect.runPromise(
     computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContext.live))
   )
 
   // 1. Snapshot of change summary (file + description)
-  const changeSummary = changes.map((change) => ({
-    file: change.filePath,
-    description: change.description
-  }))
+  const changeSummary = result.codeActions.flatMap((action) =>
+    action.changes.map((fileChange) => ({
+      file: fileChange.fileName,
+      description: action.description
+    }))
+  )
   expect(changeSummary).toMatchSnapshot("change summary")
 
   // 2. Snapshot of final package.json and validate it's valid JSON
-  const packageJsonChange = changes.find((c) => c.filePath === "package.json")
-  if (packageJsonChange) {
-    const finalPackageJson = applyTextChanges(assessmentInput.packageJson.text, packageJsonChange.textChanges)
+  const packageJsonFileChange = result.codeActions
+    .flatMap((action) => action.changes)
+    .find((fc) => fc.fileName === "package.json")
+  if (packageJsonFileChange) {
+    const finalPackageJson = applyTextChanges(assessmentInput.packageJson.text, packageJsonFileChange.textChanges)
     expect(finalPackageJson).toMatchSnapshot("package.json")
 
     // Assert that the final package.json is valid JSON
@@ -87,9 +91,11 @@ export async function expectSetupChanges(
   }
 
   // 3. Snapshot of final tsconfig.json and validate it's valid JSON
-  const tsconfigChange = changes.find((c) => c.filePath === "tsconfig.json")
-  if (tsconfigChange) {
-    const finalTsconfig = applyTextChanges(assessmentInput.tsconfig.text, tsconfigChange.textChanges)
+  const tsconfigFileChange = result.codeActions
+    .flatMap((action) => action.changes)
+    .find((fc) => fc.fileName === "tsconfig.json")
+  if (tsconfigFileChange) {
+    const finalTsconfig = applyTextChanges(assessmentInput.tsconfig.text, tsconfigFileChange.textChanges)
     expect(finalTsconfig).toMatchSnapshot("tsconfig.json")
 
     // Assert that the final tsconfig.json is valid JSON

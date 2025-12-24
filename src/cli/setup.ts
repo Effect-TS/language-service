@@ -107,7 +107,7 @@ export const setup = Command.make(
       // ========================================================================
       // Phase 5: Compute changes
       // ========================================================================
-      const changes = yield* computeChanges(assessmentState, targetState)
+      const result = yield* computeChanges(assessmentState, targetState)
 
       // ========================================================================
       // Phase 6: Review changes
@@ -116,19 +116,29 @@ export const setup = Command.make(
       yield* Console.log("=================")
       yield* Console.log("")
 
-      if (changes.length === 0) {
+      if (result.codeActions.length === 0) {
         yield* Console.log("✅ No changes needed - your configuration is already up to date!")
         return
       }
 
       // Display changes by file
-      for (const change of changes) {
-        yield* Console.log(`📄 ${change.filePath}`)
-        yield* Console.log(`  ${change.description}`)
+      for (const codeAction of result.codeActions) {
+        const fileNames = codeAction.changes.map((fc) => fc.fileName).join(", ")
+        yield* Console.log(`📄 ${fileNames}`)
+        yield* Console.log(`  ${codeAction.description}`)
         yield* Console.log("")
       }
 
-      yield* Console.log(`Total: ${changes.length} file(s) will be modified`)
+      // Display any user messages (warnings, info)
+      if (result.messages.length > 0) {
+        for (const message of result.messages) {
+          yield* Console.log(message)
+        }
+        yield* Console.log("")
+      }
+
+      const totalFiles = result.codeActions.reduce((sum, ca) => sum + ca.changes.length, 0)
+      yield* Console.log(`Total: ${totalFiles} file(s) will be modified`)
       yield* Console.log("")
 
       const shouldProceed = yield* Prompt.confirm({
@@ -146,6 +156,6 @@ export const setup = Command.make(
       // ========================================================================
       yield* Console.log("")
       yield* Console.log("⚠️  Application phase not yet implemented")
-      yield* Console.log(`Would apply changes to ${changes.length} file(s)`)
+      yield* Console.log(`Would apply changes to ${result.codeActions.length} file(s)`)
     })
 )
