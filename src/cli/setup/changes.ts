@@ -60,14 +60,60 @@ export const computeChanges = (
     codeActions = [...codeActions, ...tsconfigResult.codeActions]
     messages = [...messages, ...tsconfigResult.messages]
 
-    // Compute VSCode settings changes (optional)
-    if (Option.isSome(target.vscodeSettings) && Option.isSome(assessment.vscodeSettings)) {
-      const vscodeResult = yield* computeVSCodeSettingsChanges(
-        assessment.vscodeSettings.value,
-        target.vscodeSettings.value
-      )
-      codeActions = [...codeActions, ...vscodeResult.codeActions]
-      messages = [...messages, ...vscodeResult.messages]
+    // Compute VSCode settings changes if user selected VSCode editor
+    if (target.editors.includes("vscode")) {
+      // Create VSCode settings target if user wants LSP installed
+      if (Option.isSome(target.packageJson.lspVersion) && Option.isSome(assessment.vscodeSettings)) {
+        const vscodeTarget: Target.VSCodeSettings = {
+          settings: {
+            "typescript.tsdk": "./node_modules/typescript/lib",
+            "typescript.enablePromptUseWorkspaceTsdk": true
+          }
+        }
+
+        const vscodeResult = yield* computeVSCodeSettingsChanges(
+          assessment.vscodeSettings.value,
+          vscodeTarget
+        )
+        codeActions = [...codeActions, ...vscodeResult.codeActions]
+        messages = [...messages, ...vscodeResult.messages]
+      }
+    }
+
+    // Add editor-specific setup instructions as messages
+    if (Option.isSome(target.packageJson.lspVersion) && target.editors.length > 0) {
+      messages = [...messages, ""]
+      messages = [...messages, "📝 Editor Setup Instructions:"]
+      messages = [...messages, ""]
+
+      if (target.editors.includes("vscode")) {
+        messages = [
+          ...messages,
+          "VS Code / Cursor / VS Code-based editors:",
+          "  1. Press \"F1\" and type \"TypeScript: Select TypeScript version\"",
+          "  2. Select \"Use workspace version\"",
+          "  3. If that option does not appear, ensure TypeScript is installed locally in node_modules",
+          ""
+        ]
+      }
+
+      if (target.editors.includes("nvim")) {
+        messages = [
+          ...messages,
+          "Neovim (with nvim-vtsls):",
+          "  Refer to: https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated",
+          ""
+        ]
+      }
+
+      if (target.editors.includes("emacs")) {
+        messages = [
+          ...messages,
+          "Emacs:",
+          "  Step-by-step instructions: https://gosha.net/2025/effect-ls-emacs/",
+          ""
+        ]
+      }
     }
 
     return { codeActions, messages }
@@ -604,25 +650,67 @@ const computeVSCodeSettingsChanges = (
   target: Target.VSCodeSettings
 ): Effect.Effect<ComputeFileChangesResult, never, TypeScriptContext> => {
   return Effect.gen(function*() {
-    const textChanges: Array<ts.TextChange> = []
+    const ts = yield* TypeScriptContext
     const descriptions: Array<string> = []
     const messages: Array<string> = []
 
-    // TODO: Implement VSCode settings modification logic
-    // - Merge target settings with current settings
-    // - Generate text changes for modified settings
-
-    const changedSettings = Object.keys(target.settings).filter((key) => {
-      return current.settings[key] !== target.settings[key]
-    })
-
-    if (changedSettings.length > 0) {
-      descriptions.push(`Update ${changedSettings.length} VSCode settings`)
-      // TODO: Generate text changes for updating settings
+    const rootObj = getRootObject(ts, current.sourceFile)
+    if (!rootObj) {
+      return emptyFileChangesResult()
     }
 
+    // Use ChangeTracker API
+    const host = createMinimalHost(ts)
+    const formatOptions = { indentSize: 2, tabSize: 2 } as ts.EditorSettings
+    const formatContext = ts.formatting.getFormatContext(formatOptions, host)
+    const preferences = {} as ts.UserPreferences
+
+    const fileChanges = ts.textChanges.ChangeTracker.with(
+      { host, formatContext, preferences },
+      (tracker: any) => {
+        // Add or update settings from target
+        for (const [key, value] of Object.entries(target.settings)) {
+          const existingProp = findPropertyInObject(ts, rootObj, key)
+
+          if (!existingProp) {
+            // Add new setting
+            descriptions.push(`Add ${key} setting`)
+
+            const newProp = ts.factory.createPropertyAssignment(
+              ts.factory.createStringLiteral(key),
+              typeof value === "string"
+                ? ts.factory.createStringLiteral(value)
+                : typeof value === "boolean"
+                ? value ? ts.factory.createTrue() : ts.factory.createFalse()
+                : ts.factory.createNull()
+            )
+
+            insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newProp)
+          } else if (current.settings[key] !== value) {
+            // Update existing setting
+            descriptions.push(`Update ${key} setting`)
+
+            const newProp = ts.factory.createPropertyAssignment(
+              ts.factory.createStringLiteral(key),
+              typeof value === "string"
+                ? ts.factory.createStringLiteral(value)
+                : typeof value === "boolean"
+                ? value ? ts.factory.createTrue() : ts.factory.createFalse()
+                : ts.factory.createNull()
+            )
+
+            tracker.replaceNode(current.sourceFile, existingProp, newProp)
+          }
+        }
+      }
+    )
+
+    // Extract text changes for this file
+    const fileChange = fileChanges.find((fc: ts.FileTextChanges) => fc.fileName === current.sourceFile.fileName)
+    const changes = fileChange ? fileChange.textChanges : []
+
     // Return empty result if no changes
-    if (textChanges.length === 0) {
+    if (changes.length === 0) {
       return { codeActions: [], messages }
     }
 
@@ -632,7 +720,7 @@ const computeVSCodeSettingsChanges = (
         description: descriptions.join("; "),
         changes: [{
           fileName: current.sourceFile.fileName,
-          textChanges
+          textChanges: changes
         }]
       }],
       messages

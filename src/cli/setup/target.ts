@@ -42,5 +42,6 @@ export namespace Target {
     readonly packageJson: PackageJson
     readonly tsconfig: TsConfig
     readonly vscodeSettings: Option.Option<VSCodeSettings>
+    readonly editors: ReadonlyArray<Editor>
   }
 }

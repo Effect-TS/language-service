@@ -129,7 +129,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -167,7 +168,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -199,7 +201,8 @@ describe("Setup CLI", () => {
           "effect/anyUnknownInErrorContext": "warning"
         })
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -238,7 +241,8 @@ describe("Setup CLI", () => {
           "effect/catchUnfailableEffect": "off"
         })
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -267,7 +271,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -307,7 +312,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -348,7 +354,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -390,7 +397,8 @@ describe("Setup CLI", () => {
           "effect/floatingEffect": "error"
         })
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -424,7 +432,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -465,7 +474,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)
@@ -503,7 +513,8 @@ describe("Setup CLI", () => {
       tsconfig: {
         diagnosticSeverities: Option.none()
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors: []
     }
 
     await expectSetupChanges(assessmentInput, targetState)

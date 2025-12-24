@@ -5,7 +5,7 @@ import * as Option from "effect/Option"
 import type { Assessment } from "./assessment"
 import { getAllDiagnostics } from "./diagnostic-info"
 import { createDiagnosticPrompt } from "./diagnostic-prompt"
-import type { Target } from "./target"
+import type { Editor, Target } from "./target"
 
 /**
  * Context input for gathering target state
@@ -62,7 +62,8 @@ export const gatherTargetState = (
         tsconfig: {
           diagnosticSeverities: Option.none()
         },
-        vscodeSettings: Option.none()
+        vscodeSettings: Option.none(),
+        editors: []
       }
     }
 
@@ -125,6 +126,25 @@ export const gatherTargetState = (
       ]
     })
 
+    // Editor Selection - Using multi-select
+    const editors = yield* Prompt.multiSelect({
+      message: "Which editors do you use?",
+      choices: [
+        {
+          title: "VS Code / Cursor / VS Code-based editors",
+          value: "vscode" as Editor
+        },
+        {
+          title: "Neovim",
+          value: "nvim" as Editor
+        },
+        {
+          title: "Emacs",
+          value: "emacs" as Editor
+        }
+      ]
+    })
+
     // Build target state
     return {
       packageJson: {
@@ -134,6 +154,7 @@ export const gatherTargetState = (
       tsconfig: {
         diagnosticSeverities
       },
-      vscodeSettings: Option.none()
+      vscodeSettings: Option.none(),
+      editors
     }
   })
