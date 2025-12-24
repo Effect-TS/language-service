@@ -103,6 +103,23 @@ export async function expectSetupChanges(
       JSON.parse(finalTsconfig)
     }).not.toThrow()
   }
+
+  // 4. Snapshot of final .vscode/settings.json and validate it's valid JSON
+  const vscodeSettingsFileChange = result.codeActions
+    .flatMap((action) => action.changes)
+    .find((fc) => fc.fileName === ".vscode/settings.json")
+  if (vscodeSettingsFileChange && Option.isSome(assessmentInput.vscodeSettings)) {
+    const finalVscodeSettings = applyTextChanges(
+      assessmentInput.vscodeSettings.value.text,
+      vscodeSettingsFileChange.textChanges
+    )
+    expect(finalVscodeSettings).toMatchSnapshot(".vscode/settings.json")
+
+    // Assert that the final .vscode/settings.json is valid JSON
+    expect(() => {
+      JSON.parse(finalVscodeSettings)
+    }).not.toThrow()
+  }
 }
 
 describe("Setup CLI", () => {
@@ -515,6 +532,37 @@ describe("Setup CLI", () => {
       },
       vscodeSettings: Option.none(),
       editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should add LSP with VS Code editor selected and configure VS Code settings", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      },
+      {} // Empty .vscode/settings.json
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      editors: ["vscode"]
     }
 
     await expectSetupChanges(assessmentInput, targetState)

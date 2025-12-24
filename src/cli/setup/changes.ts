@@ -82,10 +82,6 @@ export const computeChanges = (
 
     // Add editor-specific setup instructions as messages
     if (Option.isSome(target.packageJson.lspVersion) && target.editors.length > 0) {
-      messages = [...messages, ""]
-      messages = [...messages, "📝 Editor Setup Instructions:"]
-      messages = [...messages, ""]
-
       if (target.editors.includes("vscode")) {
         messages = [
           ...messages,
@@ -198,8 +194,9 @@ function insertNodeAtEndOfList<T extends ts.Node>(
   newNode: T
 ) {
   if (nodeArray.length === 0) {
-    // Empty list - just insert the node at the beginning
-    tracker.insertNodeAt(sourceFile, nodeArray.pos + 1, newNode)
+    // Empty list - insert the node at the beginning with proper spacing
+    // For empty JSON objects like {}, we need to insert right after the opening brace
+    tracker.insertNodeAt(sourceFile, nodeArray.pos + 1, newNode, { suffix: "\n" })
   } else {
     // Non-empty list - insert node with comma prefix after last element
     const lastElement = nodeArray[nodeArray.length - 1]
@@ -665,48 +662,74 @@ const computeVSCodeSettingsChanges = (
     const formatContext = ts.formatting.getFormatContext(formatOptions, host)
     const preferences = {} as ts.UserPreferences
 
+    // Build new properties list
+    const newProperties: Array<ts.PropertyAssignment> = []
+    const propsToUpdate: Array<{ old: ts.PropertyAssignment; new: ts.PropertyAssignment }> = []
+
+    // Keep existing properties and track updates
+    for (const prop of rootObj.properties) {
+      if (ts.isPropertyAssignment(prop)) {
+        const propName = ts.isStringLiteral(prop.name)
+          ? (prop.name as ts.StringLiteral).text
+          : ts.isIdentifier(prop.name)
+          ? ts.idText(prop.name)
+          : undefined
+
+        if (propName && propName in target.settings) {
+          const value = target.settings[propName]
+          if (current.settings[propName] !== value) {
+            // Update this property
+            descriptions.push(`Update ${propName} setting`)
+            const newProp = ts.factory.createPropertyAssignment(
+              ts.factory.createStringLiteral(propName),
+              typeof value === "string"
+                ? ts.factory.createStringLiteral(value)
+                : typeof value === "boolean"
+                ? value ? ts.factory.createTrue() : ts.factory.createFalse()
+                : ts.factory.createNull()
+            )
+            propsToUpdate.push({ old: prop, new: newProp })
+            newProperties.push(newProp)
+          } else {
+            newProperties.push(prop)
+          }
+        } else {
+          // Keep existing property
+          newProperties.push(prop)
+        }
+      }
+    }
+
+    // Add new properties
+    for (const [key, value] of Object.entries(target.settings)) {
+      const existingProp = findPropertyInObject(ts, rootObj, key)
+      if (!existingProp) {
+        descriptions.push(`Add ${key} setting`)
+        const newProp = ts.factory.createPropertyAssignment(
+          ts.factory.createStringLiteral(key),
+          typeof value === "string"
+            ? ts.factory.createStringLiteral(value)
+            : typeof value === "boolean"
+            ? value ? ts.factory.createTrue() : ts.factory.createFalse()
+            : ts.factory.createNull()
+        )
+        newProperties.push(newProp)
+      }
+    }
+
     const fileChanges = ts.textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
       (tracker: any) => {
-        // Add or update settings from target
-        for (const [key, value] of Object.entries(target.settings)) {
-          const existingProp = findPropertyInObject(ts, rootObj, key)
-
-          if (!existingProp) {
-            // Add new setting
-            descriptions.push(`Add ${key} setting`)
-
-            const newProp = ts.factory.createPropertyAssignment(
-              ts.factory.createStringLiteral(key),
-              typeof value === "string"
-                ? ts.factory.createStringLiteral(value)
-                : typeof value === "boolean"
-                ? value ? ts.factory.createTrue() : ts.factory.createFalse()
-                : ts.factory.createNull()
-            )
-
-            insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newProp)
-          } else if (current.settings[key] !== value) {
-            // Update existing setting
-            descriptions.push(`Update ${key} setting`)
-
-            const newProp = ts.factory.createPropertyAssignment(
-              ts.factory.createStringLiteral(key),
-              typeof value === "string"
-                ? ts.factory.createStringLiteral(value)
-                : typeof value === "boolean"
-                ? value ? ts.factory.createTrue() : ts.factory.createFalse()
-                : ts.factory.createNull()
-            )
-
-            tracker.replaceNode(current.sourceFile, existingProp, newProp)
-          }
+        // Replace the entire root object with updated properties
+        if (newProperties.length !== rootObj.properties.length || propsToUpdate.length > 0) {
+          const newRootObj = ts.factory.createObjectLiteralExpression(newProperties, true)
+          tracker.replaceNode(current.sourceFile, rootObj, newRootObj)
         }
       }
     )
 
     // Extract text changes for this file
-    const fileChange = fileChanges.find((fc: ts.FileTextChanges) => fc.fileName === current.sourceFile.fileName)
+    const fileChange = fileChanges.find((fc: ts.FileTextChanges) => fc.fileName === current.path)
     const changes = fileChange ? fileChange.textChanges : []
 
     // Return empty result if no changes
@@ -719,7 +742,7 @@ const computeVSCodeSettingsChanges = (
       codeActions: [{
         description: descriptions.join("; "),
         changes: [{
-          fileName: current.sourceFile.fileName,
+          fileName: current.path,
           textChanges: changes
         }]
       }],

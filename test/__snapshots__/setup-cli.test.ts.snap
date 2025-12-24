@@ -37,6 +37,51 @@ exports[`Setup CLI > should add LSP plugin alongside existing plugins > tsconfig
 }"
 `;
 
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > .vscode/settings.json 1`] = `
+"{
+	"typescript.tsdk": "./node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true
+}"
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Add typescript.tsdk setting; Add typescript.enablePromptUseWorkspaceTsdk setting",
+    "file": ".vscode/settings.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
 exports[`Setup CLI > should generate changes for adding LSP with custom diagnostic severities > change summary 1`] = `
 [
   {
