@@ -278,12 +278,12 @@ exports[`Setup CLI > should generate changes for updating existing LSP with new 
     "target": "ES2022",
     "plugins": [
       {
-				"name": "@effect/language-service",
-				"diagnosticSeverity": {
-					"effect/floatingEffect": "error",
-					"effect/catchUnfailableEffect": "off"
-				}
-			}
+        "name": "@effect/language-service",
+"diagnosticSeverity": {
+	"effect/floatingEffect": "error",
+	"effect/catchUnfailableEffect": "off"
+}
+      }
     ]
   }
 }"
@@ -332,6 +332,37 @@ exports[`Setup CLI > should not override existing plugins when adding LSP plugin
 		"effect/floatingEffect": "error"
 	}
 }
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing LSP plugin options when updating diagnostic severities > change summary 1`] = `
+[
+  {
+    "description": "Update @effect/language-service plugin diagnostic severities",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve existing LSP plugin options when updating diagnostic severities > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "namespaceImportPackages": [
+          "effect"
+        ],
+        "enableCodeLens": true,
+"diagnosticSeverity": {
+	"effect/floatingEffect": "error",
+	"effect/catchUnfailableEffect": "warning"
+}
+      }
     ]
   }
 }"

@@ -567,4 +567,46 @@ describe("Setup CLI", () => {
 
     await expectSetupChanges(assessmentInput, targetState)
   })
+
+  it("should preserve existing LSP plugin options when updating diagnostic severities", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        devDependencies: {
+          "@effect/language-service": "^0.1.0"
+        }
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022",
+          plugins: [
+            {
+              name: "@effect/language-service",
+              namespaceImportPackages: ["effect"],
+              enableCodeLens: true
+            }
+          ]
+        }
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "^0.1.0" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.some({
+          "effect/floatingEffect": "error",
+          "effect/catchUnfailableEffect": "warning"
+        })
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
 })

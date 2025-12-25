@@ -602,9 +602,37 @@ const computeTsConfigChanges = (
 
             if (lspPluginElement) {
               // Plugin already exists - check if we need to update it
-              if (Option.isSome(target.diagnosticSeverities)) {
+              if (Option.isSome(target.diagnosticSeverities) && ts.isObjectLiteralExpression(lspPluginElement)) {
                 descriptions.push("Update @effect/language-service plugin diagnostic severities")
-                tracker.replaceNode(current.sourceFile, lspPluginElement, pluginObject)
+
+                // Find existing diagnosticSeverity property
+                const existingDiagSeverityProp = findPropertyInObject(ts, lspPluginElement, "diagnosticSeverity")
+
+                // Build the new diagnosticSeverity property
+                const severityProperties = Object.entries(target.diagnosticSeverities.value).map(([name, severity]) =>
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createStringLiteral(name),
+                    ts.factory.createStringLiteral(severity)
+                  )
+                )
+
+                const newDiagnosticSeverityProperty = ts.factory.createPropertyAssignment(
+                  ts.factory.createStringLiteral("diagnosticSeverity"),
+                  ts.factory.createObjectLiteralExpression(severityProperties, true)
+                )
+
+                if (existingDiagSeverityProp) {
+                  // Replace existing diagnosticSeverity property
+                  tracker.replaceNode(current.sourceFile, existingDiagSeverityProp, newDiagnosticSeverityProperty)
+                } else {
+                  // Add diagnosticSeverity property to existing plugin object
+                  insertNodeAtEndOfList(
+                    tracker,
+                    current.sourceFile,
+                    lspPluginElement.properties,
+                    newDiagnosticSeverityProperty
+                  )
+                }
               }
               // else: plugin exists and no changes needed
             } else {
