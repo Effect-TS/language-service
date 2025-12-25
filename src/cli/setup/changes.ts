@@ -692,68 +692,52 @@ const computeVSCodeSettingsChanges = (
     const formatContext = ts.formatting.getFormatContext(formatOptions, host)
     const preferences = {} as ts.UserPreferences
 
-    // Build new properties list
-    const newProperties: Array<ts.PropertyAssignment> = []
-    const propsToUpdate: Array<{ old: ts.PropertyAssignment; new: ts.PropertyAssignment }> = []
-
-    // Keep existing properties and track updates
-    for (const prop of rootObj.properties) {
-      if (ts.isPropertyAssignment(prop)) {
-        const propName = ts.isStringLiteral(prop.name)
-          ? (prop.name as ts.StringLiteral).text
-          : ts.isIdentifier(prop.name)
-          ? ts.idText(prop.name)
-          : undefined
-
-        if (propName && propName in target.settings) {
-          const value = target.settings[propName]
-          if (current.settings[propName] !== value) {
-            // Update this property
-            descriptions.push(`Update ${propName} setting`)
-            const newProp = ts.factory.createPropertyAssignment(
-              ts.factory.createStringLiteral(propName),
-              typeof value === "string"
-                ? ts.factory.createStringLiteral(value)
-                : typeof value === "boolean"
-                ? value ? ts.factory.createTrue() : ts.factory.createFalse()
-                : ts.factory.createNull()
-            )
-            propsToUpdate.push({ old: prop, new: newProp })
-            newProperties.push(newProp)
-          } else {
-            newProperties.push(prop)
-          }
-        } else {
-          // Keep existing property
-          newProperties.push(prop)
-        }
-      }
-    }
-
-    // Add new properties
-    for (const [key, value] of Object.entries(target.settings)) {
-      const existingProp = findPropertyInObject(ts, rootObj, key)
-      if (!existingProp) {
-        descriptions.push(`Add ${key} setting`)
-        const newProp = ts.factory.createPropertyAssignment(
-          ts.factory.createStringLiteral(key),
-          typeof value === "string"
-            ? ts.factory.createStringLiteral(value)
-            : typeof value === "boolean"
-            ? value ? ts.factory.createTrue() : ts.factory.createFalse()
-            : ts.factory.createNull()
-        )
-        newProperties.push(newProp)
-      }
-    }
-
     const fileChanges = ts.textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
       (tracker: any) => {
-        // Replace the entire root object with updated properties
-        if (newProperties.length !== rootObj.properties.length || propsToUpdate.length > 0) {
+        // Special case: if the root object is empty, we need to replace it entirely
+        // to avoid issues with TypeScript's ChangeTracker
+        if (rootObj.properties.length === 0) {
+          const newProperties: Array<ts.PropertyAssignment> = []
+
+          for (const [key, value] of Object.entries(target.settings)) {
+            descriptions.push(`Add ${key} setting`)
+            newProperties.push(
+              ts.factory.createPropertyAssignment(
+                ts.factory.createStringLiteral(key),
+                typeof value === "string"
+                  ? ts.factory.createStringLiteral(value)
+                  : typeof value === "boolean"
+                  ? value ? ts.factory.createTrue() : ts.factory.createFalse()
+                  : ts.factory.createNull()
+              )
+            )
+          }
+
           const newRootObj = ts.factory.createObjectLiteralExpression(newProperties, true)
           tracker.replaceNode(current.sourceFile, rootObj, newRootObj)
+        } else {
+          // Normal case: only add missing properties, don't update existing ones
+          for (const [key, value] of Object.entries(target.settings)) {
+            const existingProp = findPropertyInObject(ts, rootObj, key)
+
+            if (!existingProp) {
+              // Property doesn't exist - add it
+              descriptions.push(`Add ${key} setting`)
+
+              const newProp = ts.factory.createPropertyAssignment(
+                ts.factory.createStringLiteral(key),
+                typeof value === "string"
+                  ? ts.factory.createStringLiteral(value)
+                  : typeof value === "boolean"
+                  ? value ? ts.factory.createTrue() : ts.factory.createFalse()
+                  : ts.factory.createNull()
+              )
+
+              insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, newProp)
+            }
+            // else: property exists - don't modify it, respect user's existing value
+          }
         }
       }
     )

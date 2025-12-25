@@ -337,6 +337,40 @@ exports[`Setup CLI > should not override existing plugins when adding LSP plugin
 }"
 `;
 
+exports[`Setup CLI > should preserve all existing VSCode settings from real repository config > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve all existing VSCode settings from real repository config > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should preserve all existing VSCode settings from real repository config > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
 exports[`Setup CLI > should preserve existing LSP plugin options when updating diagnostic severities > change summary 1`] = `
 [
   {
@@ -364,6 +398,54 @@ exports[`Setup CLI > should preserve existing LSP plugin options when updating d
 }
       }
     ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > .vscode/settings.json 1`] = `
+"{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.autoSave": "onFocusChange",
+"typescript.enablePromptUseWorkspaceTsdk": true,
+"typescript.tsdk": "./node_modules/typescript/lib"
+}"
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Add typescript.tsdk setting; Add typescript.enablePromptUseWorkspaceTsdk setting",
+    "file": ".vscode/settings.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
   }
 }"
 `;

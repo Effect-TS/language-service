@@ -104,19 +104,6 @@ export function renderTextChange(
     if (deletedOnLastLine.length > 0) {
       lines.push(renderLine(undefined, "-", deletedOnLastLine, Ansi.red))
     }
-
-    // Show the kept part after deletion (if it has non-whitespace)
-    const keptAfterDeletion = lastLineText.slice(endCol)
-    if (keptAfterDeletion.trim().length > 0) {
-      lines.push(renderLine(endLine + 1, "|", keptAfterDeletion, Ansi.blackBright))
-    }
-  } else if (startLine === endLine) {
-    // Single line case: show the kept part after deletion
-    const firstLineText = allLines[startLine]
-    const keptAfterDeletion = firstLineText.slice(endCol)
-    if (keptAfterDeletion.trim().length > 0) {
-      lines.push(renderLine(startLine + 1, "|", keptAfterDeletion, Ansi.blackBright))
-    }
   }
 
   // ============================================================================
@@ -143,6 +130,67 @@ export function renderTextChange(
       // Align first line of addition with the kept part
       const padding = (i === 0 && hasNonWhitespaceKept) ? spacePadding : ""
       lines.push(renderLine(undefined, "+", `${padding}${newLine}`, Ansi.green))
+    }
+  }
+
+  // ============================================================================
+  // Render kept part after deletion
+  // ============================================================================
+
+  // Calculate alignment for the kept part after deletion
+  // If there's new text, align to the end of the last line of new text
+  // Otherwise, align to the original position (endCol)
+  let alignmentForKeptPart = 0
+
+  if (textChange.newText.length > 0) {
+    const newTextLines = textChange.newText.split("\n")
+    const lastNewLine = newTextLines[newTextLines.length - 1]
+
+    // If new text ends with a newline, or if there's only one line,
+    // we need to consider the kept part before deletion
+    if (lastNewLine.length === 0 && newTextLines.length > 1) {
+      // New text ends with newline - no alignment needed
+      alignmentForKeptPart = 0
+    } else {
+      // Calculate the length of the last line of new text
+      const firstLineText = allLines[startLine]
+      const keptBeforeDeletion = firstLineText.slice(0, startCol)
+      const hasNonWhitespaceKept = keptBeforeDeletion.trim().length > 0
+
+      if (hasNonWhitespaceKept) {
+        // First line has kept part + new text
+        if (newTextLines.length === 1) {
+          // Single line new text - align to kept before + new text
+          alignmentForKeptPart = keptBeforeDeletion.length + lastNewLine.length
+        } else {
+          // Multi-line new text - align to last line only
+          alignmentForKeptPart = lastNewLine.length
+        }
+      } else {
+        // No kept part before - align to new text length
+        alignmentForKeptPart = lastNewLine.length
+      }
+    }
+  } else {
+    // No new text - align to original deletion position
+    alignmentForKeptPart = endCol
+  }
+
+  if (endLine > startLine) {
+    // Multi-line deletion: show the kept part after deletion on the last line
+    const lastLineText = allLines[endLine]
+    const keptAfterDeletion = lastLineText.slice(endCol)
+    if (keptAfterDeletion.trim().length > 0) {
+      const alignment = " ".repeat(alignmentForKeptPart)
+      lines.push(renderLine(endLine + 1, "|", `${alignment}${keptAfterDeletion}`, Ansi.blackBright))
+    }
+  } else if (startLine === endLine) {
+    // Single line case: show the kept part after deletion
+    const firstLineText = allLines[startLine]
+    const keptAfterDeletion = firstLineText.slice(endCol)
+    if (keptAfterDeletion.trim().length > 0) {
+      const alignment = " ".repeat(alignmentForKeptPart)
+      lines.push(renderLine(startLine + 1, "|", `${alignment}${keptAfterDeletion}`, Ansi.blackBright))
     }
   }
 

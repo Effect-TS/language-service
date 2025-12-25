@@ -228,6 +228,9 @@ Found 1 error in index.ts:3
 
 The effect language service plugin comes with a builtin CLI tool that can be used to perform various utilities, checks and setups. Since it relies on typescript, we recommend to install it locally and run it locally to ensure it loads the same typescript version of your project rather than a global installation that may resolve to use a different TS version from the one of your project.
 
+### `effect-language-service setup`
+Runs through a wizard to setup/update some basic functionalities of the LSP in an interactive way.
+
 ### `effect-language-service codegen`
 Automatically updates Effect codegens in your TypeScript files. This command scans files for `@effect-codegens` directives and applies the necessary code transformations. Use `--file` to update a specific file, or `--project` with a tsconfig file to update an entire project. The `--verbose` flag provides detailed output about which files are being processed and updated.
 

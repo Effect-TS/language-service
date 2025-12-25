@@ -609,4 +609,86 @@ describe("Setup CLI", () => {
 
     await expectSetupChanges(assessmentInput, targetState)
   })
+
+  it("should preserve existing VSCode settings when adding LSP-specific settings", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      },
+      {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "files.autoSave": "onFocusChange"
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      editors: ["vscode"]
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should preserve all existing VSCode settings from real repository config", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      },
+      {
+        "typescript.tsdk": "./packages/core/node_modules/typescript/lib",
+        "typescript.preferences.importModuleSpecifier": "non-relative",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "editor.formatOnSave": true,
+        "eslint.format.enable": true,
+        "editor.acceptSuggestionOnCommitCharacter": true,
+        "editor.acceptSuggestionOnEnter": "on",
+        "editor.quickSuggestionsDelay": 10,
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.tabCompletion": "off",
+        "editor.suggest.localityBonus": true,
+        "editor.suggestSelection": "recentlyUsed",
+        "editor.wordBasedSuggestions": "matchingDocuments",
+        "editor.parameterHints.enabled": true,
+        "files.insertFinalNewline": true
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      editors: ["vscode"]
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
 })
