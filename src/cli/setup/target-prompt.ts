@@ -127,12 +127,16 @@ export const gatherTargetState = (
     })
 
     // Editor Selection - Using multi-select
+    // Pre-select VSCode if .vscode/settings.json exists
+    const hasVscodeSettings = Option.isSome(assessment.vscodeSettings)
+
     const editors = yield* Prompt.multiSelect({
       message: "Which editors do you use?",
       choices: [
         {
           title: "VS Code / Cursor / VS Code-based editors",
-          value: "vscode" as Editor
+          value: "vscode" as Editor,
+          selected: hasVscodeSettings
         },
         {
           title: "Neovim",
