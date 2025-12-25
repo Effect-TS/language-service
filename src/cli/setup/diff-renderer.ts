@@ -15,6 +15,26 @@ function getLines(text: string): ReadonlyArray<string> {
 }
 
 /**
+ * Render a single line with consistent formatting
+ * @param lineNum - Line number (1-based) or undefined for lines without numbers (changes)
+ * @param symbol - Symbol to display: "|" for unchanged, "-" for deletion, "+" for addition
+ * @param text - The actual line text
+ * @param color - The ANSI color to apply
+ */
+function renderLine(
+  lineNum: number | undefined,
+  symbol: "|" | "-" | "+",
+  text: string,
+  color: Ansi.Ansi
+): Doc.AnsiDoc {
+  const lineNumPart = lineNum !== undefined
+    ? String(lineNum).padStart(4, " ")
+    : "    "
+
+  return Doc.annotate(Doc.text(`${lineNumPart} ${symbol} ${text}`), color)
+}
+
+/**
  * Render a single text change with context (1 line before and after)
  */
 export function renderTextChange(
@@ -38,7 +58,7 @@ export function renderTextChange(
   // Show 1 line before the change (if exists)
   if (startLine > 0) {
     const contextBefore = allLines[startLine - 1]
-    lines.push(Doc.annotate(Doc.text(`  ${contextBefore}`), Ansi.blackBright))
+    lines.push(renderLine(startLine, "|", contextBefore, Ansi.blackBright))
   }
 
   // ============================================================================
@@ -53,7 +73,7 @@ export function renderTextChange(
     // Only show the kept part if it contains non-whitespace characters
     const hasNonWhitespaceKept = keptBeforeDeletion.trim().length > 0
     if (hasNonWhitespaceKept) {
-      lines.push(Doc.annotate(Doc.text(`  ${keptBeforeDeletion}`), Ansi.blackBright))
+      lines.push(renderLine(startLine + 1, "|", keptBeforeDeletion, Ansi.blackBright))
     }
 
     // Show the deleted part of the first line
@@ -64,7 +84,7 @@ export function renderTextChange(
     if (deletedOnFirstLine.length > 0) {
       // Align with spaces to match the kept part's position
       const spacePadding = hasNonWhitespaceKept ? " ".repeat(keptBeforeDeletion.length) : ""
-      lines.push(Doc.annotate(Doc.text(`- ${spacePadding}${deletedOnFirstLine}`), Ansi.red))
+      lines.push(renderLine(undefined, "-", `${spacePadding}${deletedOnFirstLine}`, Ansi.red))
     }
   }
 
@@ -72,7 +92,7 @@ export function renderTextChange(
   for (let i = startLine + 1; i < endLine; i++) {
     const lineText = allLines[i]
     if (lineText !== undefined) {
-      lines.push(Doc.annotate(Doc.text(`- ${lineText}`), Ansi.red))
+      lines.push(renderLine(undefined, "-", lineText, Ansi.red))
     }
   }
 
@@ -82,20 +102,20 @@ export function renderTextChange(
     const deletedOnLastLine = lastLineText.slice(0, endCol)
 
     if (deletedOnLastLine.length > 0) {
-      lines.push(Doc.annotate(Doc.text(`- ${deletedOnLastLine}`), Ansi.red))
+      lines.push(renderLine(undefined, "-", deletedOnLastLine, Ansi.red))
     }
 
     // Show the kept part after deletion (if it has non-whitespace)
     const keptAfterDeletion = lastLineText.slice(endCol)
     if (keptAfterDeletion.trim().length > 0) {
-      lines.push(Doc.annotate(Doc.text(`  ${keptAfterDeletion}`), Ansi.blackBright))
+      lines.push(renderLine(endLine + 1, "|", keptAfterDeletion, Ansi.blackBright))
     }
   } else if (startLine === endLine) {
     // Single line case: show the kept part after deletion
     const firstLineText = allLines[startLine]
     const keptAfterDeletion = firstLineText.slice(endCol)
     if (keptAfterDeletion.trim().length > 0) {
-      lines.push(Doc.annotate(Doc.text(`  ${keptAfterDeletion}`), Ansi.blackBright))
+      lines.push(renderLine(startLine + 1, "|", keptAfterDeletion, Ansi.blackBright))
     }
   }
 
@@ -122,14 +142,14 @@ export function renderTextChange(
 
       // Align first line of addition with the kept part
       const padding = (i === 0 && hasNonWhitespaceKept) ? spacePadding : ""
-      lines.push(Doc.annotate(Doc.text(`+ ${padding}${newLine}`), Ansi.green))
+      lines.push(renderLine(undefined, "+", `${padding}${newLine}`, Ansi.green))
     }
   }
 
   // Show 1 line after the change (if exists)
   if (endLine + 1 < allLines.length) {
     const contextAfter = allLines[endLine + 1]
-    lines.push(Doc.annotate(Doc.text(`  ${contextAfter}`), Ansi.blackBright))
+    lines.push(renderLine(endLine + 2, "|", contextAfter, Ansi.blackBright))
   }
 
   return lines
