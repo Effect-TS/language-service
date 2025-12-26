@@ -86,7 +86,7 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ A: ts.Type; I: ts.Type; R: ts.Type }, TypeParserIssue>
-  effectCauseYieldableErrorTypes: (fromSourceFile: ts.SourceFile) => Nano.Nano<Array<ts.Type>, TypeParserIssue, never>
+  extendsCauseYieldableError: (type: ts.Type) => Nano.Nano<ts.Type, TypeParserIssue, never>
   contextTag: (
     type: ts.Type,
     atLocation: ts.Node
@@ -379,7 +379,7 @@ export function make(
     exportedSymbolName: string
   ) =>
     Nano.cachedBy(
-      Nano.fn("TypeParser.findSymbolsMatchingPackageAndExportedName")(function*(_fromSourceFile: ts.SourceFile) {
+      Nano.fn("TypeParser.findSymbolsMatchingPackageAndExportedName")(function*() {
         const result: Array<[symbol: ts.Symbol, sourceFile: ts.SourceFile]> = []
         for (const sourceFile of program.getSourceFiles()) {
           const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
@@ -393,7 +393,7 @@ export function make(
         return result
       }),
       `TypeParser.findSymbolsMatchingPackageAndExportedName(${packageName}, ${exportedSymbolName})`,
-      (sourceFile) => sourceFile
+      () => program
     )
 
   const isCauseTypeSourceFile = Nano.cachedBy(
@@ -412,22 +412,24 @@ export function make(
     (sourceFile) => sourceFile
   )
 
-  const effectCauseYieldableErrorTypes = Nano.cachedBy(
-    Nano.fn("TypeParser.effectCauseYieldableErrorTypes")(function*(
-      fromSourceFile: ts.SourceFile
+  const extendsCauseYieldableError = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsCauseYieldableError")(function*(
+      givenType: ts.Type
     ) {
-      const symbols = yield* findSymbolsMatchingPackageAndExportedName("effect", "YieldableError")(fromSourceFile)
-      const result: Array<ts.Type> = []
+      const symbols = yield* findSymbolsMatchingPackageAndExportedName("effect", "YieldableError")()
       for (const [symbol, sourceFile] of symbols) {
-        const causeFile = yield* isCauseTypeSourceFile(sourceFile)
+        const causeFile = yield* pipe(isCauseTypeSourceFile(sourceFile), Nano.orElse(() => Nano.void_))
         if (!causeFile) continue
         const type = typeChecker.getDeclaredTypeOfSymbol(symbol)
-        result.push(type)
+        if (!type) continue
+        if (typeChecker.isTypeAssignableTo(givenType, type)) {
+          return type
+        }
       }
-      return result
+      return yield* typeParserIssue("Type does not extend Cause.YieldableError", givenType)
     }),
-    "TypeParser.effectCauseYieldableErrorTypes",
-    (fromSourceFile) => fromSourceFile
+    "TypeParser.extendsCauseYieldableError",
+    (type) => type
   )
 
   function covariantTypeArgument(type: ts.Type): Nano.Nano<ts.Type, TypeParserIssue> {
@@ -1750,7 +1752,7 @@ export function make(
     effectGen,
     effectFnUntracedGen,
     effectFnGen,
-    effectCauseYieldableErrorTypes,
+    extendsCauseYieldableError,
     unnecessaryEffectGen,
     effectSchemaType,
     contextTag,

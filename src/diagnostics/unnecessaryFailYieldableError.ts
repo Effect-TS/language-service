@@ -16,12 +16,6 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
 
-    // Get yieldable error types for this source file
-    const yieldableErrorTypes = yield* pipe(
-      typeParser.effectCauseYieldableErrorTypes(sourceFile),
-      Nano.orElse(() => Nano.succeed([]))
-    )
-
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
       nodeToVisit.push(node)
@@ -45,7 +39,7 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
         // Check if this is Effect.fail call using TypeParser
         yield* pipe(
           typeParser.isNodeReferenceToEffectModuleApi("fail")(callExpression.expression),
-          Nano.map(() => {
+          Nano.flatMap(() => {
             if (callExpression.arguments.length > 0) {
               const failArgument = callExpression.arguments[0]
 
@@ -53,32 +47,32 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
               const argumentType = typeChecker.getTypeAtLocation(failArgument)
 
               // Check if the argument type is assignable to any yieldable error type
-              const isYieldableError = yieldableErrorTypes.some((yieldableType: ts.Type) =>
-                typeChecker.isTypeAssignableTo(argumentType, yieldableType)
+              return pipe(
+                typeParser.extendsCauseYieldableError(argumentType),
+                Nano.map(() =>
+                  report({
+                    location: node,
+                    messageText:
+                      `This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.`,
+                    fixes: [{
+                      fixName: "unnecessaryFailYieldableError_fix",
+                      description: "Replace yield* Effect.fail with yield*",
+                      apply: Nano.gen(function*() {
+                        const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                        // Replace Effect.fail(error) with error
+                        changeTracker.replaceNode(
+                          sourceFile,
+                          callExpression,
+                          failArgument
+                        )
+                      })
+                    }]
+                  })
+                )
               )
-
-              if (isYieldableError) {
-                report({
-                  location: node,
-                  messageText:
-                    `This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.`,
-                  fixes: [{
-                    fixName: "unnecessaryFailYieldableError_fix",
-                    description: "Replace yield* Effect.fail with yield*",
-                    apply: Nano.gen(function*() {
-                      const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-                      // Replace Effect.fail(error) with error
-                      changeTracker.replaceNode(
-                        sourceFile,
-                        callExpression,
-                        failArgument
-                      )
-                    })
-                  }]
-                })
-              }
             }
+            return Nano.void_
           }),
           Nano.ignore
         )
