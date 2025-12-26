@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -16,6 +17,7 @@ export function effectTypeArgs(
     Nano.gen(function*() {
       const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+      const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
       const typeParser = yield* Nano.service(TypeParser.TypeParser)
       const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
       const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
@@ -196,12 +198,15 @@ export function effectTypeArgs(
             adjustedNode.parent.expression
           ) {
             // if we are hovering a yield keyword, we need to get the expression
-            return {
-              label: "Effect Type Parameters",
-              type: typeChecker.getTypeAtLocation(adjustedNode.parent.expression),
-              atLocation: adjustedNode.parent.expression,
-              node: adjustedNode.parent,
-              shouldTry: true
+            const type = typeCheckerUtils.getTypeAtLocation(adjustedNode.parent.expression)
+            if (type) {
+              return {
+                label: "Effect Type Parameters",
+                type,
+                atLocation: adjustedNode.parent.expression,
+                node: adjustedNode.parent,
+                shouldTry: true
+              }
             }
           }
         }
@@ -217,13 +222,16 @@ export function effectTypeArgs(
           }
         }
         // standard case
-        return {
-          label: "Effect Type Parameters",
-          type: typeChecker.getTypeAtLocation(adjustedNode),
-          atLocation: adjustedNode,
-          node: adjustedNode,
-          shouldTry: options.quickinfoEffectParameters === "always" && quickInfo ? true : quickInfo &&
-            ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
+        const type = typeCheckerUtils.getTypeAtLocation(adjustedNode)
+        if (type) {
+          return {
+            label: "Effect Type Parameters",
+            type,
+            atLocation: adjustedNode,
+            node: adjustedNode,
+            shouldTry: options.quickinfoEffectParameters === "always" && quickInfo ? true : quickInfo &&
+              ts.displayPartsToString(quickInfo.displayParts).indexOf("...") > -1
+          }
         }
       }
 

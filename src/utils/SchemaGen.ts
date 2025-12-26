@@ -4,7 +4,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
-import type * as TypeCheckerUtils from "../core/TypeCheckerUtils"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -282,9 +282,12 @@ export const processNode = (
     // typeof A
     if (ts.isTypeQueryNode(node)) {
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-      const type = typeChecker.getTypeAtLocation(node.exprName)
-      const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
-      if (typeNode) return yield* processNode(typeNode, true)
+      const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+      const type = typeCheckerUtils.getTypeAtLocation(node.exprName)
+      if (type) {
+        const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+        if (typeNode) return yield* processNode(typeNode, true)
+      }
     }
     // special pattern (typeof A)[keyof typeof A]
     if (
@@ -295,9 +298,12 @@ export const processNode = (
       node.indexType.type.exprName.getText().trim() === node.objectType.type.exprName.getText().trim()
     ) {
       const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-      const type = typeChecker.getTypeAtLocation(node)
-      const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
-      if (typeNode) return yield* processNode(typeNode, true)
+      const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+      const type = typeCheckerUtils.getTypeAtLocation(node)
+      if (type) {
+        const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+        if (typeNode) return yield* processNode(typeNode, true)
+      }
     }
     // type reference
     if (ts.isTypeReferenceNode(node)) {

@@ -2,7 +2,7 @@ import { pipe } from "effect"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -14,7 +14,7 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
   apply: Nano.fn("overriddenSchemaConstructor.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     function isAllowedConstructor(node: ts.ConstructorDeclaration): boolean {
       if (node.body && node.body.statements.length === 1) {
@@ -58,7 +58,8 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
         for (const heritageClause of node.heritageClauses) {
           if (heritageClause.token === ts.SyntaxKind.ExtendsKeyword) {
             for (const type of heritageClause.types) {
-              const typeAtLocation = typeChecker.getTypeAtLocation(type.expression)
+              const typeAtLocation = typeCheckerUtils.getTypeAtLocation(type.expression)
+              if (!typeAtLocation) continue
               // Check if this type is a valid Schema type
               const isSchema = yield* pipe(
                 typeParser.effectSchemaType(typeAtLocation, type.expression),

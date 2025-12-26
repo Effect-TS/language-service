@@ -4,6 +4,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -15,6 +16,7 @@ export const floatingEffect = LSP.createDiagnostic({
   apply: Nano.fn("floatingEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     function isFloatingExpression(node: ts.Node): node is ts.ExpressionStatement {
@@ -47,7 +49,8 @@ export const floatingEffect = LSP.createDiagnostic({
 
       if (!isFloatingExpression(node)) continue
 
-      const type = typeChecker.getTypeAtLocation(node.expression)
+      const type = typeCheckerUtils.getTypeAtLocation(node.expression)
+      if (!type) continue
       // if type is an effect
       const effect = yield* Nano.option(typeParser.effectType(type, node.expression))
       if (Option.isSome(effect)) {

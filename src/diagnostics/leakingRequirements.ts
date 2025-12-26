@@ -136,7 +136,8 @@ export const leakingRequirements = LSP.createDiagnostic({
         ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
         ts.isIdentifier(node.expression.name) && ts.idText(node.expression.name) === "GenericTag"
       ) {
-        typesToCheck.push([typeChecker.getTypeAtLocation(node), node])
+        const nodeType = typeCheckerUtils.getTypeAtLocation(node)
+        if (nodeType) typesToCheck.push([nodeType, node])
       } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
         const classSym = typeChecker.getSymbolAtLocation(node.name)
         if (classSym) {

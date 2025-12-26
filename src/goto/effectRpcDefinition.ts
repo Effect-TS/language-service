@@ -1,6 +1,7 @@
 import type * as ts from "typescript"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -15,12 +16,14 @@ export function effectRpcDefinition(
   | TypeScriptUtils.TypeScriptUtils
   | TypeScriptApi.TypeScriptProgram
   | TypeCheckerApi.TypeCheckerApi
+  | TypeCheckerUtils.TypeCheckerUtils
 > {
   return Nano.gen(function*() {
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const textRange = tsUtils.toTextRange(position)
 
@@ -64,7 +67,8 @@ export function effectRpcDefinition(
         ts.isIdentifier(node.name) &&
         tsUtils.isNodeInRange(textRange)(node.name)
       ) {
-        const type = typeChecker.getTypeAtLocation(node)
+        const type = typeCheckerUtils.getTypeAtLocation(node)
+        if (!type) return undefined
         for (const callSig of typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)) {
           // we detect if it is an RPC api based on where the options simbol is declared from
           if (callSig.parameters.length >= 2 && isSymbolFromEffectRpcClientModule(callSig.parameters[1])) {
@@ -115,11 +119,13 @@ export function effectRpcDefinition(
         ) {
           const symbol = typeChecker.getSymbolAtLocation(node.expression.name)
           if (symbol && isSymbolFromEffectRpcModule(symbol)) {
-            const type = typeChecker.getTypeAtLocation(node)
-            const _tag = type.getProperty("_tag")
-            if (_tag) {
-              const tagValue = typeChecker.getTypeOfSymbolAtLocation(_tag, node)
-              if ("value" in tagValue && tagValue.value === rpcName) result.push([node, symbol])
+            const type = typeCheckerUtils.getTypeAtLocation(node)
+            if (type) {
+              const _tag = type.getProperty("_tag")
+              if (_tag) {
+                const tagValue = typeChecker.getTypeOfSymbolAtLocation(_tag, node)
+                if ("value" in tagValue && tagValue.value === rpcName) result.push([node, symbol])
+              }
             }
           }
         }

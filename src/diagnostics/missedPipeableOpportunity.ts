@@ -5,6 +5,7 @@ import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOpti
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -16,6 +17,7 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
   apply: Nano.fn("missedPipeableOpportunity.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
@@ -54,7 +56,8 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
         const originalParentChain = parentChain.slice()
         while (parentChain.length > options.pipeableMinArgCount) {
           const subject = parentChain.pop()!
-          const resultType = typeChecker.getTypeAtLocation(subject)
+          const resultType = typeCheckerUtils.getTypeAtLocation(subject)
+          if (!resultType) continue
           const pipeableType = yield* pipe(typeParser.pipeableType(resultType, subject), Nano.orElse(() => Nano.void_))
           if (pipeableType) {
             report({

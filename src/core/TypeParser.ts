@@ -960,7 +960,8 @@ export function make(
         // yield* XXX
         if (ts.isYieldExpression(nodeToCheck) && nodeToCheck.asteriskToken && nodeToCheck.expression) {
           const yieldedExpression = nodeToCheck.expression
-          const type = typeChecker.getTypeAtLocation(yieldedExpression)
+          const type = typeCheckerUtils.getTypeAtLocation(yieldedExpression)
+          if (!type) continue
           const { A: successType } = yield* effectType(type, yieldedExpression)
           let replacementNode: Nano.Nano<ts.Node> = Nano.succeed(yieldedExpression)
           if (!explicitReturn && !(successType.flags & ts.TypeFlags.VoidLike)) {

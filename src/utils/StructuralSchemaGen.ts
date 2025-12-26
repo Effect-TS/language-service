@@ -597,7 +597,7 @@ export const findNodeToProcess = Nano.fn("StructuralSchemaGen.findNodeToProcess"
   function*(sourceFile: ts.SourceFile, textRange: ts.TextRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     return pipe(
       tsUtils.getAncestorNodesInRange(sourceFile, textRange),
@@ -607,7 +607,7 @@ export const findNodeToProcess = Nano.fn("StructuralSchemaGen.findNodeToProcess"
       Array.map((node) => ({
         node,
         identifier: node.name,
-        type: typeChecker.getTypeAtLocation(node.name),
+        type: typeCheckerUtils.getTypeAtLocation(node.name)!,
         isExported: node.modifiers ? (ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Export) !== 0 : false
       })),
       Array.filter(({ type }) => !!type),

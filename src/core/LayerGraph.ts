@@ -120,7 +120,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
         }
       }
     } else if (ts.isExpression(node)) {
-      layerType = typeChecker.getTypeAtLocation(node)
+      layerType = typeCheckerUtils.getTypeAtLocation(node)
     }
     if (layerType) {
       layerTypes = yield* pipe(typeParser.layerType(layerType, node), Nano.orElse(() => Nano.void_))

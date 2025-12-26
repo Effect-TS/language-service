@@ -84,12 +84,14 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
 
       const layerEffectApiCall = parseLayerEffectApiCall(node)
       if (layerEffectApiCall) {
-        const type = typeChecker.getTypeAtLocation(node)
-        yield* pipe(
-          typeParser.layerType(type, node),
-          Nano.flatMap(({ RIn }) => reportIfLayerRequireScope(RIn, node, layerEffectApiCall.methodIdentifier)),
-          Nano.ignore
-        )
+        const type = typeCheckerUtils.getTypeAtLocation(node)
+        if (type) {
+          yield* pipe(
+            typeParser.layerType(type, node),
+            Nano.flatMap(({ RIn }) => reportIfLayerRequireScope(RIn, node, layerEffectApiCall.methodIdentifier)),
+            Nano.ignore
+          )
+        }
         continue
       }
 

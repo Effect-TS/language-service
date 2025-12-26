@@ -2,7 +2,6 @@ import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
@@ -15,7 +14,6 @@ export const globalErrorInEffectFailure = LSP.createDiagnostic({
   apply: Nano.fn("globalErrorInEffectFailure.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const nodeToVisit: Array<ts.Node> = []
@@ -39,10 +37,10 @@ export const globalErrorInEffectFailure = LSP.createDiagnostic({
               const failArgument = node.arguments[0]
 
               // Get the type of the argument passed to Effect.fail
-              const argumentType = typeChecker.getTypeAtLocation(failArgument)
+              const argumentType = typeCheckerUtils.getTypeAtLocation(failArgument)
 
               // Check if the argument type is exactly the global Error type
-              if (typeCheckerUtils.isGlobalErrorType(argumentType)) {
+              if (argumentType && typeCheckerUtils.isGlobalErrorType(argumentType)) {
                 return Nano.sync(() =>
                   report({
                     location: node,

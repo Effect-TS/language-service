@@ -11,6 +11,7 @@ export interface TypeCheckerUtils {
   isUnion: (type: ts.Type) => type is ts.UnionType
   isReadonlyArrayType: (type: ts.Type) => boolean
   isMissingIntrinsicType: (type: ts.Type) => boolean
+  getTypeAtLocation: (node: ts.Node) => ts.Type | undefined
   getTypeParameterAtPosition: (signature: ts.Signature, pos: number) => ts.Type
   getMissingTypeEntriesInTargetType: (realType: ts.Type, expectedType: ts.Type) => Array<ts.Type>
   unrollUnionMembers: (type: ts.Type) => Array<ts.Type>
@@ -482,6 +483,17 @@ export function makeTypeCheckerUtils(
     return fallbackStandard()
   }
 
+  function getTypeAtLocation(node: ts.Node): ts.Type | undefined {
+    if (node.parent && ts.isJsxSelfClosingElement(node.parent) && node.parent.tagName === node) return
+    if (node.parent && ts.isJsxOpeningElement(node.parent) && node.parent.tagName === node) return
+    if (node.parent && ts.isJsxClosingElement(node.parent) && node.parent.tagName === node) return
+    if (node.parent && ts.isJsxAttribute(node.parent) && node.parent.name === node) return
+
+    if (ts.isExpression(node) || ts.isTypeNode(node)) {
+      return typeChecker.getTypeAtLocation(node)
+    }
+  }
+
   return {
     isUnion,
     isReadonlyArrayType,
@@ -494,6 +506,7 @@ export function makeTypeCheckerUtils(
     getInferredReturnType,
     expectedAndRealType,
     typeToSimplifiedTypeNode,
-    isGlobalErrorType
+    isGlobalErrorType,
+    getTypeAtLocation
   }
 }

@@ -7,7 +7,8 @@ import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as LayerGraph from "../core/LayerGraph"
 import * as Nano from "../core/Nano"
-import * as TypeCheckerApi from "../core/TypeCheckerApi"
+import type * as TypeCheckerApi from "../core/TypeCheckerApi"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
@@ -38,7 +39,7 @@ function getAdjustedNode(
   return Nano.gen(function*() {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     // find the node we are hovering
@@ -55,12 +56,14 @@ function getAdjustedNode(
       ? node.initializer
       : node
 
-    const layerType = typeChecker.getTypeAtLocation(layerNode)
-    const maybeLayer = yield* Nano.option(typeParser.layerType(layerType, layerNode))
+    const layerType = typeCheckerUtils.getTypeAtLocation(layerNode)
+    if (layerType) {
+      const maybeLayer = yield* Nano.option(typeParser.layerType(layerType, layerNode))
 
-    if (Option.isNone(maybeLayer)) return undefined
+      if (Option.isNone(maybeLayer)) return undefined
 
-    return { node, layerNode }
+      return { node, layerNode }
+    }
   })
 }
 
