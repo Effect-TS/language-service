@@ -11,6 +11,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missedPipeableOpportunity = LSP.createDiagnostic({
   name: "missedPipeableOpportunity",
   code: 26,
+  description: "Enforces the use of pipeable style for nested function calls",
   severity: "off",
   apply: Nano.fn("missedPipeableOpportunity.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

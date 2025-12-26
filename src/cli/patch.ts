@@ -11,10 +11,10 @@ import {
   getModuleFilePath,
   getPackageJsonData,
   getSourceFileText,
-  getTypeScript,
   getTypeScriptApisUtils,
   getUnpatchedSourceFile,
-  makeEffectLspPatchChange
+  makeEffectLspPatchChange,
+  TypeScriptContext
 } from "./utils"
 
 export class UnableToFindPositionToPatchError extends Data.TaggedError("UnableToFindPositionToPatchError")<{
@@ -51,7 +51,7 @@ const getPatchedMarker = (version: string) => {
 
 const getPatchesForModule = Effect.fn("getPatchesForModule")(
   function*(moduleName: "tsc" | "typescript", dirPath: string, version: string, sourceFile: ts.SourceFile) {
-    const ts = yield* getTypeScript
+    const ts = yield* TypeScriptContext
 
     const patches: Array<ts.TextChange> = []
     let insertClearSourceFileEffectMetadataPosition: Option.Option<{ position: number }> = Option.none()

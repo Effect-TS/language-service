@@ -19,7 +19,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
-import { extractEffectLspOptions, getFileNamesInTsConfig, getTypeScript } from "./utils"
+import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
 
 interface DiagnosticReporterState {
   tsInstance: typeof ts
@@ -311,7 +311,7 @@ export const diagnostics = Command.make(
     const path = yield* Path.Path
     const severityFilter = parseSeverityFilter(severity)
     const state: DiagnosticReporterState = {
-      tsInstance: yield* getTypeScript,
+      tsInstance: yield* TypeScriptContext,
       checkedCount: 0,
       errorsCount: 0,
       warningsCount: 0,

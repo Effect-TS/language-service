@@ -12,6 +12,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const deterministicKeys = LSP.createDiagnostic({
   name: "deterministicKeys",
   code: 25,
+  description: "Enforces deterministic naming for service/tag/error identifiers based on class names",
   severity: "off",
   apply: Nano.fn("deterministicKeys.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

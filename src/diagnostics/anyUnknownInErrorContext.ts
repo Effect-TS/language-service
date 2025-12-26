@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const anyUnknownInErrorContext = LSP.createDiagnostic({
   name: "anyUnknownInErrorContext",
   code: 28,
+  description: "Detects 'any' or 'unknown' types in Effect error or requirements channels",
   severity: "off",
   apply: Nano.fn("anyUnknownInErrorContext.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

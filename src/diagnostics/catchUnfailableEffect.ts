@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const catchUnfailableEffect = LSP.createDiagnostic({
   name: "catchUnfailableEffect",
   code: 2,
+  description: "Warns when using error handling on Effects that never fail (error type is 'never')",
   severity: "suggestion",
   apply: Nano.fn("catchUnfailableEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

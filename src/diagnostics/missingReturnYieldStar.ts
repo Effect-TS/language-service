@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const missingReturnYieldStar = LSP.createDiagnostic({
   name: "missingReturnYieldStar",
   code: 7,
+  description: "Suggests using 'return yield*' for Effects with never success for better type narrowing",
   severity: "error",
   apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

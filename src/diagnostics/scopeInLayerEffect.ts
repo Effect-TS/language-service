@@ -11,6 +11,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const scopeInLayerEffect = LSP.createDiagnostic({
   name: "scopeInLayerEffect",
   code: 13,
+  description: "Suggests using Layer.scoped instead of Layer.effect when Scope is in requirements",
   severity: "warning",
   apply: Nano.fn("scopeInLayerEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

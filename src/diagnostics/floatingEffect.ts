@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const floatingEffect = LSP.createDiagnostic({
   name: "floatingEffect",
   code: 3,
+  description: "Ensures Effects are yielded or assigned to variables, not left floating",
   severity: "error",
   apply: Nano.fn("floatingEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -121,6 +121,11 @@ declare module "typescript" {
         position: number,
         commentText: string
       ): void
+      insertNodeInListAfter(
+        sourceFile: ts.SourceFile,
+        after: ts.Node,
+        newNode: ts.Node
+      ): void
     }
     export function applyChanges(text: string, changes: ReadonlyArray<ts.TextChange>): string
   }

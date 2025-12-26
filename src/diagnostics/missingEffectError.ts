@@ -13,6 +13,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const missingEffectError = LSP.createDiagnostic({
   name: "missingEffectError",
   code: 1,
+  description: "Reports missing error types in Effect error channel",
   severity: "error",
   apply: Nano.fn("missingEffectError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

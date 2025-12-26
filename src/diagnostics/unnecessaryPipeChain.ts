@@ -8,6 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unnecessaryPipeChain = LSP.createDiagnostic({
   name: "unnecessaryPipeChain",
   code: 16,
+  description: "Simplifies chained pipe calls into a single pipe call",
   severity: "suggestion",
   apply: Nano.fn("unnecessaryPipeChain.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

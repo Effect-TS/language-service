@@ -44,6 +44,7 @@ export function createRefactor(definition: RefactorDefinition): RefactorDefiniti
 export interface DiagnosticDefinition {
   name: string
   code: number
+  description: string
   severity: LanguageServicePluginOptions.DiagnosticSeverity | "off"
   apply: (
     sourceFile: ts.SourceFile,

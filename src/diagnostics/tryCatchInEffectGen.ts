@@ -8,6 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const tryCatchInEffectGen = LSP.createDiagnostic({
   name: "tryCatchInEffectGen",
   code: 15,
+  description: "Discourages try/catch in Effect generators in favor of Effect error handling",
   severity: "suggestion",
   apply: Nano.fn("tryCatchInEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

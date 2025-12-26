@@ -8,6 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const strictBooleanExpressions = LSP.createDiagnostic({
   name: "strictBooleanExpressions",
   code: 17,
+  description: "Enforces boolean types in conditional expressions for type safety",
   severity: "off",
   apply: Nano.fn("strictBooleanExpressions.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

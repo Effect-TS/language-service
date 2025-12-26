@@ -8,6 +8,7 @@ import * as writeTagClassAccessors from "../refactors/writeTagClassAccessors.js"
 export const unsupportedServiceAccessors = LSP.createDiagnostic({
   name: "unsupportedServiceAccessors",
   code: 21,
+  description: "Warns about service accessors that need codegen due to generic/complex signatures",
   severity: "warning",
   apply: Nano.fn("unsupportedServiceAccessors.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

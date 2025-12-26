@@ -10,6 +10,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const multipleEffectProvide = LSP.createDiagnostic({
   name: "multipleEffectProvide",
   code: 18,
+  description: "Warns against chaining Effect.provide calls which can cause service lifecycle issues",
   severity: "warning",
   apply: Nano.fn("multipleEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

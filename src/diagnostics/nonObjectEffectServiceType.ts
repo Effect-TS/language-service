@@ -10,6 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const nonObjectEffectServiceType = LSP.createDiagnostic({
   name: "nonObjectEffectServiceType",
   code: 24,
+  description: "Ensures Effect.Service types are objects, not primitives",
   severity: "error",
   apply: Nano.fn("nonObjectEffectServiceType.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

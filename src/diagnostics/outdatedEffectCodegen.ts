@@ -6,6 +6,7 @@ import * as Nano from "../core/Nano.js"
 export const outdatedEffectCodegen = LSP.createDiagnostic({
   name: "outdatedEffectCodegen",
   code: 19,
+  description: "Detects when generated code is outdated and needs to be regenerated",
   severity: "warning",
   apply: Nano.fn("outdatedEffectCodegen.apply")(function*(sourceFile, _report) {
     const codegensWithRanges = yield* LSP.getCodegensForSourceFile(codegens, sourceFile)

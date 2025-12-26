@@ -9,6 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unnecessaryFailYieldableError = LSP.createDiagnostic({
   name: "unnecessaryFailYieldableError",
   code: 29,
+  description: "Suggests yielding yieldable errors directly instead of wrapping with Effect.fail",
   severity: "suggestion",
   apply: Nano.fn("unnecessaryFailYieldableError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

@@ -9,6 +9,7 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   name: "missingStarInYieldEffectGen",
   code: 4,
+  description: "Enforces using 'yield*' instead of 'yield' when yielding Effects in generators",
   severity: "error",
   apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

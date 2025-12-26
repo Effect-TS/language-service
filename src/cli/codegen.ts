@@ -19,7 +19,7 @@ import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
-import { applyTextChanges, extractEffectLspOptions, getFileNamesInTsConfig, getTypeScript } from "./utils"
+import { applyTextChanges, extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
 
 export class NoFilesToCodegenError extends Data.TaggedError("NoFilesToCodegenError")<{}> {
   get message(): string {
@@ -55,7 +55,7 @@ export const codegen = Command.make(
   Effect.fn("codegen")(function*({ file, force, project, verbose }) {
     const path = yield* Path.Path
     const fs = yield* FileSystem.FileSystem
-    const tsInstance = yield* getTypeScript
+    const tsInstance = yield* TypeScriptContext
     let filesToCodegen = new Set<string>()
     let checkedFilesCount = 0
     let updatedFilesCount = 0
