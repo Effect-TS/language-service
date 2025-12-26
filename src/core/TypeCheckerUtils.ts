@@ -27,6 +27,7 @@ export interface TypeCheckerUtils {
     enclosingNode: ts.Node | undefined,
     flags: ts.NodeBuilderFlags | undefined
   ) => ts.TypeNode | undefined
+  isGlobalErrorType: (type: ts.Type) => boolean
 }
 
 export const TypeCheckerUtils = Nano.Tag<TypeCheckerUtils>("TypeCheckerUtils")
@@ -64,6 +65,11 @@ export function makeTypeCheckerUtils(
   const readonlyArraySymbol = typeChecker.resolveName("ReadonlyArray", undefined, ts.SymbolFlags.Type, false)
   const globalReadonlyArrayType = readonlyArraySymbol
     ? typeChecker.getDeclaredTypeOfSymbol(readonlyArraySymbol)
+    : undefined
+
+  const errorSymbol = typeChecker.resolveName("Error", undefined, ts.SymbolFlags.Type, false)
+  const globalErrorType = errorSymbol
+    ? typeChecker.getDeclaredTypeOfSymbol(errorSymbol)
     : undefined
 
   function isUnion(type: ts.Type): type is ts.UnionType {
@@ -386,6 +392,13 @@ export function makeTypeCheckerUtils(
     return typeToSimplifiedTypeNodeWorker(type, enclosingNode, flags, 0)
   }
 
+  function isGlobalErrorType(type: ts.Type): boolean {
+    if (!globalErrorType) return false
+    // Check if the type is exactly the global Error type by checking both directions
+    return typeChecker.isTypeAssignableTo(type, globalErrorType) &&
+      typeChecker.isTypeAssignableTo(globalErrorType, type)
+  }
+
   function typeToSimplifiedTypeNodeWorker(
     type: ts.Type,
     enclosingNode: ts.Node | undefined,
@@ -480,6 +493,7 @@ export function makeTypeCheckerUtils(
     deterministicTypeOrder,
     getInferredReturnType,
     expectedAndRealType,
-    typeToSimplifiedTypeNode
+    typeToSimplifiedTypeNode,
+    isGlobalErrorType
   }
 }
