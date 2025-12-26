@@ -4,6 +4,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -16,6 +17,7 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -60,7 +62,7 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
                 // Get the effect type based on argument index
                 if (argIndex === 0) {
                   // If argIndex is 0, get the type from the subject
-                  effectTypeToCheck = typeChecker.getTypeAtLocation(subject)
+                  effectTypeToCheck = typeCheckerUtils.getTypeAtLocation(subject)
                 } else {
                   // If argIndex > 0, get the type from signature type arguments at argIndex
                   const signature = typeChecker.getResolvedSignature(pipeCallNode)

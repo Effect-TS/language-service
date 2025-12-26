@@ -71,14 +71,16 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
                 // Process dependencies (treat undefined/null as empty array)
                 const providedIndexes = new Set<string>()
 
-                const optionsType = typeChecker.getTypeAtLocation(options)
-                const dependenciesProperty = typeChecker.getPropertyOfType(optionsType, "dependencies")
                 let types: Array<ts.Type> = []
 
-                if (dependenciesProperty) {
-                  const dependenciesTypes = typeChecker.getTypeOfSymbolAtLocation(dependenciesProperty, options)
-                  const numberIndexType = typeChecker.getIndexTypeOfType(dependenciesTypes, ts.IndexKind.Number)
-                  types = numberIndexType ? typeCheckerUtils.unrollUnionMembers(numberIndexType) : []
+                const optionsType = typeCheckerUtils.getTypeAtLocation(options)
+                if (optionsType) {
+                  const dependenciesProperty = typeChecker.getPropertyOfType(optionsType, "dependencies")
+                  if (dependenciesProperty) {
+                    const dependenciesTypes = typeChecker.getTypeOfSymbolAtLocation(dependenciesProperty, options)
+                    const numberIndexType = typeChecker.getIndexTypeOfType(dependenciesTypes, ts.IndexKind.Number)
+                    types = numberIndexType ? typeCheckerUtils.unrollUnionMembers(numberIndexType) : []
+                  }
                 }
 
                 // Process each dependency to get what services they provide

@@ -68,12 +68,13 @@ export const nonObjectEffectServiceType = LSP.createDiagnostic({
             }
 
             if (propertyName === "succeed") {
-              const valueType = typeChecker.getTypeAtLocation(propertyValue)
-              if (isPrimitiveType(valueType)) {
+              const valueType = typeCheckerUtils.getTypeAtLocation(propertyValue)
+              if (valueType && isPrimitiveType(valueType)) {
                 report(errorToReport)
               }
             } else if (propertyName === "sync") {
-              const valueType = typeChecker.getTypeAtLocation(propertyValue)
+              const valueType = typeCheckerUtils.getTypeAtLocation(propertyValue)
+              if (!valueType) continue
               const signatures = typeChecker.getSignaturesOfType(valueType, ts.SignatureKind.Call)
 
               for (const signature of signatures) {
@@ -84,7 +85,8 @@ export const nonObjectEffectServiceType = LSP.createDiagnostic({
                 }
               }
             } else if (propertyName === "effect" || propertyName === "scoped") {
-              const valueType = typeChecker.getTypeAtLocation(propertyValue)
+              const valueType = typeCheckerUtils.getTypeAtLocation(propertyValue)
+              if (!valueType) continue
 
               const effectResult = yield* pipe(
                 typeParser.effectType(valueType, propertyValue),

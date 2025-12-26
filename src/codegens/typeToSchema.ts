@@ -37,7 +37,7 @@ export const typeToSchema = LSP.createCodegen({
           )
         }
 
-        const type = typeChecker.getTypeAtLocation(node.name)
+        const type = typeCheckerUtils.getTypeAtLocation(node.name)
         if (!type) {
           return yield* Nano.fail(
             new LSP.CodegenNotApplicableError(

@@ -2,7 +2,7 @@ import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -15,7 +15,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
   apply: Nano.fn("multipleEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const effectModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
@@ -36,7 +36,8 @@ export const multipleEffectProvide = LSP.createDiagnostic({
         node.arguments.length > 0
       ) {
         const layer = node.arguments[0]
-        const type = typeChecker.getTypeAtLocation(layer)
+        const type = typeCheckerUtils.getTypeAtLocation(layer)
+        if (!type) return Nano.void_
         return pipe(
           typeParser.isNodeReferenceToEffectModuleApi("provide")(node.expression),
           Nano.flatMap(() => typeParser.layerType(type, layer)),

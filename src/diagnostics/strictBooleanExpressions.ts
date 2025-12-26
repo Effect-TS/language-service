@@ -55,7 +55,8 @@ export const strictBooleanExpressions = LSP.createDiagnostic({
         if (!conditionChecks.has(nodeToCheck.parent)) continue
 
         if (!ts.isExpression(nodeToCheck)) continue
-        const nodeType = typeChecker.getTypeAtLocation(nodeToCheck)
+        const nodeType = typeCheckerUtils.getTypeAtLocation(nodeToCheck)
+        if (!nodeType) continue
         const constrainedType = typeChecker.getBaseConstraintOfType(nodeType)
         let typesToCheck = [constrainedType || nodeType]
 

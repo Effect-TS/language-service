@@ -2,7 +2,7 @@ import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -14,7 +14,7 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
   apply: Nano.fn("unnecessaryFailYieldableError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -44,7 +44,8 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
               const failArgument = callExpression.arguments[0]
 
               // Get the type of the argument passed to Effect.fail
-              const argumentType = typeChecker.getTypeAtLocation(failArgument)
+              const argumentType = typeCheckerUtils.getTypeAtLocation(failArgument)
+              if (!argumentType) return Nano.void_
 
               // Check if the argument type is assignable to any yieldable error type
               return pipe(

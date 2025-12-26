@@ -3,7 +3,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -14,7 +14,7 @@ export const returnEffectInGen = LSP.createDiagnostic({
   severity: "suggestion",
   apply: Nano.fn("returnEffectInGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const nodeToVisit: Array<ts.Node> = []
@@ -50,7 +50,8 @@ export const returnEffectInGen = LSP.createDiagnostic({
         ) continue // fast exit
 
         // are we returning an effect with never as success type?
-        const type = typeChecker.getTypeAtLocation(node.expression)
+        const type = typeCheckerUtils.getTypeAtLocation(node.expression)
+        if (!type) continue
         const maybeEffect = yield* Nano.option(typeParser.strictEffectType(type, node.expression))
 
         if (Option.isSome(maybeEffect)) {

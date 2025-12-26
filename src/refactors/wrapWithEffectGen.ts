@@ -5,6 +5,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -16,6 +17,7 @@ export const wrapWithEffectGen = LSP.createRefactor({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const findEffectToWrap = Nano.fn("wrapWithEffectGen.apply.findEffectToWrap")(
@@ -28,7 +30,8 @@ export const wrapWithEffectGen = LSP.createRefactor({
           parent != null && ts.isVariableDeclaration(parent) && parent.initializer !== node
         ) return yield* Nano.fail("is LHS of variable declaration")
 
-        const type = typeChecker.getTypeAtLocation(node)
+        const type = typeCheckerUtils.getTypeAtLocation(node)
+        if (!type) return yield* Nano.fail("cannot get type")
         yield* typeParser.strictEffectType(type, node)
 
         return node

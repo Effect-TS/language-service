@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -14,6 +15,7 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
   apply: Nano.fn("anyUnknownInErrorContext.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const isAnyOrUnknown = (type: ts.Type) =>
@@ -43,7 +45,8 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
       if (ts.isParameter(node) || ts.isPropertyDeclaration(node) || ts.isVariableDeclaration(node)) {
         if (node.type) {
           const typeNode = node.type
-          const type = typeChecker.getTypeAtLocation(node.type)
+          const type = typeCheckerUtils.getTypeAtLocation(node.type)
+          if (!type) continue
           const expectedEffect = yield* pipe(
             typeParser.strictEffectType(type, node.type),
             Nano.orElse(() => typeParser.layerType(type, typeNode)),
@@ -57,11 +60,7 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
 
       // Get type at location
       if (!ts.isExpression(node)) continue
-      if (node.parent && ts.isJsxSelfClosingElement(node.parent) && node.parent.tagName === node) continue
-      if (node.parent && ts.isJsxOpeningElement(node.parent) && node.parent.tagName === node) continue
-      if (node.parent && ts.isJsxClosingElement(node.parent) && node.parent.tagName === node) continue
-      if (node.parent && ts.isJsxAttribute(node.parent) && node.parent.name === node) continue
-      let type = typeChecker.getTypeAtLocation(node)
+      let type = typeCheckerUtils.getTypeAtLocation(node)
       if (ts.isCallExpression(node)) {
         const resolvedSignature = typeChecker.getResolvedSignature(node)
         if (resolvedSignature) {
