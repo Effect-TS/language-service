@@ -1,0 +1,23 @@
+// code fix globalErrorInEffectFailure_skipFile  output for range 264 - 313
+/** @effect-diagnostics globalErrorInEffectFailure:skip-file */
+import { Data, Effect } from "effect"
+
+class CustomError extends Data.TaggedError("CustomError")<{}> {}
+
+export const shouldNotReport = Effect.fail(new CustomError())
+
+export const shouldReport = Effect.fail(new Error("global error"))
+export const shouldReport2 = Effect.fail(new globalThis.Error("global error"))
+
+export class BaseExtendsError extends Error {
+}
+
+// this is not fine because it extends the global Error type without changing it
+export const shouldReport3 = Effect.fail(new BaseExtendsError())
+
+export class BaseExtendsErrorWithTag extends Error {
+  readonly _tag = "BaseExtendsErrorWithTag"
+}
+
+// this is fine because it has some property that is not the global Error type
+export const shouldNotReport2 = Effect.fail(new BaseExtendsErrorWithTag())
