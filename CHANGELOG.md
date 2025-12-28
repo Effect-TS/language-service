@@ -1,5 +1,102 @@
 # @effect/language-service
 
+## 0.63.0
+
+### Minor Changes
+
+- [#548](https://github.com/Effect-TS/language-service/pull/548) [`ef8c2de`](https://github.com/Effect-TS/language-service/commit/ef8c2de288a8450344157f726986a4f35736dd78) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `globalErrorInEffectFailure` diagnostic
+
+  This diagnostic warns when `Effect.fail` is called with the global `Error` type. Using the global `Error` type in Effect failures is not recommended as they can get merged together, making it harder to distinguish between different error types.
+
+  Instead, the diagnostic recommends using:
+
+  - Tagged errors with `Data.TaggedError`
+  - Custom error classes with a discriminator property (like `_tag`)
+
+  Example:
+
+  ```ts
+  // This will trigger a warning
+  Effect.fail(new Error("global error"));
+
+  // These are recommended alternatives
+  Effect.fail(new CustomError()); // where CustomError extends Data.TaggedError
+  Effect.fail(new MyError()); // where MyError has a _tag property
+  ```
+
+- [#545](https://github.com/Effect-TS/language-service/pull/545) [`c590b5a`](https://github.com/Effect-TS/language-service/commit/c590b5af59cc5b656c02ea6e03ba63d110ea65d3) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `effect-language-service setup` CLI command
+
+  This new command provides an interactive wizard to guide users through the complete installation and configuration of the Effect Language Service. The setup command:
+
+  - Analyzes your repository structure (package.json, tsconfig files)
+  - Guides you through adding the package to devDependencies
+  - Configures the TypeScript plugin in your tsconfig.json
+  - Allows customizing diagnostic severity levels
+  - Optionally adds prepare script for automatic patching
+  - Optionally configures VS Code settings for workspace TypeScript usage
+  - Shows a review of all changes before applying them
+
+  Example usage:
+
+  ```bash
+  effect-language-service setup
+  ```
+
+  The wizard will walk you through each step and show you exactly what changes will be made before applying them.
+
+- [#550](https://github.com/Effect-TS/language-service/pull/550) [`4912ee4`](https://github.com/Effect-TS/language-service/commit/4912ee41531dc91ad0ba2828ea555cb79f2c6d9e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for `@effect/sql`'s `Model.Class` in completions and diagnostics
+
+  - Added `effectSqlModelSelfInClasses` completion: Auto-completes the `Self` type parameter when extending `Model.Class` from `@effect/sql`
+  - Extended `classSelfMismatch` diagnostic: Now detects when the `Self` type parameter in `Model.Class<Self>` doesn't match the actual class name
+
+  Example:
+
+  ```ts
+  import { Model } from "@effect/sql";
+  import * as Schema from "effect/Schema";
+
+  // Completion triggers after "Model." to generate the full class boilerplate
+  export class User extends Model.Class<User>("User")({
+    id: Schema.String,
+  }) {}
+
+  // Diagnostic warns when Self type parameter doesn't match class name
+  export class User extends Model.Class<WrongName>("User")({
+    //                                    ^^^^^^^^^ Self type should be "User"
+    id: Schema.String,
+  }) {}
+  ```
+
+### Patch Changes
+
+- [#547](https://github.com/Effect-TS/language-service/pull/547) [`9058a37`](https://github.com/Effect-TS/language-service/commit/9058a373ba1567a9336d0c3b36de981337757219) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - refactor: simplify `unnecessaryFailYieldableError` diagnostic implementation
+
+  Changed the implementation to check if a type extends `Cause.YieldableError` on-demand rather than fetching all yieldable error types upfront.
+
+- [#549](https://github.com/Effect-TS/language-service/pull/549) [`039f4b2`](https://github.com/Effect-TS/language-service/commit/039f4b21da6e1d6ae695ba26cce0516d09f86643) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `getTypeAtLocation` utility to `TypeCheckerUtils`
+
+  This refactoring adds a new `getTypeAtLocation` function to `TypeCheckerUtils` that safely retrieves types while filtering out JSX-specific nodes (JSX elements, opening/closing tags, and JSX attributes) that could cause issues when calling `typeChecker.getTypeAtLocation`.
+
+  The utility is now used across multiple diagnostics and features, reducing code duplication and ensuring consistent handling of edge cases:
+
+  - `anyUnknownInErrorContext`
+  - `catchUnfailableEffect`
+  - `floatingEffect`
+  - `globalErrorInEffectFailure`
+  - `leakingRequirements`
+  - `missedPipeableOpportunity`
+  - `missingEffectServiceDependency`
+  - `missingReturnYieldStar`
+  - `multipleEffectProvide`
+  - `nonObjectEffectServiceType`
+  - `overriddenSchemaConstructor`
+  - `returnEffectInGen`
+  - `scopeInLayerEffect`
+  - `strictBooleanExpressions`
+  - `strictEffectProvide`
+  - `unnecessaryFailYieldableError`
+  - And other features like quick info, goto definition, and refactors
+
 ## 0.62.5
 
 ### Patch Changes
