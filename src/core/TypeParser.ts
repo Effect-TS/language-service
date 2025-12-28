@@ -43,6 +43,9 @@ export interface TypeParser {
   isNodeReferenceToEffectContextModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectSqlModelModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
     node: ts.Node
   ) => Nano.Nano<
@@ -197,6 +200,14 @@ export interface TypeParser {
       className: ts.Identifier
       keyStringLiteral: ts.StringLiteral | undefined
       Data: ts.Node
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsEffectSqlModelClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
     },
     TypeParserIssue,
     never
@@ -1739,11 +1750,93 @@ export function make(
     (atLocation) => atLocation
   )
 
+  const isEffectSqlModelTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectSqlModelTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      // check for Class
+      const classSymbol = typeChecker.tryGetMemberInModuleExports("Class", moduleSymbol)
+      if (!classSymbol) return yield* typeParserIssue("Model's Class type not found", undefined, sourceFile)
+      // check for makeRepository
+      const makeRepositorySymbol = typeChecker.tryGetMemberInModuleExports("makeRepository", moduleSymbol)
+      if (!makeRepositorySymbol) {
+        return yield* typeParserIssue("Model's makeRepository type not found", undefined, sourceFile)
+      }
+      // check for makeDataLoaders
+      const makeDataLoadersSymbol = typeChecker.tryGetMemberInModuleExports("makeDataLoaders", moduleSymbol)
+      if (!makeDataLoadersSymbol) {
+        return yield* typeParserIssue("Model's makeDataLoaders type not found", undefined, sourceFile)
+      }
+      return sourceFile
+    }),
+    "TypeParser.isEffectSqlModelTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectSqlModelModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectSqlModelModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(
+          node,
+          "@effect/sql",
+          isEffectSqlModelTypeSourceFile,
+          memberName
+        )
+      }),
+      `TypeParser.isNodeReferenceToEffectSqlModelModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const extendsEffectSqlModelClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsEffectSqlModelClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Model.Class<T>("name")({})
+              const schemaCall = expression.expression
+              if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSqlModelModuleApi("Class")(schemaCall.expression),
+                  Nano.option
+                )
+                if (Option.isSome(isEffectSchemaModuleApi)) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode: schemaCall.typeArguments[0]!
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend @effect/sql's Model.Class", undefined, atLocation)
+    }),
+    "TypeParser.extendsEffectSqlModelClass",
+    (atLocation) => atLocation
+  )
+
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
     isNodeReferenceToEffectDataModuleApi,
     isNodeReferenceToEffectContextModuleApi,
+    isNodeReferenceToEffectSqlModelModuleApi,
     effectType,
     strictEffectType,
     layerType,
@@ -1769,6 +1862,7 @@ export function make(
     extendsSchemaTaggedError,
     extendsDataTaggedError,
     extendsDataTaggedClass,
-    extendsSchemaTaggedRequest
+    extendsSchemaTaggedRequest,
+    extendsEffectSqlModelClass
   }
 }

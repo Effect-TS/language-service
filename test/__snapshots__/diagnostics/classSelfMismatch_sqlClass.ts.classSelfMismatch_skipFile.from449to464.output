@@ -1,0 +1,15 @@
+// code fix classSelfMismatch_skipFile  output for range 449 - 464
+/** @effect-diagnostics classSelfMismatch:skip-file */
+import { Model } from "@effect/sql"
+import * as Schema from "effect/Schema"
+import {} from "@effect/experimental"
+
+// valid usage
+export class ValidModelClass extends Model.Class<ValidModelClass>("ValidModelClass")({
+  id: Schema.String
+}) {}
+
+// invalid usage: Model.Class<ValidModelClass> should be Model.Class<InvalidModelClass> because the Self type parameter is not the same as the class name
+export class InvalidModelClass extends Model.Class<ValidModelClass>("InvalidModelClass")({
+  id2: Schema.String
+}) {}
