@@ -509,6 +509,22 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportTag.ts
 ]
 `;
 
+exports[`Completion effectSqlModelSelfInClasses > effectSqlModelSelfInClasses.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "Model.Class<MyDataModel>("MyDataModel")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<MyDataModel>",
+    "replacementSpan": {
+      "length": 6,
+      "start": 154,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion fnFunctionStar > fnFunctionStar.ts at 4:24 1`] = `
 [
   {

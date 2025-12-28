@@ -6,12 +6,14 @@ import { effectDiagnosticsComment } from "./completions/effectDiagnosticsComment
 import { effectJsdocComment } from "./completions/effectJsdocComment.js"
 import { effectSchemaSelfInClasses } from "./completions/effectSchemaSelfInClasses.js"
 import { effectSelfInClasses } from "./completions/effectSelfInClasses.js"
+import { effectSqlModelSelfInClasses } from "./completions/effectSqlModelSelfInClasses.js"
 import { fnFunctionStar } from "./completions/fnFunctionStar.js"
 import { genFunctionStar } from "./completions/genFunctionStar.js"
 import { rpcMakeClasses } from "./completions/rpcMakeClasses.js"
 import { schemaBrand } from "./completions/schemaBrand.js"
 
 export const completions = [
+  effectSqlModelSelfInClasses,
   effectSchemaSelfInClasses,
   effectSelfInClasses,
   contextSelfInClasses,
