@@ -39,6 +39,7 @@ export const selectTsConfigFile = (
 > =>
   Effect.gen(function*() {
     const fs = yield* FileSystem.FileSystem
+    const path = yield* Path.Path
 
     const tsconfigFiles = yield* findTsConfigFiles(currentDir)
 
@@ -75,13 +76,12 @@ export const selectTsConfigFile = (
         selectedTsconfigPath = selected
       }
     }
+    selectedTsconfigPath = path.resolve(selectedTsconfigPath)
 
     // Check if the selected tsconfig file exists
     const tsconfigExists = yield* fs.exists(selectedTsconfigPath)
     if (!tsconfigExists) {
-      return yield* Effect.fail(
-        new TsConfigNotFoundError({ path: selectedTsconfigPath })
-      )
+      return yield* new TsConfigNotFoundError({ path: selectedTsconfigPath })
     }
 
     // Read the tsconfig file
