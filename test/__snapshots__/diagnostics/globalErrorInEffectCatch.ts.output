@@ -1,0 +1,7 @@
+Effect.tryPromise
+13:35 - 13:52 | 0 | The 'catch' callback in Effect.tryPromise returns the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together.
+Instead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectCatch)
+
+Effect.tryMapPromise
+23:60 - 23:80 | 0 | The 'catch' callback in Effect.tryMapPromise returns the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together.
+Instead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectCatch)

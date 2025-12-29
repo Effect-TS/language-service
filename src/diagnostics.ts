@@ -7,6 +7,7 @@ import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
+import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
 import { globalErrorInEffectFailure } from "./diagnostics/globalErrorInEffectFailure.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
@@ -71,5 +72,6 @@ export const diagnostics = [
   runEffectInsideEffect,
   schemaUnionOfLiterals,
   schemaStructWithTag,
+  globalErrorInEffectCatch,
   globalErrorInEffectFailure
 ]

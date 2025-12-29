@@ -115,7 +115,7 @@ export const leakingRequirements = LSP.createDiagnostic({
         location: node,
         messageText: `This Service is leaking the ${
           requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
-        } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can either safely disable this diagnostic for this line through quickfixes or mark the service declaration with a JSDoc @effect-leakable-service.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
+        } requirement.\nIf these requirements cannot be cached and are expected to be provided per method invocation (e.g. HttpServerRequest), you can either safely disable this diagnostic for this line through quickfixes or mark the service declaration with a JSDoc @effect-leakable-service.\nServices should usually be collected in the layer creation body, and then provided at each method that requires them.\nMore info at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
         fixes: []
       })
     }
