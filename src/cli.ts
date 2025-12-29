@@ -25,7 +25,7 @@ const main = Command.run(cliCommand, {
   version: "0.0.2"
 })
 
-const cliLayers = Layer.merge(NodeContext.layer, TypeScriptContext.live)
+const cliLayers = Layer.merge(NodeContext.layer, TypeScriptContext.live(process.cwd()))
 
 main(process.argv).pipe(
   Effect.provide(cliLayers),
