@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.63.1
+
+### Patch Changes
+
+- [#551](https://github.com/Effect-TS/language-service/pull/551) [`9b3d807`](https://github.com/Effect-TS/language-service/commit/9b3d8071ec3af88ce219cc5a6a96e792bbdca2a2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - fix: resolve TypeScript from project's working directory
+
+  The CLI now attempts to resolve TypeScript from the current working directory first before falling back to the package's bundled version. This ensures the CLI uses the same TypeScript version as the project being analyzed.
+
 ## 0.63.0
 
 ### Minor Changes
