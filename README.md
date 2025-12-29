@@ -49,6 +49,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 ### Diagnostics
 
 - Better error readability when you're missing errors or service types in your Effect definitions
+- Better error readability when you're missing service requirements in your Layer definitions
 - Floating Effects that are not yielded or run
 - Wrong usage of yield inside `Effect.gen`
 - Multiple versions of Effect in your project

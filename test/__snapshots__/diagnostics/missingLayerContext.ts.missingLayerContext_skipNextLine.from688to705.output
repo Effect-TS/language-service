@@ -1,0 +1,32 @@
+// code fix missingLayerContext_skipNextLine  output for range 688 - 705
+import * as Effect from "effect/Effect"
+import type * as Layer from "effect/Layer"
+
+class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+  succeed: { a: 1 }
+}) {}
+
+class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+  succeed: { a: 2 }
+}) {}
+
+class ServiceC extends Effect.Service<ServiceC>()("ServiceC", {
+  succeed: { a: 3 }
+}) {}
+
+declare const layerWithServices: Layer.Layer<ServiceA, never, ServiceB | ServiceC>
+
+function testFn(layer: Layer.Layer<ServiceA>) {
+  return layer
+}
+
+// @ts-expect-error
+testFn(layerWithServices)
+
+function testFnWithServiceB(layer: Layer.Layer<ServiceA, never, ServiceB>) {
+  return layer
+}
+
+// @ts-expect-error
+// @effect-diagnostics-next-line missingLayerContext:off
+testFnWithServiceB(layerWithServices)
