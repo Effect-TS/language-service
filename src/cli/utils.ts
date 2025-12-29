@@ -70,14 +70,23 @@ export class TypeScriptContext extends Context.Tag("TypeScriptContext")<
   TypeScriptContext,
   TypeScriptApi
 >() {
-  static live = Layer.effect(
-    TypeScriptContext,
-    Effect.try({
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      try: () => require("typescript") as typeof ts,
-      catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
-    })
-  )
+  static live = (cwd: string) =>
+    Layer.effect(
+      TypeScriptContext,
+      Effect.try({
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        try: () => require(require.resolve("typescript", { paths: [cwd] })) as typeof ts,
+        catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
+      }).pipe(
+        Effect.orElse(() =>
+          Effect.try({
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            try: () => require("typescript") as typeof ts,
+            catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
+          })
+        )
+      )
+    )
 }
 
 export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(packageDir: string) {

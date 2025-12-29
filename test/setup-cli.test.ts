@@ -59,12 +59,12 @@ export async function expectSetupChanges(
 ) {
   // Run assessment
   const assessmentState = await Effect.runPromise(
-    assess(assessmentInput).pipe(Effect.provide(TypeScriptContext.live))
+    assess(assessmentInput).pipe(Effect.provide(TypeScriptContext.live(".")))
   )
 
   // Compute changes (returns { codeActions, messages })
   const result = await Effect.runPromise(
-    computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContext.live))
+    computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContext.live(".")))
   )
 
   // 1. Snapshot of change summary (file + description)
