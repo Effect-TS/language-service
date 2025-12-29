@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.63.2
+
+### Patch Changes
+
+- [#553](https://github.com/Effect-TS/language-service/pull/553) [`e64e3df`](https://github.com/Effect-TS/language-service/commit/e64e3dfe235398af388e7d3ffdd36dbd02422730) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - fix: ensure correct path resolution in CLI setup
+
+  - Use `process.cwd()` explicitly in `path.resolve()` for consistent behavior
+  - Resolve the selected tsconfig path to an absolute path before validation
+  - Simplify error handling by using direct `yield*` for `TsConfigNotFoundError`
+
 ## 0.63.1
 
 ### Patch Changes
