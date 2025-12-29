@@ -35,9 +35,7 @@ const createAssessmentInput = (
     const packageJsonExists = yield* fs.exists(packageJsonPath)
 
     if (!packageJsonExists) {
-      return yield* Effect.fail(
-        new PackageJsonNotFoundError({ path: packageJsonPath })
-      )
+      return yield* new PackageJsonNotFoundError({ path: packageJsonPath })
     }
 
     const packageJsonText = yield* fs.readFileString(packageJsonPath).pipe(
@@ -83,7 +81,7 @@ export const setup = Command.make(
       // ========================================================================
       // Phase 1: Select tsconfig file
       // ========================================================================
-      const currentDir = path.resolve(".")
+      const currentDir = path.resolve(process.cwd())
       const tsconfigInput = yield* selectTsConfigFile(currentDir)
 
       // ========================================================================
