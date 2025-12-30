@@ -590,12 +590,17 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
       Order.reverse(Order.number),
       (_: LayerOutlineGraphNodeInfo) => _.provides.length
     )
+    const orderByRequiredCount = Order.mapInput(
+      Order.reverse(Order.number),
+      (_: LayerOutlineGraphNodeInfo) => _.requires.length
+    )
+    const layerOrder = Order.combine(orderByProvidedCount, orderByRequiredCount)
 
     // no need to filter because the outline graph is already deduplicated and only keeping childs
     const reversedGraph = Graph.mutate(outlineGraph, Graph.reverse)
     const rootIndexes = Array.fromIterable(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
     const allNodes = Array.fromIterable(
-      Graph.values(dfsPostOrderWithOrder(reversedGraph, { start: rootIndexes, order: orderByProvidedCount }))
+      Graph.values(dfsPostOrderWithOrder(reversedGraph, { start: rootIndexes, order: layerOrder }))
     )
     for (const nodeInfo of allNodes) {
       if (!ts.isExpression(nodeInfo.node)) continue
