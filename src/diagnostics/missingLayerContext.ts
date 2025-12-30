@@ -9,7 +9,7 @@ import * as TypeParser from "../core/TypeParser.js"
 
 export const missingLayerContext = LSP.createDiagnostic({
   name: "missingLayerContext",
-  code: 37,
+  code: 38,
   description: "Reports missing service requirements in Layer context channel",
   severity: "error",
   apply: Nano.fn("missingLayerContext.apply")(function*(sourceFile, report) {
