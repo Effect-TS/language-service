@@ -46,6 +46,7 @@ export interface LayerGraphNodeInfo {
   displayNode: ts.Node
   layerType: ts.Type | undefined
   provides: Array<ts.Type>
+  actualProvides: Array<ts.Type>
   requires: Array<ts.Type>
   layerTypes: undefined | {
     ROut: ts.Type
@@ -107,6 +108,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
   const extractNodeInfo = Nano.fn("extractNodeInfo")(function*(node: ts.Node) {
     let provides: Array<ts.Type> = []
     let requires: Array<ts.Type> = []
+    let actualProvides: Array<ts.Type> = []
     let layerType: ts.Type | undefined = undefined
     let layerTypes: LayerGraphNodeInfo["layerTypes"] | undefined = undefined
     if (nodeInPipeContext.has(node)) {
@@ -131,6 +133,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
       // just omit never, not useful at all.
       provides = typeCheckerUtils.unrollUnionMembers(layerTypes.ROut).filter((_) => !(_.flags & ts.TypeFlags.Never))
       requires = typeCheckerUtils.unrollUnionMembers(layerTypes.RIn).filter((_) => !(_.flags & ts.TypeFlags.Never))
+      actualProvides = provides.filter((_) => !typeChecker.isTypeAssignableTo(_, layerTypes.RIn))
     }
 
     // for the display node, we want to use the name of the variable declaration if the node is the initializer
@@ -139,7 +142,7 @@ export const extractLayerGraph = Nano.fn("extractLayerGraph")(function*(node: ts
       displayNode = node.parent.name
     }
 
-    return { node, displayNode, layerType, layerTypes, provides, requires }
+    return { node, displayNode, layerType, layerTypes, provides, actualProvides, requires }
   })
 
   const addNode = Nano.fn("addNode")(function*(node: ts.Node, nodeInfo?: LayerGraphNodeInfo) {
@@ -424,6 +427,7 @@ export interface LayerOutlineGraphNodeInfo {
   displayNode: ts.Node
   requires: Array<ts.Type>
   provides: Array<ts.Type>
+  actualProvides: Array<ts.Type>
 }
 
 export type LayerOutlineGraph = Graph.Graph<LayerOutlineGraphNodeInfo, {}, "directed">
@@ -456,11 +460,10 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
       node: leafNode.node,
       displayNode: leafNode.displayNode,
       requires: leafNode.requires,
-      provides: leafNode.provides
+      provides: leafNode.provides,
+      actualProvides: leafNode.actualProvides
     })
-    for (const providedType of leafNode.provides) {
-      // ignore provided and self-required
-      if (leafNode.requires.indexOf(providedType) > -1) continue
+    for (const providedType of leafNode.actualProvides) {
       // add this node to providers
       const previousProviders = providers.get(providedType) || []
       providers.set(providedType, [...previousProviders, nodeIndex])
@@ -590,19 +593,23 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
       Order.reverse(Order.number),
       (_: LayerOutlineGraphNodeInfo) => _.provides.length
     )
+    const orderByRequiredCount = Order.mapInput(
+      Order.reverse(Order.number),
+      (_: LayerOutlineGraphNodeInfo) => _.requires.length
+    )
+    const layerOrder = Order.combine(orderByProvidedCount, orderByRequiredCount)
 
     // no need to filter because the outline graph is already deduplicated and only keeping childs
     const reversedGraph = Graph.mutate(outlineGraph, Graph.reverse)
     const rootIndexes = Array.fromIterable(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
     const allNodes = Array.fromIterable(
-      Graph.values(dfsPostOrderWithOrder(reversedGraph, { start: rootIndexes, order: orderByProvidedCount }))
+      Graph.values(dfsPostOrderWithOrder(reversedGraph, { start: rootIndexes, order: layerOrder }))
     )
     for (const nodeInfo of allNodes) {
       if (!ts.isExpression(nodeInfo.node)) continue
-      const reallyProvidedTypes = nodeInfo.provides.filter((_) => nodeInfo.requires.indexOf(_) === -1)
-      const shouldMerge = reallyProvidedTypes.some((_) => missingOutputTypes.has(_))
+      const shouldMerge = nodeInfo.actualProvides.some((_) => missingOutputTypes.has(_))
       if (shouldMerge) {
-        reallyProvidedTypes.forEach((_) => missingOutputTypes.delete(_))
+        nodeInfo.actualProvides.forEach((_) => missingOutputTypes.delete(_))
       }
       nodeInfo.provides.forEach((_) => currentRequiredTypes.delete(_))
       nodeInfo.requires.forEach((_) => currentRequiredTypes.add(_))
