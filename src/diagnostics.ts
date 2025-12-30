@@ -16,6 +16,7 @@ import { missedPipeableOpportunity } from "./diagnostics/missedPipeableOpportuni
 import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
 import { missingEffectError } from "./diagnostics/missingEffectError.js"
 import { missingEffectServiceDependency } from "./diagnostics/missingEffectServiceDependency.js"
+import { missingLayerContext } from "./diagnostics/missingLayerContext.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
@@ -46,6 +47,7 @@ export const diagnostics = [
   missingEffectContext,
   missingEffectError,
   missingEffectServiceDependency,
+  missingLayerContext,
   floatingEffect,
   missingStarInYieldEffectGen,
   unnecessaryEffectGen,
