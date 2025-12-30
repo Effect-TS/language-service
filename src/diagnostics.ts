@@ -10,6 +10,7 @@ import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
 import { globalErrorInEffectFailure } from "./diagnostics/globalErrorInEffectFailure.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
+import { layerMergeAllWithDependencies } from "./diagnostics/layerMergeAllWithDependencies.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
 import { missedPipeableOpportunity } from "./diagnostics/missedPipeableOpportunity.js"
 import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
@@ -73,5 +74,6 @@ export const diagnostics = [
   schemaUnionOfLiterals,
   schemaStructWithTag,
   globalErrorInEffectCatch,
-  globalErrorInEffectFailure
+  globalErrorInEffectFailure,
+  layerMergeAllWithDependencies
 ]

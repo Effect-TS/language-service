@@ -46,6 +46,9 @@ export interface TypeParser {
   isNodeReferenceToEffectSqlModelModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectLayerModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
     node: ts.Node
   ) => Nano.Nano<
@@ -1831,12 +1834,45 @@ export function make(
     (atLocation) => atLocation
   )
 
+  const isEffectLayerTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectLayerTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const layerTypeSymbol = typeChecker.tryGetMemberInModuleExports("Layer", moduleSymbol)
+      if (!layerTypeSymbol) return yield* typeParserIssue("Layer type not found", undefined, sourceFile)
+      const type = typeChecker.getDeclaredTypeOfSymbol(layerTypeSymbol)
+      yield* layerType(type, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isEffectLayerTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectLayerModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectLayerModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(
+          node,
+          "effect",
+          isEffectLayerTypeSourceFile,
+          memberName
+        )
+      }),
+      `TypeParser.isNodeReferenceToEffectLayerModuleApi(${memberName})`,
+      (node) => node
+    )
+
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
     isNodeReferenceToEffectDataModuleApi,
     isNodeReferenceToEffectContextModuleApi,
     isNodeReferenceToEffectSqlModelModuleApi,
+    isNodeReferenceToEffectLayerModuleApi,
     effectType,
     strictEffectType,
     layerType,
