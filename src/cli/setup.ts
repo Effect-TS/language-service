@@ -187,4 +187,6 @@ export const setup = Command.make(
         yield* Console.log(message)
       }
     })
+).pipe(
+  Command.withDescription("Setup the effect-language-service for the given project using an interactive cli.")
 )

@@ -349,4 +349,8 @@ export const patch = Command.make(
     yield* printRememberDeleteTsbuildinfo()
     yield* printRememberPrepareScript()
   })
+).pipe(
+  Command.withDescription(
+    "Patches the typescript package with the effect-language-service, so that effect diagnostics are available at build time with tsc."
+  )
 )
