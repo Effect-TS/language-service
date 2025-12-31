@@ -1,5 +1,12 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Layer Graph  > documented.ts 1`] = `
+[
+  "CacheLive",
+  "AppLive",
+]
+`;
+
 exports[`Layer Graph  > duplicated.ts 1`] = `
 [
   "AppLive",
