@@ -251,9 +251,11 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   // only applicable to class declarations
   if (!ts.isClassDeclaration(node)) return yield* Nano.fail("not a class declaration")
 
-  const { Service, accessors, className } = yield* pipe(
-    typeParser.extendsEffectService(node),
-    Nano.orElse(() => Nano.map(typeParser.extendsEffectTag(node), (_) => ({ accessors: true, ..._ }))),
+  const { Service, accessors, className, kind } = yield* pipe(
+    Nano.map(typeParser.extendsEffectService(node), (_) => ({ kind: "effectService", ..._ })),
+    Nano.orElse(() =>
+      Nano.map(typeParser.extendsEffectTag(node), (_) => ({ kind: "effectTag", accessors: true, ..._ }))
+    ),
     Nano.orElse(() => Nano.fail("not a class extending Effect.Service call"))
   )
   if (accessors !== true) return yield* Nano.fail("accessors are not enabled in the Effect.Service call")
@@ -282,7 +284,7 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
     return ts.symbolName(property) + ": " + typeChecker.typeToString(propertyType)
   }).concat([ts.idText(className)]).join("\n")
 
-  return { Service, className, atLocation: node, hash: LSP.cyrb53(hash), involvedMembers }
+  return { Service, className, atLocation: node, hash: LSP.cyrb53(hash), involvedMembers, kind }
 })
 
 export const writeTagClassAccessors = LSP.createRefactor({

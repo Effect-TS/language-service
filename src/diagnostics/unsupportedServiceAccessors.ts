@@ -52,11 +52,14 @@ export const unsupportedServiceAccessors = LSP.createDiagnostic({
 
           if (missingMembers.length > 0) {
             const memberNames = missingMembers.map(({ property }) => `'${ts.symbolName(property)}'`).join(", ")
+            const suggestedFix = parseResult.kind === "effectTag"
+              ? "\nEffect.Tag does not allow to disable accessors, so you may want to use Context.Tag instead."
+              : ""
 
             report({
               location: parseResult.className,
               messageText:
-                `Even if accessors are enabled, accessors for ${memberNames} won't be available because the signature have generic type parameters or multiple call signatures.`,
+                `Even if accessors are enabled, accessors for ${memberNames} won't be available because the signature have generic type parameters or multiple call signatures.${suggestedFix}`,
               fixes: [{
                 fixName: "unsupportedServiceAccessors_enableCodegen",
                 description: "Enable accessors codegen",
