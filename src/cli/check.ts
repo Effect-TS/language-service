@@ -51,4 +51,6 @@ export const check = Command.make(
       }
     }
   })
+).pipe(
+  Command.withDescription("Check if the typescript package is patched with the effect-language-service.")
 )

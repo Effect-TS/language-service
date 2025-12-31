@@ -440,4 +440,6 @@ export const diagnostics = Command.make(
     const hasFailures = state.errorsCount > 0 || (strict && state.warningsCount > 0)
     if (hasFailures) return yield* Effect.sync(() => process.exit(1))
   })
+).pipe(
+  Command.withDescription("Gets the effect-language-service diagnostics on the given files or project.")
 )

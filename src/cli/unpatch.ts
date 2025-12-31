@@ -42,4 +42,6 @@ export const unpatch = Command.make(
       yield* Effect.logInfo(`${filePath} unpatched successfully.`)
     }
   })
+).pipe(
+  Command.withDescription("Unpatches the typescript package from the effect-language-service.")
 )

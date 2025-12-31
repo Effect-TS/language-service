@@ -191,4 +191,6 @@ export const codegen = Command.make(
       `${filesToCodegen.size} involved files, of which ${filesWithCodegenDirective.size} with codegens.\n${checkedFilesCount} checked and ${updatedFilesCount} updated.`
     )
   })
+).pipe(
+  Command.withDescription("Regenarate the outdated effect-codegens provided by the effect-language-service.")
 )
