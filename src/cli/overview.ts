@@ -350,8 +350,6 @@ const renderError = (error: ErrorInfo, cwd: string): Doc.AnsiDoc => {
 const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
   const lines: Array<Doc.AnsiDoc> = []
 
-  lines.push(Doc.text(`Overview for ${result.totalFilesCount} file(s).`))
-
   // Errors section
   if (result.errors.length > 0) {
     lines.push(Doc.empty)

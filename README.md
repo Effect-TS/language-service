@@ -251,31 +251,44 @@ Patches (or re-patches) your local TypeScript installation to provide Effect dia
 Revery any previously applied patch to the local TypeScript installation.
 
 ### `effect-language-service overview`
-Provides an overview of Effect-related exports (services and layers) in your project. Use `--file` to analyze a specific file, or `--project` with a tsconfig file to analyze an entire project. The output shows all exported services (Context.Tag, Effect.Tag, Effect.Service) and layers with their types, locations, and JSDoc descriptions.
+This command is useful to provide an overview of Effect-related exports in your files or project, and is very useful for LLMs to grasp an overall idea of what a file/project offers. Use `--file` to analyze a specific file, or `--project` with a tsconfig file to analyze an entire project.
 
 Example output:
 ```
-Overview for 1 file(s).
+✔ Processed 3 file(s)
 
-Services (4)
+Yieldable Errors (2)
+  NotFoundError
+    ./src/errors.ts:5:1
+    NotFoundError
+    Thrown when a resource is not found
+
+  ValidationError
+    ./src/errors.ts:12:1
+    ValidationError
+    Thrown when input validation fails
+
+Services (2)
   DbConnection
-  │ ./src/services/db.ts:6:1
-  │ Manages database connections and pooling
+    ./src/services/db.ts:6:1
+    DbConnection
+    Manages database connections and pooling
 
   Cache
-  │ ./src/services/cache.ts:13:1
-  │ In-memory caching layer
+    ./src/services/cache.ts:13:1
+    Cache
+    In-memory caching layer
 
 Layers (2)
   CacheLive
-  │ ./src/layers/cache.ts:34:14
-  │ Layer<Cache, never, never>
-  │ Provides cache with file system backing
+    ./src/layers/cache.ts:34:14
+    Layer<Cache, never, never>
+    Provides cache with file system backing
 
   AppLive
-  │ ./src/layers/app.ts:39:14
-  │ Layer<Cache | UserRepository, never, never>
-  │ Complete application layer
+    ./src/layers/app.ts:39:14
+    Layer<Cache | UserRepository, never, never>
+    Complete application layer
 ```
 
 ## Configuring diagnostics
