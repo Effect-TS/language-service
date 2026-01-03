@@ -1,5 +1,194 @@
 # @effect/language-service
 
+## 0.64.0
+
+### Minor Changes
+
+- [#567](https://github.com/Effect-TS/language-service/pull/567) [`dcb3fe5`](https://github.com/Effect-TS/language-service/commit/dcb3fe5f36f5c2727870e1fbc148e2a935a1a77e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Added new diagnostic `catchAllToMapError` that suggests using `Effect.mapError` instead of `Effect.catchAll` + `Effect.fail` when the callback only wraps the error.
+
+  Before:
+
+  ```ts
+  Effect.catchAll((cause) => Effect.fail(new MyError(cause)));
+  ```
+
+  After:
+
+  ```ts
+  Effect.mapError((cause) => new MyError(cause));
+  ```
+
+  The diagnostic includes a quick fix that automatically transforms the code.
+
+- [#555](https://github.com/Effect-TS/language-service/pull/555) [`0424000`](https://github.com/Effect-TS/language-service/commit/04240003bbcb04db1eda967153d185fd53a3f669) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `globalErrorInEffectCatch` diagnostic to detect global Error types in catch callbacks
+
+  This new diagnostic warns when catch callbacks in `Effect.tryPromise`, `Effect.try`, `Effect.tryMap`, or `Effect.tryMapPromise` return the global `Error` type instead of typed errors.
+
+  Using the global `Error` type in Effect failures is not recommended as they can get merged together, making it harder to distinguish between different error cases. Instead, it's better to use tagged errors (like `Data.TaggedError`) or custom errors with discriminator properties to enable proper type checking and error handling.
+
+  Example of code that triggers the diagnostic:
+
+  ```typescript
+  Effect.tryPromise({
+    try: () => fetch("http://example.com"),
+    catch: () => new Error("Request failed"), // ⚠️ Warning: returns global Error type
+  });
+  ```
+
+  Recommended approach:
+
+  ```typescript
+  class FetchError extends Data.TaggedError("FetchError")<{
+    cause: unknown;
+  }> {}
+
+  Effect.tryPromise({
+    try: () => fetch("http://example.com"),
+    catch: (e) => new FetchError({ cause: e }), // ✅ Uses typed error
+  });
+  ```
+
+  This diagnostic also improves the clarity message for the `leakingRequirements` diagnostic by adding additional guidance on how services should be collected in the layer creation body.
+
+- [#558](https://github.com/Effect-TS/language-service/pull/558) [`cc5feb1`](https://github.com/Effect-TS/language-service/commit/cc5feb146de351a5466e8f8476e5b9d9020c797e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `layerMergeAllWithDependencies` diagnostic to detect interdependencies in `Layer.mergeAll` calls
+
+  This new diagnostic warns when `Layer.mergeAll` is called with layers that have interdependencies, where one layer provides a service that another layer in the same call requires.
+
+  `Layer.mergeAll` creates layers in parallel, so dependencies between layers will not be satisfied. This can lead to runtime errors when trying to use the merged layer.
+
+  Example of code that triggers the diagnostic:
+
+  ```typescript
+  export class DbConnection extends Effect.Service<DbConnection>()(
+    "DbConnection",
+    {
+      succeed: {},
+    }
+  ) {}
+  export class FileSystem extends Effect.Service<FileSystem>()("FileSystem", {
+    succeed: {},
+  }) {}
+  export class Cache extends Effect.Service<Cache>()("Cache", {
+    effect: Effect.as(FileSystem, {}), // Cache requires FileSystem
+  }) {}
+
+  // ⚠️ Warning on FileSystem.Default
+  const layers = Layer.mergeAll(
+    DbConnection.Default,
+    FileSystem.Default, // This provides FileSystem
+    Cache.Default // This requires FileSystem
+  );
+  ```
+
+  Recommended approach:
+
+  ```typescript
+  // Provide FileSystem separately before merging
+  const layers = Layer.mergeAll(DbConnection.Default, Cache.Default).pipe(
+    Layer.provideMerge(FileSystem.Default)
+  );
+  ```
+
+  The diagnostic correctly handles pass-through layers (layers that both provide and require the same type) and only reports on layers that actually provide dependencies needed by other layers in the same `mergeAll` call.
+
+- [#557](https://github.com/Effect-TS/language-service/pull/557) [`83ce411`](https://github.com/Effect-TS/language-service/commit/83ce411288977606f8390641dc7127e36c6f3c5b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `missingLayerContext` diagnostic to detect missing service requirements in Layer definitions
+
+  This new diagnostic provides better error readability when you're missing service requirements in your Layer type definitions. It works similarly to the existing `missingEffectContext` diagnostic but specifically checks the `RIn` (requirements input) parameter of Layer types.
+
+  Example of code that triggers the diagnostic:
+
+  ```typescript
+  import * as Effect from "effect/Effect";
+  import * as Layer from "effect/Layer";
+
+  class ServiceA extends Effect.Service<ServiceA>()("ServiceA", {
+    succeed: { a: 1 },
+  }) {}
+
+  class ServiceB extends Effect.Service<ServiceB>()("ServiceB", {
+    succeed: { a: 2 },
+  }) {}
+
+  declare const layerWithServices: Layer.Layer<ServiceA, never, ServiceB>;
+
+  function testFn(layer: Layer.Layer<ServiceA>) {
+    return layer;
+  }
+
+  // ⚠️ Error: Missing 'ServiceB' in the expected Layer context.
+  testFn(layerWithServices);
+  ```
+
+  The diagnostic helps catch type mismatches early by clearly indicating which service requirements are missing when passing layers between functions or composing layers together.
+
+- [#562](https://github.com/Effect-TS/language-service/pull/562) [`57d5af2`](https://github.com/Effect-TS/language-service/commit/57d5af251d3e477a8cf4c41dfae4593cede4c960) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `overview` CLI command that provides an overview of Effect-related exports in a project.
+
+  The command analyzes TypeScript files and reports all exported yieldable errors, services (Context.Tag, Effect.Tag, Effect.Service), and layers with their types, file locations, and JSDoc descriptions. A progress spinner shows real-time file processing status.
+
+  Usage:
+
+  ```bash
+  effect-language-service overview --file path/to/file.ts
+  effect-language-service overview --project tsconfig.json
+  ```
+
+  Example output:
+
+  ```
+  ✔ Processed 3 file(s)
+  Overview for 3 file(s).
+
+  Yieldable Errors (1)
+    NotFoundError
+      ./src/errors.ts:5:1
+      NotFoundError
+
+  Services (2)
+    DbConnection
+      ./src/services/db.ts:6:1
+      Manages database connections
+
+  Layers (1)
+    AppLive
+      ./src/layers/app.ts:39:14
+      Layer<Cache | UserRepository, never, never>
+  ```
+
+### Patch Changes
+
+- [#561](https://github.com/Effect-TS/language-service/pull/561) [`c3b3bd3`](https://github.com/Effect-TS/language-service/commit/c3b3bd364ff3c0567995b3c12e579459b69448e7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add descriptions to CLI commands using `Command.withDescription` for improved help output when using `--help` flag.
+
+- [#565](https://github.com/Effect-TS/language-service/pull/565) [`2274aef`](https://github.com/Effect-TS/language-service/commit/2274aef53902f2c31443b7e504d2add0bf24d6e4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `unnecessaryPipe` diagnostic and refactor not working with namespace imports from `effect/Function` (e.g., `Function.pipe()` or `Fn.pipe()`)
+
+- [#560](https://github.com/Effect-TS/language-service/pull/560) [`75a480e`](https://github.com/Effect-TS/language-service/commit/75a480ebce3c5dfe29f22ee9d556ba1a043ba91b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve diagnostic message for `unsupportedServiceAccessors` when used with `Effect.Tag`
+
+  When the `unsupportedServiceAccessors` diagnostic is triggered on an `Effect.Tag` class (which doesn't allow disabling accessors), the message now includes a helpful suggestion to use `Context.Tag` instead:
+
+  ```typescript
+  export class MyService extends Effect.Tag("MyService")<
+    MyService,
+    {
+      method: <A>(value: A) => Effect.Effect<A>;
+    }
+  >() {}
+  // Diagnostic: Even if accessors are enabled, accessors for 'method' won't be available
+  // because the signature have generic type parameters or multiple call signatures.
+  // Effect.Tag does not allow to disable accessors, so you may want to use Context.Tag instead.
+  ```
+
+- [#559](https://github.com/Effect-TS/language-service/pull/559) [`4c1f809`](https://github.com/Effect-TS/language-service/commit/4c1f809d2f88102652ceea67b93df8909b408d14) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve Layer Magic refactor ordering by considering both provided and required service counts
+
+  The Layer Magic refactor now uses a combined ordering heuristic that considers both:
+
+  1. The number of services a layer provides
+  2. The number of services a layer requires
+
+  This results in more optimal layer composition order, especially in complex dependency graphs where layers have varying numbers of dependencies.
+
+- [#566](https://github.com/Effect-TS/language-service/pull/566) [`036c491`](https://github.com/Effect-TS/language-service/commit/036c49142581a1ea428205e3d3d1647963c556f9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Simplify diagnostic messages for global Error type usage
+
+  The diagnostic messages for `globalErrorInEffectCatch` and `globalErrorInEffectFailure` now use the more generic term "tagged errors" instead of "tagged errors (Data.TaggedError)" to provide cleaner, more concise guidance.
+
 ## 0.63.2
 
 ### Patch Changes
