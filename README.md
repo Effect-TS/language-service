@@ -250,6 +250,47 @@ Patches (or re-patches) your local TypeScript installation to provide Effect dia
 ### `effect-language-service unpatch`
 Revery any previously applied patch to the local TypeScript installation.
 
+### `effect-language-service overview`
+This command is useful to provide an overview of Effect-related exports in your files or project, and is very useful for LLMs to grasp an overall idea of what a file/project offers. Use `--file` to analyze a specific file, or `--project` with a tsconfig file to analyze an entire project.
+
+Example output:
+```
+✔ Processed 3 file(s)
+
+Yieldable Errors (2)
+  NotFoundError
+    ./src/errors.ts:5:1
+    NotFoundError
+    Thrown when a resource is not found
+
+  ValidationError
+    ./src/errors.ts:12:1
+    ValidationError
+    Thrown when input validation fails
+
+Services (2)
+  DbConnection
+    ./src/services/db.ts:6:1
+    DbConnection
+    Manages database connections and pooling
+
+  Cache
+    ./src/services/cache.ts:13:1
+    Cache
+    In-memory caching layer
+
+Layers (2)
+  CacheLive
+    ./src/layers/cache.ts:34:14
+    Layer<Cache, never, never>
+    Provides cache with file system backing
+
+  AppLive
+    ./src/layers/app.ts:39:14
+    Layer<Cache | UserRepository, never, never>
+    Complete application layer
+```
+
 ## Configuring diagnostics
 
 You can either disable or change the severity of specific diagnostics by using comments in your code.

@@ -430,6 +430,13 @@ export function make(
     Nano.fn("TypeParser.extendsCauseYieldableError")(function*(
       givenType: ts.Type
     ) {
+      // never is assignable to everything, so we need to exclude it
+      if (givenType.flags & ts.TypeFlags.Never) {
+        return yield* typeParserIssue("Type is never", givenType)
+      }
+      if (givenType.flags & ts.TypeFlags.Any) {
+        return yield* typeParserIssue("Type is any", givenType)
+      }
       const symbols = yield* findSymbolsMatchingPackageAndExportedName("effect", "YieldableError")()
       for (const [symbol, sourceFile] of symbols) {
         const causeFile = yield* pipe(isCauseTypeSourceFile(sourceFile), Nano.orElse(() => Nano.void_))
@@ -568,30 +575,23 @@ export function make(
       type: ts.Type,
       atLocation: ts.Node
     ) {
-      let result: Nano.Nano<
-        {
-          A: ts.Type
-          E: ts.Type
-          R: ts.Type
-        },
-        TypeParserIssue,
-        never
-      > = typeParserIssue("Type has no effect variance struct", type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
-        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
       )
+      // early exit
+      if (propertiesSymbols.length === 0) {
+        return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+      }
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) =>
         ts.symbolName(b).indexOf("EffectTypeId") - ts.symbolName(a).indexOf("EffectTypeId")
       )
       // has a property symbol which is an effect variance struct
-      for (const propertySymbol of propertiesSymbols) {
+      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        result = pipe(result, Nano.orElse(() => effectVarianceStruct(propertyType, atLocation)))
-      }
-      return yield* result
+        return effectVarianceStruct(propertyType, atLocation)
+      }))
     }),
     "TypeParser.effectType",
     (type) => type
@@ -650,25 +650,21 @@ export function make(
 
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
-        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
       )
+      // early exit
+      if (propertiesSymbols.length === 0) {
+        return yield* typeParserIssue("Type has no layer variance struct", type, atLocation)
+      }
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) =>
         ts.symbolName(b).indexOf("LayerTypeId") - ts.symbolName(a).indexOf("LayerTypeId")
       )
       // has a property symbol which is a layer variance struct
-      for (const propertySymbol of propertiesSymbols) {
+      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        const varianceArgs = yield* Nano.option(layerVarianceStruct(
-          propertyType,
-          atLocation
-        ))
-        if (Option.isSome(varianceArgs)) {
-          return varianceArgs.value
-        }
-      }
-      return yield* typeParserIssue("Type has no layer variance struct", type, atLocation)
+        return layerVarianceStruct(propertyType, atLocation)
+      }))
     }),
     "TypeParser.layerType",
     (type) => type
@@ -1043,23 +1039,19 @@ export function make(
       if (!ast) return yield* typeParserIssue("Has no 'ast' property", type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
-        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
       )
+      // early exit
+      if (propertiesSymbols.length === 0) {
+        return yield* typeParserIssue("Type has no schema variance struct", type, atLocation)
+      }
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) => ts.symbolName(b).indexOf("TypeId") - ts.symbolName(a).indexOf("TypeId"))
       // has a property symbol which is an effect variance struct
-      for (const propertySymbol of propertiesSymbols) {
+      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        const varianceArgs = yield* Nano.option(effectSchemaVarianceStruct(
-          propertyType,
-          atLocation
-        ))
-        if (Option.isSome(varianceArgs)) {
-          return varianceArgs.value
-        }
-      }
-      return yield* typeParserIssue("Type has no schema variance struct", type, atLocation)
+        return effectSchemaVarianceStruct(propertyType, atLocation)
+      }))
     }),
     "TypeParser.effectSchemaType",
     (type) => type
@@ -1113,23 +1105,19 @@ export function make(
       yield* pipeableType(type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
-        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
       )
+      // early exit
+      if (propertiesSymbols.length === 0) {
+        return yield* typeParserIssue("Type has no tag variance struct", type, atLocation)
+      }
       // try to put typeid first (heuristic to optimize hot path)
       propertiesSymbols.sort((a, b) => ts.symbolName(b).indexOf("TypeId") - ts.symbolName(a).indexOf("TypeId"))
-      // has a property symbol which is an effect variance struct
-      for (const propertySymbol of propertiesSymbols) {
+      // has a property symbol which is a context tag variance struct
+      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
         const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        const varianceArgs = yield* Nano.option(contextTagVarianceStruct(
-          propertyType,
-          atLocation
-        ))
-        if (Option.isSome(varianceArgs)) {
-          return varianceArgs.value
-        }
-      }
-      return yield* typeParserIssue("Type has no tag variance struct", type, atLocation)
+        return contextTagVarianceStruct(propertyType, atLocation)
+      }))
     }),
     "TypeParser.contextTag",
     (type) => type
@@ -1181,20 +1169,11 @@ export function make(
       yield* pipeableType(type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration &&
-        ts.isPropertySignature(_.valueDeclaration) && ts.isComputedPropertyName(_.valueDeclaration.name)
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
       )
-      // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) =>
-        ts.symbolName(b).indexOf("ScopeTypeId") - ts.symbolName(a).indexOf("ScopeTypeId")
-      )
-      // has a property scope type id
-      for (const propertySymbol of propertiesSymbols) {
-        const computedPropertyExpression: ts.ComputedPropertyName = (propertySymbol.valueDeclaration as any).name
-        const symbol = typeChecker.getSymbolAtLocation(computedPropertyExpression.expression)
-        if (symbol && ts.symbolName(symbol) === "ScopeTypeId") {
-          return type
-        }
+      // has a property scope type id (symbol name contains ScopeTypeId)
+      if (propertiesSymbols.some((s) => ts.symbolName(s).indexOf("ScopeTypeId") !== -1)) {
+        return type
       }
       return yield* typeParserIssue("Type has no scope type id", type, atLocation)
     }),

@@ -1,0 +1,124 @@
+flowchart TB
+  subgraph 0 ["`DbConnection.Default<br/><small>_ln 42 col 16_</small>`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_provides [Provides]
+        0_provides_0["DbConnection"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
+  subgraph 1 ["`Layer.provide(DbConnection.Default)<br/><small>_ln 42 col 2_</small>`"]
+    subgraph 1_wrap[" "]
+      subgraph 1_provides [Provides]
+        1_provides_0["UserRepository"]
+        1_provides_1["Cache"]
+      end
+      style 1_provides stroke:none
+    end
+    style 1_wrap fill:transparent
+    style 1_wrap stroke:none
+  end
+  style 1 fill:transparent
+  subgraph 2 ["`FileSystem.Default<br/><small>_ln 41 col 16_</small>`"]
+    subgraph 2_wrap[" "]
+      subgraph 2_provides [Provides]
+        2_provides_0["FileSystem"]
+      end
+      style 2_provides stroke:none
+    end
+    style 2_wrap fill:transparent
+    style 2_wrap stroke:none
+  end
+  style 2 fill:transparent
+  subgraph 3 ["`Layer.provide(FileSystem.Default)<br/><small>_ln 41 col 2_</small>`"]
+    subgraph 3_wrap[" "]
+      subgraph 3_requires [Requires]
+        3_requires_0["DbConnection"]
+      end
+      style 3_requires stroke:none
+      subgraph 3_provides [Provides]
+        3_provides_0["UserRepository"]
+        3_provides_1["Cache"]
+      end
+      style 3_provides stroke:none
+    end
+    style 3_wrap fill:transparent
+    style 3_wrap stroke:none
+  end
+  style 3 fill:transparent
+  subgraph 4 ["`Cache.Default<br/><small>_ln 40 col 21_</small>`"]
+    subgraph 4_wrap[" "]
+      subgraph 4_requires [Requires]
+        4_requires_0["FileSystem"]
+      end
+      style 4_requires stroke:none
+      subgraph 4_provides [Provides]
+        4_provides_0["Cache"]
+      end
+      style 4_provides stroke:none
+    end
+    style 4_wrap fill:transparent
+    style 4_wrap stroke:none
+  end
+  style 4 fill:transparent
+  subgraph 5 ["`Layer.provideMerge(Cache.Default)<br/><small>_ln 40 col 2_</small>`"]
+    subgraph 5_wrap[" "]
+      subgraph 5_requires [Requires]
+        5_requires_0["DbConnection"]
+        5_requires_1["FileSystem"]
+      end
+      style 5_requires stroke:none
+      subgraph 5_provides [Provides]
+        5_provides_0["UserRepository"]
+        5_provides_1["Cache"]
+      end
+      style 5_provides stroke:none
+    end
+    style 5_wrap fill:transparent
+    style 5_wrap stroke:none
+  end
+  style 5 fill:transparent
+  subgraph 6 ["`UserRepository.Default<br/><small>_ln 39 col 23_</small>`"]
+    subgraph 6_wrap[" "]
+      subgraph 6_requires [Requires]
+        6_requires_0["DbConnection"]
+        6_requires_1["Cache"]
+      end
+      style 6_requires stroke:none
+      subgraph 6_provides [Provides]
+        6_provides_0["UserRepository"]
+      end
+      style 6_provides stroke:none
+    end
+    style 6_wrap fill:transparent
+    style 6_wrap stroke:none
+  end
+  style 6 fill:transparent
+  subgraph 7 ["`AppLive<br/><small>_ln 39 col 13_</small>`"]
+    subgraph 7_wrap[" "]
+      subgraph 7_provides [Provides]
+        7_provides_0["UserRepository"]
+        7_provides_1["Cache"]
+      end
+      style 7_provides stroke:none
+    end
+    style 7_wrap fill:transparent
+    style 7_wrap stroke:none
+  end
+  style 7 fill:transparent
+  1 -.-x 0
+  3 -.-x 2
+  5_requires_1 -.-> 4_requires_0
+  5_provides_1 -.-> 4_provides_0
+  5_requires_0 -.-> 6_requires_0
+  5_provides_0 -.-> 6_provides_0
+  3_requires_0 -.-> 5_requires_0
+  3_provides_0 -.-> 5_provides_0
+  3_provides_1 -.-> 5_provides_1
+  1_provides_0 -.-> 3_provides_0
+  1_provides_1 -.-> 3_provides_1
+  7_provides_0 -.-> 1_provides_0
+  7_provides_1 -.-> 1_provides_1
