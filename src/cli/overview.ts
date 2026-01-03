@@ -23,6 +23,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import * as Spinner from "./utils/Spinner"
 
 /**
  * Order for items by filePath, line, column, then name
@@ -386,43 +387,29 @@ const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
   return Doc.vsep(lines)
 }
 
-export const overview = Command.make(
-  "overview",
-  {
-    file: Options.file("file").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the file to analyze.")
-    ),
-    project: Options.file("project").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the project tsconfig.json file to analyze.")
-    )
-  },
-  Effect.fn("overview")(function*({ file, project }) {
-    const path = yield* Path.Path
-    const cwd = path.resolve(".")
-    const tsInstance = yield* TypeScriptContext
-
-    const filesToCheck = Option.isSome(project)
-      ? yield* getFileNamesInTsConfig(project.value)
-      : new Set<string>()
-
-    if (Option.isSome(file)) {
-      filesToCheck.add(path.resolve(file.value))
-    }
-
-    if (filesToCheck.size === 0) {
-      return yield* new NoFilesToCheckError()
-    }
-
+/**
+ * Collects all services, layers, and errors from the given files
+ */
+const collectAllItems = (
+  filesToCheck: Set<string>,
+  tsInstance: typeof ts,
+  onProgress: (current: number, total: number) => Effect.Effect<void>
+): Effect.Effect<{ services: Array<ServiceInfo>; layers: Array<LayerInfo>; errors: Array<ErrorInfo> }> =>
+  Effect.gen(function*() {
     const services: Array<ServiceInfo> = []
     const layers: Array<LayerInfo> = []
     const errors: Array<ErrorInfo> = []
+
+    const totalFiles = filesToCheck.size
+    let processedFiles = 0
 
     for (const batch of Array.chunksOf(filesToCheck, BATCH_SIZE)) {
       const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
       for (const filePath of batch) {
+        processedFiles++
+        yield* onProgress(processedFiles, totalFiles)
+
         service.openClientFile(filePath)
         try {
           const scriptInfo = service.getScriptInfo(filePath)
@@ -462,6 +449,52 @@ export const overview = Command.make(
       }
       yield* Effect.yieldNow()
     }
+
+    return { services, layers, errors }
+  })
+
+export const overview = Command.make(
+  "overview",
+  {
+    file: Options.file("file").pipe(
+      Options.optional,
+      Options.withDescription("The full path of the file to analyze.")
+    ),
+    project: Options.file("project").pipe(
+      Options.optional,
+      Options.withDescription("The full path of the project tsconfig.json file to analyze.")
+    )
+  },
+  Effect.fn("overview")(function*({ file, project }) {
+    const path = yield* Path.Path
+    const cwd = path.resolve(".")
+    const tsInstance = yield* TypeScriptContext
+
+    const filesToCheck = Option.isSome(project)
+      ? yield* getFileNamesInTsConfig(project.value)
+      : new Set<string>()
+
+    if (Option.isSome(file)) {
+      filesToCheck.add(path.resolve(file.value))
+    }
+
+    if (filesToCheck.size === 0) {
+      return yield* new NoFilesToCheckError()
+    }
+
+    const totalFiles = filesToCheck.size
+    const { errors, layers, services } = yield* Spinner.spinner(
+      (handle) =>
+        collectAllItems(
+          filesToCheck,
+          tsInstance,
+          (current, total) => handle.updateMessage(`Processing file ${current}/${total}...`)
+        ),
+      {
+        message: `Processing ${totalFiles} file(s)...`,
+        onSuccess: () => `Processed ${totalFiles} file(s)`
+      }
+    )
 
     const doc = renderOverview({ services, layers, errors, totalFilesCount: filesToCheck.size }, cwd)
     yield* Console.log(Doc.render(doc, { style: "pretty" }))
