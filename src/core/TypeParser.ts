@@ -7,6 +7,13 @@ import * as TypeCheckerUtils from "./TypeCheckerUtils.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
 
+export interface ParsedPipeCall {
+  node: ts.CallExpression
+  subject: ts.Expression
+  args: Array<ts.Expression>
+  kind: "pipe" | "pipeable"
+}
+
 export interface TypeParser {
   effectType: (
     type: ts.Type,
@@ -1123,26 +1130,58 @@ export function make(
     (type) => type
   )
 
+  const effectFunctionImportedName = Nano.cachedBy(
+    Nano.fn("TypeParser.effectFunctionImportedName")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      return tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Function")
+    }),
+    "TypeParser.effectFunctionImportedName",
+    (node) => node
+  )
+
   const pipeCall = Nano.cachedBy(
     function(
       node: ts.Node
     ): Nano.Nano<
-      { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression>; kind: "pipe" | "pipeable" },
+      ParsedPipeCall,
       TypeParserIssue,
       never
     > {
-      // expression.pipe(.....)
+      // Function.pipe(A, B, ...) or expression.pipe(.....)
       if (
         ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
         ts.isIdentifier(node.expression.name) &&
         ts.idText(node.expression.name) === "pipe"
       ) {
-        return Nano.succeed({
-          node,
-          subject: node.expression.expression,
-          args: Array.from(node.arguments),
-          kind: "pipeable"
-        })
+        const baseExpression = node.expression.expression
+        return pipe(
+          effectFunctionImportedName(tsUtils.getSourceFileOfNode(node)!),
+          Nano.flatMap((functionIdentifier) => {
+            if (
+              functionIdentifier && ts.isIdentifier(baseExpression) && ts.idText(baseExpression) === functionIdentifier
+            ) {
+              // Namespace.pipe(A, B, ...)
+              if (node.arguments.length === 0) {
+                return typeParserIssue("Node is not a pipe call", undefined, node)
+              }
+              const [subject, ...args] = node.arguments
+              return Nano.succeed<ParsedPipeCall>({
+                node,
+                subject,
+                args,
+                kind: "pipe"
+              })
+            }
+            // expression.pipe(.....)
+            return Nano.succeed<ParsedPipeCall>({
+              node,
+              subject: baseExpression,
+              args: Array.from(node.arguments),
+              kind: "pipeable"
+            })
+          })
+        )
       }
 
       // pipe(A, B, ...)
