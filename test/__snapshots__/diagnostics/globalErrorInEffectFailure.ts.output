@@ -1,8 +1,8 @@
 Effect.fail(new Error("global error"))
-7:28 - 7:66 | 0 | Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+7:28 - 7:66 | 0 | Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
 
 Effect.fail(new globalThis.Error("global error"))
-8:29 - 8:78 | 0 | Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+8:29 - 8:78 | 0 | Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
 
 Effect.fail(new BaseExtendsError())
-14:29 - 14:64 | 0 | Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+14:29 - 14:64 | 0 | Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)

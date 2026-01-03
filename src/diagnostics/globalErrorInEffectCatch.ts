@@ -64,7 +64,7 @@ export const globalErrorInEffectCatch = LSP.createDiagnostic({
                   report({
                     location: node.expression,
                     messageText:
-                      `The 'catch' callback in ${nodeText} returns the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together.\nInstead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.`,
+                      `The 'catch' callback in ${nodeText} returns the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together.\nInstead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.`,
                     fixes: []
                   })
                 }

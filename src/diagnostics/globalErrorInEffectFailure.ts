@@ -45,7 +45,7 @@ export const globalErrorInEffectFailure = LSP.createDiagnostic({
                   report({
                     location: node,
                     messageText:
-                      `Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors (Data.TaggedError) or custom errors with a discriminator property to get properly type-checked errors.`,
+                      `Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.`,
                     fixes: []
                   })
                 )
