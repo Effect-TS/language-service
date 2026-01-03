@@ -44,9 +44,19 @@ interface LayerInfo {
   readonly description: string | undefined
 }
 
+interface ErrorInfo {
+  readonly name: string
+  readonly filePath: string
+  readonly line: number
+  readonly column: number
+  readonly errorType: string
+  readonly description: string | undefined
+}
+
 interface OverviewResult {
   readonly services: Array<ServiceInfo>
   readonly layers: Array<LayerInfo>
+  readonly errors: Array<ErrorInfo>
   readonly totalFilesCount: number
 }
 
@@ -79,23 +89,28 @@ const getLocationFromDeclaration = (
 }
 
 /**
- * Collects all exported services and layers from a source file using getExportsOfModule
+ * Collects all exported services, layers, and errors from a source file using getExportsOfModule
  * Also traverses properties of exported symbols to find nested services/layers (e.g., Effect.Service.Default)
  */
 const collectExportedItems = (
   sourceFile: ts.SourceFile,
   tsInstance: typeof ts,
   typeChecker: ts.TypeChecker
-): Nano.Nano<{ services: Array<ServiceInfo>; layers: Array<LayerInfo> }, never, TypeParser.TypeParser> =>
+): Nano.Nano<
+  { services: Array<ServiceInfo>; layers: Array<LayerInfo>; errors: Array<ErrorInfo> },
+  never,
+  TypeParser.TypeParser
+> =>
   Nano.gen(function*() {
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const services: Array<ServiceInfo> = []
     const layers: Array<LayerInfo> = []
+    const errors: Array<ErrorInfo> = []
 
     // Get the module symbol for the source file
     const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
     if (!moduleSymbol) {
-      return { services, layers }
+      return { services, layers, errors }
     }
 
     // Get all exports from the module
@@ -126,9 +141,13 @@ const collectExportedItems = (
       // Child symbols inherit the parent's code location
       if (!exploded.has(symbol)) {
         exploded.add(symbol)
+
         const properties = typeChecker.getPropertiesOfType(type)
         for (const propSymbol of properties) {
-          const childName = `${name}.${tsInstance.symbolName(propSymbol)}`
+          const propName = tsInstance.symbolName(propSymbol)
+          // Skip prototype property - it contains instance type, not a real export
+          if (propName === "prototype") continue
+          const childName = `${name}.${propName}`
           workQueue.push([propSymbol, childName, location])
         }
       }
@@ -158,25 +177,76 @@ const collectExportedItems = (
         })
       }
 
-      // Check if it's a Layer
-      const layerResult = yield* pipe(
+      // Check if it's a Layer (directly or a function returning a layer)
+      let isLayer = false
+      const directLayerResult = yield* pipe(
         typeParser.layerType(type, declaration),
         Nano.option
       )
-      if (Option.isSome(layerResult)) {
-        const rOut = typeToString(typeChecker, tsInstance, layerResult.value.ROut)
-        const e = typeToString(typeChecker, tsInstance, layerResult.value.E)
-        const rIn = typeToString(typeChecker, tsInstance, layerResult.value.RIn)
+      if (Option.isSome(directLayerResult)) {
+        isLayer = true
+      } else {
+        // Check if it's a function that returns a layer
+        const callSignatures = typeChecker.getSignaturesOfType(type, tsInstance.SignatureKind.Call)
+        for (const sig of callSignatures) {
+          const returnType = typeChecker.getReturnTypeOfSignature(sig)
+          const returnLayerResult = yield* pipe(
+            typeParser.layerType(returnType, declaration),
+            Nano.option
+          )
+          if (Option.isSome(returnLayerResult)) {
+            isLayer = true
+            break
+          }
+        }
+      }
+      if (isLayer) {
         layers.push({
           name,
           ...location,
-          layerType: `Layer<${rOut}, ${e}, ${rIn}>`,
+          layerType: typeToString(typeChecker, tsInstance, type),
+          description
+        })
+      }
+
+      // Check if it's a YieldableError
+      // First try the type directly, then try instance types from construct signatures
+      let isError = false
+      let errorType = type
+      const directErrorResult = yield* pipe(
+        typeParser.extendsCauseYieldableError(type),
+        Nano.option
+      )
+      if (Option.isSome(directErrorResult)) {
+        isError = true
+        errorType = type
+      } else {
+        // Check if it's a constructor that returns an error
+        const constructSignatures = typeChecker.getSignaturesOfType(type, tsInstance.SignatureKind.Construct)
+        for (const sig of constructSignatures) {
+          const instanceType = typeChecker.getReturnTypeOfSignature(sig)
+          const instanceErrorResult = yield* pipe(
+            typeParser.extendsCauseYieldableError(instanceType),
+            Nano.option
+          )
+          if (Option.isSome(instanceErrorResult)) {
+            isError = true
+            errorType = instanceType
+            break
+          }
+        }
+      }
+      if (isError) {
+        errors.push({
+          name,
+          ...location,
+          errorType: typeToString(typeChecker, tsInstance, errorType),
           description
         })
       }
     }
 
-    return { services, layers }
+    return { services, layers, errors }
   })
 
 /**
@@ -236,6 +306,26 @@ const renderLayer = (layer: LayerInfo, cwd: string): Doc.AnsiDoc => {
 }
 
 /**
+ * Renders an error item
+ */
+const renderError = (error: ErrorInfo, cwd: string): Doc.AnsiDoc => {
+  const relativePath = toRelativePath(error.filePath, cwd)
+  const details: Array<Doc.AnsiDoc> = [
+    dimLine(`${relativePath}:${error.line}:${error.column}`),
+    dimLine(error.errorType)
+  ]
+  if (error.description) {
+    details.push(dimLine(error.description))
+  }
+
+  return Doc.vsep([
+    Doc.text(error.name),
+    Doc.indent(Doc.vsep(details), 2),
+    Doc.empty
+  ])
+}
+
+/**
  * Renders the overview result as a styled document
  */
 const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
@@ -259,9 +349,17 @@ const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
     lines.push(Doc.indent(Doc.vsep(layerDocs), 2))
   }
 
-  if (result.services.length === 0 && result.layers.length === 0) {
+  // Errors section
+  if (result.errors.length > 0) {
     lines.push(Doc.empty)
-    lines.push(Doc.text("No exported services or layers found."))
+    lines.push(Doc.annotate(Doc.text(`Yieldable Errors (${result.errors.length})`), Ansi.bold))
+    const errorDocs = result.errors.map((error) => renderError(error, cwd))
+    lines.push(Doc.indent(Doc.vsep(errorDocs), 2))
+  }
+
+  if (result.services.length === 0 && result.layers.length === 0 && result.errors.length === 0) {
+    lines.push(Doc.empty)
+    lines.push(Doc.text("No exported services, layers, or errors found."))
   }
 
   return Doc.vsep(lines)
@@ -298,6 +396,7 @@ export const overview = Command.make(
 
     const services: Array<ServiceInfo> = []
     const layers: Array<LayerInfo> = []
+    const errors: Array<ErrorInfo> = []
 
     for (const batch of Array.chunksOf(filesToCheck, BATCH_SIZE)) {
       const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
@@ -324,7 +423,7 @@ export const overview = Command.make(
             Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
             Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
             Nano.run,
-            Either.getOrElse(() => ({ services: [], layers: [] }))
+            Either.getOrElse(() => ({ services: [], layers: [], errors: [] }))
           )
 
           for (const svc of result.services) {
@@ -333,6 +432,9 @@ export const overview = Command.make(
           for (const layer of result.layers) {
             layers.push(layer)
           }
+          for (const error of result.errors) {
+            errors.push(error)
+          }
         } finally {
           service.closeClientFile(filePath)
         }
@@ -340,7 +442,7 @@ export const overview = Command.make(
       yield* Effect.yieldNow()
     }
 
-    const doc = renderOverview({ services, layers, totalFilesCount: filesToCheck.size }, cwd)
+    const doc = renderOverview({ services, layers, errors, totalFilesCount: filesToCheck.size }, cwd)
     yield* Console.log(Doc.render(doc, { style: "pretty" }))
   })
 ).pipe(

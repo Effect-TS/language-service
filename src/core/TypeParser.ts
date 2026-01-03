@@ -430,6 +430,10 @@ export function make(
     Nano.fn("TypeParser.extendsCauseYieldableError")(function*(
       givenType: ts.Type
     ) {
+      // never is assignable to everything, so we need to exclude it
+      if (givenType.flags & ts.TypeFlags.Never) {
+        return yield* typeParserIssue("Type is never", givenType)
+      }
       const symbols = yield* findSymbolsMatchingPackageAndExportedName("effect", "YieldableError")()
       for (const [symbol, sourceFile] of symbols) {
         const causeFile = yield* pipe(isCauseTypeSourceFile(sourceFile), Nano.orElse(() => Nano.void_))
