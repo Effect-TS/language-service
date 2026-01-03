@@ -434,6 +434,9 @@ export function make(
       if (givenType.flags & ts.TypeFlags.Never) {
         return yield* typeParserIssue("Type is never", givenType)
       }
+      if (givenType.flags & ts.TypeFlags.Any) {
+        return yield* typeParserIssue("Type is any", givenType)
+      }
       const symbols = yield* findSymbolsMatchingPackageAndExportedName("effect", "YieldableError")()
       for (const [symbol, sourceFile] of symbols) {
         const causeFile = yield* pipe(isCauseTypeSourceFile(sourceFile), Nano.orElse(() => Nano.void_))

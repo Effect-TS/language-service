@@ -10,7 +10,11 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Number from "effect/Number"
 import * as Option from "effect/Option"
+import * as Order from "effect/Order"
+import * as String from "effect/String"
+
 import type * as ts from "typescript"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
@@ -19,6 +23,20 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+
+/**
+ * Order for items by filePath, line, column, then name
+ */
+const itemOrder: Order.Order<{ filePath: string; line: number; column: number; name: string }> = Order.combine(
+  Order.mapInput(String.Order, (_) => _.filePath),
+  Order.combine(
+    Order.mapInput(Number.Order, (_) => _.line),
+    Order.combine(
+      Order.mapInput(Number.Order, (_) => _.column),
+      Order.mapInput(String.Order, (_) => _.name)
+    )
+  )
+)
 
 export class NoFilesToCheckError extends Data.TaggedError("NoFilesToCheckError")<{}> {
   get message(): string {
@@ -333,11 +351,21 @@ const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
 
   lines.push(Doc.text(`Overview for ${result.totalFilesCount} file(s).`))
 
+  // Errors section
+  if (result.errors.length > 0) {
+    lines.push(Doc.empty)
+    lines.push(Doc.annotate(Doc.text(`Yieldable Errors (${result.errors.length})`), Ansi.bold))
+    const sortedErrors = Array.sort(result.errors, itemOrder)
+    const errorDocs = sortedErrors.map((error) => renderError(error, cwd))
+    lines.push(Doc.indent(Doc.vsep(errorDocs), 2))
+  }
+
   // Services section
   if (result.services.length > 0) {
     lines.push(Doc.empty)
     lines.push(Doc.annotate(Doc.text(`Services (${result.services.length})`), Ansi.bold))
-    const serviceDocs = result.services.map((svc) => renderService(svc, cwd))
+    const sortedServices = Array.sort(result.services, itemOrder)
+    const serviceDocs = sortedServices.map((svc) => renderService(svc, cwd))
     lines.push(Doc.indent(Doc.vsep(serviceDocs), 2))
   }
 
@@ -345,16 +373,9 @@ const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
   if (result.layers.length > 0) {
     lines.push(Doc.empty)
     lines.push(Doc.annotate(Doc.text(`Layers (${result.layers.length})`), Ansi.bold))
-    const layerDocs = result.layers.map((layer) => renderLayer(layer, cwd))
+    const sortedLayers = Array.sort(result.layers, itemOrder)
+    const layerDocs = sortedLayers.map((layer) => renderLayer(layer, cwd))
     lines.push(Doc.indent(Doc.vsep(layerDocs), 2))
-  }
-
-  // Errors section
-  if (result.errors.length > 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.annotate(Doc.text(`Yieldable Errors (${result.errors.length})`), Ansi.bold))
-    const errorDocs = result.errors.map((error) => renderError(error, cwd))
-    lines.push(Doc.indent(Doc.vsep(errorDocs), 2))
   }
 
   if (result.services.length === 0 && result.layers.length === 0 && result.errors.length === 0) {
