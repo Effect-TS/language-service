@@ -1,4 +1,5 @@
 import { anyUnknownInErrorContext } from "./diagnostics/anyUnknownInErrorContext.js"
+import { catchAllToMapError } from "./diagnostics/catchAllToMapError.js"
 import { catchUnfailableEffect } from "./diagnostics/catchUnfailableEffect.js"
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
 import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
@@ -40,6 +41,7 @@ import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAcc
 
 export const diagnostics = [
   anyUnknownInErrorContext,
+  catchAllToMapError,
   catchUnfailableEffect,
   classSelfMismatch,
   duplicatePackage,
