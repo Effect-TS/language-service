@@ -31,6 +31,7 @@ interface ServiceInfo {
   readonly filePath: string
   readonly line: number
   readonly column: number
+  readonly serviceType: string
   readonly description: string | undefined
 }
 
@@ -52,6 +53,15 @@ interface OverviewResult {
 const BATCH_SIZE = 50
 
 /**
+ * Converts a type to string without truncation
+ */
+const typeToString = (
+  typeChecker: ts.TypeChecker,
+  tsInstance: typeof ts,
+  type: ts.Type
+): string => typeChecker.typeToString(type, undefined, tsInstance.TypeFormatFlags.NoTruncation)
+
+/**
  * Gets the location info from a declaration
  */
 const getLocationFromDeclaration = (
@@ -70,6 +80,7 @@ const getLocationFromDeclaration = (
 
 /**
  * Collects all exported services and layers from a source file using getExportsOfModule
+ * Also traverses properties of exported symbols to find nested services/layers (e.g., Effect.Service.Default)
  */
 const collectExportedItems = (
   sourceFile: ts.SourceFile,
@@ -90,19 +101,44 @@ const collectExportedItems = (
     // Get all exports from the module
     const exports = typeChecker.getExportsOfModule(moduleSymbol)
 
-    for (const exportSymbol of exports) {
-      const declarations = exportSymbol.getDeclarations()
-      if (!declarations || declarations.length === 0) continue
+    type CodeLocation = { filePath: string; line: number; column: number }
 
-      const declaration = declarations[0]
-      const location = getLocationFromDeclaration(declaration, tsInstance)
+    // Work queue: [symbol, qualifiedName, codeLocation | undefined]
+    // Initialize with exported symbols using their names and declaration locations
+    const workQueue: Array<[ts.Symbol, string, CodeLocation | undefined]> = exports.map((s) => {
+      const declarations = s.getDeclarations()
+      const location = declarations && declarations.length > 0
+        ? getLocationFromDeclaration(declarations[0], tsInstance)
+        : undefined
+      return [s, tsInstance.symbolName(s), location]
+    })
+    // Track which symbols have been exploded (properties added to queue)
+    const exploded = new WeakSet<ts.Symbol>()
+
+    while (workQueue.length > 0) {
+      const [symbol, name, location] = workQueue.shift()!
+
       if (!location) continue
 
-      const name = tsInstance.symbolName(exportSymbol)
-      const type = typeChecker.getTypeOfSymbol(exportSymbol)
+      const type = typeChecker.getTypeOfSymbol(symbol)
+
+      // Explode symbol: add its properties to the queue (only once per symbol)
+      // Child symbols inherit the parent's code location
+      if (!exploded.has(symbol)) {
+        exploded.add(symbol)
+        const properties = typeChecker.getPropertiesOfType(type)
+        for (const propSymbol of properties) {
+          const childName = `${name}.${tsInstance.symbolName(propSymbol)}`
+          workQueue.push([propSymbol, childName, location])
+        }
+      }
+
+      // Get a declaration for type parsing context
+      const declarations = symbol.getDeclarations()
+      const declaration = declarations && declarations.length > 0 ? declarations[0] : sourceFile
 
       // Get JSDoc description if available
-      const docComment = exportSymbol.getDocumentationComment(typeChecker)
+      const docComment = symbol.getDocumentationComment(typeChecker)
       const description = docComment.length > 0
         ? docComment.map((part) => part.text).join("")
         : undefined
@@ -113,12 +149,13 @@ const collectExportedItems = (
         Nano.option
       )
       if (Option.isSome(contextTagResult)) {
+        const serviceType = typeToString(typeChecker, tsInstance, contextTagResult.value.Service)
         services.push({
           name,
           ...location,
+          serviceType,
           description
         })
-        continue
       }
 
       // Check if it's a Layer
@@ -127,16 +164,15 @@ const collectExportedItems = (
         Nano.option
       )
       if (Option.isSome(layerResult)) {
-        const rOut = typeChecker.typeToString(layerResult.value.ROut)
-        const e = typeChecker.typeToString(layerResult.value.E)
-        const rIn = typeChecker.typeToString(layerResult.value.RIn)
+        const rOut = typeToString(typeChecker, tsInstance, layerResult.value.ROut)
+        const e = typeToString(typeChecker, tsInstance, layerResult.value.E)
+        const rIn = typeToString(typeChecker, tsInstance, layerResult.value.RIn)
         layers.push({
           name,
           ...location,
           layerType: `Layer<${rOut}, ${e}, ${rIn}>`,
           description
         })
-        continue
       }
     }
 
@@ -165,7 +201,8 @@ const dimLine = (text: string): Doc.AnsiDoc => Doc.annotate(Doc.text(text), Ansi
 const renderService = (svc: ServiceInfo, cwd: string): Doc.AnsiDoc => {
   const relativePath = toRelativePath(svc.filePath, cwd)
   const details: Array<Doc.AnsiDoc> = [
-    dimLine(`${relativePath}:${svc.line}:${svc.column}`)
+    dimLine(`${relativePath}:${svc.line}:${svc.column}`),
+    dimLine(svc.serviceType)
   ]
   if (svc.description) {
     details.push(dimLine(svc.description))
