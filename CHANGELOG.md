@@ -1,5 +1,27 @@
 # @effect/language-service
 
+## 0.64.1
+
+### Patch Changes
+
+- [#568](https://github.com/Effect-TS/language-service/pull/568) [`477271d`](https://github.com/Effect-TS/language-service/commit/477271d4df19391dca4131a13c8962b134156272) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix auto-import with namespace import packages generating malformed code when the identifier is at the beginning of the file.
+
+  When using `namespaceImportPackages` configuration and auto-completing an export like `isAnyKeyword` from `effect/SchemaAST`, the code was incorrectly generated as:
+
+  ```ts
+  SchemaAST.import * as SchemaAST from "effect/SchemaAST";
+  ```
+
+  Instead of the expected:
+
+  ```ts
+  import * as SchemaAST from "effect/SchemaAST";
+
+  SchemaAST.isAnyKeyword;
+  ```
+
+  The fix ensures the import statement is added before the namespace prefix when both changes target position 0.
+
 ## 0.64.0
 
 ### Minor Changes
