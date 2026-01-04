@@ -1,0 +1,9 @@
+
+[0;1mLayers (2)[0m
+  followSymbols
+    [0;90mfollowSymbols.ts:5:14[0m
+    [0;90mLayer<UserRepository, never, FileSystem>[0m
+
+  moreComplex
+    [0;90mfollowSymbols.ts:7:14[0m
+    [0;90mLayer<UserRepository | DbConnection, never, DbConnection>[0m
