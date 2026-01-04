@@ -80,16 +80,8 @@ const addImportCodeAction = Nano.fn("getImportFromNamespaceCodeActions")(functio
       preferences: preferences || {}
     },
     (changeTracker) => {
-      // add the introduced prefix if necessary
-      if (effectAutoImport.introducedPrefix) {
-        changeTracker.insertText(
-          sourceFile,
-          effectReplaceSpan.start,
-          effectAutoImport.introducedPrefix + "."
-        )
-      }
-
-      // add the import statement
+      // add the import statement first, so that when both changes target position 0,
+      // the import is inserted before the prefix when changes are applied sequentially
       description = AutoImport.addImport(
         ts,
         sourceFile,
@@ -97,6 +89,15 @@ const addImportCodeAction = Nano.fn("getImportFromNamespaceCodeActions")(functio
         preferences,
         effectAutoImport
       ).description
+
+      // add the introduced prefix after the import
+      if (effectAutoImport.introducedPrefix) {
+        changeTracker.insertText(
+          sourceFile,
+          effectReplaceSpan.start,
+          effectAutoImport.introducedPrefix + "."
+        )
+      }
     }
   )
 
