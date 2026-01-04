@@ -1,0 +1,5 @@
+
+[0;1mLayers (1)[0m
+  AppLive
+    [0;90mmultiple.ts:33:14[0m
+    [0;90mLayer<Database | UserRepository | EventsRepository | Analytics | UserService | EventService | AppService, never, Database | UserRepository | EventsRepository | Analytics | UserService | EventService>[0m

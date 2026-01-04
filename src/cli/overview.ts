@@ -23,6 +23,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import * as ExportedSymbols from "./utils/ExportedSymbols"
 import * as Spinner from "./utils/Spinner"
 
 /**
@@ -45,7 +46,7 @@ export class NoFilesToCheckError extends Data.TaggedError("NoFilesToCheckError")
   }
 }
 
-interface ServiceInfo {
+export interface ServiceInfo {
   readonly name: string
   readonly filePath: string
   readonly line: number
@@ -54,7 +55,7 @@ interface ServiceInfo {
   readonly description: string | undefined
 }
 
-interface LayerInfo {
+export interface LayerInfo {
   readonly name: string
   readonly filePath: string
   readonly line: number
@@ -63,7 +64,7 @@ interface LayerInfo {
   readonly description: string | undefined
 }
 
-interface ErrorInfo {
+export interface ErrorInfo {
   readonly name: string
   readonly filePath: string
   readonly line: number
@@ -72,7 +73,13 @@ interface ErrorInfo {
   readonly description: string | undefined
 }
 
-interface OverviewResult {
+export interface ExportedItemsResult {
+  readonly services: Array<ServiceInfo>
+  readonly layers: Array<LayerInfo>
+  readonly errors: Array<ErrorInfo>
+}
+
+export interface OverviewResult extends ExportedItemsResult {
   readonly services: Array<ServiceInfo>
   readonly layers: Array<LayerInfo>
   readonly errors: Array<ErrorInfo>
@@ -91,32 +98,22 @@ const typeToString = (
 ): string => typeChecker.typeToString(type, undefined, tsInstance.TypeFormatFlags.NoTruncation)
 
 /**
- * Gets the location info from a declaration
+ * Collects all exported services, layers, and errors from a source file.
+ * Uses ExportedSymbols to get all exported symbols with their names and locations,
+ * then checks each symbol's type to categorize it.
+ *
+ * @param sourceFile - The source file to collect exports from
+ * @param tsInstance - The TypeScript instance
+ * @param typeChecker - The TypeScript type checker
+ * @param maxSymbolDepth - Maximum depth to traverse nested properties (default: 3)
  */
-const getLocationFromDeclaration = (
-  declaration: ts.Declaration,
-  tsInstance: typeof ts
-): { filePath: string; line: number; column: number } | undefined => {
-  const sourceFile = declaration.getSourceFile()
-  if (!sourceFile) return undefined
-  const { character, line } = tsInstance.getLineAndCharacterOfPosition(sourceFile, declaration.getStart())
-  return {
-    filePath: sourceFile.fileName,
-    line: line + 1,
-    column: character + 1
-  }
-}
-
-/**
- * Collects all exported services, layers, and errors from a source file using getExportsOfModule
- * Also traverses properties of exported symbols to find nested services/layers (e.g., Effect.Service.Default)
- */
-const collectExportedItems = (
+export const collectExportedItems = (
   sourceFile: ts.SourceFile,
   tsInstance: typeof ts,
-  typeChecker: ts.TypeChecker
+  typeChecker: ts.TypeChecker,
+  maxSymbolDepth: number = 3
 ): Nano.Nano<
-  { services: Array<ServiceInfo>; layers: Array<LayerInfo>; errors: Array<ErrorInfo> },
+  ExportedItemsResult,
   never,
   TypeParser.TypeParser
 > =>
@@ -126,60 +123,18 @@ const collectExportedItems = (
     const layers: Array<LayerInfo> = []
     const errors: Array<ErrorInfo> = []
 
-    // Get the module symbol for the source file
-    const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
-    if (!moduleSymbol) {
-      return { services, layers, errors }
-    }
+    // Get all exported symbols with their names and locations
+    const exportedSymbols = ExportedSymbols.collectSourceFileExportedSymbols(
+      sourceFile,
+      tsInstance,
+      typeChecker,
+      maxSymbolDepth
+    )
 
-    // Get all exports from the module
-    const exports = typeChecker.getExportsOfModule(moduleSymbol)
-
-    type CodeLocation = { filePath: string; line: number; column: number }
-
-    // Work queue: [symbol, qualifiedName, codeLocation | undefined]
-    // Initialize with exported symbols using their names and declaration locations
-    const workQueue: Array<[ts.Symbol, string, CodeLocation | undefined]> = exports.map((s) => {
-      const declarations = s.getDeclarations()
-      const location = declarations && declarations.length > 0
-        ? getLocationFromDeclaration(declarations[0], tsInstance)
-        : undefined
-      return [s, tsInstance.symbolName(s), location]
-    })
-    // Track which symbols have been exploded (properties added to queue)
-    const exploded = new WeakSet<ts.Symbol>()
-
-    while (workQueue.length > 0) {
-      const [symbol, name, location] = workQueue.shift()!
-
-      if (!location) continue
-
-      const type = typeChecker.getTypeOfSymbol(symbol)
-
-      // Explode symbol: add its properties to the queue (only once per symbol)
-      // Child symbols inherit the parent's code location
-      if (!exploded.has(symbol)) {
-        exploded.add(symbol)
-
-        const properties = typeChecker.getPropertiesOfType(type)
-        for (const propSymbol of properties) {
-          const propName = tsInstance.symbolName(propSymbol)
-          // Skip prototype property - it contains instance type, not a real export
-          if (propName === "prototype") continue
-          const childName = `${name}.${propName}`
-          workQueue.push([propSymbol, childName, location])
-        }
-      }
-
+    for (const { description, location, name, symbol, type } of exportedSymbols) {
       // Get a declaration for type parsing context
       const declarations = symbol.getDeclarations()
       const declaration = declarations && declarations.length > 0 ? declarations[0] : sourceFile
-
-      // Get JSDoc description if available
-      const docComment = symbol.getDocumentationComment(typeChecker)
-      const description = docComment.length > 0
-        ? docComment.map((part) => part.text).join("")
-        : undefined
 
       // Check if it's a Context.Tag (has _Identifier and _Service variance)
       const contextTagResult = yield* pipe(
@@ -347,7 +302,7 @@ const renderError = (error: ErrorInfo, cwd: string): Doc.AnsiDoc => {
 /**
  * Renders the overview result as a styled document
  */
-const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
+export const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
   const lines: Array<Doc.AnsiDoc> = []
 
   // Errors section
@@ -391,8 +346,9 @@ const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
 const collectAllItems = (
   filesToCheck: Set<string>,
   tsInstance: typeof ts,
+  maxSymbolDepth: number,
   onProgress: (current: number, total: number) => Effect.Effect<void>
-): Effect.Effect<{ services: Array<ServiceInfo>; layers: Array<LayerInfo>; errors: Array<ErrorInfo> }> =>
+): Effect.Effect<ExportedItemsResult> =>
   Effect.gen(function*() {
     const services: Array<ServiceInfo> = []
     const layers: Array<LayerInfo> = []
@@ -421,7 +377,7 @@ const collectAllItems = (
           if (!sourceFile) continue
 
           const result = pipe(
-            collectExportedItems(sourceFile, tsInstance, program.getTypeChecker()),
+            collectExportedItems(sourceFile, tsInstance, program.getTypeChecker(), maxSymbolDepth),
             TypeParser.nanoLayer,
             TypeCheckerUtils.nanoLayer,
             TypeScriptUtils.nanoLayer,
@@ -461,9 +417,15 @@ export const overview = Command.make(
     project: Options.file("project").pipe(
       Options.optional,
       Options.withDescription("The full path of the project tsconfig.json file to analyze.")
+    ),
+    maxSymbolDepth: Options.integer("max-symbol-depth").pipe(
+      Options.withDefault(3),
+      Options.withDescription(
+        "Maximum depth to traverse nested symbol properties. 0 = only root exports, 1 = root + one level, etc."
+      )
     )
   },
-  Effect.fn("overview")(function*({ file, project }) {
+  Effect.fn("overview")(function*({ file, maxSymbolDepth, project }) {
     const path = yield* Path.Path
     const cwd = path.resolve(".")
     const tsInstance = yield* TypeScriptContext
@@ -486,6 +448,7 @@ export const overview = Command.make(
         collectAllItems(
           filesToCheck,
           tsInstance,
+          maxSymbolDepth,
           (current, total) => handle.updateMessage(`Processing file ${current}/${total}...`)
         ),
       {

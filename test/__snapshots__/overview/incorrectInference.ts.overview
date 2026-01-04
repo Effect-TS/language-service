@@ -1,0 +1,5 @@
+
+[0;1mLayers (1)[0m
+  testInference
+    [0;90mincorrectInference.ts:11:14[0m
+    [0;90mLayer<never, never, never>[0m

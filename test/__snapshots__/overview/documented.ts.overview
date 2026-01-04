@@ -1,0 +1,49 @@
+
+[0;1mServices (4)[0m
+  DbConnection
+    [0;90mdocumented.ts:6:1[0m
+    [0;90mDbConnection[0m
+    [0;90mManages database connections and pooling[0m
+
+  FileSystem
+    [0;90mdocumented.ts:13:1[0m
+    [0;90mFileSystem[0m
+    [0;90mProvides file system access for reading and writing files[0m
+
+  Cache
+    [0;90mdocumented.ts:20:1[0m
+    [0;90mCache[0m
+    [0;90mIn-memory caching layer for improved performance[0m
+
+  UserRepository
+    [0;90mdocumented.ts:27:1[0m
+    [0;90mUserRepository[0m
+    [0;90mRepository for user data access and persistence[0m
+
+
+[0;1mLayers (6)[0m
+  DbConnection.Default
+    [0;90mdocumented.ts:6:1[0m
+    [0;90mLayer<DbConnection, never, never>[0m
+
+  FileSystem.Default
+    [0;90mdocumented.ts:13:1[0m
+    [0;90mLayer<FileSystem, never, never>[0m
+
+  Cache.Default
+    [0;90mdocumented.ts:20:1[0m
+    [0;90mLayer<Cache, never, FileSystem>[0m
+
+  UserRepository.Default
+    [0;90mdocumented.ts:27:1[0m
+    [0;90mLayer<UserRepository, never, DbConnection | Cache>[0m
+
+  CacheLive
+    [0;90mdocumented.ts:34:14[0m
+    [0;90mLayer<Cache, never, never>[0m
+    [0;90mProvides cache with file system backing store[0m
+
+  AppLive
+    [0;90mdocumented.ts:39:14[0m
+    [0;90mLayer<Cache | UserRepository, never, never>[0m
+    [0;90mComplete application layer with all dependencies wired[0m
