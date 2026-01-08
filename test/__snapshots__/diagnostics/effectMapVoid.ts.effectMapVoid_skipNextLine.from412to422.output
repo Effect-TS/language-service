@@ -1,0 +1,38 @@
+// code fix effectMapVoid_skipNextLine  output for range 412 - 422
+import { Effect } from "effect"
+
+// Should trigger: Effect.map(() => void 0)
+export const shouldTriggerVoid0 = Effect.succeed(1).pipe(
+  Effect.map(() => void 0)
+)
+
+// Should trigger: Effect.map(() => undefined)
+export const shouldTriggerUndefined = Effect.succeed(1).pipe(
+  Effect.map(() => undefined)
+)
+
+// Should trigger: Effect.map(() => {})
+// @effect-diagnostics-next-line effectMapVoid:off
+export const shouldTriggerEmptyBlock = Effect.succeed(1).pipe(
+  Effect.map(() => {})
+)
+
+// Should NOT trigger: Effect.map with actual transformation
+export const shouldNotTriggerTransform = Effect.succeed(1).pipe(
+  Effect.map((n) => n * 2)
+)
+
+// Should NOT trigger: Effect.map with non-void return
+export const shouldNotTriggerNonVoid = Effect.succeed(1).pipe(
+  Effect.map(() => 42)
+)
+
+// Should NOT trigger: Effect.map with string return
+export const shouldNotTriggerString = Effect.succeed(1).pipe(
+  Effect.map(() => "hello")
+)
+
+// Should NOT trigger: already using asVoid
+export const shouldNotTriggerAsVoid = Effect.succeed(1).pipe(
+  Effect.asVoid
+)

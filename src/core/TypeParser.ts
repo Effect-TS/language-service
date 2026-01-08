@@ -14,6 +14,19 @@ export interface ParsedPipeCall {
   kind: "pipe" | "pipeable"
 }
 
+export interface ParsedLazyExpression {
+  node: ts.ArrowFunction | ts.FunctionExpression
+  body: ts.Expression | ts.Block
+  expression: ts.Expression
+  returnType: ts.TypeNode | undefined
+}
+
+export interface ParsedEmptyFunction {
+  node: ts.ArrowFunction | ts.FunctionExpression
+  body: ts.Block
+  returnType: ts.TypeNode | undefined
+}
+
 export interface TypeParser {
   effectType: (
     type: ts.Type,
@@ -219,6 +232,16 @@ export interface TypeParser {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
     },
+    TypeParserIssue,
+    never
+  >
+  lazyExpression: (node: ts.Node) => Nano.Nano<
+    ParsedLazyExpression,
+    TypeParserIssue,
+    never
+  >
+  emptyFunction: (node: ts.Node) => Nano.Nano<
+    ParsedEmptyFunction,
     TypeParserIssue,
     never
   >
@@ -1884,6 +1907,95 @@ export function make(
       (node) => node
     )
 
+  const lazyExpression = Nano.cachedBy(
+    function(node: ts.Node): Nano.Nano<ParsedLazyExpression, TypeParserIssue, never> {
+      // Must be an arrow function or function expression
+      if (!ts.isArrowFunction(node) && !ts.isFunctionExpression(node)) {
+        return typeParserIssue("Node is not an arrow function or function expression", undefined, node)
+      }
+
+      // Must have zero parameters
+      if (node.parameters.length !== 0) {
+        return typeParserIssue("Function must have zero parameters", undefined, node)
+      }
+
+      // Must have no type parameters
+      if (node.typeParameters && node.typeParameters.length > 0) {
+        return typeParserIssue("Function must have no type parameters", undefined, node)
+      }
+
+      const body = node.body
+
+      const returnType = node.type
+
+      // For arrow functions with expression body: () => expression
+      if (ts.isArrowFunction(node) && !ts.isBlock(body)) {
+        return Nano.succeed({
+          node,
+          body,
+          expression: body,
+          returnType
+        })
+      }
+
+      // For block body: must have exactly one statement which is a return statement with an expression
+      if (ts.isBlock(body)) {
+        if (body.statements.length !== 1) {
+          return typeParserIssue("Block must have exactly one statement", undefined, node)
+        }
+
+        const stmt = body.statements[0]
+        if (!ts.isReturnStatement(stmt)) {
+          return typeParserIssue("Statement must be a return statement", undefined, node)
+        }
+
+        if (!stmt.expression) {
+          return typeParserIssue("Return statement must have an expression", undefined, node)
+        }
+
+        return Nano.succeed({
+          node,
+          body,
+          expression: stmt.expression,
+          returnType
+        })
+      }
+
+      return typeParserIssue("Invalid function body", undefined, node)
+    },
+    "TypeParser.lazyExpression",
+    (node) => node
+  )
+
+  const emptyFunction = Nano.cachedBy(
+    function(node: ts.Node): Nano.Nano<ParsedEmptyFunction, TypeParserIssue, never> {
+      // Must be an arrow function or function expression
+      if (!ts.isArrowFunction(node) && !ts.isFunctionExpression(node)) {
+        return typeParserIssue("Node is not an arrow function or function expression", undefined, node)
+      }
+
+      const body = node.body
+      const returnType = node.type
+
+      // Must be a block with zero statements
+      if (!ts.isBlock(body)) {
+        return typeParserIssue("Body must be a block", undefined, node)
+      }
+
+      if (body.statements.length !== 0) {
+        return typeParserIssue("Block must have zero statements", undefined, node)
+      }
+
+      return Nano.succeed({
+        node,
+        body,
+        returnType
+      })
+    },
+    "TypeParser.emptyFunction",
+    (node) => node
+  )
+
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
@@ -1917,6 +2029,8 @@ export function make(
     extendsDataTaggedError,
     extendsDataTaggedClass,
     extendsSchemaTaggedRequest,
-    extendsEffectSqlModelClass
+    extendsEffectSqlModelClass,
+    lazyExpression,
+    emptyFunction
   }
 }
