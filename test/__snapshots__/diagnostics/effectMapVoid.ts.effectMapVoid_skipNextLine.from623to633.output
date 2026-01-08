@@ -1,8 +1,7 @@
-// code fix effectMapVoid_skipNextLine  output for range 137 - 147
+// code fix effectMapVoid_skipNextLine  output for range 623 - 633
 import { Effect } from "effect"
 
 // Should trigger: Effect.map(() => void 0)
-// @effect-diagnostics-next-line effectMapVoid:off
 export const shouldTriggerVoid0 = Effect.succeed(1).pipe(
   Effect.map(() => void 0)
 )
@@ -18,6 +17,7 @@ export const shouldTriggerEmptyBlock = Effect.succeed(1).pipe(
 )
 
 // Should trigger: Effect.map(() => (undefined)) - parenthesized
+// @effect-diagnostics-next-line effectMapVoid:off
 export const shouldTriggerParenthesizedUndefined = Effect.succeed(1).pipe(
   // eslint-disable-next-line @effect/dprint
   Effect.map(() => (undefined))

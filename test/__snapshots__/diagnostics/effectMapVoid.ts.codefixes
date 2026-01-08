@@ -7,3 +7,12 @@ effectMapVoid_skipFile from 276 to 286
 effectMapVoid_fix from 412 to 422
 effectMapVoid_skipNextLine from 412 to 422
 effectMapVoid_skipFile from 412 to 422
+effectMapVoid_fix from 623 to 633
+effectMapVoid_skipNextLine from 623 to 633
+effectMapVoid_skipFile from 623 to 633
+effectMapVoid_fix from 791 to 801
+effectMapVoid_skipNextLine from 791 to 801
+effectMapVoid_skipFile from 791 to 801
+effectMapVoid_fix from 1023 to 1033
+effectMapVoid_skipNextLine from 1023 to 1033
+effectMapVoid_skipFile from 1023 to 1033

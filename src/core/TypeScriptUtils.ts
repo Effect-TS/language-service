@@ -869,19 +869,25 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
    * Checks if the node is a void expression:
    * - `void 0`
    * - `undefined`
+   *
+   * Also handles parenthesized expressions like `(undefined)` or `((void 0))`.
    */
   function isVoidExpression(node: ts.Node): boolean {
+    // Skip parentheses and other outer expressions
+
+    const unwrapped = ts.isExpression(node) ? skipOuterExpressions(node) : node
+
     // Check for `void 0`
     if (
-      ts.isVoidExpression(node) &&
-      ts.isNumericLiteral(node.expression) &&
-      node.expression.text === "0"
+      ts.isVoidExpression(unwrapped) &&
+      ts.isNumericLiteral(unwrapped.expression) &&
+      unwrapped.expression.text === "0"
     ) {
       return true
     }
 
     // Check for `undefined`
-    if (ts.isIdentifier(node) && ts.idText(node) === "undefined") {
+    if (ts.isIdentifier(unwrapped) && ts.idText(unwrapped) === "undefined") {
       return true
     }
 

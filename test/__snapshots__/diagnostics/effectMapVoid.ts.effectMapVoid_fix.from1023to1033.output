@@ -1,8 +1,7 @@
-// code fix effectMapVoid_skipNextLine  output for range 137 - 147
+// code fix effectMapVoid_fix  output for range 1023 - 1033
 import { Effect } from "effect"
 
 // Should trigger: Effect.map(() => void 0)
-// @effect-diagnostics-next-line effectMapVoid:off
 export const shouldTriggerVoid0 = Effect.succeed(1).pipe(
   Effect.map(() => void 0)
 )
@@ -31,7 +30,8 @@ export const shouldTriggerParenthesizedVoid0 = Effect.succeed(1).pipe(
 // Should trigger: Effect.map(() => ((undefined))) - double parenthesized
 export const shouldTriggerDoubleParenthesizedUndefined = Effect.succeed(1).pipe(
   // eslint-disable-next-line @effect/dprint
-  Effect.map(() => ((undefined)))
+  // eslint-disable-next-line @effect/dprint
+    Effect.asVoid
 )
 
 // Should NOT trigger: Effect.map with actual transformation
