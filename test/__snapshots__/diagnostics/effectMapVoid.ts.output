@@ -1,0 +1,17 @@
+Effect.map
+5:2 - 5:12 | 2 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)
+
+Effect.map
+10:2 - 10:12 | 2 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)
+
+Effect.map
+15:2 - 15:12 | 2 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)
+
+Effect.map
+21:2 - 21:12 | 2 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)
+
+Effect.map
+26:2 - 26:12 | 2 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)
+
+Effect.map
+32:2 - 32:12 | 2 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)

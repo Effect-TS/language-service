@@ -6,6 +6,7 @@ import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
+import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
@@ -79,5 +80,6 @@ export const diagnostics = [
   schemaStructWithTag,
   globalErrorInEffectCatch,
   globalErrorInEffectFailure,
-  layerMergeAllWithDependencies
+  layerMergeAllWithDependencies,
+  effectMapVoid
 ]
