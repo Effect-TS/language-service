@@ -163,11 +163,8 @@ The full list can be found in the [diagnostics](https://github.com/Effect-TS/lan
 
 TypeScript LSPs are loaded only while editing your files. That means that if you run `tsc` in your project, the plugin won't be loaded and you'll miss out on the Effect diagnostics.
 
-We provide two approaches to solve this scenario.
 
-### Option A - Effect LSP Cli Patch (experimental recommended)
-
-This option works by modifing directly the source code of the tsc compiler and the typescript library in your project node_modules. This allows to get effect's diagnostics even when noEmit is enabled, for composite and incremental projects as well.
+To solve this we modify directly the source code of the tsc compiler and the typescript library in your project node_modules. This allows to get effect's diagnostics even when noEmit is enabled, for composite and incremental projects as well.
 
 After having installed and configured the LSP for editor usage, you can run the following command inside the folder that contains your local project typescript installation:
 
@@ -193,40 +190,6 @@ To make the patch persistent across package installations and updates, we recomm
 ```
 
 so that across updates the patch will be re-applied again.
-
-### Option B - Using ts-patch
-
-if you use `ts-patch` you can enable the transform as well to get the diagnostics also at compile time.
-Your `tsconfig.json` should look like this:
-
-```jsonc
-{
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "@effect/language-service",
-        "transform": "@effect/language-service/transform" // enables diagnostics at compile time when using ts-patch
-      }
-    ]
-  }
-}
-```
-
-To get diagnostics you need to install `ts-patch` which will make it possible to run `tspc`.
-
-Running `tspc` in your project will now also run the plugin and give you the error diagnostics at compile time.
-Effect error diagnostics will be shown only after standard TypeScript diagnostics have been satisfied.
-Beware that setting noEmit will completely skip the effect diagnostics, and projects using incremental builds may encounter some issues.
-
-```ts
-$ npx tspc
-index.ts:3:1 - error TS3: Effect must be yielded or assigned to a variable.
-
-3 Effect.succeed(1)
-  ~~~~~~~~~~~~~~~~~
-
-Found 1 error in index.ts:3 
-```
 
 ## Effect-Language-Service CLI
 
