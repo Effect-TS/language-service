@@ -81,16 +81,16 @@ export function checkSourceFileWorker(
       Array.filter((_) =>
         _.category === tsInstance.DiagnosticCategory.Error ||
         _.category === tsInstance.DiagnosticCategory.Warning ||
-        (moduleName === "tsc" && parsedOptions.reportSuggestionsAsWarningsInTsc && (
-          _.category === tsInstance.DiagnosticCategory.Suggestion ||
-          _.category === tsInstance.DiagnosticCategory.Message
+        (moduleName === "tsc" && parsedOptions.includeSuggestionsInTsc && (
+          _.category === tsInstance.DiagnosticCategory.Message ||
+          _.category === tsInstance.DiagnosticCategory.Suggestion
         ))
       )
     ),
     Either.map(
       Array.map((_) => {
         if (
-          moduleName === "tsc" && parsedOptions.reportSuggestionsAsWarningsInTsc &&
+          moduleName === "tsc" && parsedOptions.includeSuggestionsInTsc &&
           _.category === tsInstance.DiagnosticCategory.Suggestion
         ) {
           return { ..._, category: tsInstance.DiagnosticCategory.Message }
