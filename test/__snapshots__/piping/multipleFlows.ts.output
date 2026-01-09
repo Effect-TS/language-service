@@ -35,7 +35,7 @@ Transformations (2):
       outType: Effect<string, never, never>
 
 === Piping Flow ===
-Location: 15:18 - 18:2
+Location: 15:25 - 18:2
 Node: pipe(\n  Effect.all([flow1, flow2]),\n  Effect.map(([n, s]) => `${s}: ${n}`)\n)
 Node Kind: CallExpression
 

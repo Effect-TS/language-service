@@ -2066,103 +2066,98 @@ export function make(
       while (workQueue.length > 0) {
         const [node, parentFlow] = workQueue.pop()!
 
-        // Try to parse as a pipe call
+        // Try to parse as a pipe call or single-argument call
         if (ts.isCallExpression(node)) {
-          const parsed = yield* pipe(pipeCall(node), Nano.option)
+          const parsed = yield* pipe(
+            pipeCall(node),
+            Nano.map((p) => ({ _tag: "pipe" as const, ...p })),
+            Nano.orElse(() =>
+              pipe(
+                singleArgCall(node),
+                Nano.map((s) => ({ _tag: "call" as const, ...s }))
+              )
+            ),
+            Nano.option
+          )
 
           if (Option.isSome(parsed)) {
-            const parsedPipe = parsed.value
+            const result = parsed.value
 
-            // Build transformations for this pipe call
-            // Get the resolved signature to extract intermediate types
-            const signature = typeChecker.getResolvedSignature(parsedPipe.node)
-            const typeArguments = signature
-              ? typeChecker.getTypeArgumentsForResolvedSignature(signature) as Array<ts.Type> | undefined
-              : undefined
+            // Build transformations based on parse result type
+            let transformations: Array<ParsedPipingFlowTransformation>
+            let flowNode: ts.Expression
+            let childrenToTraverse: Array<ts.Node> = []
 
-            const transformations: Array<ParsedPipingFlowTransformation> = []
-            for (let i = 0; i < parsedPipe.args.length; i++) {
-              const arg = parsedPipe.args[i]
-              // For pipe(subject, f1, f2, f3), typeArguments are [A, B, C, D]
-              // where A=input, B=after f1, C=after f2, D=after f3
-              // So for transformation at index i, outType is typeArguments[i+1]
-              const outType = typeArguments?.[i + 1]
+            if (result._tag === "pipe") {
+              // Get the resolved signature to extract intermediate types
+              const signature = typeChecker.getResolvedSignature(result.node)
+              const typeArguments = signature
+                ? typeChecker.getTypeArgumentsForResolvedSignature(signature) as Array<ts.Type> | undefined
+                : undefined
 
-              if (ts.isCallExpression(arg)) {
-                // CallExpression like Effect.map((x) => x + 1)
-                transformations.push({
-                  callee: arg.expression, // e.g., Effect.map
-                  args: Array.from(arg.arguments), // e.g., [(x) => x + 1]
-                  outType,
-                  kind: parsedPipe.kind
-                })
-              } else {
-                // Constant like Effect.asVoid
-                transformations.push({
-                  callee: arg, // e.g., Effect.asVoid
-                  args: undefined,
-                  outType,
-                  kind: parsedPipe.kind
-                })
+              transformations = []
+              for (let i = 0; i < result.args.length; i++) {
+                const arg = result.args[i]
+                // For pipe(subject, f1, f2, f3), typeArguments are [A, B, C, D]
+                // where A=input, B=after f1, C=after f2, D=after f3
+                // So for transformation at index i, outType is typeArguments[i+1]
+                const outType = typeArguments?.[i + 1]
+
+                if (ts.isCallExpression(arg)) {
+                  // CallExpression like Effect.map((x) => x + 1)
+                  transformations.push({
+                    callee: arg.expression, // e.g., Effect.map
+                    args: Array.from(arg.arguments), // e.g., [(x) => x + 1]
+                    outType,
+                    kind: result.kind
+                  })
+                } else {
+                  // Constant like Effect.asVoid
+                  transformations.push({
+                    callee: arg, // e.g., Effect.asVoid
+                    args: undefined,
+                    outType,
+                    kind: result.kind
+                  })
+                }
               }
+
+              flowNode = result.node
+              // Queue the transformation arguments for independent traversal
+              childrenToTraverse = result.args
+            } else {
+              // Single-argument call (dual API pattern)
+              const callSignature = typeChecker.getResolvedSignature(node)
+              const outType = callSignature ? typeChecker.getReturnTypeOfSignature(callSignature) : undefined
+
+              transformations = [{
+                callee: result.callee,
+                args: undefined,
+                outType,
+                kind: "call"
+              }]
+              flowNode = node
             }
 
+            // Handle parent flow or create new flow (common logic)
             if (parentFlow) {
               // Extend parent flow: prepend our transformations (we're inner, they're outer)
               parentFlow.transformations.unshift(...transformations)
-              // Continue the chain with the subject
-              workQueue.push([parsedPipe.subject, parentFlow])
+              workQueue.push([result.subject, parentFlow])
             } else {
               // Start a new flow (subject will be set when chain ends)
               const newFlow: Omit<ParsedPipingFlow, "subject"> & { subject?: ParsedPipingFlowSubject } = {
-                node: parsedPipe.node as ts.Expression,
+                node: flowNode,
                 transformations
               }
-              // Queue subject with this flow (for potential flattening)
-              workQueue.push([parsedPipe.subject, newFlow as ParsedPipingFlow])
+              workQueue.push([result.subject, newFlow as ParsedPipingFlow])
             }
 
-            // Queue the transformation arguments for independent traversal
-            // (they may contain their own pipe flows)
-            for (const arg of parsedPipe.args) {
-              ts.forEachChild(arg, (child) => {
-                workQueue.push([child, undefined])
+            // Queue children for independent traversal (they may contain their own pipe flows)
+            for (const child of childrenToTraverse) {
+              ts.forEachChild(child, (c) => {
+                workQueue.push([c, undefined])
               })
-            }
-            continue
-          }
-
-          // Not a pipe call - check if it's a single-argument call wrapping a pipeable
-          // This handles the dual API pattern: Effect.asVoid(effect) === effect.pipe(Effect.asVoid)
-          const parsedSingleArg = yield* pipe(singleArgCall(node), Nano.option)
-
-          if (Option.isSome(parsedSingleArg)) {
-            const singleArg = parsedSingleArg.value
-
-            // Get the return type of this call
-            const callSignature = typeChecker.getResolvedSignature(node)
-            const outType = callSignature ? typeChecker.getReturnTypeOfSignature(callSignature) : undefined
-
-            // Create a "call" transformation
-            const callTransformation: ParsedPipingFlowTransformation = {
-              callee: singleArg.callee,
-              args: undefined, // No additional args for single-argument calls
-              outType,
-              kind: "call"
-            }
-
-            if (parentFlow) {
-              // Extend parent flow with this call transformation
-              parentFlow.transformations.unshift(callTransformation)
-              // Continue with the subject
-              workQueue.push([singleArg.subject, parentFlow])
-            } else {
-              // Start a new flow with this call as the first transformation
-              const newFlow: Omit<ParsedPipingFlow, "subject"> & { subject?: ParsedPipingFlowSubject } = {
-                node: node as ts.Expression,
-                transformations: [callTransformation]
-              }
-              workQueue.push([singleArg.subject, newFlow as ParsedPipingFlow])
             }
             continue
           }

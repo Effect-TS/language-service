@@ -1,5 +1,5 @@
 === Piping Flow ===
-Location: 5:17 - 5:40
+Location: 5:24 - 5:47
 Node: pipe(Effect.succeed(1))
 Node Kind: CallExpression
 
@@ -13,7 +13,7 @@ Transformations (1):
       outType: Effect<number, never, never>
 
 === Piping Flow ===
-Location: 8:17 - 8:41
+Location: 8:24 - 8:48
 Node: Effect.succeed(1).pipe()
 Node Kind: CallExpression
 
