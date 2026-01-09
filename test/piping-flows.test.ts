@@ -18,7 +18,8 @@ const getExamplesPipingDir = () => path.join(__dirname, "..", "examples", "pipin
 function formatPipingFlow(
   sourceFile: ts.SourceFile,
   flow: TypeParser.ParsedPipingFlow,
-  typeChecker: ts.TypeChecker
+  typeChecker: ts.TypeChecker,
+  reconstructPipingFlow: TypeParser.TypeParser["reconstructPipingFlow"]
 ): string {
   const lines: Array<string> = []
 
@@ -50,12 +51,20 @@ function formatPipingFlow(
     lines.push(`      outType: ${typeText}`)
   }
 
+  // Add reconstructed piping flow
+  const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
+  const reconstructed = reconstructPipingFlow(flow)
+  const reconstructedText = printer.printNode(ts.EmitHint.Expression, reconstructed, sourceFile)
+  lines.push(``)
+  lines.push(`Reconstructed: ${reconstructedText.replace(/\n/g, "\\n")}`)
+
   return lines.join("\n")
 }
 
 function testPipingFlowsOnExample(
   fileName: string,
-  sourceText: string
+  sourceText: string,
+  includeEffectFn: boolean
 ) {
   // create the language service with mocked services over a VFS
   const { program, sourceFile } = createServicesWithMockedVFS(fileName, sourceText)
@@ -72,7 +81,12 @@ function testPipingFlowsOnExample(
   // attempt to run pipingFlows and get the output
   return pipe(
     Nano.service(TypeParser.TypeParser),
-    Nano.flatMap((typeParser) => typeParser.pipingFlows(sourceFile)),
+    Nano.flatMap((typeParser) =>
+      Nano.map(
+        typeParser.pipingFlows(includeEffectFn)(sourceFile),
+        (flows) => ({ flows, reconstructPipingFlow: typeParser.reconstructPipingFlow })
+      )
+    ),
     TypeParser.nanoLayer,
     TypeCheckerUtils.nanoLayer,
     TypeScriptUtils.nanoLayer,
@@ -86,13 +100,13 @@ function testPipingFlowsOnExample(
         namespaceImportPackages: ["effect"]
       })
     ),
-    Nano.map((flows) => {
+    Nano.map(({ flows, reconstructPipingFlow }) => {
       // Sort flows by position
       flows.sort((a, b) => a.node.getStart() - b.node.getStart())
       // Format flows
       return flows.length === 0
         ? "// no piping flows found"
-        : flows.map((flow) => formatPipingFlow(sourceFile, flow, typeChecker)).join("\n\n")
+        : flows.map((flow) => formatPipingFlow(sourceFile, flow, typeChecker, reconstructPipingFlow)).join("\n\n")
     }),
     Nano.unsafeRun,
     async (result) => {
@@ -113,9 +127,11 @@ function testAllPipingFlows() {
     for (const fileName of exampleFiles) {
       const sourceText = fs.readFileSync(path.join(getExamplesPipingDir(), fileName))
         .toString("utf8")
+      // Use includeEffectFn: true for effectFn.ts
+      const includeEffectFn = fileName === "effectFn.ts"
       it(
         fileName,
-        () => testPipingFlowsOnExample(fileName, sourceText)
+        () => testPipingFlowsOnExample(fileName, sourceText, includeEffectFn)
       )
     }
   })

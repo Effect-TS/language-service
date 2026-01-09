@@ -20,6 +20,8 @@ Transformations (3):
       args: (constant)
       outType: number
 
+Reconstructed: Effect.runSync(Effect.map((n) => n + 1)(Effect.succeed(1)))
+
 === Piping Flow ===
 Location: 13:80 - 13:103
 Node: Effect.log(`Got: ${a}`)
@@ -33,6 +35,8 @@ Transformations (1):
       callee: Effect.log
       args: (constant)
       outType: Effect<void, never, never>
+
+Reconstructed: Effect.log(`Got: ${a}`)
 
 === Piping Flow ===
 Location: 15:24 - 17:2
@@ -55,3 +59,5 @@ Transformations (3):
       callee: wrapWithLog
       args: (constant)
       outType: Effect<number, never, never>
+
+Reconstructed: wrapWithLog(Effect.map((n) => n + 1)(Effect.succeed(1)))

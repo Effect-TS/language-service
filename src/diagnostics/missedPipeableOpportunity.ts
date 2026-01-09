@@ -17,8 +17,8 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
-    // Get all piping flows for the source file
-    const flows = yield* typeParser.pipingFlows(sourceFile)
+    // Get all piping flows for the source file (excluding Effect.fn since it can't be reconstructed)
+    const flows = yield* typeParser.pipingFlows(false)(sourceFile)
 
     for (const flow of flows) {
       // Skip flows with too few transformations

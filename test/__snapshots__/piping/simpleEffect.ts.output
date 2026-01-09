@@ -24,6 +24,8 @@ Transformations (4):
       args: [(x) => x.length > 0]
       outType: Effect<boolean, never, never>
 
+Reconstructed: Effect.map((x) => x.length > 0)(Effect.map((x) => x.toString())(Effect.map((x) => x + 1)(Effect.succeed(1))))
+
 === Piping Flow ===
 Location: 10:29 - 14:2
 Node: Effect.succeed(1).pipe(Effect.map((x) => x + 1)).pipe(\n  Effect.map((x) => x * 2),\n  Effect.map((x) => x.toString()),\n  Effect.map((x) => x.length > 0)\n)
@@ -54,6 +56,8 @@ Transformations (5):
       args: [(x) => x.length > 0]
       outType: Effect<boolean, never, never>
 
+Reconstructed: Effect.map((x) => x.length > 0)(Effect.map((x) => x.toString())(Effect.map((x) => x * 2)(Effect.map((x) => x + 1)(Effect.succeed(1)))))
+
 === Piping Flow ===
 Location: 16:35 - 20:2
 Node: Effect.map(Effect.succeed(1), (x) => x + 1).pipe(\n  Effect.map((x) => x * 2),\n  Effect.map((x) => x.toString()),\n  Effect.map((x) => x.length > 0)\n)
@@ -76,6 +80,8 @@ Transformations (3):
       args: [(x) => x.length > 0]
       outType: Effect<boolean, never, never>
 
+Reconstructed: Effect.map((x) => x.length > 0)(Effect.map((x) => x.toString())(Effect.map((x) => x * 2)(Effect.map(Effect.succeed(1), (x) => x + 1))))
+
 === Piping Flow ===
 Location: 16:46 - 16:63
 Node: Effect.succeed(1)
@@ -89,6 +95,8 @@ Transformations (1):
       callee: Effect.succeed
       args: (constant)
       outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(1)
 
 === Piping Flow ===
 Location: 22:40 - 24:2
@@ -108,6 +116,8 @@ Transformations (2):
       args: [(x) => Effect.succeed(x + 1).pipe(Effect.map((x) => x * 2))]
       outType: Effect<number, never, never>
 
+Reconstructed: Effect.flatMap((x) => Effect.succeed(x + 1).pipe(Effect.map((x) => x * 2)))(Effect.succeed(1))
+
 === Piping Flow ===
 Location: 23:25 - 23:77
 Node: Effect.succeed(x + 1).pipe(Effect.map((x) => x * 2))
@@ -125,6 +135,8 @@ Transformations (2):
       callee: Effect.map
       args: [(x) => x * 2]
       outType: Effect<number, never, never>
+
+Reconstructed: Effect.map((x) => x * 2)(Effect.succeed(x + 1))
 
 === Piping Flow ===
 Location: 26:34 - 31:2
@@ -152,6 +164,8 @@ Transformations (4):
       args: [(x) => x.length > 0]
       outType: Effect<boolean, never, never>
 
+Reconstructed: Effect.map((x) => x.length > 0)(Effect.map((x) => x.toString())(Effect.map((x) => x * 2)(Effect.succeed(1))))
+
 === Piping Flow ===
 Location: 33:27 - 36:2
 Node: Effect.succeed(1).pipe(\n  Effect.map((x) => x * 2),\n  Effect.asVoid\n)
@@ -174,6 +188,8 @@ Transformations (3):
       args: (constant)
       outType: Effect<void, never, never>
 
+Reconstructed: Effect.asVoid(Effect.map((x) => x * 2)(Effect.succeed(1)))
+
 === Piping Flow ===
 Location: 38:28 - 38:91
 Node: Effect.asVoid(Effect.succeed(1).pipe(Effect.map((x) => x * 2)))
@@ -195,3 +211,5 @@ Transformations (3):
       callee: Effect.asVoid
       args: (constant)
       outType: Effect<void, never, never>
+
+Reconstructed: Effect.asVoid(Effect.map((x) => x * 2)(Effect.succeed(1)))

@@ -1,0 +1,8 @@
+Effect.catchAll
+7:3 - 7:18 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catchAll
+15:3 - 15:18 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catchAll
+19:3 - 19:18 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
