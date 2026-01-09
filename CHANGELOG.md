@@ -1,5 +1,88 @@
 # @effect/language-service
 
+## 0.65.0
+
+### Minor Changes
+
+- [#575](https://github.com/Effect-TS/language-service/pull/575) [`00aeed0`](https://github.com/Effect-TS/language-service/commit/00aeed0c8aadcd0b0c521e4339aa6a1a18eae772) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `effectMapVoid` diagnostic that suggests using `Effect.asVoid` instead of `Effect.map(() => void 0)`, `Effect.map(() => undefined)`, or `Effect.map(() => {})`.
+
+  Also adds two new TypeParser utilities:
+
+  - `lazyExpression`: matches zero-argument arrow functions or function expressions that return a single expression
+  - `emptyFunction`: matches arrow functions or function expressions with an empty block body
+
+  And adds `isVoidExpression` utility to TypeScriptUtils for detecting `void 0` or `undefined` expressions.
+
+  Example:
+
+  ```ts
+  // Before
+  Effect.succeed(1).pipe(Effect.map(() => void 0));
+  Effect.succeed(1).pipe(Effect.map(() => undefined));
+  Effect.succeed(1).pipe(Effect.map(() => {}));
+
+  // After (suggested fix)
+  Effect.succeed(1).pipe(Effect.asVoid);
+  ```
+
+- [#573](https://github.com/Effect-TS/language-service/pull/573) [`6715f91`](https://github.com/Effect-TS/language-service/commit/6715f9131059737cf4b2d2988d7981971943ac0e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Rename `reportSuggestionsAsWarningsInTsc` option to `includeSuggestionsInTsc` and change default to `true`.
+
+  This option controls whether diagnostics with "suggestion" severity are included in TSC output when using the `effect-language-service patch` feature. When enabled, suggestions are reported as messages in TSC output, which is useful for LLM-based development tools to see all suggestions.
+
+  **Breaking change**: The option has been renamed and the default behavior has changed:
+
+  - Old: `reportSuggestionsAsWarningsInTsc: false` (suggestions not included by default)
+  - New: `includeSuggestionsInTsc: true` (suggestions included by default)
+
+  To restore the previous behavior, set `"includeSuggestionsInTsc": false` in your tsconfig.json plugin configuration.
+
+### Patch Changes
+
+- [#580](https://github.com/Effect-TS/language-service/pull/580) [`a45606b`](https://github.com/Effect-TS/language-service/commit/a45606b2b0d64bd06436c1e6c3a1c5410dcda6a9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `Effect.fn` and `Effect.fnUntraced` support to the piping flows parser.
+
+  The piping flows parser now recognizes pipe transformations passed as additional arguments to `Effect.fn`, `Effect.fn("traced")`, and `Effect.fnUntraced`. This enables diagnostics like `catchAllToMapError`, `catchUnfailableEffect`, and `multipleEffectProvide` to work with these patterns.
+
+  Example:
+
+  ```ts
+  // This will now trigger the catchAllToMapError diagnostic
+  const example = Effect.fn(
+    function* () {
+      return yield* Effect.fail("error");
+    },
+    Effect.catchAll((cause) => Effect.fail(new MyError(cause)))
+  );
+  ```
+
+- [#577](https://github.com/Effect-TS/language-service/pull/577) [`0ed50c3`](https://github.com/Effect-TS/language-service/commit/0ed50c33c08ae6ae81fbd4af49ac4d75fd2b7f74) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor `catchAllToMapError` diagnostic to use the piping flows parser for detecting Effect.catchAll calls.
+
+  This change also:
+
+  - Makes `outType` optional in `ParsedPipingFlowSubject` to handle cases where type information is unavailable
+  - Sorts piping flows by position for consistent ordering
+
+- [#578](https://github.com/Effect-TS/language-service/pull/578) [`cab6ce8`](https://github.com/Effect-TS/language-service/commit/cab6ce85ff2720c0d09cdb0b708d77d1917a50c5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - refactor: use piping flows parser in catchUnfailableEffect diagnostic
+
+- [#579](https://github.com/Effect-TS/language-service/pull/579) [`2a82522`](https://github.com/Effect-TS/language-service/commit/2a82522cdbcb59465ccb93dcb797f55d9408752c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - refactor: use piping flows parser in multipleEffectProvide diagnostic
+
+- [#570](https://github.com/Effect-TS/language-service/pull/570) [`0db6e28`](https://github.com/Effect-TS/language-service/commit/0db6e28df1caba1bb5bc42faf82f8ffab276a184) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor CLI overview command to extract symbol collection logic into reusable utility
+
+  - Extract `collectSourceFileExportedSymbols` into `src/cli/utils/ExportedSymbols.ts` for reuse across CLI commands
+  - Add `--max-symbol-depth` option to overview command (default: 3) to control how deep to traverse nested symbol properties
+  - Add tests for the overview command with snapshot testing
+
+- [#574](https://github.com/Effect-TS/language-service/pull/574) [`9d0695e`](https://github.com/Effect-TS/language-service/commit/9d0695e3c82333400575a9d266cad4ac6af45ccc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Remove deprecated ts-patch documentation from README. The Effect LSP CLI Patch is now the only recommended approach for getting diagnostics at compile time.
+
+- [#576](https://github.com/Effect-TS/language-service/pull/576) [`5017d75`](https://github.com/Effect-TS/language-service/commit/5017d75f1db93f6e5d8c1fc0d8ea26c2b2db613a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add piping flows parser for caching piping flow analysis per source file.
+
+  This internal improvement introduces a `pipingFlows` function in `TypeParser` that analyzes and caches all piping flows (both `pipe()` calls and `.pipe()` method chains) in a source file. The parser:
+
+  - Identifies piping flows including nested pipes and mixed call styles (e.g., `Effect.map(effect, fn).pipe(...)`)
+  - Tracks the subject, transformations, and intermediate types for each flow
+  - Enables more efficient diagnostic implementations by reusing cached analysis
+
+  The `missedPipeableOpportunity` diagnostic has been refactored to use this new parser, improving performance when analyzing files with multiple piping patterns.
+
 ## 0.64.1
 
 ### Patch Changes
