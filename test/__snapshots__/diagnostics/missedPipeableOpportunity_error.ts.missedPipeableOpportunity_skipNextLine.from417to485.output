@@ -1,3 +1,4 @@
+// code fix missedPipeableOpportunity_skipNextLine  output for range 417 - 485
 // @effect-diagnostics missedPipeableOpportunity:warning
 // @test-config {"pipeableMinArgCount": 2}
 import { Duration, identity, pipe, Schedule, Schema } from "effect"
@@ -10,6 +11,7 @@ const MyStruct = Schema.Struct({
 
 export const shouldNotTrigger = identity(Schema.decodeUnknown(MyStruct)({ x: 42, y: 42 }))
 
+// @effect-diagnostics-next-line missedPipeableOpportunity:off
 export const shouldTriggerBecauseHas2 = identity(identity(Schema.decodeUnknown(MyStruct)({ x: 42, y: 42 })))
 
 export const shouldNotTriggerFunctionReturned = pipe(

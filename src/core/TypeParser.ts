@@ -279,6 +279,7 @@ export interface TypeParser {
   pipingFlows: (
     sourceFile: ts.SourceFile
   ) => Nano.Nano<Array<ParsedPipingFlow>, never, never>
+  reconstructPipingFlow: (flow: Pick<ParsedPipingFlow, "subject" | "transformations">) => ts.Expression
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -2190,6 +2191,51 @@ export function make(
     (sourceFile) => sourceFile
   )
 
+  /**
+   * Reconstructs a piping flow into an AST expression by applying transformations sequentially.
+   * For example: subject with transformations [f, g] becomes g(f(subject))
+   */
+  const reconstructPipingFlow = (
+    flow: Pick<ParsedPipingFlow, "subject" | "transformations">
+  ): ts.Expression => {
+    let result: ts.Expression = flow.subject.node
+
+    for (const t of flow.transformations) {
+      if (t.kind === "call") {
+        // Single-arg call: callee(result)
+        result = ts.factory.createCallExpression(
+          t.callee,
+          undefined,
+          [result]
+        )
+      } else {
+        // Pipe or pipeable: we need to apply the transformation
+        if (t.args) {
+          // It's like Effect.map(fn) - create call and wrap result
+          const transformCall = ts.factory.createCallExpression(
+            t.callee,
+            undefined,
+            t.args
+          )
+          result = ts.factory.createCallExpression(
+            transformCall,
+            undefined,
+            [result]
+          )
+        } else {
+          // It's a constant like Effect.asVoid
+          result = ts.factory.createCallExpression(
+            t.callee,
+            undefined,
+            [result]
+          )
+        }
+      }
+    }
+
+    return result
+  }
+
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
@@ -2227,6 +2273,7 @@ export function make(
     extendsEffectSqlModelClass,
     lazyExpression,
     emptyFunction,
-    pipingFlows
+    pipingFlows,
+    reconstructPipingFlow
   }
 }
