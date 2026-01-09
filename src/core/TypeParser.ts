@@ -2143,14 +2143,23 @@ export function make(
             if (parentFlow) {
               // Extend parent flow: prepend our transformations (we're inner, they're outer)
               parentFlow.transformations.unshift(...transformations)
+              // Update subject to the inner expression (will be updated further if chain continues)
+              parentFlow.subject = {
+                node: result.subject,
+                outType: typeCheckerUtils.getTypeAtLocation(result.subject) || typeChecker.getAnyType()
+              }
               workQueue.push([result.subject, parentFlow])
             } else {
-              // Start a new flow (subject will be set when chain ends)
-              const newFlow: Omit<ParsedPipingFlow, "subject"> & { subject?: ParsedPipingFlowSubject } = {
+              // Start a new flow with subject set to current inner expression
+              const newFlow: ParsedPipingFlow = {
                 node: flowNode,
+                subject: {
+                  node: result.subject,
+                  outType: typeCheckerUtils.getTypeAtLocation(result.subject) || typeChecker.getAnyType()
+                },
                 transformations
               }
-              workQueue.push([result.subject, newFlow as ParsedPipingFlow])
+              workQueue.push([result.subject, newFlow])
             }
 
             // Queue children for independent traversal (they may contain their own pipe flows)
@@ -2165,11 +2174,7 @@ export function make(
 
         // Not a pipe call (or failed to parse)
         if (parentFlow && parentFlow.transformations.length > 0) {
-          // The subject chain ended - set the subject and push the flow
-          parentFlow.subject = {
-            node: node as ts.Expression,
-            outType: typeCheckerUtils.getTypeAtLocation(node) || typeChecker.getAnyType()
-          }
+          // The subject chain ended - subject is already set, push the flow
           result.push(parentFlow)
         }
 
