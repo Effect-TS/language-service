@@ -42,6 +42,9 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
 
       // Check if subject is pipeable
       const subjectType = flow.subject.outType
+      if (!subjectType) {
+        continue
+      }
       const subjectIsPipeable = yield* pipe(
         typeParser.pipeableType(subjectType, flow.subject.node),
         Nano.option

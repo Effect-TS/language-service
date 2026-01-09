@@ -69,70 +69,70 @@ export const catchAllToMapError = LSP.createDiagnostic({
       })
     }
 
-    const nodeToVisit: Array<ts.Node> = []
-    const appendNodeToVisit = (node: ts.Node) => {
-      nodeToVisit.push(node)
-      return undefined
-    }
-    ts.forEachChild(sourceFile, appendNodeToVisit)
+    // Get all piping flows for the source file
+    const flows = yield* typeParser.pipingFlows(sourceFile)
 
-    while (nodeToVisit.length > 0) {
-      const node = nodeToVisit.shift()!
-      ts.forEachChild(node, appendNodeToVisit)
+    for (const flow of flows) {
+      // Look for Effect.catchAll transformations in the flow
+      for (const transformation of flow.transformations) {
+        // Skip if no args (constants like Effect.asVoid)
+        if (!transformation.args || transformation.args.length === 0) {
+          continue
+        }
 
-      // Check if this is a call expression
-      if (ts.isCallExpression(node)) {
-        // Check if the call expression references Effect.catchAll
+        // Check if the callee is Effect.catchAll
         const isCatchAllCall = yield* pipe(
-          typeParser.isNodeReferenceToEffectModuleApi("catchAll")(node.expression),
+          typeParser.isNodeReferenceToEffectModuleApi("catchAll")(transformation.callee),
           Nano.option
         )
 
-        if (Option.isSome(isCatchAllCall)) {
-          // Check if the first argument is a function that only returns Effect.fail
-          const callback = node.arguments[0]
-          if (!callback) continue
-
-          // Get the body of the callback function
-          const functionBody = getFunctionBody(callback)
-          if (!functionBody) continue
-
-          // Check if the function body is a single Effect.fail call or a block with a single return Effect.fail
-          const failCallInfo = yield* getEffectFailCallInfo(functionBody)
-          if (Option.isNone(failCallInfo)) continue
-
-          const { failArg, failCall } = failCallInfo.value
-
-          // Create the quick fix
-          report({
-            location: node.expression,
-            messageText:
-              `You can use Effect.mapError instead of Effect.catchAll + Effect.fail to transform the error type.`,
-            fixes: [{
-              fixName: "catchAllToMapError_fix",
-              description: "Replace with Effect.mapError",
-              apply: Nano.gen(function*() {
-                const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-                // Minimal changes approach:
-                // 1. Replace "catchAll" with "mapError" in the property access
-                // 2. Replace the Effect.fail(arg) call with just arg
-
-                // Replace catchAll with mapError
-                if (ts.isPropertyAccessExpression(node.expression)) {
-                  changeTracker.replaceNode(
-                    sourceFile,
-                    node.expression.name,
-                    ts.factory.createIdentifier("mapError")
-                  )
-                }
-
-                // Replace Effect.fail(arg) with just arg
-                changeTracker.replaceNode(sourceFile, failCall, failArg)
-              })
-            }]
-          })
+        if (Option.isNone(isCatchAllCall)) {
+          continue
         }
+
+        // Get the callback argument
+        const callback = transformation.args[0]
+        if (!callback) continue
+
+        // Get the body of the callback function
+        const functionBody = getFunctionBody(callback)
+        if (!functionBody) continue
+
+        // Check if the function body is a single Effect.fail call or a block with a single return Effect.fail
+        const failCallInfo = yield* getEffectFailCallInfo(functionBody)
+        if (Option.isNone(failCallInfo)) continue
+
+        const { failArg, failCall } = failCallInfo.value
+
+        // Create the quick fix
+        report({
+          location: transformation.callee,
+          messageText:
+            `You can use Effect.mapError instead of Effect.catchAll + Effect.fail to transform the error type.`,
+          fixes: [{
+            fixName: "catchAllToMapError_fix",
+            description: "Replace with Effect.mapError",
+            apply: Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+              // Minimal changes approach:
+              // 1. Replace "catchAll" with "mapError" in the property access
+              // 2. Replace the Effect.fail(arg) call with just arg
+
+              // Replace catchAll with mapError
+              if (ts.isPropertyAccessExpression(transformation.callee)) {
+                changeTracker.replaceNode(
+                  sourceFile,
+                  transformation.callee.name,
+                  ts.factory.createIdentifier("mapError")
+                )
+              }
+
+              // Replace Effect.fail(arg) with just arg
+              changeTracker.replaceNode(sourceFile, failCall, failArg)
+            })
+          }]
+        })
       }
     }
   })
