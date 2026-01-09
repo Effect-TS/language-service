@@ -1,0 +1,85 @@
+=== Piping Flow ===
+Location: 5:16 - 5:48
+Node: Effect.map((n: number) => n + 1)
+Node Kind: CallExpression
+
+Subject: (n: number) => n + 1
+Subject Type: (n: number) => number
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.map
+      args: (constant)
+      outType: <E, R>(self: Effect<number, E, R>) => Effect<number, E, R>
+
+=== Piping Flow ===
+Location: 6:16 - 6:48
+Node: Effect.map((n: number) => n * 2)
+Node Kind: CallExpression
+
+Subject: (n: number) => n * 2
+Subject Type: (n: number) => number
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.map
+      args: (constant)
+      outType: <E, R>(self: Effect<number, E, R>) => Effect<number, E, R>
+
+=== Piping Flow ===
+Location: 9:17 - 14:2
+Node: Effect.runSync(\n  pipe(\n    Effect.succeed(1),\n    Effect.map((n) => n + 1)\n  )\n)
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (3):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+  [1] kind: pipe
+      callee: Effect.map
+      args: [(n) => n + 1]
+      outType: Effect<number, never, never>
+  [2] kind: call
+      callee: Effect.runSync
+      args: (constant)
+      outType: number
+
+=== Piping Flow ===
+Location: 18:29 - 18:52
+Node: Effect.log(`Got: ${a}`)
+Node Kind: CallExpression
+
+Subject: `Got: ${a}`
+Subject Type: string
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.log
+      args: (constant)
+      outType: Effect<void, never, never>
+
+=== Piping Flow ===
+Location: 20:17 - 22:2
+Node: wrapWithLog(\n  Effect.succeed(1).pipe(Effect.map((n) => n + 1))\n)
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (3):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+  [1] kind: pipeable
+      callee: Effect.map
+      args: [(n) => n + 1]
+      outType: Effect<number, never, never>
+  [2] kind: call
+      callee: wrapWithLog
+      args: (constant)
+      outType: Effect<number, never, never>
