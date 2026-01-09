@@ -3,8 +3,6 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
-import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -16,88 +14,63 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
   apply: Nano.fn("catchUnfailableEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
-    const nodeToVisit: Array<ts.Node> = []
-    const appendNodeToVisit = (node: ts.Node) => {
-      nodeToVisit.push(node)
-      return undefined
-    }
-    ts.forEachChild(sourceFile, appendNodeToVisit)
+    const catchFunctions = ["catchAll", "catch", "catchIf", "catchSome", "catchTag", "catchTags"]
 
-    while (nodeToVisit.length > 0) {
-      const node = nodeToVisit.shift()!
-      ts.forEachChild(node, appendNodeToVisit)
+    // Get all piping flows for the source file
+    const flows = yield* typeParser.pipingFlows(sourceFile)
 
-      // Check if this is a call expression (cold expression)
-      if (ts.isCallExpression(node)) {
-        // Check if the call expression references any of the catch functions
-        const catchFunctions = ["catchAll", "catch", "catchIf", "catchSome", "catchTag", "catchTags"]
+    for (const flow of flows) {
+      // Look for catch transformations in the flow
+      for (let i = 0; i < flow.transformations.length; i++) {
+        const transformation = flow.transformations[i]
+
+        // Skip if no args (constants like Effect.asVoid)
+        if (!transformation.args || transformation.args.length === 0) {
+          continue
+        }
+
+        // Check if the callee is one of the catch functions
         const isCatchCall = yield* pipe(
           Nano.firstSuccessOf(
-            catchFunctions.map((catchFn) => typeParser.isNodeReferenceToEffectModuleApi(catchFn)(node.expression))
+            catchFunctions.map((catchFn) => typeParser.isNodeReferenceToEffectModuleApi(catchFn)(transformation.callee))
           ),
           Nano.option
         )
 
-        if (Option.isSome(isCatchCall)) {
-          // Check if the parent is a pipe call
-          const parent = node.parent
-          if (parent && ts.isCallExpression(parent)) {
-            const pipeCallResult = yield* pipe(
-              typeParser.pipeCall(parent),
-              Nano.option
-            )
+        if (Option.isNone(isCatchCall)) {
+          continue
+        }
 
-            if (Option.isSome(pipeCallResult)) {
-              const { args, node: pipeCallNode, subject } = pipeCallResult.value
+        // Get the input type for this transformation
+        // If this is the first transformation, use the subject's type
+        // Otherwise, use the previous transformation's output type
+        const inputType: ts.Type | undefined = i === 0
+          ? flow.subject.outType
+          : flow.transformations[i - 1].outType
 
-              // Find the index of this node in the pipe arguments
-              const argIndex = args.findIndex((arg) => arg === node)
+        if (!inputType) {
+          continue
+        }
 
-              if (argIndex !== -1) {
-                let effectTypeToCheck: ts.Type | undefined
+        // Check if the input effect type has error type never
+        const effectType = yield* pipe(
+          typeParser.effectType(inputType, transformation.callee),
+          Nano.option
+        )
 
-                // Get the effect type based on argument index
-                if (argIndex === 0) {
-                  // If argIndex is 0, get the type from the subject
-                  effectTypeToCheck = typeCheckerUtils.getTypeAtLocation(subject)
-                } else {
-                  // If argIndex > 0, get the type from signature type arguments at argIndex
-                  const signature = typeChecker.getResolvedSignature(pipeCallNode)
-                  if (signature) {
-                    const typeArguments = typeChecker.getTypeArgumentsForResolvedSignature(signature)
-                    if (typeArguments && typeArguments.length > argIndex) {
-                      effectTypeToCheck = typeArguments[argIndex]
-                    }
-                  }
-                }
+        // Only report if we successfully parsed an effect type and E is never
+        if (Option.isSome(effectType)) {
+          const { E } = effectType.value
 
-                // Check if the effect type has error type never
-                if (effectTypeToCheck) {
-                  const effectType = yield* pipe(
-                    typeParser.effectType(effectTypeToCheck, node),
-                    Nano.option
-                  )
-
-                  // Only report if we successfully parsed an effect type and E is never
-                  if (Option.isSome(effectType)) {
-                    const { E } = effectType.value
-
-                    // Only report if E is exactly never
-                    if (E.flags & ts.TypeFlags.Never) {
-                      report({
-                        location: node.expression,
-                        messageText:
-                          `Looks like the previous effect never fails, so probably this error handling will never be triggered.`,
-                        fixes: []
-                      })
-                    }
-                  }
-                }
-              }
-            }
+          // Only report if E is exactly never
+          if (E.flags & ts.TypeFlags.Never) {
+            report({
+              location: transformation.callee,
+              messageText:
+                `Looks like the previous effect never fails, so probably this error handling will never be triggered.`,
+              fixes: []
+            })
           }
         }
       }
