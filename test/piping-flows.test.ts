@@ -34,7 +34,7 @@ function formatPipingFlow(
   lines.push(`Node Kind: ${ts.SyntaxKind[flow.node.kind]}`)
   lines.push(``)
   lines.push(`Subject: ${flow.subject.node.getText().replace(/\n/g, "\\n")}`)
-  lines.push(`Subject Type: ${typeChecker.typeToString(flow.subject.outType)}`)
+  lines.push(`Subject Type: ${flow.subject.outType ? typeChecker.typeToString(flow.subject.outType) : "unknown"}`)
   lines.push(``)
   lines.push(`Transformations (${flow.transformations.length}):`)
 

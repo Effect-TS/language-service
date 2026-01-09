@@ -41,7 +41,7 @@ export interface ParsedPipingFlow {
 
 export interface ParsedPipingFlowSubject {
   node: ts.Expression
-  outType: ts.Type
+  outType: ts.Type | undefined
 }
 
 export interface ParsedPipingFlowTransformation {
@@ -2147,7 +2147,7 @@ export function make(
               // Update subject to the inner expression (will be updated further if chain continues)
               parentFlow.subject = {
                 node: result.subject,
-                outType: typeCheckerUtils.getTypeAtLocation(result.subject) || typeChecker.getAnyType()
+                outType: typeCheckerUtils.getTypeAtLocation(result.subject)
               }
               workQueue.push([result.subject, parentFlow])
             } else {
@@ -2156,7 +2156,7 @@ export function make(
                 node: flowNode,
                 subject: {
                   node: result.subject,
-                  outType: typeCheckerUtils.getTypeAtLocation(result.subject) || typeChecker.getAnyType()
+                  outType: typeCheckerUtils.getTypeAtLocation(result.subject)
                 },
                 transformations
               }
@@ -2184,6 +2184,9 @@ export function make(
           workQueue.push([child, undefined])
         })
       }
+
+      // Sort flows by position for consistent ordering
+      result.sort((a, b) => a.node.pos - b.node.pos)
 
       return result
     }),
