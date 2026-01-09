@@ -14,6 +14,12 @@ export interface ParsedPipeCall {
   kind: "pipe" | "pipeable"
 }
 
+export interface ParsedSingleArgCall {
+  node: ts.CallExpression
+  callee: ts.Expression
+  subject: ts.Expression
+}
+
 export interface ParsedLazyExpression {
   node: ts.ArrowFunction | ts.FunctionExpression
   body: ts.Expression | ts.Block
@@ -25,6 +31,24 @@ export interface ParsedEmptyFunction {
   node: ts.ArrowFunction | ts.FunctionExpression
   body: ts.Block
   returnType: ts.TypeNode | undefined
+}
+
+export interface ParsedPipingFlow {
+  node: ts.Expression // the whole piping flow expression
+  subject: ParsedPipingFlowSubject // the starting expression (before any transformations)
+  transformations: Array<ParsedPipingFlowTransformation>
+}
+
+export interface ParsedPipingFlowSubject {
+  node: ts.Expression
+  outType: ts.Type
+}
+
+export interface ParsedPipingFlowTransformation {
+  callee: ts.Expression
+  args: Array<ts.Expression> | undefined // undefined if callee is a constant (e.g., Effect.asVoid)
+  outType: ts.Type | undefined // the type of the expression after the transformation
+  kind: "pipe" | "pipeable" | "call" // the kind of transformation
 }
 
 export interface TypeParser {
@@ -122,6 +146,13 @@ export interface TypeParser {
     node: ts.Node
   ) => Nano.Nano<
     { node: ts.CallExpression; subject: ts.Expression; args: Array<ts.Expression>; kind: "pipe" | "pipeable" },
+    TypeParserIssue,
+    never
+  >
+  singleArgCall: (
+    node: ts.Node
+  ) => Nano.Nano<
+    ParsedSingleArgCall,
     TypeParserIssue,
     never
   >
@@ -245,6 +276,10 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  pipingFlows: (
+    sourceFile: ts.SourceFile
+  ) => Nano.Nano<Array<ParsedPipingFlow>, never, never>
+  reconstructPipingFlow: (flow: Pick<ParsedPipingFlow, "subject" | "transformations">) => ts.Expression
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -1222,6 +1257,29 @@ export function make(
     (node) => node
   )
 
+  const singleArgCall = Nano.cachedBy(
+    function(
+      node: ts.Node
+    ): Nano.Nano<ParsedSingleArgCall, TypeParserIssue, never> {
+      // Must be a call expression with exactly one argument
+      // Any call of the shape fn(arg) can be rewritten as pipe(arg, fn)
+      if (!ts.isCallExpression(node)) {
+        return typeParserIssue("Node is not a call expression", undefined, node)
+      }
+      if (node.arguments.length !== 1) {
+        return typeParserIssue("Node must have exactly one argument", undefined, node)
+      }
+
+      return Nano.succeed({
+        node,
+        callee: node.expression,
+        subject: node.arguments[0]
+      })
+    },
+    "TypeParser.singleArgCall",
+    (node) => node
+  )
+
   const scopeType = Nano.cachedBy(
     Nano.fn("TypeParser.scopeType")(function*(
       type: ts.Type,
@@ -1996,6 +2054,188 @@ export function make(
     (node) => node
   )
 
+  const pipingFlows = Nano.cachedBy(
+    Nano.fn("TypeParser.pipingFlows")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const result: Array<ParsedPipingFlow> = []
+
+      // Work queue: [node, parentFlow | undefined]
+      // When parentFlow is set, we're traversing down a pipe's subject chain
+      const workQueue: Array<[ts.Node, ParsedPipingFlow | undefined]> = [[sourceFile, undefined]]
+
+      while (workQueue.length > 0) {
+        const [node, parentFlow] = workQueue.pop()!
+
+        // Try to parse as a pipe call or single-argument call
+        if (ts.isCallExpression(node)) {
+          const parsed = yield* pipe(
+            pipeCall(node),
+            Nano.map((p) => ({ _tag: "pipe" as const, ...p })),
+            Nano.orElse(() =>
+              pipe(
+                singleArgCall(node),
+                Nano.map((s) => ({ _tag: "call" as const, ...s }))
+              )
+            ),
+            Nano.option
+          )
+
+          if (Option.isSome(parsed)) {
+            const result = parsed.value
+
+            // Build transformations based on parse result type
+            let transformations: Array<ParsedPipingFlowTransformation>
+            let flowNode: ts.Expression
+            let childrenToTraverse: Array<ts.Node> = []
+
+            if (result._tag === "pipe") {
+              // Get the resolved signature to extract intermediate types
+              const signature = typeChecker.getResolvedSignature(result.node)
+              const typeArguments = signature
+                ? typeChecker.getTypeArgumentsForResolvedSignature(signature) as Array<ts.Type> | undefined
+                : undefined
+
+              transformations = []
+              for (let i = 0; i < result.args.length; i++) {
+                const arg = result.args[i]
+                // For pipe(subject, f1, f2, f3), typeArguments are [A, B, C, D]
+                // where A=input, B=after f1, C=after f2, D=after f3
+                // So for transformation at index i, outType is typeArguments[i+1]
+                const outType = typeArguments?.[i + 1]
+
+                if (ts.isCallExpression(arg)) {
+                  // CallExpression like Effect.map((x) => x + 1)
+                  transformations.push({
+                    callee: arg.expression, // e.g., Effect.map
+                    args: Array.from(arg.arguments), // e.g., [(x) => x + 1]
+                    outType,
+                    kind: result.kind
+                  })
+                } else {
+                  // Constant like Effect.asVoid
+                  transformations.push({
+                    callee: arg, // e.g., Effect.asVoid
+                    args: undefined,
+                    outType,
+                    kind: result.kind
+                  })
+                }
+              }
+
+              flowNode = result.node
+              // Queue the transformation arguments for independent traversal
+              childrenToTraverse = result.args
+            } else {
+              // Single-argument call (dual API pattern)
+              const callSignature = typeChecker.getResolvedSignature(node)
+              const outType = callSignature ? typeChecker.getReturnTypeOfSignature(callSignature) : undefined
+
+              transformations = [{
+                callee: result.callee,
+                args: undefined,
+                outType,
+                kind: "call"
+              }]
+              flowNode = node
+            }
+
+            // Handle parent flow or create new flow (common logic)
+            if (parentFlow) {
+              // Extend parent flow: prepend our transformations (we're inner, they're outer)
+              parentFlow.transformations.unshift(...transformations)
+              // Update subject to the inner expression (will be updated further if chain continues)
+              parentFlow.subject = {
+                node: result.subject,
+                outType: typeCheckerUtils.getTypeAtLocation(result.subject) || typeChecker.getAnyType()
+              }
+              workQueue.push([result.subject, parentFlow])
+            } else {
+              // Start a new flow with subject set to current inner expression
+              const newFlow: ParsedPipingFlow = {
+                node: flowNode,
+                subject: {
+                  node: result.subject,
+                  outType: typeCheckerUtils.getTypeAtLocation(result.subject) || typeChecker.getAnyType()
+                },
+                transformations
+              }
+              workQueue.push([result.subject, newFlow])
+            }
+
+            // Queue children for independent traversal (they may contain their own pipe flows)
+            for (const child of childrenToTraverse) {
+              ts.forEachChild(child, (c) => {
+                workQueue.push([c, undefined])
+              })
+            }
+            continue
+          }
+        }
+
+        // Not a pipe call (or failed to parse)
+        if (parentFlow && parentFlow.transformations.length > 0) {
+          // The subject chain ended - subject is already set, push the flow
+          result.push(parentFlow)
+        }
+
+        // Queue all children for traversal (no parent flow)
+        ts.forEachChild(node, (child) => {
+          workQueue.push([child, undefined])
+        })
+      }
+
+      return result
+    }),
+    "TypeParser.pipingFlows",
+    (sourceFile) => sourceFile
+  )
+
+  /**
+   * Reconstructs a piping flow into an AST expression by applying transformations sequentially.
+   * For example: subject with transformations [f, g] becomes g(f(subject))
+   */
+  const reconstructPipingFlow = (
+    flow: Pick<ParsedPipingFlow, "subject" | "transformations">
+  ): ts.Expression => {
+    let result: ts.Expression = flow.subject.node
+
+    for (const t of flow.transformations) {
+      if (t.kind === "call") {
+        // Single-arg call: callee(result)
+        result = ts.factory.createCallExpression(
+          t.callee,
+          undefined,
+          [result]
+        )
+      } else {
+        // Pipe or pipeable: we need to apply the transformation
+        if (t.args) {
+          // It's like Effect.map(fn) - create call and wrap result
+          const transformCall = ts.factory.createCallExpression(
+            t.callee,
+            undefined,
+            t.args
+          )
+          result = ts.factory.createCallExpression(
+            transformCall,
+            undefined,
+            [result]
+          )
+        } else {
+          // It's a constant like Effect.asVoid
+          result = ts.factory.createCallExpression(
+            t.callee,
+            undefined,
+            [result]
+          )
+        }
+      }
+    }
+
+    return result
+  }
+
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
@@ -2018,6 +2258,7 @@ export function make(
     contextTag,
     pipeableType,
     pipeCall,
+    singleArgCall,
     scopeType,
     promiseLike,
     extendsEffectTag,
@@ -2031,6 +2272,8 @@ export function make(
     extendsSchemaTaggedRequest,
     extendsEffectSqlModelClass,
     lazyExpression,
-    emptyFunction
+    emptyFunction,
+    pipingFlows,
+    reconstructPipingFlow
   }
 }

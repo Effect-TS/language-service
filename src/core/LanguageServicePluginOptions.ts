@@ -90,7 +90,7 @@ export const defaults: LanguageServicePluginOptions = {
     skipLeadingPath: ["src/"]
   }],
   extendedKeyDetection: false,
-  pipeableMinArgCount: 1,
+  pipeableMinArgCount: 2,
   layerGraphFollowDepth: 0,
   mermaidProvider: "mermaid.live"
 }

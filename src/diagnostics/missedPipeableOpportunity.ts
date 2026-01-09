@@ -1,11 +1,8 @@
-import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
-import type ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
-import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -17,88 +14,123 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
   apply: Nano.fn("missedPipeableOpportunity.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
-    const nodeToVisit: Array<ts.Node> = [sourceFile]
-    const prependNodeToVisit = (node: ts.Node) => {
-      nodeToVisit.unshift(node)
-      return undefined
-    }
+    // Get all piping flows for the source file
+    const flows = yield* typeParser.pipingFlows(sourceFile)
 
-    const callChainNodes = new WeakMap<ts.Node, Array<ts.CallExpression>>()
+    for (const flow of flows) {
+      // Skip flows with too few transformations
+      if (flow.transformations.length < options.pipeableMinArgCount) {
+        continue
+      }
 
-    while (nodeToVisit.length > 0) {
-      const node = nodeToVisit.shift()!
+      // Skip if we produce a callable function in the end
+      const finalType = flow.transformations[flow.transformations.length - 1].outType
+      if (!finalType) {
+        continue
+      }
+      const callSigs = typeChecker.getSignaturesOfType(finalType, ts.SignatureKind.Call)
+      if (callSigs.length > 0) {
+        continue
+      }
 
-      if (ts.isCallExpression(node) && node.arguments.length === 1) {
-        // ensure this is not a pipe call
-        const isPipeCall = yield* pipe(typeParser.pipeCall(node), Nano.orElse(() => Nano.void_))
-        if (!isPipeCall) {
-          // resolved signature should not be callable
-          const resolvedSignature = typeChecker.getResolvedSignature(node)
-          if (resolvedSignature) {
-            const returnType = typeChecker.getReturnTypeOfSignature(resolvedSignature)
-            if (returnType) {
-              const callSignatures = typeChecker.getSignaturesOfType(returnType, ts.SignatureKind.Call)
-              if (callSignatures.length === 0) {
-                // this node contributes to the chain.
-                const parentChain = callChainNodes.get(node) || []
-                callChainNodes.set(node.arguments[0], parentChain.concat(node))
-              }
+      // Find the first pipeable type in the flow
+      // Start with subject, then check each transformation's outType
+      let firstPipeableIndex = -1
+
+      // Check if subject is pipeable
+      const subjectType = flow.subject.outType
+      const subjectIsPipeable = yield* pipe(
+        typeParser.pipeableType(subjectType, flow.subject.node),
+        Nano.option
+      )
+
+      if (subjectIsPipeable._tag === "Some") {
+        firstPipeableIndex = 0
+      } else {
+        // Check transformations for first pipeable outType
+        for (let i = 0; i < flow.transformations.length; i++) {
+          const t = flow.transformations[i]
+          if (t.outType) {
+            const isPipeable = yield* pipe(
+              typeParser.pipeableType(t.outType, flow.node),
+              Nano.option
+            )
+            if (isPipeable._tag === "Some") {
+              firstPipeableIndex = i + 1 // +1 because subject is index 0
+              break
             }
-          }
-        }
-      } else if (callChainNodes.has(node) && ts.isExpression(node)) {
-        // we broke the chain.
-        const parentChain: Array<ts.Expression> = (callChainNodes.get(node) || []).slice()
-        const originalParentChain = parentChain.slice()
-        while (parentChain.length > options.pipeableMinArgCount) {
-          const subject = parentChain.pop()!
-          const resultType = typeCheckerUtils.getTypeAtLocation(subject)
-          if (!resultType) continue
-          const pipeableType = yield* pipe(typeParser.pipeableType(resultType, subject), Nano.orElse(() => Nano.void_))
-          if (pipeableType) {
-            report({
-              location: parentChain[0],
-              messageText: `Nested function calls can be converted to pipeable style for better readability.`,
-              fixes: [{
-                fixName: "missedPipeableOpportunity_fix",
-                description: "Convert to pipe style",
-                apply: Nano.gen(function*() {
-                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-                  // Create the new pipe call: innermostCall.pipe(c, b, a)
-                  changeTracker.replaceNode(
-                    sourceFile,
-                    parentChain[0],
-                    ts.factory.createCallExpression(
-                      ts.factory.createPropertyAccessExpression(
-                        subject,
-                        "pipe"
-                      ),
-                      undefined,
-                      pipe(
-                        parentChain,
-                        Array.filter(ts.isCallExpression),
-                        Array.map((call) => call.expression),
-                        Array.reverse
-                      )
-                    )
-                  )
-                })
-              }]
-            })
-            // delete the parent chain nodes that were affected by the fix, so we don't report the same issue again.
-            originalParentChain.forEach((node) => callChainNodes.delete(node))
-            break
           }
         }
       }
 
-      // we always visit the children
-      ts.forEachChild(node, prependNodeToVisit)
+      // If no pipeable type found, skip this flow
+      if (firstPipeableIndex === -1) {
+        continue
+      }
+
+      // Count "call" kind transformations after the first pipeable
+      const transformationsAfterPipeable = flow.transformations.slice(firstPipeableIndex)
+      const callKindCount = transformationsAfterPipeable.filter((t) => t.kind === "call").length
+
+      // If not enough call-kind transformations, skip
+      if (callKindCount < options.pipeableMinArgCount) {
+        continue
+      }
+
+      // Get the subject for the pipeable part
+      // If firstPipeableIndex === 0, the subject is flow.subject.node
+      // Otherwise, we need to reconstruct the expression up to the pipeable point
+      const pipeableSubjectNode = firstPipeableIndex === 0
+        ? flow.subject.node
+        : typeParser.reconstructPipingFlow({
+          subject: flow.subject,
+          transformations: flow.transformations.slice(0, firstPipeableIndex)
+        })
+
+      // Get transformations to convert to .pipe() style
+      const pipeableTransformations = flow.transformations.slice(firstPipeableIndex)
+
+      report({
+        location: flow.node,
+        messageText: `Nested function calls can be converted to pipeable style for better readability.`,
+        fixes: [{
+          fixName: "missedPipeableOpportunity_fix",
+          description: "Convert to pipe style",
+          apply: Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+            // Build the pipe arguments from transformations
+            const pipeArgs = pipeableTransformations.map((t) => {
+              if (t.args) {
+                // It's a function call like Effect.map((x) => x + 1)
+                return ts.factory.createCallExpression(
+                  t.callee,
+                  undefined,
+                  t.args
+                )
+              } else {
+                // It's a constant like Effect.asVoid
+                return t.callee
+              }
+            })
+
+            // Create the new pipe call: subject.pipe(...)
+            const newNode = ts.factory.createCallExpression(
+              ts.factory.createPropertyAccessExpression(
+                pipeableSubjectNode,
+                "pipe"
+              ),
+              undefined,
+              pipeArgs
+            )
+
+            changeTracker.replaceNode(sourceFile, flow.node, newNode)
+          })
+        }]
+      })
     }
   })
 })

@@ -1,0 +1,109 @@
+=== Piping Flow ===
+Location: 6:18 - 9:3
+Node: Schema.Struct({\n  x: Schema.Number,\n  y: Schema.Number\n})
+Node Kind: CallExpression
+
+Subject: {\n  x: Schema.Number,\n  y: Schema.Number\n}
+Subject Type: { x: typeof Number$; y: typeof Number$; }
+
+Transformations (1):
+  [0] kind: call
+      callee: Schema.Struct
+      args: (constant)
+      outType: Struct<{ x: typeof Number$; y: typeof Number$; }>
+
+=== Piping Flow ===
+Location: 11:33 - 11:91
+Node: identity(Schema.decodeUnknown(MyStruct)({ x: 42, y: 42 }))
+Node Kind: CallExpression
+
+Subject: { x: 42, y: 42 }
+Subject Type: { x: number; y: number; }
+
+Transformations (2):
+  [0] kind: call
+      callee: Schema.decodeUnknown(MyStruct)
+      args: (constant)
+      outType: Effect<{ readonly x: number; readonly y: number; }, ParseError, never>
+  [1] kind: call
+      callee: identity
+      args: (constant)
+      outType: Effect<{ readonly x: number; readonly y: number; }, ParseError, never>
+
+=== Piping Flow ===
+Location: 13:49 - 16:2
+Node: pipe(\n  Schedule.exponential(Duration.millis(10), 4),\n  Schedule.whileOutput(Duration.lessThanOrEqualTo(Duration.seconds(10))) // should not report\n)
+Node Kind: CallExpression
+
+Subject: Schedule.exponential(Duration.millis(10), 4)
+Subject Type: Schedule<Duration, unknown, never>
+
+Transformations (1):
+  [0] kind: pipe
+      callee: Schedule.whileOutput
+      args: [Duration.lessThanOrEqualTo(Duration.seconds(10))]
+      outType: Schedule<DurationInput, unknown, never>
+
+=== Piping Flow ===
+Location: 14:24 - 14:43
+Node: Duration.millis(10)
+Node Kind: CallExpression
+
+Subject: 10
+Subject Type: 10
+
+Transformations (1):
+  [0] kind: call
+      callee: Duration.millis
+      args: (constant)
+      outType: Duration
+
+=== Piping Flow ===
+Location: 15:24 - 15:72
+Node: Duration.lessThanOrEqualTo(Duration.seconds(10))
+Node Kind: CallExpression
+
+Subject: 10
+Subject Type: 10
+
+Transformations (2):
+  [0] kind: call
+      callee: Duration.seconds
+      args: (constant)
+      outType: Duration
+  [1] kind: call
+      callee: Duration.lessThanOrEqualTo
+      args: (constant)
+      outType: (self: DurationInput) => boolean
+
+=== Piping Flow ===
+Location: 18:42 - 20:2
+Node: Effect.log("Hello").pipe(\n  Effect.ensuring(Effect.log("World"))\n)
+Node Kind: CallExpression
+
+Subject: "Hello"
+Subject Type: "Hello"
+
+Transformations (2):
+  [0] kind: call
+      callee: Effect.log
+      args: (constant)
+      outType: Effect<void, never, never>
+  [1] kind: pipeable
+      callee: Effect.ensuring
+      args: [Effect.log("World")]
+      outType: Effect<void, never, never>
+
+=== Piping Flow ===
+Location: 19:19 - 19:38
+Node: Effect.log("World")
+Node Kind: CallExpression
+
+Subject: "World"
+Subject Type: "World"
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.log
+      args: (constant)
+      outType: Effect<void, never, never>

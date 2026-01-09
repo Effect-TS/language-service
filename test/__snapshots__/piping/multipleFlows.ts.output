@@ -1,0 +1,53 @@
+=== Piping Flow ===
+Location: 5:15 - 8:2
+Node: pipe(\n  Effect.succeed(1),\n  Effect.map((n) => n + 1)\n)
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (2):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+  [1] kind: pipe
+      callee: Effect.map
+      args: [(n) => n + 1]
+      outType: Effect<number, never, never>
+
+=== Piping Flow ===
+Location: 10:15 - 12:2
+Node: Effect.succeed("hello").pipe(\n  Effect.map((s) => s.toUpperCase())\n)
+Node Kind: CallExpression
+
+Subject: "hello"
+Subject Type: "hello"
+
+Transformations (2):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<string, never, never>
+  [1] kind: pipeable
+      callee: Effect.map
+      args: [(s) => s.toUpperCase()]
+      outType: Effect<string, never, never>
+
+=== Piping Flow ===
+Location: 15:25 - 18:2
+Node: pipe(\n  Effect.all([flow1, flow2]),\n  Effect.map(([n, s]) => `${s}: ${n}`)\n)
+Node Kind: CallExpression
+
+Subject: [flow1, flow2]
+Subject Type: [Effect<number, never, never>, Effect<string, never, never>]
+
+Transformations (2):
+  [0] kind: call
+      callee: Effect.all
+      args: (constant)
+      outType: Effect<[number, string], never, never>
+  [1] kind: pipe
+      callee: Effect.map
+      args: [([n, s]) => `${s}: ${n}`]
+      outType: Effect<string, never, never>

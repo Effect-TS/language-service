@@ -10,8 +10,6 @@ const MyStruct = Schema.Struct({
 
 export const shouldNotTrigger = identity(Schema.decodeUnknown(MyStruct)({ x: 42, y: 42 }))
 
-export const shouldTriggerBecauseHas2 = identity(identity(Schema.decodeUnknown(MyStruct)({ x: 42, y: 42 })))
-
 export const shouldNotTriggerFunctionReturned = pipe(
   Schedule.exponential(Duration.millis(10), 4),
   Schedule.whileOutput(Duration.lessThanOrEqualTo(Duration.seconds(10))) // should not report

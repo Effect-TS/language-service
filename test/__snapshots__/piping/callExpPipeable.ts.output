@@ -1,0 +1,53 @@
+=== Piping Flow ===
+Location: 4:24 - 10:3
+Node: Effect.gen(function*() {\n  const runtime = yield* Effect.runtime()\n\n  Runtime.runPromise(runtime)(Effect.log("Hello, world!"))\n\n  Runtime.runPromise(runtime)(Effect.map((x: string) => x.length)(Effect.succeed("Hello, world!")))\n})
+Node Kind: CallExpression
+
+Subject: function*() {\n  const runtime = yield* Effect.runtime()\n\n  Runtime.runPromise(runtime)(Effect.log("Hello, world!"))\n\n  Runtime.runPromise(runtime)(Effect.map((x: string) => x.length)(Effect.succeed("Hello, world!")))\n}
+Subject Type: () => Generator<YieldWrap<Effect<Runtime<never>, never, never>>, void, any>
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.gen
+      args: (constant)
+      outType: Effect<void, never, never>
+
+=== Piping Flow ===
+Location: 7:3 - 7:59
+Node: Runtime.runPromise(runtime)(Effect.log("Hello, world!"))
+Node Kind: CallExpression
+
+Subject: "Hello, world!"
+Subject Type: "Hello, world!"
+
+Transformations (2):
+  [0] kind: call
+      callee: Effect.log
+      args: (constant)
+      outType: Effect<void, never, never>
+  [1] kind: call
+      callee: Runtime.runPromise(runtime)
+      args: (constant)
+      outType: Promise<void>
+
+=== Piping Flow ===
+Location: 9:3 - 9:100
+Node: Runtime.runPromise(runtime)(Effect.map((x: string) => x.length)(Effect.succeed("Hello, world!")))
+Node Kind: CallExpression
+
+Subject: "Hello, world!"
+Subject Type: "Hello, world!"
+
+Transformations (3):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<string, never, never>
+  [1] kind: call
+      callee: Effect.map((x: string) => x.length)
+      args: (constant)
+      outType: Effect<number, never, never>
+  [2] kind: call
+      callee: Runtime.runPromise(runtime)
+      args: (constant)
+      outType: Promise<number>
