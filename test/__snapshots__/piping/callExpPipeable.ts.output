@@ -12,6 +12,8 @@ Transformations (1):
       args: (constant)
       outType: Effect<void, never, never>
 
+Reconstructed: Effect.gen(function* () {\n    const runtime = yield* Effect.runtime();\n    Runtime.runPromise(runtime)(Effect.log("Hello, world!"));\n    Runtime.runPromise(runtime)(Effect.map((x: string) => x.length)(Effect.succeed("Hello, world!")));\n})
+
 === Piping Flow ===
 Location: 7:3 - 7:59
 Node: Runtime.runPromise(runtime)(Effect.log("Hello, world!"))
@@ -29,6 +31,8 @@ Transformations (2):
       callee: Runtime.runPromise(runtime)
       args: (constant)
       outType: Promise<void>
+
+Reconstructed: Runtime.runPromise(runtime)(Effect.log("Hello, world!"))
 
 === Piping Flow ===
 Location: 9:3 - 9:100
@@ -51,3 +55,5 @@ Transformations (3):
       callee: Runtime.runPromise(runtime)
       args: (constant)
       outType: Promise<number>
+
+Reconstructed: Runtime.runPromise(runtime)(Effect.map((x: string) => x.length)(Effect.succeed("Hello, world!")))

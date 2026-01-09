@@ -17,8 +17,8 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
 
     const catchFunctions = ["catchAll", "catch", "catchIf", "catchSome", "catchTag", "catchTags"]
 
-    // Get all piping flows for the source file
-    const flows = yield* typeParser.pipingFlows(sourceFile)
+    // Get all piping flows for the source file (including Effect.fn pipe transformations)
+    const flows = yield* typeParser.pipingFlows(true)(sourceFile)
 
     for (const flow of flows) {
       // Look for catch transformations in the flow

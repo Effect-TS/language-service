@@ -12,6 +12,8 @@ Transformations (1):
       args: (constant)
       outType: Effect<number, never, never>
 
+Reconstructed: Effect.succeed(1)
+
 === Piping Flow ===
 Location: 8:24 - 8:48
 Node: Effect.succeed(1).pipe()
@@ -25,3 +27,5 @@ Transformations (1):
       callee: Effect.succeed
       args: (constant)
       outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(1)

@@ -31,8 +31,8 @@ export const multipleEffectProvide = LSP.createDiagnostic({
       "Layer"
     ) || "Layer"
 
-    // Get all piping flows for the source file
-    const flows = yield* typeParser.pipingFlows(sourceFile)
+    // Get all piping flows for the source file (including Effect.fn pipe transformations)
+    const flows = yield* typeParser.pipingFlows(true)(sourceFile)
 
     for (const flow of flows) {
       let currentChunk = 0

@@ -69,8 +69,8 @@ export const catchAllToMapError = LSP.createDiagnostic({
       })
     }
 
-    // Get all piping flows for the source file
-    const flows = yield* typeParser.pipingFlows(sourceFile)
+    // Get all piping flows for the source file (including Effect.fn pipe transformations)
+    const flows = yield* typeParser.pipingFlows(true)(sourceFile)
 
     for (const flow of flows) {
       // Look for Effect.catchAll transformations in the flow

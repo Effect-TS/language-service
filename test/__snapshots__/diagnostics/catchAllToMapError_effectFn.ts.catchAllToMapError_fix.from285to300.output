@@ -1,0 +1,25 @@
+// code fix catchAllToMapError_fix  output for range 285 - 300
+import { Effect } from "effect"
+
+class MyErrorTagged {
+  readonly _tag = "MyErrorTagged"
+  constructor(readonly cause: unknown) {}
+}
+
+// Effect.fn with catchAll that should be mapError
+export const shouldReportEffectFn = Effect.fn(function*() {
+  return yield* Effect.fail("error")
+}, Effect.mapError((cause) => new MyErrorTagged(cause)))
+
+export const shouldReportEffectFnTraced = Effect.fn("traced")(function*() {
+  return yield* Effect.fail("error")
+}, Effect.catchAll((cause) => Effect.fail(new MyErrorTagged(cause))))
+
+export const shouldReportEffectFnUntraced = Effect.fnUntraced(function*() {
+  return yield* Effect.fail("error")
+}, Effect.catchAll((cause) => Effect.fail(new MyErrorTagged(cause))))
+
+// Should NOT report: catchAll returning Effect.succeed
+export const shouldNotReportEffectFn = Effect.fn(function*() {
+  return yield* Effect.fail("error")
+}, Effect.catchAll(() => Effect.succeed(42)))
