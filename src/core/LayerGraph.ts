@@ -488,6 +488,30 @@ export const extractOutlineGraph = Nano.fn("extractOutlineGraph")(function*(laye
   return Graph.endMutation(mutableGraph)
 })
 
+// collect all actualProvides from an outline graph, deduplicated and sorted deterministically
+export const collectOutlineGraphActualProvides = Nano.fn("collectOutlineGraphActualProvides")(
+  function*(outlineGraph: LayerOutlineGraph) {
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+
+    const seenTypes = new Set<ts.Type>()
+    const result: Array<ts.Type> = []
+
+    for (const nodeInfo of Graph.values(Graph.nodes(outlineGraph))) {
+      for (const actualProvide of nodeInfo.actualProvides) {
+        if (!seenTypes.has(actualProvide)) {
+          seenTypes.add(actualProvide)
+          result.push(actualProvide)
+        }
+      }
+    }
+
+    // sort deterministically
+    result.sort(typeCheckerUtils.deterministicTypeOrder)
+
+    return result
+  }
+)
+
 export const formatLayerOutlineGraph = Nano.fn("formatLayerOutlineGraph")(
   function*(layerOutlineGraph: LayerOutlineGraph, fromSourceFile: ts.SourceFile | undefined) {
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
@@ -581,13 +605,15 @@ export const dfsPostOrderWithOrder = <N, E, T extends Graph.Kind = "directed">(
 
 // converts an outline graph into a set of provide/provideMerge with target output
 export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLayerMagic")(
-  function*(outlineGraph: LayerOutlineGraph, targetOutput: ts.Type) {
+  function*(outlineGraph: LayerOutlineGraph, targetOutputs: Array<ts.Type>) {
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 
     const result: Array<LayerMagicNode> = []
 
-    const missingOutputTypes = new Set(typeCheckerUtils.unrollUnionMembers(targetOutput))
+    const outputTypes = Array.flatten(Array.map(targetOutputs, (_) => typeCheckerUtils.unrollUnionMembers(_)))
+
+    const missingOutputTypes = new Set(outputTypes)
     const currentRequiredTypes = new Set<ts.Type>()
     const orderByProvidedCount = Order.mapInput(
       Order.reverse(Order.number),
