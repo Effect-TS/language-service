@@ -67,8 +67,8 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
         name: `TaggedError<${name}>`,
         kind: ts.ScriptElementKind.constElement,
         insertText: isFullyQualified
-          ? `${schemaIdentifier}.TaggedError<${name}>("${errorTagKey}")("${errorTagKey}", {${"${0}"}}){}`
-          : `TaggedError<${name}>("${errorTagKey}")("${errorTagKey}", {${"${0}"}}){}`,
+          ? `${schemaIdentifier}.TaggedError<${name}>()("${errorTagKey}", {${"${0}"}}){}`
+          : `TaggedError<${name}>()("${errorTagKey}", {${"${0}"}}){}`,
         replacementSpan,
         isSnippet: true
       })
@@ -86,8 +86,8 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
         name: `TaggedClass<${name}>`,
         kind: ts.ScriptElementKind.constElement,
         insertText: isFullyQualified
-          ? `${schemaIdentifier}.TaggedClass<${name}>("${name}")("${name}", {${"${0}"}}){}`
-          : `TaggedClass<${name}>("${name}")("${name}", {${"${0}"}}){}`,
+          ? `${schemaIdentifier}.TaggedClass<${name}>()("${name}", {${"${0}"}}){}`
+          : `TaggedClass<${name}>()("${name}", {${"${0}"}}){}`,
         replacementSpan,
         isSnippet: true
       })
@@ -105,8 +105,8 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
         name: `TaggedRequest<${name}>`,
         kind: ts.ScriptElementKind.constElement,
         insertText: isFullyQualified
-          ? `${schemaIdentifier}.TaggedRequest<${name}>("${name}")("${name}", {${"${0}"}}){}`
-          : `TaggedRequest<${name}>("${name}")("${name}", {${"${0}"}}){}`,
+          ? `${schemaIdentifier}.TaggedRequest<${name}>()("${name}", {${"${0}"}}){}`
+          : `TaggedRequest<${name}>()("${name}", {${"${0}"}}){}`,
         replacementSpan,
         isSnippet: true
       })

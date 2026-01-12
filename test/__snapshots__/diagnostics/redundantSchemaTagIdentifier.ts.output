@@ -1,0 +1,8 @@
+"RedundantTaggedClass"
+15:51 - 15:73 | 2 | Identifier 'RedundantTaggedClass' is redundant since it equals the _tag value    effect(redundantSchemaTagIdentifier)
+
+"RedundantTaggedError"
+22:51 - 22:73 | 2 | Identifier 'RedundantTaggedError' is redundant since it equals the _tag value    effect(redundantSchemaTagIdentifier)
+
+"RedundantTaggedRequest"
+29:55 - 29:79 | 2 | Identifier 'RedundantTaggedRequest' is redundant since it equals the _tag value    effect(redundantSchemaTagIdentifier)
