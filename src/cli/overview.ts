@@ -62,6 +62,7 @@ export interface LayerInfo {
   readonly column: number
   readonly layerType: string
   readonly description: string | undefined
+  readonly tsInfo?: { readonly node: ts.Node; readonly type: ts.Type } | undefined
 }
 
 export interface ErrorInfo {
@@ -106,18 +107,16 @@ const typeToString = (
  * @param tsInstance - The TypeScript instance
  * @param typeChecker - The TypeScript type checker
  * @param maxSymbolDepth - Maximum depth to traverse nested properties (default: 3)
+ * @param includeTsInfo - If true, includes tsInfo (node and type) for layers (for layerinfo command)
  */
-export const collectExportedItems = (
+export function collectExportedItems(
   sourceFile: ts.SourceFile,
   tsInstance: typeof ts,
   typeChecker: ts.TypeChecker,
-  maxSymbolDepth: number = 3
-): Nano.Nano<
-  ExportedItemsResult,
-  never,
-  TypeParser.TypeParser
-> =>
-  Nano.gen(function*() {
+  maxSymbolDepth: number = 3,
+  includeTsInfo: boolean = false
+): Nano.Nano<ExportedItemsResult, never, TypeParser.TypeParser> {
+  return Nano.gen(function*() {
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const services: Array<ServiceInfo> = []
     const layers: Array<LayerInfo> = []
@@ -175,12 +174,14 @@ export const collectExportedItems = (
         }
       }
       if (isLayer) {
-        layers.push({
+        const layerInfo: LayerInfo = {
           name,
           ...location,
           layerType: typeToString(typeChecker, tsInstance, type),
-          description
-        })
+          description,
+          tsInfo: includeTsInfo ? { node: declaration, type } : undefined
+        }
+        layers.push(layerInfo)
       }
 
       // Check if it's a YieldableError
@@ -222,6 +223,7 @@ export const collectExportedItems = (
 
     return { services, layers, errors }
   })
+}
 
 /**
  * Converts an absolute path to a relative path from cwd
@@ -335,6 +337,16 @@ export const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc
   if (result.services.length === 0 && result.layers.length === 0 && result.errors.length === 0) {
     lines.push(Doc.empty)
     lines.push(Doc.text("No exported services, layers, or errors found."))
+  }
+
+  // Hint for getting automatic composition
+  if (result.layers.length > 0) {
+    lines.push(Doc.empty)
+    lines.push(
+      dimLine(
+        "Tip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use."
+      )
+    )
   }
 
   return Doc.vsep(lines)

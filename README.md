@@ -255,6 +255,30 @@ Layers (2)
     Complete application layer
 ```
 
+### `effect-language-service layerinfo`
+This command provides detailed information about a specific exported layer, including what services it provides, what it requires, and a suggested composition order. Use `--file` to specify the file and `--name` to specify the layer name.
+
+Example output:
+```
+AppLive
+  ./src/layers/app.ts:39:14
+  Layer<Cache | UserRepository, never, never>
+
+Provides (2):
+  - Cache
+  - UserRepository
+
+Suggested Composition:
+  UserRepository.Default.pipe(
+    Layer.provide(DbConnection.Default),
+    Layer.provideMerge(Cache.Default),
+    Layer.provide(FileSystem.Default)
+  )
+
+Tip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)
+command, and then run the layerinfo command to get the suggested composition order to use.
+```
+
 ## Configuring diagnostics
 
 You can either disable or change the severity of specific diagnostics by using comments in your code.
