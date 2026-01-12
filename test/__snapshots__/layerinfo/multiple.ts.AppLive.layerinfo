@@ -1,0 +1,33 @@
+
+[0;1mAppLive[0m
+  [0;90mmultiple.ts:33:14[0m
+  [0;90mLayer<Database | UserRepository | EventsRepository | Analytics | UserService | EventService | AppService, never, Database | UserRepository | EventsRepository | Analytics | UserService | EventService>[0m
+
+[0;1mProvides (7):[0m
+  [0;90m- Analytics[0m
+  [0;90m- AppService[0m
+  [0;90m- Database[0m
+  [0;90m- EventService[0m
+  [0;90m- EventsRepository[0m
+  [0;90m- UserRepository[0m
+  [0;90m- UserService[0m
+
+[0;1mRequires (6):[0m
+  [0;90m- Analytics[0m
+  [0;90m- Database[0m
+  [0;90m- EventService[0m
+  [0;90m- EventsRepository[0m
+  [0;90m- UserRepository[0m
+  [0;90m- UserService[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90mAppService.Default.pipe([0m
+    [0;90mLayer.provideMerge(EventService.Default),[0m
+    [0;90mLayer.provideMerge(UserService.Default),[0m
+    [0;90mLayer.provideMerge(Analytics.Default),[0m
+    [0;90mLayer.provideMerge(EventsRepository.Default),[0m
+    [0;90mLayer.provideMerge(UserRepository.Default),[0m
+    [0;90mLayer.provideMerge(DatabaseLive)[0m
+  [0;90m)[0m
+
+[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

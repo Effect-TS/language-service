@@ -1,0 +1,19 @@
+
+[0;1mmoreComplex[0m
+  [0;90mfollowSymbols.ts:7:14[0m
+  [0;90mLayer<UserRepository | DbConnection, never, DbConnection>[0m
+
+[0;1mProvides (2):[0m
+  [0;90m- DbConnection[0m
+  [0;90m- UserRepository[0m
+
+[0;1mRequires (1):[0m
+  [0;90m- DbConnection[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90mUserRepository.Default.pipe([0m
+    [0;90mLayer.provideMerge(DbConnection.Default),[0m
+    [0;90mLayer.provide(cacheWithFs)[0m
+  [0;90m)[0m
+
+[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

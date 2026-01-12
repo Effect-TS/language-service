@@ -1,0 +1,17 @@
+
+[0;1mfollowSymbols[0m
+  [0;90mfollowSymbols.ts:5:14[0m
+  [0;90mLayer<UserRepository, never, FileSystem>[0m
+
+[0;1mProvides (1):[0m
+  [0;90m- UserRepository[0m
+
+[0;1mRequires (1):[0m
+  [0;90m- FileSystem[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90msimplePipeIn.pipe([0m
+    [0;90mLayer.provide(DbConnection.Default)[0m
+  [0;90m)[0m
+
+[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

@@ -1,8 +1,9 @@
 
-[0;1mLayers (1)[0m
-  AppLive
-    [0;90meffect.ts:9:14[0m
-    [0;90mLayer<never, never, never>[0m
+[0;1mNoComment[0m
+  [0;90mspecialChars.ts:15:14[0m
+  [0;90mLayer<IsGeneric<"With<Special>Chars#!">, never, never>[0m
 
+[0;1mProvides (1):[0m
+  [0;90m- IsGeneric<"With<Special>Chars#!">[0m
 
 [0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

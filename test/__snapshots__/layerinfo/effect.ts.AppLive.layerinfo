@@ -1,0 +1,13 @@
+
+[0;1mAppLive[0m
+  [0;90meffect.ts:9:14[0m
+  [0;90mLayer<never, never, never>[0m
+
+[0;90mNo providers or requirements detected.[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90mLayer.effectDiscard.pipe([0m
+    [0;90mLayer.provide(DatabaseContext.Default)[0m
+  [0;90m)[0m
+
+[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m
