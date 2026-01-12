@@ -61,10 +61,62 @@ const createAssessmentInput = (
       })
     }
 
+    // Check agents.md / AGENTS.md (optional, case-insensitive, skip symlinks)
+    const agentsMdLowerPath = path.join(currentDir, "agents.md")
+    const agentsMdUpperPath = path.join(currentDir, "AGENTS.md")
+    const agentsMdLowerExists = yield* fs.exists(agentsMdLowerPath)
+    const agentsMdUpperExists = yield* fs.exists(agentsMdUpperPath)
+    const agentsMdPath = agentsMdUpperExists ? agentsMdUpperPath : agentsMdLowerPath
+    const agentsMdExists = agentsMdUpperExists || agentsMdLowerExists
+
+    let agentsMdInput = Option.none<FileInput>()
+    if (agentsMdExists) {
+      // Check if it's a symlink - skip if it is
+      const agentsMdStat = yield* fs.stat(agentsMdPath).pipe(Effect.option)
+      const isAgentsMdSymlink = Option.isSome(agentsMdStat) && agentsMdStat.value.type === "SymbolicLink"
+
+      if (!isAgentsMdSymlink) {
+        const agentsMdText = yield* fs.readFileString(agentsMdPath).pipe(
+          Effect.mapError((cause) => new FileReadError({ path: agentsMdPath, cause }))
+        )
+        agentsMdInput = Option.some({
+          fileName: agentsMdPath,
+          text: agentsMdText
+        })
+      }
+    }
+
+    // Check claude.md / CLAUDE.md (optional, case-insensitive, skip symlinks)
+    const claudeMdLowerPath = path.join(currentDir, "claude.md")
+    const claudeMdUpperPath = path.join(currentDir, "CLAUDE.md")
+    const claudeMdLowerExists = yield* fs.exists(claudeMdLowerPath)
+    const claudeMdUpperExists = yield* fs.exists(claudeMdUpperPath)
+    const claudeMdPath = claudeMdUpperExists ? claudeMdUpperPath : claudeMdLowerPath
+    const claudeMdExists = claudeMdUpperExists || claudeMdLowerExists
+
+    let claudeMdInput = Option.none<FileInput>()
+    if (claudeMdExists) {
+      // Check if it's a symlink - skip if it is
+      const claudeMdStat = yield* fs.stat(claudeMdPath).pipe(Effect.option)
+      const isClaudeMdSymlink = Option.isSome(claudeMdStat) && claudeMdStat.value.type === "SymbolicLink"
+
+      if (!isClaudeMdSymlink) {
+        const claudeMdText = yield* fs.readFileString(claudeMdPath).pipe(
+          Effect.mapError((cause) => new FileReadError({ path: claudeMdPath, cause }))
+        )
+        claudeMdInput = Option.some({
+          fileName: claudeMdPath,
+          text: claudeMdText
+        })
+      }
+    }
+
     return {
       packageJson: packageJsonInput,
       tsconfig: tsconfigInput,
-      vscodeSettings: vscodeSettingsInput
+      vscodeSettings: vscodeSettingsInput,
+      agentsMd: agentsMdInput,
+      claudeMd: claudeMdInput
     }
   })
 

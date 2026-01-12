@@ -7,6 +7,21 @@ import { parse as parseOptions } from "../../core/LanguageServicePluginOptions"
 import { type FileInput, TypeScriptContext } from "../utils"
 
 /**
+ * Markers used to identify the effect-language-service section in markdown files
+ */
+export const MARKDOWN_START_MARKER = "<!-- effect-language-service:start -->"
+export const MARKDOWN_END_MARKER = "<!-- effect-language-service:end -->"
+
+/**
+ * Default content to add between markers in markdown files
+ */
+export const MARKDOWN_DEFAULT_CONTENT = `${MARKDOWN_START_MARKER}
+## Effect Language Service
+
+The Effect Language Service comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+${MARKDOWN_END_MARKER}`
+
+/**
  * Assessment namespace containing all assessment-related types
  */
 export namespace Assessment {
@@ -17,6 +32,8 @@ export namespace Assessment {
     readonly packageJson: FileInput // Required
     readonly tsconfig: FileInput // Required
     readonly vscodeSettings: Option.Option<FileInput> // Optional
+    readonly agentsMd: Option.Option<FileInput> // Optional - agents.md
+    readonly claudeMd: Option.Option<FileInput> // Optional - CLAUDE.md
   }
 
   /**
@@ -55,12 +72,24 @@ export namespace Assessment {
   }
 
   /**
+   * Markdown file assessment result (for CLAUDE.md or agents.md)
+   */
+  export interface MarkdownDoc {
+    readonly path: string
+    readonly text: string // Original file content
+    readonly hasMarkers: boolean // Whether the markers exist
+    readonly markerContent: Option.Option<string> // Content between markers (None if no markers)
+  }
+
+  /**
    * Complete assessment state collected during the assessment phase
    */
   export interface State {
     readonly packageJson: PackageJson // Required
     readonly tsconfig: TsConfig // Required
     readonly vscodeSettings: Option.Option<VSCodeSettings> // Optional
+    readonly agentsMd: Option.Option<MarkdownDoc> // Optional - agents.md
+    readonly claudeMd: Option.Option<MarkdownDoc> // Optional - CLAUDE.md
   }
 }
 
@@ -178,6 +207,33 @@ const assessVSCodeSettingsFromInput = (
   })
 
 /**
+ * Assess markdown file from input (for CLAUDE.md or agents.md)
+ */
+const assessMarkdownFromInput = (
+  input: FileInput
+): Assessment.MarkdownDoc => {
+  const text = input.text
+
+  // Find the markers
+  const startIndex = text.indexOf(MARKDOWN_START_MARKER)
+  const endIndex = text.indexOf(MARKDOWN_END_MARKER)
+
+  const hasMarkers = startIndex !== -1 && endIndex !== -1 && startIndex < endIndex
+
+  // Extract content between markers if they exist
+  const markerContent = hasMarkers
+    ? Option.some(text.slice(startIndex, endIndex + MARKDOWN_END_MARKER.length))
+    : Option.none()
+
+  return {
+    path: input.fileName,
+    text,
+    hasMarkers,
+    markerContent
+  }
+}
+
+/**
  * Perform assessment from input data
  */
 export const assess = (
@@ -195,9 +251,20 @@ export const assess = (
       ? Option.some(yield* assessVSCodeSettingsFromInput(input.vscodeSettings.value))
       : Option.none<Assessment.VSCodeSettings>()
 
+    // Assess markdown files (optional)
+    const agentsMd = Option.isSome(input.agentsMd)
+      ? Option.some(assessMarkdownFromInput(input.agentsMd.value))
+      : Option.none<Assessment.MarkdownDoc>()
+
+    const claudeMd = Option.isSome(input.claudeMd)
+      ? Option.some(assessMarkdownFromInput(input.claudeMd.value))
+      : Option.none<Assessment.MarkdownDoc>()
+
     return {
       packageJson,
       tsconfig,
-      vscodeSettings
+      vscodeSettings,
+      agentsMd,
+      claudeMd
     }
   })

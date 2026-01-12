@@ -12,7 +12,9 @@ import { TypeScriptContext } from "../src/cli/utils"
 function createTestAssessmentInput(
   packageJson: Record<string, unknown>,
   tsconfig: Record<string, unknown>,
-  vscodeSettings?: Record<string, unknown>
+  vscodeSettings?: Record<string, unknown>,
+  agentsMd?: string,
+  claudeMd?: string
 ): Assessment.Input {
   return {
     packageJson: {
@@ -27,6 +29,18 @@ function createTestAssessmentInput(
       ? Option.some({
         fileName: ".vscode/settings.json",
         text: JSON.stringify(vscodeSettings, null, 2)
+      })
+      : Option.none(),
+    agentsMd: agentsMd !== undefined
+      ? Option.some({
+        fileName: "AGENTS.md",
+        text: agentsMd
+      })
+      : Option.none(),
+    claudeMd: claudeMd !== undefined
+      ? Option.some({
+        fileName: "CLAUDE.md",
+        text: claudeMd
       })
       : Option.none()
   }
@@ -119,6 +133,30 @@ export async function expectSetupChanges(
     expect(() => {
       JSON.parse(finalVscodeSettings)
     }).not.toThrow()
+  }
+
+  // 5. Snapshot of final AGENTS.md
+  const agentsMdFileChange = result.codeActions
+    .flatMap((action) => action.changes)
+    .find((fc) => fc.fileName === "AGENTS.md")
+  if (agentsMdFileChange && Option.isSome(assessmentInput.agentsMd)) {
+    const finalAgentsMd = applyTextChanges(
+      assessmentInput.agentsMd.value.text,
+      agentsMdFileChange.textChanges
+    )
+    expect(finalAgentsMd).toMatchSnapshot("AGENTS.md")
+  }
+
+  // 6. Snapshot of final CLAUDE.md
+  const claudeMdFileChange = result.codeActions
+    .flatMap((action) => action.changes)
+    .find((fc) => fc.fileName === "CLAUDE.md")
+  if (claudeMdFileChange && Option.isSome(assessmentInput.claudeMd)) {
+    const finalClaudeMd = applyTextChanges(
+      assessmentInput.claudeMd.value.text,
+      claudeMdFileChange.textChanges
+    )
+    expect(finalClaudeMd).toMatchSnapshot("CLAUDE.md")
   }
 }
 
@@ -755,6 +793,149 @@ describe("Setup CLI", () => {
           schemaUnionOfLiterals: "error",
           anyUnknownInErrorContext: "warning"
         })
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should add Effect Language Service section to existing AGENTS.md when enabling LSP", async () => {
+    const existingAgentsMd = `# AGENTS.md
+
+This file provides guidance to AI agents working with this codebase.
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+`
+
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      },
+      undefined, // no vscode settings
+      existingAgentsMd // AGENTS.md exists
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should update outdated Effect Language Service section in AGENTS.md when enabling LSP", async () => {
+    const existingAgentsMd = `# AGENTS.md
+
+This file provides guidance to AI agents working with this codebase.
+
+<!-- effect-language-service:start -->
+## Effect Language Service
+
+This is some outdated content that needs to be updated.
+<!-- effect-language-service:end -->
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+`
+
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      },
+      undefined, // no vscode settings
+      existingAgentsMd // AGENTS.md exists with outdated markers
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should remove Effect Language Service section from CLAUDE.md when uninstalling LSP", async () => {
+    const existingClaudeMd = `# CLAUDE.md
+
+This file provides guidance to Claude when working with this codebase.
+
+<!-- effect-language-service:start -->
+## Effect Language Service
+
+This repository is configured to use the Effect Language Service, which comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+<!-- effect-language-service:end -->
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+`
+
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        devDependencies: {
+          "@effect/language-service": "^0.1.0"
+        }
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022",
+          plugins: [
+            {
+              name: "@effect/language-service"
+            }
+          ]
+        }
+      },
+      undefined, // no vscode settings
+      undefined, // no AGENTS.md
+      existingClaudeMd // CLAUDE.md exists with LSP section
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.none(), // Uninstalling
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
       editors: []

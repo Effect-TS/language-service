@@ -2,7 +2,7 @@ import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import type * as ts from "typescript"
 import { type TypeScriptApi, TypeScriptContext } from "../utils"
-import type { Assessment } from "./assessment"
+import { type Assessment, MARKDOWN_DEFAULT_CONTENT, MARKDOWN_END_MARKER, MARKDOWN_START_MARKER } from "./assessment"
 import type { Target } from "./target"
 
 /**
@@ -78,6 +78,27 @@ export const computeChanges = (
         codeActions = [...codeActions, ...vscodeResult.codeActions]
         messages = [...messages, ...vscodeResult.messages]
       }
+    }
+
+    // Compute markdown file changes if the files exist
+    const shouldInstallLsp = Option.isSome(target.packageJson.lspVersion)
+
+    if (Option.isSome(assessment.agentsMd)) {
+      const agentsMdResult = computeMarkdownChanges(
+        assessment.agentsMd.value,
+        shouldInstallLsp
+      )
+      codeActions = [...codeActions, ...agentsMdResult.codeActions]
+      messages = [...messages, ...agentsMdResult.messages]
+    }
+
+    if (Option.isSome(assessment.claudeMd)) {
+      const claudeMdResult = computeMarkdownChanges(
+        assessment.claudeMd.value,
+        shouldInstallLsp
+      )
+      codeActions = [...codeActions, ...claudeMdResult.codeActions]
+      messages = [...messages, ...claudeMdResult.messages]
     }
 
     // Add editor-specific setup instructions as messages
@@ -673,6 +694,98 @@ const computeTsConfigChanges = (
       messages
     }
   })
+}
+
+/**
+ * Compute markdown file changes (for CLAUDE.md or agents.md)
+ */
+const computeMarkdownChanges = (
+  current: Assessment.MarkdownDoc,
+  shouldInstall: boolean
+): ComputeFileChangesResult => {
+  const descriptions: Array<string> = []
+  const changes: Array<{ span: { start: number; length: number }; newText: string }> = []
+
+  if (shouldInstall) {
+    // User wants to install/keep LSP
+    if (current.hasMarkers) {
+      // Markers exist - check if content needs to be updated
+      if (Option.isSome(current.markerContent) && current.markerContent.value !== MARKDOWN_DEFAULT_CONTENT) {
+        // Content differs - update it
+        descriptions.push(`Update Effect Language Service section in ${current.path}`)
+
+        const startIndex = current.text.indexOf(MARKDOWN_START_MARKER)
+        const endIndex = current.text.indexOf(MARKDOWN_END_MARKER) + MARKDOWN_END_MARKER.length
+
+        changes.push({
+          span: { start: startIndex, length: endIndex - startIndex },
+          newText: MARKDOWN_DEFAULT_CONTENT
+        })
+      }
+      // else: content is the same, no change needed
+    } else {
+      // Markers don't exist - append content at the end of the file
+      descriptions.push(`Add Effect Language Service section to ${current.path}`)
+
+      // Add content at the end, with newlines to separate from existing content
+      const suffix = current.text.endsWith("\n") ? "\n" : "\n\n"
+      changes.push({
+        span: { start: current.text.length, length: 0 },
+        newText: suffix + MARKDOWN_DEFAULT_CONTENT + "\n"
+      })
+    }
+  } else {
+    // User wants to uninstall LSP
+    if (current.hasMarkers) {
+      // Markers exist - remove the section
+      descriptions.push(`Remove Effect Language Service section from ${current.path}`)
+
+      const startIndex = current.text.indexOf(MARKDOWN_START_MARKER)
+      const endIndex = current.text.indexOf(MARKDOWN_END_MARKER) + MARKDOWN_END_MARKER.length
+
+      // Determine if we need to remove surrounding newlines
+      // Look for preceding newline(s) and following newline(s)
+      let removeStart = startIndex
+      let removeEnd = endIndex
+
+      // Check for preceding newlines (up to 2)
+      if (removeStart > 0 && current.text[removeStart - 1] === "\n") {
+        removeStart--
+        if (removeStart > 0 && current.text[removeStart - 1] === "\n") {
+          removeStart--
+        }
+      }
+
+      // Check for following newline
+      if (removeEnd < current.text.length && current.text[removeEnd] === "\n") {
+        removeEnd++
+      }
+
+      changes.push({
+        span: { start: removeStart, length: removeEnd - removeStart },
+        newText: ""
+      })
+    }
+    // else: markers don't exist, nothing to remove
+  }
+
+  // Return empty result if no changes
+  if (changes.length === 0) {
+    return { codeActions: [], messages: [] }
+  }
+
+  // Create and return result with CodeAction
+  return {
+    codeActions: [{
+      description: descriptions.join("; "),
+      changes: [{
+        fileName: current.path,
+        textChanges: changes,
+        isNewFile: false
+      }]
+    }],
+    messages: []
+  }
 }
 
 /**
