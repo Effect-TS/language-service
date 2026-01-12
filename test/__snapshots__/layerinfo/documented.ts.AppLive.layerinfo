@@ -9,10 +9,17 @@
   [0;90m- UserRepository[0m
 
 [0;1mSuggested Composition:[0m
-  [0;90mUserRepository.Default.pipe([0m
+  [0;90mNot sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)[0m
+  [0;90mthen run this command again and use --outputs to select which outputs to include in composition.[0m
+  [0;90mExample: --outputs 1,2,3[0m
+  [0;90m[0m
+  [0;90m[x] 1. Cache[0m
+  [0;90m[ ] 2. DbConnection[0m
+  [0;90m[ ] 3. FileSystem[0m
+  [0;90m[x] 4. UserRepository[0m
+  [0;90m[0m
+  [0;90mexport const AppLive = UserRepository.Default.pipe([0m
     [0;90mLayer.provide(DbConnection.Default),[0m
     [0;90mLayer.provideMerge(Cache.Default),[0m
     [0;90mLayer.provide(FileSystem.Default)[0m
   [0;90m)[0m
-
-[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

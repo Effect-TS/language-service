@@ -183,7 +183,7 @@ export const layerMagic = LSP.createRefactor({
                 const { layerMagicNodes, missingOutputTypes } = yield* pipe(
                   LayerGraph.convertOutlineGraphToLayerMagic(
                     extractedLayers,
-                    _targetLayer.ROut
+                    [_targetLayer.ROut]
                   ),
                   Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
                   Nano.provideService(TypeCheckerUtils.TypeCheckerUtils, typeCheckerUtils),
