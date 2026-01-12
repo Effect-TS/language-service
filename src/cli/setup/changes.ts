@@ -622,8 +622,14 @@ const computeTsConfigChanges = (
                 )
 
                 if (existingDiagSeverityProp) {
-                  // Replace existing diagnosticSeverity property
-                  tracker.replaceNode(current.sourceFile, existingDiagSeverityProp, newDiagnosticSeverityProperty)
+                  // Replace just the initializer value to avoid ChangeTracker list indentation issues
+                  // (replacing entire PropertyAssignment in a list triggers formatter text lookup bug)
+                  const newDiagnosticSeverityValue = ts.factory.createObjectLiteralExpression(severityProperties, true)
+                  tracker.replaceNode(
+                    current.sourceFile,
+                    existingDiagSeverityProp.initializer,
+                    newDiagnosticSeverityValue
+                  )
                 } else {
                   // Add diagnosticSeverity property to existing plugin object
                   insertNodeAtEndOfList(
