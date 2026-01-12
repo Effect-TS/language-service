@@ -4,6 +4,7 @@ import { catchUnfailableEffect } from "./diagnostics/catchUnfailableEffect.js"
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
 import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
+import { effectFnOpportunity } from "./diagnostics/effectFnOpportunity.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
@@ -81,5 +82,6 @@ export const diagnostics = [
   globalErrorInEffectCatch,
   globalErrorInEffectFailure,
   layerMergeAllWithDependencies,
-  effectMapVoid
+  effectMapVoid,
+  effectFnOpportunity
 ]

@@ -1,0 +1,12 @@
+// code fix effectFnOpportunity_skipFile  output for range 96 - 109
+/** @effect-diagnostics effectFnOpportunity:skip-file */
+import * as Effect from "effect/Effect"
+import * as Runtime from "effect/Runtime"
+
+export const shouldTrigger = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  Effect.gen(function*() {
+    const runtime = yield* Effect.runtime<R>()
+    Runtime.runSync(runtime)(effect)
+
+    return yield* effect.pipe(Effect.ensuring(Effect.logFatal("Hello")))
+  }).pipe(Effect.withSpan("shouldTrigger"))
