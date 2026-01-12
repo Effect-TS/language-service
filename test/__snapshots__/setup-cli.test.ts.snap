@@ -1,5 +1,60 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > AGENTS.md 1`] = `
+"# AGENTS.md
+
+This file provides guidance to AI agents working with this codebase.
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+
+<!-- effect-language-service:start -->
+## Effect Language Service
+
+The Effect Language Service comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+<!-- effect-language-service:end -->
+"
+`;
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Add Effect Language Service section to AGENTS.md",
+    "file": "AGENTS.md",
+  },
+]
+`;
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
 exports[`Setup CLI > should add LSP plugin alongside existing plugins > change summary 1`] = `
 [
   {
@@ -507,6 +562,53 @@ exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-sp
 }"
 `;
 
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > CLAUDE.md 1`] = `
+"# CLAUDE.md
+
+This file provides guidance to Claude when working with this codebase.
+## Project Overview
+
+This is a TypeScript project using Effect.
+"
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Remove Effect Language Service section from CLAUDE.md",
+    "file": "CLAUDE.md",
+  },
+]
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "devDependencies": {
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+    ]
+  }
+}"
+`;
+
 exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > change summary 1`] = `
 [
   {
@@ -600,6 +702,61 @@ exports[`Setup CLI > should update LSP version when already installed with older
   "devDependencies": {
     "@effect/language-service": "^0.2.0",
     "typescript": "^5.0.0"
+  }
+}"
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > AGENTS.md 1`] = `
+"# AGENTS.md
+
+This file provides guidance to AI agents working with this codebase.
+
+<!-- effect-language-service:start -->
+## Effect Language Service
+
+The Effect Language Service comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+<!-- effect-language-service:end -->
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+"
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Update Effect Language Service section in AGENTS.md",
+    "file": "AGENTS.md",
+  },
+]
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
   }
 }"
 `;
