@@ -1,0 +1,75 @@
+// code fix effectFnOpportunity_toEffectFnUntraced  output for range 687 - 701
+import * as Effect from "effect/Effect"
+
+// Should trigger - arrow function with block body returning Effect.gen
+export const arrowWithBlock = () => {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(1)
+    return 42
+  })
+}
+
+// Should trigger - arrow function with expression body returning Effect.gen
+export const arrowWithExpression = () =>
+  Effect.gen(function*() {
+    yield* Effect.succeed(1)
+    return 42
+  })
+
+// Should trigger - function expression returning Effect.gen
+export const functionExpression = function() {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(1)
+    return 42
+  })
+}
+
+// Should trigger - arrow function with parameters
+export const withParameters = Effect.fnUntraced(function*(a: number, b: string) {
+    yield* Effect.succeed(a)
+    return b
+})
+
+// Should trigger - arrow function with type parameters
+export const withTypeParameters = <T>(value: T) => {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(value)
+  })
+}
+
+// Should NOT trigger - named function expression (may be recursive)
+export const namedFunction = function myFunc() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  })
+}
+
+// Should NOT trigger - function with multiple statements
+export const multipleStatements = () => {
+  const x = 1
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(x)
+  })
+}
+
+// Should NOT trigger - already using Effect.fn
+export const alreadyEffectFn = Effect.fn("alreadyEffectFn")(function*() {
+  return yield* Effect.succeed(42)
+})
+
+// Should NOT trigger - generator function (cannot be converted)
+export const generatorFunction = function*() {
+  yield 1
+  yield 2
+}
+
+// Should NOT trigger - function with overloads (declared separately)
+interface OverloadedFunction {
+  (a: number): Effect.Effect<number>
+  (a: string): Effect.Effect<string>
+}
+export const overloadedFunction: OverloadedFunction = (a: number | string) => {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(a as any)
+  })
+}

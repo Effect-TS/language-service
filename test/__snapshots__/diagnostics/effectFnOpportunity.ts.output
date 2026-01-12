@@ -1,0 +1,17 @@
+arrowWithBlock
+4:13 - 4:27 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+arrowWithExpression
+12:13 - 12:32 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+functionExpression
+19:13 - 19:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+withParameters
+27:13 - 27:27 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+withTypeParameters
+35:13 - 35:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+overloadedFunction
+72:13 - 72:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)

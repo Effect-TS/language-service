@@ -1,0 +1,14 @@
+noReturnTypeAnnotation
+4:16 - 4:38 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+withReturnTypeAnnotation
+12:16 - 12:40 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+withParameters
+20:16 - 20:30 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+withTypeParameters
+28:16 - 28:34 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+
+withTypeParametersAndReturn
+35:16 - 35:43 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
