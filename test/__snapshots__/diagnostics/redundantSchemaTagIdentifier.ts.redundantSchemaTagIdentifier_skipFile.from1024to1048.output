@@ -1,0 +1,36 @@
+// code fix redundantSchemaTagIdentifier_skipFile  output for range 1024 - 1048
+/** @effect-diagnostics redundantSchemaTagIdentifier:skip-file */
+import * as Schema from "effect/Schema"
+
+// Valid usage: identifier differs from tag (no redundancy)
+export class DifferentIdentifier extends Schema.TaggedClass<DifferentIdentifier>("MyIdentifier")("MyTag", {
+  prop: Schema.String
+}) {}
+
+// Valid usage: no identifier provided (short form)
+export class NoIdentifier extends Schema.TaggedClass<NoIdentifier>()("NoIdentifier", {
+  prop: Schema.String
+}) {}
+
+// Invalid usage: identifier equals tag (redundant)
+export class RedundantTaggedClass
+  extends Schema.TaggedClass<RedundantTaggedClass>("RedundantTaggedClass")("RedundantTaggedClass", {
+    prop: Schema.String
+  })
+{}
+
+// Invalid usage: identifier equals tag in TaggedError (redundant)
+export class RedundantTaggedError
+  extends Schema.TaggedError<RedundantTaggedError>("RedundantTaggedError")("RedundantTaggedError", {
+    message: Schema.String
+  })
+{}
+
+// Invalid usage: identifier equals tag in TaggedRequest (redundant)
+export class RedundantTaggedRequest
+  extends Schema.TaggedRequest<RedundantTaggedRequest>("RedundantTaggedRequest")("RedundantTaggedRequest", {
+    payload: {},
+    success: Schema.Void,
+    failure: Schema.Never
+  })
+{}

@@ -26,6 +26,7 @@ import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
 import { nonObjectEffectServiceType } from "./diagnostics/nonObjectEffectServiceType.js"
 import { outdatedEffectCodegen } from "./diagnostics/outdatedEffectCodegen.js"
 import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConstructor.js"
+import { redundantSchemaTagIdentifier } from "./diagnostics/redundantSchemaTagIdentifier.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { runEffectInsideEffect } from "./diagnostics/runEffectInsideEffect.js"
 import { schemaStructWithTag } from "./diagnostics/schemaStructWithTag.js"
@@ -83,5 +84,6 @@ export const diagnostics = [
   globalErrorInEffectFailure,
   layerMergeAllWithDependencies,
   effectMapVoid,
-  effectFnOpportunity
+  effectFnOpportunity,
+  redundantSchemaTagIdentifier
 ]
