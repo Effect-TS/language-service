@@ -691,4 +691,75 @@ describe("Setup CLI", () => {
 
     await expectSetupChanges(assessmentInput, targetState)
   })
+
+  it("should handle tsconfig with existing plugin having custom options and diagnosticSeverity", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        devDependencies: {
+          "@effect/language-service": "^0.1.0"
+        }
+      },
+      {
+        compilerOptions: {
+          target: "ES2023",
+          lib: ["ES2023"],
+          module: "ESNext",
+          moduleResolution: "bundler",
+          allowImportingTsExtensions: true,
+          rewriteRelativeImportExtensions: true,
+          allowSyntheticDefaultImports: true,
+          esModuleInterop: true,
+          allowJs: false,
+          declaration: true,
+          declarationMap: true,
+          sourceMap: true,
+          outDir: "dist",
+          strict: true,
+          noUncheckedIndexedAccess: true,
+          exactOptionalPropertyTypes: true,
+          noImplicitReturns: true,
+          noFallthroughCasesInSwitch: true,
+          noImplicitOverride: true,
+          isolatedModules: true,
+          verbatimModuleSyntax: true,
+          skipLibCheck: true,
+          forceConsistentCasingInFileNames: true,
+          plugins: [
+            {
+              name: "@effect/language-service",
+              reportSuggestionsAsWarningsInTsc: true,
+              pipeableMinArgCount: 2,
+              diagnosticSeverity: {
+                missedPipeableOpportunity: "suggestion",
+                schemaUnionOfLiterals: "warning",
+                anyUnknownInErrorContext: "warning"
+              }
+            }
+          ]
+        },
+        exclude: ["node_modules", "dist"]
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "^0.1.0" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        // Change one severity to trigger the update path
+        diagnosticSeverities: Option.some({
+          missedPipeableOpportunity: "warning",
+          schemaUnionOfLiterals: "error",
+          anyUnknownInErrorContext: "warning"
+        })
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
 })
