@@ -127,8 +127,8 @@ function testAllPipingFlows() {
     for (const fileName of exampleFiles) {
       const sourceText = fs.readFileSync(path.join(getExamplesPipingDir(), fileName))
         .toString("utf8")
-      // Use includeEffectFn: true for effectFn.ts
-      const includeEffectFn = fileName === "effectFn.ts"
+      // Use includeEffectFn: true for effectFn*.ts files
+      const includeEffectFn = fileName.startsWith("effectFn")
       it(
         fileName,
         () => testPipingFlowsOnExample(fileName, sourceText, includeEffectFn)

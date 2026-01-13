@@ -128,17 +128,6 @@ export interface TypeParser {
     },
     TypeParserIssue
   >
-  effectFnUntraced: (
-    node: ts.Node
-  ) => Nano.Nano<
-    {
-      node: ts.Node
-      effectModule: ts.Node
-      regularFunction: ts.FunctionExpression | ts.ArrowFunction
-      pipeArguments: ReadonlyArray<ts.Expression>
-    },
-    TypeParserIssue
-  >
   effectFn: (
     node: ts.Node
   ) => Nano.Nano<
@@ -1029,44 +1018,6 @@ export function make(
       )
     },
     "TypeParser.effectFnGen",
-    (node) => node
-  )
-
-  const effectFnUntraced = Nano.cachedBy(
-    function(node: ts.Node) {
-      // Effect.fnUntraced(regularFunction, ...pipeArgs)
-      if (!ts.isCallExpression(node)) {
-        return typeParserIssue("Node is not a call expression", undefined, node)
-      }
-      if (node.arguments.length === 0) {
-        return typeParserIssue("Node has no arguments", undefined, node)
-      }
-      // first argument is a regular function (function expression or arrow function, without asterisk)
-      const regularFunction = node.arguments[0]
-      if (!ts.isFunctionExpression(regularFunction) && !ts.isArrowFunction(regularFunction)) {
-        return typeParserIssue("Node is not a function expression or arrow function", undefined, node)
-      }
-      // skip generator functions - those are handled by effectFnUntracedGen
-      if (ts.isFunctionExpression(regularFunction) && regularFunction.asteriskToken !== undefined) {
-        return typeParserIssue("Node is a generator function, not a regular function", undefined, node)
-      }
-      // Effect.fnUntraced
-      if (!ts.isPropertyAccessExpression(node.expression)) {
-        return typeParserIssue("Node is not a property access expression", undefined, node)
-      }
-      const propertyAccess = node.expression
-      const pipeArguments = node.arguments.slice(1)
-      return pipe(
-        isNodeReferenceToEffectModuleApi("fnUntraced")(propertyAccess),
-        Nano.map(() => ({
-          node,
-          effectModule: propertyAccess.expression,
-          regularFunction,
-          pipeArguments
-        }))
-      )
-    },
-    "TypeParser.effectFnUntraced",
     (node) => node
   )
 
@@ -2282,33 +2233,111 @@ export function make(
 
             // Try to parse as Effect.fn or Effect.fnUntraced with pipe transformations
             if (includeEffectFn) {
+              // Try generator versions first
               const effectFnGenParsed = yield* pipe(effectFnGen(node), Nano.option)
               const effectFnUntracedGenParsed = Option.isNone(effectFnGenParsed)
                 ? yield* pipe(effectFnUntracedGen(node), Nano.option)
                 : Option.none()
+              // Try non-generator version if generator versions didn't match
+              const effectFnNonGenParsed = Option.isNone(effectFnGenParsed) && Option.isNone(effectFnUntracedGenParsed)
+                ? yield* pipe(effectFn(node), Nano.option)
+                : Option.none()
 
-              const isEffectFn = Option.isSome(effectFnGenParsed)
-              const effectFnParsed = isEffectFn ? effectFnGenParsed : effectFnUntracedGenParsed
-              const transformationKind: "effectFn" | "effectFnUntraced" = isEffectFn
-                ? "effectFn"
-                : "effectFnUntraced"
+              const isEffectFnGen = Option.isSome(effectFnGenParsed)
+              const isEffectFnUntracedGen = Option.isSome(effectFnUntracedGenParsed)
+              const isEffectFnNonGen = Option.isSome(effectFnNonGenParsed)
+              const transformationKind: "effectFn" | "effectFnUntraced" = isEffectFnUntracedGen
+                ? "effectFnUntraced"
+                : "effectFn"
 
-              if (Option.isSome(effectFnParsed) && effectFnParsed.value.pipeArguments.length > 0) {
-                const fnResult = effectFnParsed.value
+              // Handle generator versions (Effect.fn with function*() or Effect.fnUntraced with function*())
+              if ((isEffectFnGen || isEffectFnUntracedGen)) {
+                const effectFnParsed = isEffectFnGen ? effectFnGenParsed : effectFnUntracedGenParsed
+                if (Option.isSome(effectFnParsed) && effectFnParsed.value.pipeArguments.length > 0) {
+                  const fnResult = effectFnParsed.value
+                  const pipeArgs = fnResult.pipeArguments
+
+                  // Build transformations from pipeArguments
+                  // For Effect.fn(gen, f1, f2), each fi is a function Effect<A,E,R> => Effect<B,E,R>
+                  // We get the contextual type of each argument to get the resolved/instantiated types
+                  const transformations: Array<ParsedPipingFlowTransformation> = []
+                  let subjectType: ts.Type | undefined
+
+                  for (let i = 0; i < pipeArgs.length; i++) {
+                    const arg = pipeArgs[i]
+                    // Get the contextual type of the argument within the Effect.fn call
+                    // This gives us the instantiated type with concrete type parameters
+                    const contextualType = typeChecker.getContextualType(arg)
+                    // Get the call signature from the contextual type to find input/output types
+                    const callSigs = contextualType
+                      ? typeChecker.getSignaturesOfType(contextualType, ts.SignatureKind.Call)
+                      : []
+                    const outType = callSigs.length > 0
+                      ? typeChecker.getReturnTypeOfSignature(callSigs[0])
+                      : undefined
+
+                    // Get the subject type from the first transformation's input parameter
+                    if (i === 0 && callSigs.length > 0) {
+                      const params = callSigs[0].parameters
+                      if (params.length > 0) {
+                        subjectType = typeChecker.getTypeOfSymbol(params[0])
+                      }
+                    }
+
+                    if (ts.isCallExpression(arg)) {
+                      transformations.push({
+                        callee: arg.expression,
+                        args: Array.from(arg.arguments),
+                        outType,
+                        kind: transformationKind
+                      })
+                    } else {
+                      transformations.push({
+                        callee: arg,
+                        args: undefined,
+                        outType,
+                        kind: transformationKind
+                      })
+                    }
+                  }
+
+                  const newFlow: ParsedPipingFlow = {
+                    node,
+                    subject: {
+                      node,
+                      outType: subjectType
+                    },
+                    transformations
+                  }
+                  result.push(newFlow)
+
+                  // Queue children (generator function body) for independent traversal
+                  workQueue.push([fnResult.body, undefined])
+                  // Queue pipe arguments for independent traversal
+                  for (const arg of pipeArgs) {
+                    ts.forEachChild(arg, (c) => {
+                      workQueue.push([c, undefined])
+                    })
+                  }
+                  continue
+                }
+              }
+
+              // Handle non-generator version (Effect.fn with regular function or arrow function)
+              if (
+                isEffectFnNonGen && Option.isSome(effectFnNonGenParsed) &&
+                effectFnNonGenParsed.value.pipeArguments.length > 0
+              ) {
+                const fnResult = effectFnNonGenParsed.value
                 const pipeArgs = fnResult.pipeArguments
 
                 // Build transformations from pipeArguments
-                // For Effect.fn(gen, f1, f2), each fi is a function Effect<A,E,R> => Effect<B,E,R>
-                // We get the contextual type of each argument to get the resolved/instantiated types
                 const transformations: Array<ParsedPipingFlowTransformation> = []
                 let subjectType: ts.Type | undefined
 
                 for (let i = 0; i < pipeArgs.length; i++) {
                   const arg = pipeArgs[i]
-                  // Get the contextual type of the argument within the Effect.fn call
-                  // This gives us the instantiated type with concrete type parameters
                   const contextualType = typeChecker.getContextualType(arg)
-                  // Get the call signature from the contextual type to find input/output types
                   const callSigs = contextualType
                     ? typeChecker.getSignaturesOfType(contextualType, ts.SignatureKind.Call)
                     : []
@@ -2316,7 +2345,6 @@ export function make(
                     ? typeChecker.getReturnTypeOfSignature(callSigs[0])
                     : undefined
 
-                  // Get the subject type from the first transformation's input parameter
                   if (i === 0 && callSigs.length > 0) {
                     const params = callSigs[0].parameters
                     if (params.length > 0) {
@@ -2329,14 +2357,14 @@ export function make(
                       callee: arg.expression,
                       args: Array.from(arg.arguments),
                       outType,
-                      kind: transformationKind
+                      kind: "effectFn"
                     })
                   } else {
                     transformations.push({
                       callee: arg,
                       args: undefined,
                       outType,
-                      kind: transformationKind
+                      kind: "effectFn"
                     })
                   }
                 }
@@ -2351,8 +2379,17 @@ export function make(
                 }
                 result.push(newFlow)
 
-                // Queue children (generator function body) for independent traversal
-                workQueue.push([fnResult.body, undefined])
+                // Queue children (regular function body) for independent traversal
+                const regularFn = fnResult.regularFunction
+                if (ts.isArrowFunction(regularFn)) {
+                  if (ts.isBlock(regularFn.body)) {
+                    workQueue.push([regularFn.body, undefined])
+                  } else {
+                    workQueue.push([regularFn.body, undefined])
+                  }
+                } else if (regularFn.body) {
+                  workQueue.push([regularFn.body, undefined])
+                }
                 // Queue pipe arguments for independent traversal
                 for (const arg of pipeArgs) {
                   ts.forEachChild(arg, (c) => {
@@ -2462,7 +2499,6 @@ export function make(
     effectGen,
     effectFnUntracedGen,
     effectFnGen,
-    effectFnUntraced,
     effectFn,
     extendsCauseYieldableError,
     unnecessaryEffectGen,
