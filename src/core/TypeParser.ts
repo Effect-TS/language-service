@@ -2215,7 +2215,7 @@ export function make(
 
                   // Get the subject type from the first transformation's input parameter
                   if (i === 0 && callSigs.length > 0) {
-                    const params = callSigs[0].getParameters()
+                    const params = callSigs[0].parameters
                     if (params.length > 0) {
                       subjectType = typeChecker.getTypeOfSymbol(params[0])
                     }
