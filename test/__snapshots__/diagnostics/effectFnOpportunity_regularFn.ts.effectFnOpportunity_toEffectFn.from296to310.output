@@ -1,0 +1,24 @@
+// code fix effectFnOpportunity_toEffectFn  output for range 296 - 310
+import * as Effect from "effect/Effect"
+
+export const shouldTrigger = Effect.fn("shouldTrigger")(function() {
+  return Effect.succeed(1)
+})
+
+export const shouldTrigger2 = function<T>(value: T) {
+  if (value === null) return Effect.fail("Error!")
+  return Effect.succeed(value)
+}
+
+export const shouldTrigger3 = Effect.fn("shouldTrigger3")(function <T>(value: T) {
+    if (value === null) return Effect.fail("Error!")
+    return Effect.succeed(value)
+})
+
+export function shouldTrigger4<T>(value: T) {
+  if (value === null) return Effect.fail("Error!")
+  return Effect.gen(function*() {
+    console.log("shouldTrigger as well!")
+    return yield* Effect.succeed(value)
+  })
+}

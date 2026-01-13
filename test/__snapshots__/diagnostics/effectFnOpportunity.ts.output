@@ -13,5 +13,8 @@ withParameters
 withTypeParameters
 35:13 - 35:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
 
+multipleStatements
+49:13 - 49:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
+
 overloadedFunction
 72:13 - 72:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)

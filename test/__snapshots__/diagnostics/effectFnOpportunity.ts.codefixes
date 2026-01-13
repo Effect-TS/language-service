@@ -18,6 +18,9 @@ effectFnOpportunity_toEffectFn from 885 to 903
 effectFnOpportunity_toEffectFnUntraced from 885 to 903
 effectFnOpportunity_skipNextLine from 885 to 903
 effectFnOpportunity_skipFile from 885 to 903
+effectFnOpportunity_toEffectFn from 1275 to 1293
+effectFnOpportunity_skipNextLine from 1275 to 1293
+effectFnOpportunity_skipFile from 1275 to 1293
 effectFnOpportunity_toEffectFn from 1882 to 1900
 effectFnOpportunity_toEffectFnUntraced from 1882 to 1900
 effectFnOpportunity_skipNextLine from 1882 to 1900
