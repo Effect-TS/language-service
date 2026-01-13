@@ -16,6 +16,14 @@ export function withReturnTypeAnnotation(): Effect.Effect<number> {
   })
 }
 
+// Should trigger - no return annotation due to pipe
+export function withoutReturnTypeAnnotation(): Effect.Effect<boolean> {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(1)
+    return 42
+  }).pipe(Effect.map((_) => _ > 0))
+}
+
 // Should trigger - function declaration with parameters
 export function withParameters(a: number, b: string) {
   return Effect.gen(function*() {
@@ -40,9 +48,9 @@ export function withTypeParametersAndReturn<T>(value: T): Effect.Effect<T> {
 
 // Should NOT trigger - function declaration with multiple statements
 export function multipleStatements() {
-  const x = 1
+  if (Math.random() > 0.5) return true
   return Effect.gen(function*() {
-    return yield* Effect.succeed(x)
+    return yield* Effect.succeed(true)
   })
 }
 

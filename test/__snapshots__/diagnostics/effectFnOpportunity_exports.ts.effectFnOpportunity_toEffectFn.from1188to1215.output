@@ -1,5 +1,4 @@
-// code fix effectFnOpportunity_skipFile  output for range 326 - 350
-/** @effect-diagnostics effectFnOpportunity:skip-file */
+// code fix effectFnOpportunity_toEffectFn  output for range 1188 - 1215
 import * as Effect from "effect/Effect"
 
 // Should trigger - function declaration without return type annotation
@@ -42,11 +41,10 @@ export function withTypeParameters<T>(value: T) {
 }
 
 // Should trigger - function declaration with type parameters and return type
-export function withTypeParametersAndReturn<T>(value: T): Effect.Effect<T> {
-  return Effect.gen(function*() {
+// Should trigger - function declaration with type parameters and return type
+export const withTypeParametersAndReturn = Effect.fn("withTypeParametersAndReturn")(function* <T>(value: T) {
     return yield* Effect.succeed(value)
-  })
-}
+})
 
 // Should NOT trigger - function declaration with multiple statements
 export function multipleStatements() {

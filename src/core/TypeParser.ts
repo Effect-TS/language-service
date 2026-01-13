@@ -112,6 +112,7 @@ export interface TypeParser {
       effectModule: ts.Node
       generatorFunction: ts.FunctionExpression
       body: ts.Block
+      pipeArguments: ReadonlyArray<ts.Expression>
     },
     TypeParserIssue
   >
@@ -123,6 +124,29 @@ export interface TypeParser {
       generatorFunction: ts.FunctionExpression
       effectModule: ts.Node
       body: ts.Block
+      pipeArguments: ReadonlyArray<ts.Expression>
+    },
+    TypeParserIssue
+  >
+  effectFnUntraced: (
+    node: ts.Node
+  ) => Nano.Nano<
+    {
+      node: ts.Node
+      effectModule: ts.Node
+      regularFunction: ts.FunctionExpression | ts.ArrowFunction
+      pipeArguments: ReadonlyArray<ts.Expression>
+    },
+    TypeParserIssue
+  >
+  effectFn: (
+    node: ts.Node
+  ) => Nano.Nano<
+    {
+      node: ts.Node
+      effectModule: ts.Node
+      regularFunction: ts.FunctionExpression | ts.ArrowFunction
+      pipeArguments: ReadonlyArray<ts.Expression>
     },
     TypeParserIssue
   >
@@ -1005,6 +1029,85 @@ export function make(
       )
     },
     "TypeParser.effectFnGen",
+    (node) => node
+  )
+
+  const effectFnUntraced = Nano.cachedBy(
+    function(node: ts.Node) {
+      // Effect.fnUntraced(regularFunction, ...pipeArgs)
+      if (!ts.isCallExpression(node)) {
+        return typeParserIssue("Node is not a call expression", undefined, node)
+      }
+      if (node.arguments.length === 0) {
+        return typeParserIssue("Node has no arguments", undefined, node)
+      }
+      // first argument is a regular function (function expression or arrow function, without asterisk)
+      const regularFunction = node.arguments[0]
+      if (!ts.isFunctionExpression(regularFunction) && !ts.isArrowFunction(regularFunction)) {
+        return typeParserIssue("Node is not a function expression or arrow function", undefined, node)
+      }
+      // skip generator functions - those are handled by effectFnUntracedGen
+      if (ts.isFunctionExpression(regularFunction) && regularFunction.asteriskToken !== undefined) {
+        return typeParserIssue("Node is a generator function, not a regular function", undefined, node)
+      }
+      // Effect.fnUntraced
+      if (!ts.isPropertyAccessExpression(node.expression)) {
+        return typeParserIssue("Node is not a property access expression", undefined, node)
+      }
+      const propertyAccess = node.expression
+      const pipeArguments = node.arguments.slice(1)
+      return pipe(
+        isNodeReferenceToEffectModuleApi("fnUntraced")(propertyAccess),
+        Nano.map(() => ({
+          node,
+          effectModule: propertyAccess.expression,
+          regularFunction,
+          pipeArguments
+        }))
+      )
+    },
+    "TypeParser.effectFnUntraced",
+    (node) => node
+  )
+
+  const effectFn = Nano.cachedBy(
+    function(node: ts.Node) {
+      // Effect.fn("name")(regularFunction, ...pipeArgs) or Effect.fn(regularFunction, ...pipeArgs)
+      if (!ts.isCallExpression(node)) {
+        return typeParserIssue("Node is not a call expression", undefined, node)
+      }
+      if (node.arguments.length === 0) {
+        return typeParserIssue("Node has no arguments", undefined, node)
+      }
+      // first argument is a regular function (function expression or arrow function, without asterisk)
+      const regularFunction = node.arguments[0]
+      if (!ts.isFunctionExpression(regularFunction) && !ts.isArrowFunction(regularFunction)) {
+        return typeParserIssue("Node is not a function expression or arrow function", undefined, node)
+      }
+      // skip generator functions - those are handled by effectFnGen
+      if (ts.isFunctionExpression(regularFunction) && regularFunction.asteriskToken !== undefined) {
+        return typeParserIssue("Node is a generator function, not a regular function", undefined, node)
+      }
+      // either we are using Effect.fn("name")(regularFunction) or we are using Effect.fn(regularFunction)
+      const expressionToTest = ts.isCallExpression(node.expression)
+        ? node.expression.expression
+        : node.expression
+      if (!ts.isPropertyAccessExpression(expressionToTest)) {
+        return typeParserIssue("Node is not a property access expression", undefined, node)
+      }
+      const propertyAccess = expressionToTest
+      const pipeArguments = node.arguments.slice(1)
+      return pipe(
+        isNodeReferenceToEffectModuleApi("fn")(propertyAccess),
+        Nano.map(() => ({
+          node,
+          effectModule: propertyAccess.expression,
+          regularFunction,
+          pipeArguments
+        }))
+      )
+    },
+    "TypeParser.effectFn",
     (node) => node
   )
 
@@ -2359,6 +2462,8 @@ export function make(
     effectGen,
     effectFnUntracedGen,
     effectFnGen,
+    effectFnUntraced,
+    effectFn,
     extendsCauseYieldableError,
     unnecessaryEffectGen,
     effectSchemaType,

@@ -1,5 +1,4 @@
-// code fix effectFnOpportunity_skipFile  output for range 326 - 350
-/** @effect-diagnostics effectFnOpportunity:skip-file */
+// code fix effectFnOpportunity_skipNextLine  output for range 532 - 559
 import * as Effect from "effect/Effect"
 
 // Should trigger - function declaration without return type annotation
@@ -19,6 +18,7 @@ export function withReturnTypeAnnotation(): Effect.Effect<number> {
 }
 
 // Should trigger - no return annotation due to pipe
+// @effect-diagnostics-next-line effectFnOpportunity:off
 export function withoutReturnTypeAnnotation(): Effect.Effect<boolean> {
   return Effect.gen(function*() {
     yield* Effect.succeed(1)

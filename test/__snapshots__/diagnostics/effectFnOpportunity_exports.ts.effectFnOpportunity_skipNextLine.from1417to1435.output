@@ -1,5 +1,4 @@
-// code fix effectFnOpportunity_skipFile  output for range 326 - 350
-/** @effect-diagnostics effectFnOpportunity:skip-file */
+// code fix effectFnOpportunity_skipNextLine  output for range 1417 - 1435
 import * as Effect from "effect/Effect"
 
 // Should trigger - function declaration without return type annotation
@@ -49,10 +48,11 @@ export function withTypeParametersAndReturn<T>(value: T): Effect.Effect<T> {
 }
 
 // Should NOT trigger - function declaration with multiple statements
+// @effect-diagnostics-next-line effectFnOpportunity:off
 export function multipleStatements() {
-  if (Math.random() > 0.5) return true
+  const x = 1
   return Effect.gen(function*() {
-    return yield* Effect.succeed(true)
+    return yield* Effect.succeed(x)
   })
 }
 
