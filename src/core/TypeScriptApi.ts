@@ -156,6 +156,23 @@ declare module "typescript" {
     /** @deprecated Use the `ts.idText(node)` method instead */
     readonly text: string
   }
+
+  export interface Signature {
+    /** @deprecated Use the .parameters property instead */
+    getParameters(): ReadonlyArray<ts.Symbol>
+
+    /** @deprecated Use the .typeParameters property instead */
+    getTypeParameters(): Array<ts.TypeParameter> | undefined
+
+    /** @deprecated Use the .declaration property instead */
+    getDeclaration(): ts.SignatureDeclaration
+
+    /** @deprecated Use typeChecker.getReturnTypeOfSignature instead */
+    getReturnType(): ts.Type
+
+    /** @deprecated Use typeCheckerUtils.getTypeParameterAtPosition instead */
+    getTypeParameterAtPosition(pos: number): ts.Type
+  }
 }
 
 type _TypeScriptApi = typeof ts
