@@ -1,0 +1,99 @@
+=== Piping Flow ===
+Location: 4:31 - 7:2
+Node: Effect.fn(\n  () => Effect.succeed(42),\n  Effect.map((x) => x + 1)\n)
+Node Kind: CallExpression
+
+Subject: Effect.fn(\n  () => Effect.succeed(42),\n  Effect.map((x) => x + 1)\n)
+Subject Type: Effect<number, never, never>
+
+Transformations (1):
+  [0] kind: effectFn
+      callee: Effect.map
+      args: [(x) => x + 1]
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.fn(() => Effect.succeed(42), Effect.map((x) => x + 1))
+
+=== Piping Flow ===
+Location: 5:9 - 5:27
+Node: Effect.succeed(42)
+Node Kind: CallExpression
+
+Subject: 42
+Subject Type: 42
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(42)
+
+=== Piping Flow ===
+Location: 9:39 - 13:2
+Node: Effect.fn(\n  () => Effect.succeed(42),\n  Effect.map((x) => x + 1),\n  Effect.map((x) => x.toString())\n)
+Node Kind: CallExpression
+
+Subject: Effect.fn(\n  () => Effect.succeed(42),\n  Effect.map((x) => x + 1),\n  Effect.map((x) => x.toString())\n)
+Subject Type: Effect<number, never, never>
+
+Transformations (2):
+  [0] kind: effectFn
+      callee: Effect.map
+      args: [(x) => x + 1]
+      outType: Effect<number, never, never>
+  [1] kind: effectFn
+      callee: Effect.map
+      args: [(x) => x.toString()]
+      outType: Effect<string, never, never>
+
+Reconstructed: Effect.fn(() => Effect.succeed(42), Effect.map((x) => x + 1), Effect.map((x) => x.toString()))
+
+=== Piping Flow ===
+Location: 10:9 - 10:27
+Node: Effect.succeed(42)
+Node Kind: CallExpression
+
+Subject: 42
+Subject Type: 42
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(42)
+
+=== Piping Flow ===
+Location: 16:37 - 19:2
+Node: Effect.fn("traced")(\n  () => Effect.succeed(42),\n  Effect.map((x) => x + 1)\n)
+Node Kind: CallExpression
+
+Subject: Effect.fn("traced")(\n  () => Effect.succeed(42),\n  Effect.map((x) => x + 1)\n)
+Subject Type: Effect<number, never, never>
+
+Transformations (1):
+  [0] kind: effectFn
+      callee: Effect.map
+      args: [(x) => x + 1]
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.fn("traced")(() => Effect.succeed(42), Effect.map((x) => x + 1))
+
+=== Piping Flow ===
+Location: 17:9 - 17:27
+Node: Effect.succeed(42)
+Node Kind: CallExpression
+
+Subject: 42
+Subject Type: 42
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(42)

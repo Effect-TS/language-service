@@ -137,7 +137,6 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       }
       return pipe(
         typeParser.effectFn(parent),
-        Nano.orElse(() => typeParser.effectFnUntraced(parent)),
         Nano.orElse(() => typeParser.effectFnGen(parent)),
         Nano.orElse(() => typeParser.effectFnUntracedGen(parent)),
         Nano.map(() => true),
@@ -193,6 +192,9 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         const traceName = nameIdentifier
           ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
           : undefined
+
+        // Only if we have a traceName, that means basically either declaration name or parent
+        if (!traceName) return yield* TypeParser.TypeParserIssue.issue
 
         // Try to parse as Gen opportunity, then fall back to Regular opportunity
         const opportunity = yield* pipe(
