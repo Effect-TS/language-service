@@ -1,5 +1,235 @@
 # @effect/language-service
 
+## 0.65.0
+
+### Minor Changes
+
+- [#581](https://github.com/Effect-TS/language-service/pull/581) [`4569328`](https://github.com/Effect-TS/language-service/commit/456932800d7abe81e14d910b25d91399277a23f5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `effectFnOpportunity` diagnostic that suggests converting functions returning `Effect.gen` to `Effect.fn` for better tracing and concise syntax.
+
+  The diagnostic triggers on:
+
+  - Arrow functions returning `Effect.gen(...)`
+  - Function expressions returning `Effect.gen(...)`
+  - Function declarations returning `Effect.gen(...)`
+  - Functions with `Effect.gen(...).pipe(...)` patterns
+
+  It provides two code fixes:
+
+  - Convert to `Effect.fn` (traced) - includes the function name as the span name
+  - Convert to `Effect.fnUntraced` - without tracing
+
+  The diagnostic skips:
+
+  - Generator functions (can't be converted)
+  - Named function expressions (typically used for recursion)
+  - Functions with multiple call signatures (overloads)
+
+  When the original function has a return type annotation, the converted function will use `Effect.fn.Return<A, E, R>` as the return type.
+
+  Example:
+
+  ```ts
+  // Before
+  export const myFunction = (a: number) =>
+    Effect.gen(function* () {
+      yield* Effect.succeed(1);
+      return a;
+    });
+
+  // After (with Effect.fn)
+  export const myFunction = Effect.fn("myFunction")(function* (a: number) {
+    yield* Effect.succeed(1);
+    return a;
+  });
+
+  // Before (with pipe)
+  export const withPipe = () =>
+    Effect.gen(function* () {
+      return yield* Effect.succeed(1);
+    }).pipe(Effect.withSpan("withPipe"));
+
+  // After (with Effect.fn)
+  export const withPipe = Effect.fn("withPipe")(function* () {
+    return yield* Effect.succeed(1);
+  }, Effect.withSpan("withPipe"));
+  ```
+
+- [#575](https://github.com/Effect-TS/language-service/pull/575) [`00aeed0`](https://github.com/Effect-TS/language-service/commit/00aeed0c8aadcd0b0c521e4339aa6a1a18eae772) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `effectMapVoid` diagnostic that suggests using `Effect.asVoid` instead of `Effect.map(() => void 0)`, `Effect.map(() => undefined)`, or `Effect.map(() => {})`.
+
+  Also adds two new TypeParser utilities:
+
+  - `lazyExpression`: matches zero-argument arrow functions or function expressions that return a single expression
+  - `emptyFunction`: matches arrow functions or function expressions with an empty block body
+
+  And adds `isVoidExpression` utility to TypeScriptUtils for detecting `void 0` or `undefined` expressions.
+
+  Example:
+
+  ```ts
+  // Before
+  Effect.succeed(1).pipe(Effect.map(() => void 0));
+  Effect.succeed(1).pipe(Effect.map(() => undefined));
+  Effect.succeed(1).pipe(Effect.map(() => {}));
+
+  // After (suggested fix)
+  Effect.succeed(1).pipe(Effect.asVoid);
+  ```
+
+- [#582](https://github.com/Effect-TS/language-service/pull/582) [`94d4a6b`](https://github.com/Effect-TS/language-service/commit/94d4a6bcaa39d8b33e66390d1ead5b1da1a8f16f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Added `layerinfo` CLI command that provides detailed information about a specific exported layer.
+
+  Features:
+
+  - Shows layer type, location, and description
+  - Lists services the layer provides and requires
+  - Suggests optimal layer composition order using `Layer.provide`, `Layer.provideMerge`, and `Layer.merge`
+
+  Example usage:
+
+  ```bash
+  effect-language-service layerinfo --file ./src/layers/app.ts --name AppLive
+  ```
+
+  Also added a tip to both `overview` and `layerinfo` commands about using `Layer.mergeAll(...)` to get suggested composition order.
+
+- [#583](https://github.com/Effect-TS/language-service/pull/583) [`b0aa78f`](https://github.com/Effect-TS/language-service/commit/b0aa78fb75f2afed944fb062e8e74ec6eb1492c1) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `redundantSchemaTagIdentifier` diagnostic that suggests removing redundant identifier arguments when they equal the tag value in `Schema.TaggedClass`, `Schema.TaggedError`, or `Schema.TaggedRequest`.
+
+  **Before:**
+
+  ```typescript
+  class MyError extends Schema.TaggedError<MyError>("MyError")("MyError", {
+    message: Schema.String,
+  }) {}
+  ```
+
+  **After applying the fix:**
+
+  ```typescript
+  class MyError extends Schema.TaggedError<MyError>()("MyError", {
+    message: Schema.String,
+  }) {}
+  ```
+
+  Also updates the completions to not include the redundant identifier when autocompleting `Schema.TaggedClass`, `Schema.TaggedError`, and `Schema.TaggedRequest`.
+
+- [#573](https://github.com/Effect-TS/language-service/pull/573) [`6715f91`](https://github.com/Effect-TS/language-service/commit/6715f9131059737cf4b2d2988d7981971943ac0e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Rename `reportSuggestionsAsWarningsInTsc` option to `includeSuggestionsInTsc` and change default to `true`.
+
+  This option controls whether diagnostics with "suggestion" severity are included in TSC output when using the `effect-language-service patch` feature. When enabled, suggestions are reported as messages in TSC output, which is useful for LLM-based development tools to see all suggestions.
+
+  **Breaking change**: The option has been renamed and the default behavior has changed:
+
+  - Old: `reportSuggestionsAsWarningsInTsc: false` (suggestions not included by default)
+  - New: `includeSuggestionsInTsc: true` (suggestions included by default)
+
+  To restore the previous behavior, set `"includeSuggestionsInTsc": false` in your tsconfig.json plugin configuration.
+
+- [#586](https://github.com/Effect-TS/language-service/pull/586) [`e225b5f`](https://github.com/Effect-TS/language-service/commit/e225b5fb242d269b75eb6a04c89ae6372e53c8ec) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add markdown documentation support to setup command
+
+  The setup command now automatically manages Effect Language Service documentation in AGENTS.md and CLAUDE.md files:
+
+  - When installing: Adds or updates the Effect Language Service section with markers
+  - When uninstalling: Removes the section if present
+  - Case-insensitive file detection (supports both lowercase and uppercase filenames)
+  - Skips symlinked files to avoid modifying linked content
+  - Shows proper diff view for markdown file changes
+
+  Example section added to markdown files:
+
+  ```markdown
+  <!-- effect-language-service:start -->
+
+  ## Effect Language Service
+
+  The Effect Language Service comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+
+  <!-- effect-language-service:end -->
+  ```
+
+### Patch Changes
+
+- [#580](https://github.com/Effect-TS/language-service/pull/580) [`a45606b`](https://github.com/Effect-TS/language-service/commit/a45606b2b0d64bd06436c1e6c3a1c5410dcda6a9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `Effect.fn` and `Effect.fnUntraced` support to the piping flows parser.
+
+  The piping flows parser now recognizes pipe transformations passed as additional arguments to `Effect.fn`, `Effect.fn("traced")`, and `Effect.fnUntraced`. This enables diagnostics like `catchAllToMapError`, `catchUnfailableEffect`, and `multipleEffectProvide` to work with these patterns.
+
+  Example:
+
+  ```ts
+  // This will now trigger the catchAllToMapError diagnostic
+  const example = Effect.fn(
+    function* () {
+      return yield* Effect.fail("error");
+    },
+    Effect.catchAll((cause) => Effect.fail(new MyError(cause)))
+  );
+  ```
+
+- [#587](https://github.com/Effect-TS/language-service/pull/587) [`7316859`](https://github.com/Effect-TS/language-service/commit/7316859ba221a212d3e8adcf458032e5c5d1b354) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Mark deprecated TypeScript Signature methods and migrate to property accessors
+
+  Added `@deprecated` annotations to TypeScript Signature interface methods (`getParameters`, `getTypeParameters`, `getDeclaration`, `getReturnType`, `getTypeParameterAtPosition`) with guidance to use their modern property alternatives. Updated codebase usage of `getParameters()` to use `.parameters` property instead.
+
+- [#584](https://github.com/Effect-TS/language-service/pull/584) [`ed12861`](https://github.com/Effect-TS/language-service/commit/ed12861c12a1fa1298fd53c97a5e01a2d02b96ac) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix TypeError in setup command when updating existing diagnosticSeverity configuration
+
+  The setup command was throwing `TypeError: Cannot read properties of undefined (reading 'text')` when trying to update the `diagnosticSeverity` option of an existing `@effect/language-service` plugin configuration in tsconfig.json.
+
+  This occurred because TypeScript's ChangeTracker formatter needed to compute indentation by traversing the AST tree, which failed when replacing a PropertyAssignment node inside a nested list context.
+
+  The fix replaces just the initializer value (ObjectLiteralExpression) instead of the entire PropertyAssignment, avoiding the problematic list indentation calculation.
+
+- [#585](https://github.com/Effect-TS/language-service/pull/585) [`7ebe5db`](https://github.com/Effect-TS/language-service/commit/7ebe5db2d60f36510e666e7c816623c0f9be88ab) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Enhanced `layerinfo` CLI command with output type selection for layer composition.
+
+  **New Features:**
+
+  - Added `--outputs` option to select which output types to include in the suggested composition (e.g., `--outputs 1,2,3`)
+  - Shows all available output types from the layer graph with indexed checkboxes
+  - By default, only types that are in the layer's declared `ROut` are selected
+  - Composition code now includes `export const <name> = ...` prefix for easy copy-paste
+
+  **Example output:**
+
+  ```
+  Suggested Composition:
+    Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)
+    then run this command again and use --outputs to select which outputs to include in composition.
+    Example: --outputs 1,2,3
+
+    [ ] 1. Cache
+    [x] 2. UserRepository
+
+    export const simplePipeIn = UserRepository.Default.pipe(
+      Layer.provide(Cache.Default)
+    )
+  ```
+
+  This allows users to see all available outputs from a layer composition and choose which ones to include in the suggested composition order.
+
+- [#577](https://github.com/Effect-TS/language-service/pull/577) [`0ed50c3`](https://github.com/Effect-TS/language-service/commit/0ed50c33c08ae6ae81fbd4af49ac4d75fd2b7f74) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor `catchAllToMapError` diagnostic to use the piping flows parser for detecting Effect.catchAll calls.
+
+  This change also:
+
+  - Makes `outType` optional in `ParsedPipingFlowSubject` to handle cases where type information is unavailable
+  - Sorts piping flows by position for consistent ordering
+
+- [#578](https://github.com/Effect-TS/language-service/pull/578) [`cab6ce8`](https://github.com/Effect-TS/language-service/commit/cab6ce85ff2720c0d09cdb0b708d77d1917a50c5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - refactor: use piping flows parser in catchUnfailableEffect diagnostic
+
+- [#579](https://github.com/Effect-TS/language-service/pull/579) [`2a82522`](https://github.com/Effect-TS/language-service/commit/2a82522cdbcb59465ccb93dcb797f55d9408752c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - refactor: use piping flows parser in multipleEffectProvide diagnostic
+
+- [#570](https://github.com/Effect-TS/language-service/pull/570) [`0db6e28`](https://github.com/Effect-TS/language-service/commit/0db6e28df1caba1bb5bc42faf82f8ffab276a184) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor CLI overview command to extract symbol collection logic into reusable utility
+
+  - Extract `collectSourceFileExportedSymbols` into `src/cli/utils/ExportedSymbols.ts` for reuse across CLI commands
+  - Add `--max-symbol-depth` option to overview command (default: 3) to control how deep to traverse nested symbol properties
+  - Add tests for the overview command with snapshot testing
+
+- [#574](https://github.com/Effect-TS/language-service/pull/574) [`9d0695e`](https://github.com/Effect-TS/language-service/commit/9d0695e3c82333400575a9d266cad4ac6af45ccc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Remove deprecated ts-patch documentation from README. The Effect LSP CLI Patch is now the only recommended approach for getting diagnostics at compile time.
+
+- [#576](https://github.com/Effect-TS/language-service/pull/576) [`5017d75`](https://github.com/Effect-TS/language-service/commit/5017d75f1db93f6e5d8c1fc0d8ea26c2b2db613a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add piping flows parser for caching piping flow analysis per source file.
+
+  This internal improvement introduces a `pipingFlows` function in `TypeParser` that analyzes and caches all piping flows (both `pipe()` calls and `.pipe()` method chains) in a source file. The parser:
+
+  - Identifies piping flows including nested pipes and mixed call styles (e.g., `Effect.map(effect, fn).pipe(...)`)
+  - Tracks the subject, transformations, and intermediate types for each flow
+  - Enables more efficient diagnostic implementations by reusing cached analysis
+
+  The `missedPipeableOpportunity` diagnostic has been refactored to use this new parser, improving performance when analyzing files with multiple piping patterns.
+
 ## 0.64.1
 
 ### Patch Changes
