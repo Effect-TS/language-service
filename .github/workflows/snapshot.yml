@@ -36,4 +36,4 @@ jobs:
       - run: pnpm circular
       - name: Create snapshot
         id: snapshot
-        run: pnpx pkg-pr-new@0.0.28 publish --pnpm --comment=off ./dist/*
+        run: pnpx pkg-pr-new@0.0.28 publish --pnpm --comment=off ./dist
