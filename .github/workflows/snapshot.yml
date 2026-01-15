@@ -1,0 +1,39 @@
+name: Snapshot
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  snapshot:
+    name: Snapshot
+    if: github.repository_owner == 'Effect-Ts'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+        with:
+          registry-url: "https://registry.npmjs.org"
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
+      - run: pnpm build
+      - name: Check source state
+        run: git add src && git diff-index --cached HEAD --exit-code src
+      - run: pnpm circular
+      - name: Create snapshot
+        id: snapshot
+        run: pnpx pkg-pr-new@0.0.28 publish --pnpm --comment=off ./dist
