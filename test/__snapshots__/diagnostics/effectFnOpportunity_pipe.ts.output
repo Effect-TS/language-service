@@ -1,2 +1,2 @@
 shouldTrigger
-4:13 - 4:26 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+4:13 - 4:26 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax. Effect.fn also accepts the piped transformations as additional arguments.    effect(effectFnOpportunity)
