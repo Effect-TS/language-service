@@ -69,7 +69,7 @@ export const collectSourceFileExportedSymbols = (
   // Work queue: [symbol, qualifiedName, location | undefined, depth]
   // Initialize with exported symbols using their names and declaration locations at depth 0
   const workQueue: Array<[ts.Symbol, string, SymbolLocation | undefined, number]> = exports.map((s) => {
-    const declarations = s.getDeclarations()
+    const declarations = s.declarations
     const location = declarations && declarations.length > 0
       ? getLocationFromDeclaration(declarations[0], tsInstance)
       : undefined

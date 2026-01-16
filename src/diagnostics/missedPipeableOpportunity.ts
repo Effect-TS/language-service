@@ -1,4 +1,5 @@
 import { pipe } from "effect/Function"
+import type ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -16,6 +17,91 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
+
+    /**
+     * Checks if a callee expression is safe to use in a pipe without losing `this` context.
+     * Safe cases:
+     * - Identifiers pointing to standalone functions
+     * - Call expressions (already evaluated)
+     * - Property access on modules/namespaces (not instances)
+     * - Arrow functions (no `this` binding)
+     */
+    const isSafelyPipeableCallee = (callee: ts.Expression): boolean => {
+      // Call expressions are safe - they return a value
+      if (ts.isCallExpression(callee)) {
+        return true
+      }
+
+      // Arrow functions are safe - no `this` binding
+      if (ts.isArrowFunction(callee)) {
+        return true
+      }
+
+      // Function expressions are safe
+      if (ts.isFunctionExpression(callee)) {
+        return true
+      }
+
+      // Parenthesized expressions - check inner
+      if (ts.isParenthesizedExpression(callee)) {
+        return isSafelyPipeableCallee(callee.expression)
+      }
+
+      // Simple identifiers - check if it's a module/namespace or standalone function
+      if (ts.isIdentifier(callee)) {
+        const symbol = typeChecker.getSymbolAtLocation(callee)
+        if (!symbol) return false
+        // Module/namespace imports are safe
+        if (symbol.flags & (ts.SymbolFlags.Module | ts.SymbolFlags.Namespace | ts.SymbolFlags.ValueModule)) {
+          return true
+        }
+        // Check if the symbol's declaration is a function or variable (not a method)
+        const declarations = symbol.declarations
+        if (declarations && declarations.length > 0) {
+          const decl = declarations[0]
+          // Functions, variables, and imports are safe
+          if (
+            ts.isFunctionDeclaration(decl) ||
+            ts.isVariableDeclaration(decl) ||
+            ts.isImportSpecifier(decl) ||
+            ts.isImportClause(decl) ||
+            ts.isNamespaceImport(decl)
+          ) {
+            return true
+          }
+        }
+        return false
+      }
+
+      // Property access - check if subject is a module/namespace
+      if (ts.isPropertyAccessExpression(callee)) {
+        const subject = callee.expression
+        const symbol = typeChecker.getSymbolAtLocation(subject)
+        if (!symbol) return false
+
+        // Check if subject is a module/namespace
+        if (symbol.flags & (ts.SymbolFlags.Module | ts.SymbolFlags.Namespace | ts.SymbolFlags.ValueModule)) {
+          return true
+        }
+
+        // Check if the symbol's declaration indicates it's a module import
+        const declarations = symbol.declarations
+        if (declarations && declarations.length > 0) {
+          const decl = declarations[0]
+          if (
+            ts.isNamespaceImport(decl) ||
+            ts.isSourceFile(decl) ||
+            ts.isModuleDeclaration(decl)
+          ) {
+            return true
+          }
+        }
+
+        return false
+      }
+
+      return false
+    }
 
     // Get all piping flows for the source file (excluding Effect.fn since it can't be reconstructed)
     const flows = yield* typeParser.pipingFlows(false)(sourceFile)
@@ -36,104 +122,137 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
         continue
       }
 
-      // Find the first pipeable type in the flow
-      // Start with subject, then check each transformation's outType
-      let firstPipeableIndex = -1
-
-      // Check if subject is pipeable
-      const subjectType = flow.subject.outType
-      if (!subjectType) {
-        continue
-      }
-      const subjectIsPipeable = yield* pipe(
-        typeParser.pipeableType(subjectType, flow.subject.node),
-        Nano.option
-      )
-
-      if (subjectIsPipeable._tag === "Some") {
-        firstPipeableIndex = 0
-      } else {
-        // Check transformations for first pipeable outType
-        for (let i = 0; i < flow.transformations.length; i++) {
-          const t = flow.transformations[i]
-          if (t.outType) {
-            const isPipeable = yield* pipe(
-              typeParser.pipeableType(t.outType, flow.node),
-              Nano.option
-            )
-            if (isPipeable._tag === "Some") {
-              firstPipeableIndex = i + 1 // +1 because subject is index 0
-              break
-            }
-          }
+      // Helper to check if a type at a given index is pipeable
+      // Index 0 = subject, index > 0 = transformations[index - 1].outType
+      const isPipeableAtIndex = function*(index: number) {
+        if (index === 0) {
+          const subjectType = flow.subject.outType
+          if (!subjectType) return false
+          const result = yield* pipe(
+            typeParser.pipeableType(subjectType, flow.subject.node),
+            Nano.option
+          )
+          return result._tag === "Some"
+        } else {
+          const t = flow.transformations[index - 1]
+          if (!t.outType) return false
+          const result = yield* pipe(
+            typeParser.pipeableType(t.outType, flow.node),
+            Nano.option
+          )
+          return result._tag === "Some"
         }
       }
 
-      // If no pipeable type found, skip this flow
-      if (firstPipeableIndex === -1) {
-        continue
-      }
+      // Search for valid pipeable segments
+      // A segment starts at a pipeable type and continues while callees are safely pipeable
+      let searchStartIndex = 0
 
-      // Count "call" kind transformations after the first pipeable
-      const transformationsAfterPipeable = flow.transformations.slice(firstPipeableIndex)
-      const callKindCount = transformationsAfterPipeable.filter((t) => t.kind === "call").length
+      while (searchStartIndex <= flow.transformations.length) {
+        // Find the first pipeable type starting from searchStartIndex
+        let firstPipeableIndex = -1
 
-      // If not enough call-kind transformations, skip
-      if (callKindCount < options.pipeableMinArgCount) {
-        continue
-      }
+        for (let i = searchStartIndex; i <= flow.transformations.length; i++) {
+          if (yield* isPipeableAtIndex(i)) {
+            firstPipeableIndex = i
+            break
+          }
+        }
 
-      // Get the subject for the pipeable part
-      // If firstPipeableIndex === 0, the subject is flow.subject.node
-      // Otherwise, we need to reconstruct the expression up to the pipeable point
-      const pipeableSubjectNode = firstPipeableIndex === 0
-        ? flow.subject.node
-        : typeParser.reconstructPipingFlow({
-          subject: flow.subject,
-          transformations: flow.transformations.slice(0, firstPipeableIndex)
-        })
+        // If no pipeable type found, we're done with this flow
+        if (firstPipeableIndex === -1) {
+          break
+        }
 
-      // Get transformations to convert to .pipe() style
-      const pipeableTransformations = flow.transformations.slice(firstPipeableIndex)
+        // Collect transformations while their callees are safely pipeable
+        const pipeableTransformations: Array<typeof flow.transformations[number]> = []
 
-      report({
-        location: flow.node,
-        messageText: `Nested function calls can be converted to pipeable style for better readability.`,
-        fixes: [{
-          fixName: "missedPipeableOpportunity_fix",
-          description: "Convert to pipe style",
-          apply: Nano.gen(function*() {
-            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+        for (let i = firstPipeableIndex; i < flow.transformations.length; i++) {
+          const t = flow.transformations[i]
+          // Check if this transformation's callee is safe to use in a pipe
+          if (!isSafelyPipeableCallee(t.callee)) {
+            // Hit an unsafe callee, stop collecting
+            break
+          }
+          pipeableTransformations.push(t)
+        }
 
-            // Build the pipe arguments from transformations
-            const pipeArgs = pipeableTransformations.map((t) => {
-              if (t.args) {
-                // It's a function call like Effect.map((x) => x + 1)
-                return ts.factory.createCallExpression(
-                  t.callee,
-                  undefined,
-                  t.args
-                )
-              } else {
-                // It's a constant like Effect.asVoid
-                return t.callee
-              }
+        // Count "call" kind transformations
+        const callKindCount = pipeableTransformations.filter((t) => t.kind === "call").length
+
+        // If we have enough, report the diagnostic
+        if (callKindCount >= options.pipeableMinArgCount) {
+          // Calculate the end index of pipeable transformations
+          const pipeableEndIndex = firstPipeableIndex + pipeableTransformations.length
+
+          // Get the subject for the pipeable part (reconstructing the "before" portion if needed)
+          const pipeableSubjectNode = firstPipeableIndex === 0
+            ? flow.subject.node
+            : typeParser.reconstructPipingFlow({
+              subject: flow.subject,
+              transformations: flow.transformations.slice(0, firstPipeableIndex)
             })
 
-            // Create the new pipe call: subject.pipe(...)
-            const newNode = ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                pipeableSubjectNode,
-                "pipe"
-              ),
-              undefined,
-              pipeArgs
-            )
+          // Get the remaining transformations after the pipeable range (the "after" portion)
+          const afterTransformations = flow.transformations.slice(pipeableEndIndex)
 
-            changeTracker.replaceNode(sourceFile, flow.node, newNode)
+          report({
+            location: flow.node,
+            messageText: `Nested function calls can be converted to pipeable style for better readability.`,
+            fixes: [{
+              fixName: "missedPipeableOpportunity_fix",
+              description: "Convert to pipe style",
+              apply: Nano.gen(function*() {
+                const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+
+                // Build the pipe arguments from transformations
+                const pipeArgs = pipeableTransformations.map((t) => {
+                  if (t.args) {
+                    // It's a function call like Effect.map((x) => x + 1)
+                    return ts.factory.createCallExpression(
+                      t.callee,
+                      undefined,
+                      t.args
+                    )
+                  } else {
+                    // It's a constant like Effect.asVoid
+                    return t.callee
+                  }
+                })
+
+                // Create the pipe call: subject.pipe(...)
+                const pipeNode = ts.factory.createCallExpression(
+                  ts.factory.createPropertyAccessExpression(
+                    pipeableSubjectNode,
+                    "pipe"
+                  ),
+                  undefined,
+                  pipeArgs
+                )
+
+                // Wrap the pipe call with the "after" transformations (if any)
+                // This reconstructs the outer calls that weren't safe to include in the pipe
+                const newNode = afterTransformations.length > 0
+                  ? typeParser.reconstructPipingFlow({
+                    subject: { node: pipeNode, outType: undefined },
+                    transformations: afterTransformations
+                  })
+                  : pipeNode
+
+                changeTracker.replaceNode(sourceFile, flow.node, newNode)
+              })
+            }]
           })
-        }]
-      })
+
+          // We found and reported a valid segment, move past it
+          // (we don't want overlapping diagnostics for the same flow)
+          break
+        }
+
+        // Not enough transformations accumulated, try starting from the next position
+        // Move past the current firstPipeableIndex + accumulated transformations
+        searchStartIndex = firstPipeableIndex + pipeableTransformations.length + 1
+      }
     }
   })
 })

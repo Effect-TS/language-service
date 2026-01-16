@@ -132,7 +132,7 @@ export function collectExportedItems(
 
     for (const { description, location, name, symbol, type } of exportedSymbols) {
       // Get a declaration for type parsing context
-      const declarations = symbol.getDeclarations()
+      const declarations = symbol.declarations
       const declaration = declarations && declarations.length > 0 ? declarations[0] : sourceFile
 
       // Check if it's a Context.Tag (has _Identifier and _Service variance)

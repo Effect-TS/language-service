@@ -12,6 +12,3 @@ double(wrapInEffect(regularFunction(5)))
 
 triple(addHundred(double(addOne(7))))
 28:29 - 28:66 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
-
-Effect.runPromise(Effect.log("Hello"))
-36:28 - 36:66 | 0 | Nested function calls can be converted to pipeable style for better readability.    effect(missedPipeableOpportunity)
