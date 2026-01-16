@@ -421,11 +421,15 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         })
       }
 
+      const pipeArgsSuffix = pipeArguments.length > 0
+        ? ` Effect.fn also accepts the piped transformations as additional arguments.`
+        : ``
+
       report({
         location: nameIdentifier ?? targetNode,
         messageText: target.value.generatorFunction
-          ? `This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.`
-          : `This function could benefit from Effect.fn's automatic tracing and concise syntax.`,
+          ? `This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.${pipeArgsSuffix}`
+          : `This function could benefit from Effect.fn's automatic tracing and concise syntax.${pipeArgsSuffix}`,
         fixes
       })
     }

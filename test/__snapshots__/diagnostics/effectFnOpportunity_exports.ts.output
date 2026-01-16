@@ -5,7 +5,7 @@ withReturnTypeAnnotation
 12:16 - 12:40 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
 
 withoutReturnTypeAnnotation
-20:16 - 20:43 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
+20:16 - 20:43 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax. Effect.fn also accepts the piped transformations as additional arguments.    effect(effectFnOpportunity)
 
 withParameters
 28:16 - 28:30 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.    effect(effectFnOpportunity)
