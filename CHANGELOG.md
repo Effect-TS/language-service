@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.66.1
+
+### Patch Changes
+
+- [#597](https://github.com/Effect-TS/language-service/pull/597) [`3833a10`](https://github.com/Effect-TS/language-service/commit/3833a10e3188c4ebf113625c00f60e17b8bf6b80) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improved `effectFnOpportunity` diagnostic message to mention that Effect.fn accepts piped transformations as additional arguments when pipe transformations are detected.
+
+  When a function has `.pipe()` calls that would be absorbed by Effect.fn, the message now includes: "Effect.fn also accepts the piped transformations as additional arguments."
+
 ## 0.66.0
 
 ### Minor Changes
