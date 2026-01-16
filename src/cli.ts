@@ -13,6 +13,7 @@ import { diagnostics } from "./cli/diagnostics"
 import { layerInfo } from "./cli/layerinfo"
 import { overview } from "./cli/overview"
 import { patch } from "./cli/patch"
+import { quickfixes } from "./cli/quickfixes"
 import { setup } from "./cli/setup"
 import { unpatch } from "./cli/unpatch"
 import { TypeScriptContext } from "./cli/utils"
@@ -21,7 +22,7 @@ const cliCommand = Command.make(
   "effect-language-service",
   {},
   () => Console.log("Please select a command or run --help.")
-).pipe(Command.withSubcommands([setup, patch, unpatch, check, diagnostics, codegen, overview, layerInfo]))
+).pipe(Command.withSubcommands([setup, patch, unpatch, check, diagnostics, quickfixes, codegen, overview, layerInfo]))
 
 const main = Command.run(cliCommand, {
   name: "effect-language-service",
