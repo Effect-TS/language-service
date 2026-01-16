@@ -30,6 +30,7 @@ import { redundantSchemaTagIdentifier } from "./diagnostics/redundantSchemaTagId
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { runEffectInsideEffect } from "./diagnostics/runEffectInsideEffect.js"
 import { schemaStructWithTag } from "./diagnostics/schemaStructWithTag.js"
+import { schemaSyncInEffect } from "./diagnostics/schemaSyncInEffect.js"
 import { schemaUnionOfLiterals } from "./diagnostics/schemaUnionOfLiterals.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
@@ -85,5 +86,6 @@ export const diagnostics = [
   layerMergeAllWithDependencies,
   effectMapVoid,
   effectFnOpportunity,
-  redundantSchemaTagIdentifier
+  redundantSchemaTagIdentifier,
+  schemaSyncInEffect
 ]
