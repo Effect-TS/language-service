@@ -137,7 +137,7 @@ Few options can be provided alongside the initialization of the Language Service
         },
         "diagnosticsName": true, // controls whether to include the rule name in diagnostic messages (default: true)
         "missingDiagnosticNextLine": "warning", // controls the severity of warnings for unused @effect-diagnostics-next-line comments (default: "warning", allowed values: off,error,warning,message,suggestion)
-        "includeSuggestionsInTsc": true, // when enabled with effect-language-service patch enabled, diagnostics with "suggestion" severity will be reported as "message" in TSC with "[suggestion]" prefix; useful to help steer LLM output (default: true)
+        "includeSuggestionsInTsc": true, // when enabled with @effect/language-service patch enabled, diagnostics with "suggestion" severity will be reported as "message" in TSC with "[suggestion]" prefix; useful to help steer LLM output (default: true)
         "quickinfo": true, // controls Effect quickinfo (default: true)
         "quickinfoEffectParameters": "whenTruncated", // (default: "whenTruncated") controls when to display effect type parameters always,never,whenTruncated
         "quickinfoMaximumLength": -1, // controls how long can be the types in the quickinfo hover (helps with very long type to improve perfs, defaults to -1 for no truncation, can be any number eg. 1000 and TS will try to fit as much as possible in that budget, higher number means more info.)
@@ -172,7 +172,7 @@ To solve this we modify directly the source code of the tsc compiler and the typ
 
 After having installed and configured the LSP for editor usage, you can run the following command inside the folder that contains your local project typescript installation:
 
-`effect-language-service patch`
+`@effect/language-service patch`
 
 If everything goes smoothly, something along these lines should be printed out:
 
@@ -189,38 +189,38 @@ To make the patch persistent across package installations and updates, we recomm
 
 ```jsonc
   "scripts": {
-    "prepare": "effect-language-service patch"
+    "prepare": "@effect/language-service patch"
   }
 ```
 
 so that across updates the patch will be re-applied again.
 
-## Effect-Language-Service CLI
+## @effect/language-service CLI
 
 The effect language service plugin comes with a builtin CLI tool that can be used to perform various utilities, checks and setups. Since it relies on typescript, we recommend to install it locally and run it locally to ensure it loads the same typescript version of your project rather than a global installation that may resolve to use a different TS version from the one of your project.
 
-### `effect-language-service setup`
+### `@effect/language-service setup`
 Runs through a wizard to setup/update some basic functionalities of the LSP in an interactive way.
 
-### `effect-language-service codegen`
+### `@effect/language-service codegen`
 Automatically updates Effect codegens in your TypeScript files. This command scans files for `@effect-codegens` directives and applies the necessary code transformations. Use `--file` to update a specific file, or `--project` with a tsconfig file to update an entire project. The `--verbose` flag provides detailed output about which files are being processed and updated.
 
-### `effect-language-service diagnostics`
+### `@effect/language-service diagnostics`
 Provides a way to get through a CLI the list of Effect specific diagnostics; without patching your typescript installation. A --file option may be used to get diagnostics for a specific file, or --project with a tsconfig file to get an entire project.
 
-### `effect-language-service quickfixes`
+### `@effect/language-service quickfixes`
 Shows diagnostics that have available quick fixes along with their proposed code changes. This is useful for previewing what fixes the language service can apply to your code. Use `--file` to check a specific file, or `--project` with a tsconfig file to check an entire project. The output displays each diagnostic with its location and the diff of proposed changes.
 
-### `effect-language-service check`
+### `@effect/language-service check`
 This command runs a check of the setup of the patching mechanism of the LSP, to understand if typescript has been patched or not.
 
-### `effect-language-service patch`
+### `@effect/language-service patch`
 Patches (or re-patches) your local TypeScript installation to provide Effect diagnostics at build time.
 
-### `effect-language-service unpatch`
+### `@effect/language-service unpatch`
 Revery any previously applied patch to the local TypeScript installation.
 
-### `effect-language-service overview`
+### `@effect/language-service overview`
 This command is useful to provide an overview of Effect-related exports in your files or project, and is very useful for LLMs to grasp an overall idea of what a file/project offers. Use `--file` to analyze a specific file, or `--project` with a tsconfig file to analyze an entire project.
 
 Example output:
@@ -261,7 +261,7 @@ Layers (2)
     Complete application layer
 ```
 
-### `effect-language-service layerinfo`
+### `@effect/language-service layerinfo`
 This command provides detailed information about a specific exported layer, including what services it provides, what it requires, and a suggested composition order. Use `--file` to specify the file and `--name` to specify the layer name.
 
 Example output:
