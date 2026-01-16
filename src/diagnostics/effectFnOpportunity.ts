@@ -19,6 +19,8 @@ interface EffectFnOpportunityTarget {
   readonly pipeArguments: ReadonlyArray<ts.Expression>
   /** Present if the opportunity originated from an Effect.gen call */
   readonly generatorFunction: ts.FunctionExpression | undefined
+  /** True if function parameters are referenced in pipe arguments (unsafe to convert) */
+  readonly hasParamsInPipeArgs: boolean
 }
 
 export const effectFnOpportunity = LSP.createDiagnostic({
@@ -97,6 +99,60 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       readonly effectModuleName: string
       readonly pipeArguments: ReadonlyArray<ts.Expression>
       readonly generatorFunction?: ts.FunctionExpression
+    }
+
+    /**
+     * Checks if any of the function's parameter symbols are referenced within the given nodes.
+     * Uses declaration position checking: if a symbol's declaration is within the function's
+     * parameters range, it's a parameter reference.
+     */
+    const areParametersReferencedIn = (
+      fnNode: SupportedFunctionNode,
+      nodes: ReadonlyArray<ts.Node>
+    ): boolean => {
+      if (fnNode.parameters.length === 0 || nodes.length === 0) return false
+
+      // Get the position range of all parameters
+      const firstParam = fnNode.parameters[0]
+      const lastParam = fnNode.parameters[fnNode.parameters.length - 1]
+      const paramsStart = firstParam.pos
+      const paramsEnd = lastParam.end
+
+      // Check if a symbol's declaration is within the parameters range
+      const isSymbolDeclaredInParams = (symbol: ts.Symbol): boolean => {
+        const declarations = symbol.getDeclarations()
+        if (!declarations) return false
+        return declarations.some((decl) => decl.pos >= paramsStart && decl.end <= paramsEnd)
+      }
+
+      // Walk all nodes looking for symbols declared in the function parameters
+      const nodesToVisit: Array<ts.Node> = [...nodes]
+      while (nodesToVisit.length > 0) {
+        const node = nodesToVisit.shift()!
+
+        // Check regular identifiers
+        if (ts.isIdentifier(node)) {
+          const symbol = typeChecker.getSymbolAtLocation(node)
+          if (symbol && isSymbolDeclaredInParams(symbol)) {
+            return true
+          }
+        }
+
+        // Check shorthand property assignments like { a, b }
+        if (ts.isShorthandPropertyAssignment(node)) {
+          const valueSymbol = typeChecker.getShorthandAssignmentValueSymbol(node)
+          if (valueSymbol && isSymbolDeclaredInParams(valueSymbol)) {
+            return true
+          }
+        }
+
+        ts.forEachChild(node, (child) => {
+          nodesToVisit.push(child)
+          return undefined
+        })
+      }
+
+      return false
     }
 
     /**
@@ -210,7 +266,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           effectModuleName: opportunity.effectModuleName,
           traceName,
           pipeArguments: opportunity.pipeArguments,
-          generatorFunction: opportunity.generatorFunction
+          generatorFunction: opportunity.generatorFunction,
+          hasParamsInPipeArgs: areParametersReferencedIn(node, opportunity.pipeArguments)
         }
       })
 
@@ -330,6 +387,10 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
       const target = yield* pipe(parseEffectFnOpportunityTarget(node), Nano.option)
       if (Option.isNone(target)) continue
+
+      // Skip if function parameters are referenced in pipe arguments
+      // (unsafe to convert - parameters wouldn't be in scope after transformation)
+      if (target.value.hasParamsInPipeArgs) continue
 
       const { effectModuleName, nameIdentifier, node: targetNode, pipeArguments, traceName } = target.value
       const innerFunction = target.value.generatorFunction ?? targetNode
