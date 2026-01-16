@@ -1,5 +1,34 @@
 # @effect/language-service
 
+## 0.67.0
+
+### Minor Changes
+
+- [#599](https://github.com/Effect-TS/language-service/pull/599) [`4c9f5c7`](https://github.com/Effect-TS/language-service/commit/4c9f5c7c27e551e23c12ba31e07a955c5e15f5c9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `quickfixes` CLI command that shows diagnostics with available quick fixes and their proposed code changes.
+
+  Example usage:
+
+  ```bash
+  # Check a specific file
+  effect-language-service quickfixes --file ./src/index.ts
+
+  # Check an entire project
+  effect-language-service quickfixes --project ./tsconfig.json
+  ```
+
+  The command displays each diagnostic along with the available code fixes and a diff preview of the proposed changes, making it easy to see what automatic fixes are available before applying them.
+
+### Patch Changes
+
+- [#601](https://github.com/Effect-TS/language-service/pull/601) [`c0a6da3`](https://github.com/Effect-TS/language-service/commit/c0a6da3811915b53e04cc1a237c4fa93d6fc91b0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Reduce over-suggestion of effectFnOpportunity diagnostic for regular functions.
+
+  The diagnostic now only suggests `Effect.fn` for regular functions (not using `Effect.gen`) when:
+
+  - The function has a block body (not a concise arrow expression)
+  - The function body has more than 5 statements
+
+  Functions using `Effect.gen` are still always suggested regardless of body size.
+
 ## 0.66.1
 
 ### Patch Changes
