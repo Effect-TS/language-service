@@ -1,5 +1,98 @@
 # @effect/language-service
 
+## 0.66.0
+
+### Minor Changes
+
+- [#594](https://github.com/Effect-TS/language-service/pull/594) [`0b9b37c`](https://github.com/Effect-TS/language-service/commit/0b9b37cc631aa29efff6c4b7bb07f5611d2d6d8d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `preferSchemaOverJson` diagnostic that suggests using Effect Schema for JSON operations instead of `JSON.parse`/`JSON.stringify` inside Effect contexts (`Effect.try`, `Effect.gen`, `Effect.fn`).
+
+  ```ts
+  // Before - triggers diagnostic
+  const program = Effect.try(() => JSON.parse('{"name":"John"}'));
+
+  const program2 = Effect.gen(function* () {
+    const parsed = JSON.parse('{"name":"John"}');
+    return parsed;
+  });
+
+  // After - use Effect Schema
+  import { Schema } from "effect";
+
+  const Person = Schema.Struct({ name: Schema.String });
+
+  const program = Schema.decode(Person)('{"name":"John"}');
+
+  const program2 = Effect.gen(function* () {
+    const parsed = yield* Schema.decode(Person)('{"name":"John"}');
+    return parsed;
+  });
+  ```
+
+- [#593](https://github.com/Effect-TS/language-service/pull/593) [`f4d888d`](https://github.com/Effect-TS/language-service/commit/f4d888dd87c892aeb219c60cbc9aca0a25794eb5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `schemaSyncInEffect` diagnostic that warns when using `Schema.decodeSync`, `Schema.decodeUnknownSync`, `Schema.encodeSync`, or `Schema.encodeUnknownSync` inside Effect generators (`Effect.gen`, `Effect.fn`, `Effect.fnUntraced`), suggesting the use of Effect-based alternatives (`Schema.decode`, `Schema.decodeUnknown`, `Schema.encode`, `Schema.encodeUnknown`) for properly typed `ParseError` in the error channel.
+
+  ```ts
+  // Before - triggers diagnostic
+  const program = Effect.gen(function* () {
+    const person = Schema.decodeSync(Person)(input);
+    return person;
+  });
+
+  // After - use Effect-based method
+  const program = Effect.gen(function* () {
+    const person = yield* Schema.decode(Person)(input);
+    return person;
+  });
+  ```
+
+  Also adds `findEnclosingScopes` helper to TypeParser for reusable scope detection logic.
+
+### Patch Changes
+
+- [#595](https://github.com/Effect-TS/language-service/pull/595) [`f54ef88`](https://github.com/Effect-TS/language-service/commit/f54ef887a9e9d921cdf674a3d8e291e2b07ef04b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Tone down `effectFnOpportunity` diagnostic to skip suggestions when function parameters are referenced inside pipe transformations. Converting such functions to `Effect.fn` would break the code since parameters would no longer be in scope for the pipe arguments.
+
+  ```ts
+  // This no longer triggers the diagnostic because `a` and `b` are used in the pipe
+  export const shouldSkip = (a: number, b: string) => {
+    return Effect.gen(function* () {
+      yield* Effect.succeed(a);
+      return b;
+    }).pipe(Effect.withSpan("withParameters", { attributes: { a, b } }));
+  };
+  ```
+
+- [#588](https://github.com/Effect-TS/language-service/pull/588) [`689059d`](https://github.com/Effect-TS/language-service/commit/689059d2ca143ed3bc482d138a48c7898574cb35) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - The `effectFnOpportunity` diagnostic now also supports regular functions that return an Effect, not just those using `Effect.gen`.
+
+- [#596](https://github.com/Effect-TS/language-service/pull/596) [`8f00287`](https://github.com/Effect-TS/language-service/commit/8f00287617a682a38aec23c789d88ac68d269db5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improved `missedPipeableOpportunity` diagnostic to check if callees are safe to use in pipes without losing `this` context.
+
+  The diagnostic now stops accumulating transformations when it encounters an unsafe callee (like method calls on class instances) and wraps the result with any remaining outer transformations.
+
+  Safe callees include:
+
+  - Property access on modules/namespaces (e.g., `Effect.map`)
+  - Standalone function identifiers
+  - Call expressions (already evaluated)
+  - Arrow functions and function expressions
+
+  Example - before this change, the diagnostic would incorrectly suggest:
+
+  ```typescript
+  // Input
+  console.log(Effect.runPromise(Effect.ignore(Effect.log("Hello"))));
+
+  // Would produce (incorrect - loses console.log wrapper)
+  Effect.log("Hello").pipe(Effect.ignore, Effect.runPromise);
+  ```
+
+  Now it correctly produces:
+
+  ```typescript
+  // Input
+  console.log(Effect.runPromise(Effect.ignore(Effect.log("Hello"))));
+
+  // Output (correct - preserves console.log wrapper)
+  console.log(Effect.log("Hello").pipe(Effect.ignore, Effect.runPromise));
+  ```
+
 ## 0.65.0
 
 ### Minor Changes
