@@ -1,3 +1,4 @@
+// code fix effectFnOpportunity_toEffectFn  output for range 1626 - 1647
 import * as Effect from "effect/Effect"
 
 // Should NOT trigger - arrow function with concise body (expression body)
@@ -53,15 +54,16 @@ export function manyStatements3<T>(value: T) {
 }
 
 // Should trigger - function declaration with more than 5 statements returning Effect.gen
-export function manyStatementsWithGen<T>(value: T) {
-  const a = 1
-  const b = 2
-  const c = 3
-  const d = 4
-  const e = 5
-  if (value === null) return Effect.fail("Error!")
-  return Effect.gen(function*() {
-    console.log("shouldTrigger as well!")
-    return yield* Effect.succeed(a + b + c + d + e)
-  })
-}
+// Should trigger - function declaration with more than 5 statements returning Effect.gen
+export const manyStatementsWithGen = Effect.fn("manyStatementsWithGen")(function <T>(value: T) {
+    const a = 1
+    const b = 2
+    const c = 3
+    const d = 4
+    const e = 5
+    if (value === null) return Effect.fail("Error!")
+    return Effect.gen(function*() {
+        console.log("shouldTrigger as well!")
+        return yield* Effect.succeed(a + b + c + d + e)
+    })
+})

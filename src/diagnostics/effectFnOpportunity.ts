@@ -253,11 +253,27 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         if (!traceName) return yield* TypeParser.TypeParserIssue.issue
 
         // Try to parse as Gen opportunity, then fall back to Regular opportunity
+        // For regular functions (not Effect.gen), only suggest if:
+        // - Not an arrow function with concise body (expression body)
+        // - Has a block body with more than 5 statements
         const opportunity = yield* pipe(
           tryParseGenOpportunity(node),
-          Nano.orElse(() =>
-            Nano.succeed({ effectModuleName: sourceEffectModuleName, pipeArguments: [], generatorFunction: undefined })
-          )
+          Nano.orElse(() => {
+            // Skip arrow functions with concise body (expression body, no braces)
+            if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
+              return TypeParser.TypeParserIssue.issue
+            }
+            // For functions with a block body, only suggest if there are more than 5 statements
+            const body = ts.isArrowFunction(node) ? node.body as ts.Block : node.body
+            if (!body || !ts.isBlock(body) || body.statements.length <= 5) {
+              return TypeParser.TypeParserIssue.issue
+            }
+            return Nano.succeed({
+              effectModuleName: sourceEffectModuleName,
+              pipeArguments: [],
+              generatorFunction: undefined
+            })
+          })
         )
 
         return {

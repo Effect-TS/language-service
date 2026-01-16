@@ -1,3 +1,5 @@
+// code fix effectFnOpportunity_skipFile  output for range 1028 - 1043
+/** @effect-diagnostics effectFnOpportunity:skip-file */
 import * as Effect from "effect/Effect"
 
 // Should NOT trigger - arrow function with concise body (expression body)

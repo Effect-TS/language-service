@@ -1,11 +1,11 @@
-shouldTrigger
-3:13 - 3:26 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
+manyStatements
+24:13 - 24:27 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
 
-shouldTrigger2
-7:13 - 7:27 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
+manyStatements2
+34:13 - 34:28 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
 
-shouldTrigger3
-12:16 - 12:30 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
+manyStatements3
+45:16 - 45:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
 
-shouldTrigger4
-17:16 - 17:30 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
+manyStatementsWithGen
+56:16 - 56:37 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax.    effect(effectFnOpportunity)
