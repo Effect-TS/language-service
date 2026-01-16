@@ -1,3 +1,4 @@
+// code fix effectFnOpportunity_toEffectFn  output for range 806 - 820
 import * as Effect from "effect/Effect"
 
 // Should NOT trigger - arrow function with concise body (expression body)
@@ -21,14 +22,14 @@ export function fewStatements3<T>(value: T) {
 }
 
 // Should trigger - arrow function with more than 5 statements
-export const manyStatements = () => {
-  const a = 1
-  const b = 2
-  const c = 3
-  const d = 4
-  const e = 5
-  return Effect.succeed(a + b + c + d + e)
-}
+export const manyStatements = Effect.fn("manyStatements")(function() {
+    const a = 1
+    const b = 2
+    const c = 3
+    const d = 4
+    const e = 5
+    return Effect.succeed(a + b + c + d + e)
+})
 
 // Should trigger - function expression with more than 5 statements
 export const manyStatements2 = function<T>(value: T) {
