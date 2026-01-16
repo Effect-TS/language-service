@@ -157,6 +157,11 @@ declare module "typescript" {
     readonly text: string
   }
 
+  export interface Symbol {
+    /** @deprecated Use the .declarations property instead */
+    getDeclarations(): ReadonlyArray<ts.Declaration> | undefined
+  }
+
   export interface Signature {
     /** @deprecated Use the .parameters property instead */
     getParameters(): ReadonlyArray<ts.Symbol>

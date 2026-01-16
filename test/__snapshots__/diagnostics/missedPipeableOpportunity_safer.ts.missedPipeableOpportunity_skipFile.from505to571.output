@@ -1,0 +1,25 @@
+// code fix missedPipeableOpportunity_skipFile  output for range 505 - 571
+/** @effect-diagnostics missedPipeableOpportunity:skip-file */
+// @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 2}
+import * as Effect from "effect/Effect"
+
+// this should not trigger because console.log is not a pipeable operation
+// so it would be console.log(Effect.log("Hello").pipe(Effect.runPromise))
+// which has not 2 arguments
+console.log(Effect.runPromise(Effect.log("Hello")))
+
+// this instead should trigger, but the output should be
+// console.log(Effect.log("Hello").pipe(Effect.ignore, Effect.runPromise))
+console.log(Effect.runPromise(Effect.ignore(Effect.log("Hello"))))
+
+// this is silly, but shows how we can move back and forth between the two styles
+// I would expect it to be triggered, but the output should be
+// console.log(Effect.succeed(console.log(Effect.runPromise(Effect.log("Hello")))).pipe(Effect.ignore, Effect.runPromise))
+console.log(
+  Effect.runPromise(
+    Effect.ignore(
+      Effect.succeed(console.log(Effect.runPromise(Effect.log("Hello"))))
+    )
+  )
+)

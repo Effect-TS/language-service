@@ -120,7 +120,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
       // Check if a symbol's declaration is within the parameters range
       const isSymbolDeclaredInParams = (symbol: ts.Symbol): boolean => {
-        const declarations = symbol.getDeclarations()
+        const declarations = symbol.declarations
         if (!declarations) return false
         return declarations.some((decl) => decl.pos >= paramsStart && decl.end <= paramsEnd)
       }
