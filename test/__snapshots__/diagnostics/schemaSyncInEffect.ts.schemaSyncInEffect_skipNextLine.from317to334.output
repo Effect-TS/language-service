@@ -1,0 +1,63 @@
+// code fix schemaSyncInEffect_skipNextLine  output for range 317 - 334
+import { Effect, Schema } from "effect"
+
+const Person = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number
+})
+
+// Should trigger diagnostic - using decodeSync inside Effect.gen
+export const program1 = Effect.gen(function*() {
+  const input = yield* Effect.succeed({ name: "John", age: 30 })
+  // @effect-diagnostics-next-line schemaSyncInEffect:off
+  const person = Schema.decodeSync(Person)(input)
+  //             ^- should suggest using Schema.decode instead
+  return person
+})
+
+// Should trigger diagnostic - using decodeUnknownSync inside Effect.gen
+export const program2 = Effect.gen(function*() {
+  const input: unknown = yield* Effect.succeed({ name: "Jane", age: 25 })
+  const person = Schema.decodeUnknownSync(Person)(input)
+  //             ^- should suggest using Schema.decodeUnknown instead
+  return person
+})
+
+// Should trigger diagnostic - using encodeSync inside Effect.gen
+export const program3 = Effect.gen(function*() {
+  const person = { name: "Bob", age: 40 }
+  const encoded = Schema.encodeSync(Person)(person)
+  //              ^- should suggest using Schema.encode instead
+  return encoded
+})
+
+// Should trigger diagnostic - using encodeUnknownSync inside Effect.gen
+export const program4 = Effect.gen(function*() {
+  const person: unknown = { name: "Alice", age: 35 }
+  const encoded = Schema.encodeUnknownSync(Person)(person as any)
+  //              ^- should suggest using Schema.encodeUnknown instead
+  return encoded
+})
+
+// Should NOT trigger diagnostic - using sync methods outside Effect.gen
+const _regularFunction = () => {
+  const input = { name: "Test", age: 20 }
+  const person = Schema.decodeSync(Person)(input)
+  return person
+}
+
+// Should NOT trigger diagnostic - using encodeUnknownSync inside a function nested in Effect.gen
+export const shouldNotTriggerInLazy = Effect.gen(function*() {
+  const person: unknown = { name: "Alice", age: 35 }
+  const method = () => Schema.encodeUnknownSync(Person)(person as any)
+  //              ^- this is inside another function context, should NOT trigger
+  return method
+})
+
+// Should trigger diagnostic - using decodeSync inside Effect.fn
+export const fn1 = Effect.fn("fn1")(function*() {
+  const input = { name: "John", age: 30 }
+  const person = Schema.decodeSync(Person)(input)
+  //             ^- should suggest using Schema.decode instead
+  return person
+})

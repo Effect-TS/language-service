@@ -81,6 +81,9 @@ export interface TypeParser {
   isNodeReferenceToEffectSchemaModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectParseResultModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   isNodeReferenceToEffectDataModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
@@ -127,6 +130,21 @@ export interface TypeParser {
       pipeArguments: ReadonlyArray<ts.Expression>
     },
     TypeParserIssue
+  >
+  findEnclosingScopes: (
+    node: ts.Node
+  ) => Nano.Nano<
+    {
+      scopeNode: ts.FunctionLikeDeclaration | undefined
+      effectGen: {
+        node: ts.Node
+        effectModule: ts.Node | ts.Expression
+        generatorFunction: ts.FunctionExpression
+        body: ts.Block
+        pipeArguments?: ReadonlyArray<ts.Expression>
+      } | undefined
+    },
+    never
   >
   effectFn: (
     node: ts.Node
@@ -1021,6 +1039,89 @@ export function make(
     (node) => node
   )
 
+  const findEnclosingScopes = Nano.fn("TypeParser.findEnclosingScopes")(function*(
+    startNode: ts.Node
+  ) {
+    let currentParent: ts.Node | undefined = startNode.parent
+    let scopeNode: ts.FunctionLikeDeclaration | undefined = undefined
+    let effectGenResult: {
+      node: ts.Node
+      effectModule: ts.Node | ts.Expression
+      generatorFunction: ts.FunctionExpression
+      body: ts.Block
+      pipeArguments?: ReadonlyArray<ts.Expression>
+    } | undefined = undefined
+
+    while (currentParent) {
+      const nodeToCheck: ts.Node = currentParent
+
+      // Check if this node introduces a function scope
+      if (!scopeNode) {
+        if (
+          ts.isFunctionExpression(nodeToCheck) ||
+          ts.isFunctionDeclaration(nodeToCheck) ||
+          ts.isMethodDeclaration(nodeToCheck) ||
+          ts.isArrowFunction(nodeToCheck) ||
+          ts.isGetAccessorDeclaration(nodeToCheck) ||
+          ts.isSetAccessorDeclaration(nodeToCheck)
+        ) {
+          scopeNode = nodeToCheck
+        }
+      }
+
+      // Try to parse as Effect.gen, Effect.fnUntraced, or Effect.fn
+      if (!effectGenResult) {
+        const isEffectGen = yield* pipe(
+          effectGen(nodeToCheck),
+          Nano.map((result) => ({
+            node: result.node,
+            effectModule: result.effectModule,
+            generatorFunction: result.generatorFunction,
+            body: result.body
+          })),
+          Nano.orElse(() =>
+            pipe(
+              effectFnUntracedGen(nodeToCheck),
+              Nano.map((result) => ({
+                node: result.node,
+                effectModule: result.effectModule,
+                generatorFunction: result.generatorFunction,
+                body: result.body,
+                pipeArguments: result.pipeArguments
+              }))
+            )
+          ),
+          Nano.orElse(() =>
+            pipe(
+              effectFnGen(nodeToCheck),
+              Nano.map((result) => ({
+                node: result.node,
+                effectModule: result.effectModule,
+                generatorFunction: result.generatorFunction,
+                body: result.body,
+                pipeArguments: result.pipeArguments
+              }))
+            )
+          ),
+          Nano.option
+        )
+
+        if (Option.isSome(isEffectGen)) {
+          effectGenResult = isEffectGen.value
+        }
+      }
+
+      // If we found both, we can stop
+      if (scopeNode && effectGenResult) {
+        break
+      }
+
+      currentParent = nodeToCheck.parent
+    }
+
+    return { scopeNode, effectGen: effectGenResult }
+  })
+
   const effectFn = Nano.cachedBy(
     function(node: ts.Node) {
       // Effect.fn("name")(regularFunction, ...pipeArgs) or Effect.fn(regularFunction, ...pipeArgs)
@@ -1204,6 +1305,38 @@ export function make(
         return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectSchemaTypeSourceFile, memberName)
       }),
       `TypeParser.isNodeReferenceToEffectSchemaModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const isEffectParseResultSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectParseResultSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      // Check for ParseIssue type
+      const parseIssueSymbol = typeChecker.tryGetMemberInModuleExports("ParseIssue", moduleSymbol)
+      if (!parseIssueSymbol) return yield* typeParserIssue("ParseIssue type not found", undefined, sourceFile)
+      // Check for decodeSync export
+      const decodeSyncSymbol = typeChecker.tryGetMemberInModuleExports("decodeSync", moduleSymbol)
+      if (!decodeSyncSymbol) return yield* typeParserIssue("decodeSync not found", undefined, sourceFile)
+      // Check for encodeSync export
+      const encodeSyncSymbol = typeChecker.tryGetMemberInModuleExports("encodeSync", moduleSymbol)
+      if (!encodeSyncSymbol) return yield* typeParserIssue("encodeSync not found", undefined, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isEffectParseResultSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectParseResultModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectParseResultModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectParseResultSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectParseResultModuleApi(${memberName})`,
       (node) => node
     )
 
@@ -2486,6 +2619,7 @@ export function make(
   return {
     isNodeReferenceToEffectModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
+    isNodeReferenceToEffectParseResultModuleApi,
     isNodeReferenceToEffectDataModuleApi,
     isNodeReferenceToEffectContextModuleApi,
     isNodeReferenceToEffectSqlModelModuleApi,
@@ -2499,6 +2633,7 @@ export function make(
     effectGen,
     effectFnUntracedGen,
     effectFnGen,
+    findEnclosingScopes,
     effectFn,
     extendsCauseYieldableError,
     unnecessaryEffectGen,
