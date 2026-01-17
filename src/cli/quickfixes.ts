@@ -1,11 +1,14 @@
 import * as Command from "@effect/cli/Command"
+import * as HelpDoc from "@effect/cli/HelpDoc"
 import * as Options from "@effect/cli/Options"
+import * as ValidationError from "@effect/cli/ValidationError"
 import * as Path from "@effect/platform/Path"
 import * as Ansi from "@effect/printer-ansi/Ansi"
 import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Arr from "effect/Array"
 import * as Console from "effect/Console"
+import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
@@ -23,6 +26,17 @@ import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
 import { NoFilesToCheckError } from "./diagnostics"
 import { renderTextChange } from "./setup/diff-renderer"
 import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+
+// Build a set of valid diagnostic names and codes for validation
+const validDiagnosticNames = new Set(diagnosticsDefinitions.map((_) => _.name))
+const validDiagnosticCodes = new Set(diagnosticsDefinitions.map((_) => String(_.code)))
+const diagnosticCodeByName = new Map(diagnosticsDefinitions.map((_) => [_.name, _.code]))
+
+export class ColumnRequiresLineError extends Data.TaggedError("ColumnRequiresLineError")<{}> {
+  get message(): string {
+    return "The --column option requires --line to be specified."
+  }
+}
 
 interface QuickFixInfo {
   diagnostic: {
@@ -137,9 +151,48 @@ export const quickfixes = Command.make(
     project: Options.file("project").pipe(
       Options.optional,
       Options.withDescription("The full path of the project tsconfig.json file to check for quick fixes.")
+    ),
+    code: Options.text("code").pipe(
+      Options.withDescription("Filter by diagnostic name or code (e.g., 'floatingEffect' or '5')."),
+      Options.mapEffect((value) => {
+        // Validate that the code is a known diagnostic name or code
+        if (validDiagnosticNames.has(value)) {
+          // It's a diagnostic name, return the corresponding code
+          return Effect.succeed(diagnosticCodeByName.get(value)!)
+        }
+        if (validDiagnosticCodes.has(value)) {
+          // It's a diagnostic code, return as number
+          return Effect.succeed(Number(value))
+        }
+        // Invalid code
+        const validValues = [...validDiagnosticNames].sort().join(", ")
+        return Effect.fail(
+          ValidationError.invalidValue(
+            HelpDoc.p(`Invalid diagnostic code '${value}'. Valid values: ${validValues}`)
+          )
+        )
+      }),
+      Options.optional
+    ),
+    line: Options.integer("line").pipe(
+      Options.withDescription("Filter by line number (1-based)."),
+      Options.optional
+    ),
+    column: Options.integer("column").pipe(
+      Options.withDescription("Filter by column number (1-based). Requires --line to be specified."),
+      Options.optional
+    ),
+    fix: Options.text("fix").pipe(
+      Options.withDescription("Filter by fix name (e.g., 'floatingEffect_yieldStar')."),
+      Options.optional
     )
   },
-  Effect.fn("quickfixes")(function*({ file, project }) {
+  Effect.fn("quickfixes")(function*({ code, column, file, fix, line, project }) {
+    // Validate that column requires line
+    if (Option.isSome(column) && Option.isNone(line)) {
+      return yield* new ColumnRequiresLineError()
+    }
+
     const path = yield* Path.Path
     const tsInstance = yield* TypeScriptContext
 
@@ -200,6 +253,17 @@ export const quickfixes = Command.make(
 
           for (const diagnostic of result.diagnostics) {
             if (diagnostic.start === undefined) continue
+            // Filter by code option if provided
+            if (Option.isSome(code) && diagnostic.code !== code.value) continue
+
+            // Filter by line and column if provided
+            if (Option.isSome(line)) {
+              const pos = tsInstance.getLineAndCharacterOfPosition(sourceFile, diagnostic.start)
+              // line option is 1-based, TypeScript uses 0-based
+              if (pos.line !== line.value - 1) continue
+              // If column is also provided, check it too
+              if (Option.isSome(column) && pos.character !== column.value - 1) continue
+            }
 
             const key = `${diagnostic.start}-${diagnostic.start + (diagnostic.length ?? 0)}-${diagnostic.code}`
             const ruleName = Object.values(diagnosticsDefinitions).find((_) => _.code === diagnostic.code)?.name
@@ -229,6 +293,8 @@ export const quickfixes = Command.make(
           for (const codeFix of result.codeFixes) {
             // Skip the "skip" fixes
             if (isSkipFix(codeFix.fixName)) continue
+            // Filter by fix name if provided
+            if (Option.isSome(fix) && codeFix.fixName !== fix.value) continue
 
             const key = `${codeFix.start}-${codeFix.end}-${codeFix.code}`
             const info = diagnosticMap.get(key)
