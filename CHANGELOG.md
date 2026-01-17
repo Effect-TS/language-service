@@ -1,5 +1,31 @@
 # @effect/language-service
 
+## 0.68.0
+
+### Minor Changes
+
+- [#603](https://github.com/Effect-TS/language-service/pull/603) [`d747210`](https://github.com/Effect-TS/language-service/commit/d747210f173d87e068ad2370f6b7667be7cde07d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Added `instanceOfSchema` diagnostic that suggests using `Schema.is` instead of `instanceof` for Effect Schema types.
+
+  Example:
+
+  ```typescript
+  import { Schema } from "effect"
+
+  const MySchema = Schema.Struct({ name: Schema.String })
+
+  // Before - triggers diagnostic
+  if (value instanceof MySchema) { ... }
+
+  // After - using Schema.is
+  if (Schema.is(MySchema)(value)) { ... }
+  ```
+
+  The diagnostic is disabled by default and can be enabled with `instanceOfSchema:suggestion` or `instanceOfSchema:warning`.
+
+### Patch Changes
+
+- [#605](https://github.com/Effect-TS/language-service/pull/605) [`d63d5df`](https://github.com/Effect-TS/language-service/commit/d63d5df97858c8fd5a5af325141b08414f3d6eca) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve `leakingRequirements` diagnostic message for clarity
+
 ## 0.67.0
 
 ### Minor Changes
