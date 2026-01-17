@@ -1,3 +1,5 @@
+import * as Schema from "effect/Schema"
+
 export interface ExternalUser {
   id: number
   name: string
@@ -7,3 +9,9 @@ export interface ExternalUser {
 }
 
 export type ExternalStatus = "pending" | "active" | "completed"
+
+export const User = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String
+})
+export type User = Schema.Schema.Type<typeof User>

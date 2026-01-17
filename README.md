@@ -82,6 +82,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn when `Layer.mergeAll` contains layers with interdependencies (where one layer provides a service that another layer in the same call requires)
 - Suggest using `Effect.fn` for functions that return `Effect.gen` for better tracing and concise syntax
 - Suggest removing redundant identifier argument when it equals the tag value in `Schema.TaggedClass`, `Schema.TaggedError`, or `Schema.TaggedRequest`
+- Suggest using `Schema.is` instead of `instanceof` for Effect Schema types
 
 ### Completions
 
