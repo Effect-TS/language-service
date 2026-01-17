@@ -13,6 +13,7 @@ import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
 import { globalErrorInEffectFailure } from "./diagnostics/globalErrorInEffectFailure.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
+import { instanceOfSchema } from "./diagnostics/instanceOfSchema.js"
 import { layerMergeAllWithDependencies } from "./diagnostics/layerMergeAllWithDependencies.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
 import { missedPipeableOpportunity } from "./diagnostics/missedPipeableOpportunity.js"
@@ -46,6 +47,7 @@ import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAcc
 
 export const diagnostics = [
   anyUnknownInErrorContext,
+  instanceOfSchema,
   catchAllToMapError,
   catchUnfailableEffect,
   classSelfMismatch,
