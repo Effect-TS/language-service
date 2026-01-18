@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.69.1
+
+### Patch Changes
+
+- [#610](https://github.com/Effect-TS/language-service/pull/610) [`990ccbc`](https://github.com/Effect-TS/language-service/commit/990ccbc98f784fe2aea8f12be4fa8c138de2feca) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve effectFnOpportunity diagnostic message to mention that quickfixes are available in the editor or via the CLI quickfixes command.
+
 ## 0.69.0
 
 ### Minor Changes
