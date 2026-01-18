@@ -65,3 +65,19 @@ export function manyStatementsWithGen<T>(value: T) {
     return yield* Effect.succeed(a + b + c + d + e)
   })
 }
+
+// This should be skipped because of overloads
+export function withOverloads(value: number): Effect.Effect<number, string>
+export function withOverloads(value: string): Effect.Effect<string, string>
+export function withOverloads(value: number | string): Effect.Effect<number | string, string> {
+  const a = 1
+  const b = 2
+  const c = 3
+  const d = 4
+  const e = 5
+  if (value === null) return Effect.fail("Error!")
+  return Effect.gen(function*() {
+    console.log("shouldTrigger as well!")
+    return yield* Effect.succeed(a + b + c + d + e)
+  })
+}

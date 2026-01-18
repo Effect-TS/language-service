@@ -31,3 +31,12 @@ export const shouldSkipRerenceSpreadArg0 = (a: number, b: string, ...args: Array
     return b
   }).pipe(Effect.map((_) => _ + ":" + args[0]))
 }
+
+// This should be skipped because of overloads
+export function withOverloads(a: number): Effect.Effect<number>
+export function withOverloads(a: string): Effect.Effect<string>
+export function withOverloads(a: number | string) {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(a as any)
+  })
+}
