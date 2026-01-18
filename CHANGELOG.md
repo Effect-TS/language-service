@@ -1,5 +1,29 @@
 # @effect/language-service
 
+## 0.69.0
+
+### Minor Changes
+
+- [#608](https://github.com/Effect-TS/language-service/pull/608) [`bc7da1e`](https://github.com/Effect-TS/language-service/commit/bc7da1ef6f0f3d4aa0e88ef28de49e6845c764df) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `effectFnIife` diagnostic to warn when `Effect.fn` or `Effect.fnUntraced` is used as an IIFE (Immediately Invoked Function Expression).
+
+  `Effect.fn` is designed to create reusable functions that can take arguments and provide tracing. When used as an IIFE, `Effect.gen` is more appropriate.
+
+  **Example:**
+
+  ```ts
+  // Before (triggers warning)
+  const result = Effect.fn("test")(function* () {
+    yield* Effect.succeed(1);
+  })();
+
+  // After (using Effect.gen)
+  const result = Effect.gen(function* () {
+    yield* Effect.succeed(1);
+  });
+  ```
+
+  A quick fix is provided to automatically convert `Effect.fn` IIFEs to `Effect.gen`.
+
 ## 0.68.0
 
 ### Minor Changes
