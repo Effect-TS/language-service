@@ -7,6 +7,14 @@ import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 
+interface ParsedEffectFn {
+  readonly kind: "fn" | "fnUntraced"
+  readonly generatorFunction: ts.FunctionExpression | undefined
+  readonly effectModule: ts.Node
+  readonly pipeArguments: ReadonlyArray<ts.Expression>
+  readonly traceExpression: ts.Expression | undefined
+}
+
 export const effectFnIife = LSP.createDiagnostic({
   name: "effectFnIife",
   code: 46,
@@ -45,12 +53,6 @@ export const effectFnIife = LSP.createDiagnostic({
       if (!ts.isCallExpression(innerCall)) continue
 
       // Check if the inner call is an Effect.fn, Effect.fnGen, or Effect.fnUntracedGen
-      interface ParsedEffectFn {
-        readonly kind: "fn" | "fnUntraced"
-        readonly generatorFunction: ts.FunctionExpression | undefined
-        readonly effectModule: ts.Node
-        readonly pipeArguments: ReadonlyArray<ts.Expression>
-      }
 
       const parsed = yield* pipe(
         typeParser.effectFnGen(innerCall),
@@ -58,7 +60,8 @@ export const effectFnIife = LSP.createDiagnostic({
           kind: "fn",
           effectModule: result.effectModule,
           generatorFunction: result.generatorFunction,
-          pipeArguments: result.pipeArguments
+          pipeArguments: result.pipeArguments,
+          traceExpression: result.traceExpression
         })),
         Nano.orElse(() =>
           pipe(
@@ -67,7 +70,8 @@ export const effectFnIife = LSP.createDiagnostic({
               kind: "fnUntraced",
               effectModule: result.effectModule,
               generatorFunction: result.generatorFunction,
-              pipeArguments: result.pipeArguments
+              pipeArguments: result.pipeArguments,
+              traceExpression: undefined
             }))
           )
         ),
@@ -78,7 +82,8 @@ export const effectFnIife = LSP.createDiagnostic({
               kind: "fn",
               effectModule: result.effectModule,
               generatorFunction: undefined,
-              pipeArguments: result.pipeArguments
+              pipeArguments: result.pipeArguments,
+              traceExpression: result.traceExpression
             }))
           )
         ),
@@ -87,7 +92,7 @@ export const effectFnIife = LSP.createDiagnostic({
 
       if (Option.isNone(parsed)) continue
 
-      const { effectModule, generatorFunction, kind, pipeArguments } = parsed.value
+      const { effectModule, generatorFunction, kind, pipeArguments, traceExpression } = parsed.value
       const effectModuleName = ts.isIdentifier(effectModule as ts.Expression)
         ? ts.idText(effectModule as ts.Identifier)
         : sourceEffectModuleName
@@ -127,10 +132,18 @@ export const effectFnIife = LSP.createDiagnostic({
         })
       }
 
+      const traceExpressionText = traceExpression
+        ? sourceFile.text.slice(traceExpression.pos, traceExpression.end)
+        : undefined
+
       report({
         location: node,
         messageText:
-          `${effectModuleName}.${kind} returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).`,
+          `${effectModuleName}.${kind} returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead${
+            traceExpressionText
+              ? ` with Effect.withSpan(${traceExpressionText}) piped in the end to mantain tracing spans`
+              : ``
+          }.`,
         fixes
       })
     }

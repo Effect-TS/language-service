@@ -128,6 +128,7 @@ export interface TypeParser {
       effectModule: ts.Node
       body: ts.Block
       pipeArguments: ReadonlyArray<ts.Expression>
+      traceExpression: ts.Expression | undefined
     },
     TypeParserIssue
   >
@@ -154,6 +155,7 @@ export interface TypeParser {
       effectModule: ts.Node
       regularFunction: ts.FunctionExpression | ts.ArrowFunction
       pipeArguments: ReadonlyArray<ts.Expression>
+      traceExpression: ts.Expression | undefined
     },
     TypeParserIssue
   >
@@ -1022,6 +1024,10 @@ export function make(
           node
         )
       }
+      const traceExpression: ts.Expression | undefined =
+        ts.isCallExpression(node.expression) && node.expression.arguments.length > 0
+          ? node.expression.arguments[0]
+          : undefined
       const propertyAccess = expressionToTest
       const pipeArguments = node.arguments.slice(1)
       return pipe(
@@ -1031,7 +1037,8 @@ export function make(
           generatorFunction,
           effectModule: propertyAccess.expression,
           body: generatorFunction.body,
-          pipeArguments
+          pipeArguments,
+          traceExpression
         }))
       )
     },
@@ -1147,6 +1154,10 @@ export function make(
       if (!ts.isPropertyAccessExpression(expressionToTest)) {
         return typeParserIssue("Node is not a property access expression", undefined, node)
       }
+      const traceExpression: ts.Expression | undefined =
+        ts.isCallExpression(node.expression) && node.expression.arguments.length > 0
+          ? node.expression.arguments[0]
+          : undefined
       const propertyAccess = expressionToTest
       const pipeArguments = node.arguments.slice(1)
       return pipe(
@@ -1155,7 +1166,8 @@ export function make(
           node,
           effectModule: propertyAccess.expression,
           regularFunction,
-          pipeArguments
+          pipeArguments,
+          traceExpression
         }))
       )
     },

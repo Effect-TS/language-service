@@ -1,33 +1,33 @@
 Effect.fn("test")(function*() {
   yield* Effect.succeed(1)
 })()
-4:21 - 6:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+4:21 - 6:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan("test") piped in the end to mantain tracing spans.    effect(effectFnIife)
 
 Effect.fn("named")(function*() {
   yield* Effect.succeed(1)
   return 42
 })()
-9:21 - 12:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+9:21 - 12:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan("named") piped in the end to mantain tracing spans.    effect(effectFnIife)
 
 Effect.fnUntraced(function*() {
   yield* Effect.succeed(1)
 })()
-15:21 - 17:4 | 0 | Effect.fnUntraced returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+15:21 - 17:4 | 0 | Effect.fnUntraced returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead.    effect(effectFnIife)
 
 Effect.fn("arrow")(() => Effect.succeed(1))()
-20:21 - 20:66 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+20:21 - 20:66 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan("arrow") piped in the end to mantain tracing spans.    effect(effectFnIife)
 
 Effect.fn("func")(function() {
   return Effect.succeed(1)
 })()
-23:21 - 25:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+23:21 - 25:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan("func") piped in the end to mantain tracing spans.    effect(effectFnIife)
 
 Effect.fn("piped")(function*() {
   return yield* Effect.succeed(1)
 }, Effect.map((n) => n + 1))()
-28:21 - 30:30 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+28:21 - 30:30 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan("piped") piped in the end to mantain tracing spans.    effect(effectFnIife)
 
 Effect.fnUntraced(function*() {
   return yield* Effect.succeed(1)
 }, Effect.map((n) => n + 1))()
-33:21 - 35:30 | 0 | Effect.fnUntraced returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead (optionally with Effect.withSpan for tracing).    effect(effectFnIife)
+33:21 - 35:30 | 0 | Effect.fnUntraced returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead.    effect(effectFnIife)
