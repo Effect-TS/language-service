@@ -1,5 +1,32 @@
 # @effect/language-service
 
+## 0.69.2
+
+### Patch Changes
+
+- [#612](https://github.com/Effect-TS/language-service/pull/612) [`2b49181`](https://github.com/Effect-TS/language-service/commit/2b49181323b5d969897749412af896a0a7d2325f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve effectFnIife diagnostic message to suggest Effect.withSpan with the trace name when available
+
+  When `Effect.fn("traceName")` is used as an IIFE, the diagnostic now suggests using `Effect.gen` with `Effect.withSpan("traceName")` piped at the end to maintain tracing spans. For `Effect.fnUntraced`, it simply suggests using `Effect.gen` without the span suggestion.
+
+- [#615](https://github.com/Effect-TS/language-service/pull/615) [`ae4f054`](https://github.com/Effect-TS/language-service/commit/ae4f054cdd6d1c6c2c5f906d7c6dd25ab2b35526) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve effectFnOpportunity diagnostic with more specific messages and configurable fixes
+
+  - Add new `effectFn` configuration option to control which code fix variants are offered: `"untraced"`, `"span"`, `"inferred-span"`, `"no-span"` (defaults to `["span"]`)
+  - Diagnostic message now shows the exact expected signature for the rewrite
+  - Distinguish between explicit trace from `Effect.withSpan` vs inferred trace from function name
+  - Skip functions with return type annotations to avoid issues with recursive functions
+
+  **Before:**
+
+  ```
+  This function could benefit from Effect.fn's automatic tracing...
+  ```
+
+  **After:**
+
+  ```
+  Can be rewritten as a reusable function: Effect.fn("myFunction")(function*() { ... })
+  ```
+
 ## 0.69.1
 
 ### Patch Changes
