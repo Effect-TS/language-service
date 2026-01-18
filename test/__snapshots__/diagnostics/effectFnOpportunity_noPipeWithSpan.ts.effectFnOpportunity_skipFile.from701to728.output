@@ -1,0 +1,25 @@
+// code fix effectFnOpportunity_skipFile  output for range 701 - 728
+/** @effect-diagnostics effectFnOpportunity:skip-file */
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
+import * as Effect from "effect/Effect"
+
+// This case differs from pipeWithSpan because the withSpan is not the last
+// piped transformation, so we cannot extract the span name to use with
+// Effect.fn. Instead, we should suggest Effect.fnUntraced for these cases.
+
+export const arrowWithPipe = () =>
+  Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.ignoreLogged)
+
+export const functionExpressionWithPipe = function() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.withSpan("functionExpressionWithPipe"), Effect.ignoreLogged)
+}
+
+export function functionDeclarationWithPipe() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.map((x) => x + 1), Effect.withSpan("functionDeclarationWithPipe"), Effect.ignoreLogged)
+}

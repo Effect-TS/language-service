@@ -1,6 +1,7 @@
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import type ts from "typescript"
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -37,6 +38,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const pluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
     const sourceEffectModuleName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
       sourceFile,
@@ -478,7 +480,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       const fixes: Array<LSP.ApplicableDiagnosticDefinitionFix> = []
 
       // toEffectFnWithSpan: available when we have explicit span from withSpan
-      if (explicitTraceExpression) {
+      if (pluginOptions.effectFn.includes("span") && explicitTraceExpression) {
         fixes.push({
           fixName: "effectFnOpportunity_toEffectFnWithSpan",
           description: "Convert to Effect.fn (with span from withSpan)",
@@ -500,7 +502,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
       // toEffectFnUntraced: available when we have a generator function
       // Keeps ALL pipe arguments including withSpan since fnUntraced doesn't add tracing
-      if (target.value.generatorFunction) {
+      if (pluginOptions.effectFn.includes("untraced") && target.value.generatorFunction) {
         fixes.push({
           fixName: "effectFnOpportunity_toEffectFnUntraced",
           description: "Convert to Effect.fnUntraced",
@@ -512,19 +514,21 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         })
       }
 
-      // toEffectFnNoSpan: available always
-      fixes.push({
-        fixName: "effectFnOpportunity_toEffectFnNoSpan",
-        description: "Convert to Effect.fn (no span)",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          const newNode = createEffectFnNode(targetNode, innerFunction, effectModuleName, undefined, pipeArguments)
-          changeTracker.replaceNode(sourceFile, targetNode, newNode)
+      if (pluginOptions.effectFn.includes("no-span")) {
+        // toEffectFnNoSpan: available always
+        fixes.push({
+          fixName: "effectFnOpportunity_toEffectFnNoSpan",
+          description: "Convert to Effect.fn (no span)",
+          apply: Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+            const newNode = createEffectFnNode(targetNode, innerFunction, effectModuleName, undefined, pipeArguments)
+            changeTracker.replaceNode(sourceFile, targetNode, newNode)
+          })
         })
-      })
+      }
 
       // toEffectFnSpanInferred: available if we have inferred span name AND no explicit one
-      if (inferredTraceName && !explicitTraceExpression) {
+      if (pluginOptions.effectFn.includes("inferred-span") && inferredTraceName && !explicitTraceExpression) {
         fixes.push({
           fixName: "effectFnOpportunity_toEffectFnSpanInferred",
           description: `Convert to Effect.fn("${inferredTraceName}")`,
@@ -542,19 +546,55 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         })
       }
 
-      const pipeArgsSuffix = pipeArguments.length > 0
-        ? ` Effect.fn also accepts the piped transformations as additional arguments.`
-        : ``
+      // no fix, continue
+      if (fixes.length === 0) continue
 
-      const suggestConsultingQuickFixes =
-        ` Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.`
+      // Generate the expected signature based on the first (recommended) fix
+      const generateExpectedSignature = (): string => {
+        const firstFix = fixes[0]
+        if (!firstFix) return "Effect.fn(function*() { ... })"
 
-      const orFnUntraced = target.value.generatorFunction ? `, or Effect.fnUntraced` : ``
+        // Extract type parameter names from the original function
+        const typeParamNames = targetNode.typeParameters
+          ? `<${targetNode.typeParameters.map((tp) => ts.idText(tp.name)).join(", ")}>`
+          : ""
+
+        // Extract parameter names from the original function
+        const paramNames = targetNode.parameters.map((param) => {
+          if (ts.isIdentifier(param.name)) {
+            return ts.idText(param.name)
+          }
+          // For destructuring patterns, just use a placeholder
+          return "_"
+        }).join(", ")
+
+        const fnSignature = `function*${typeParamNames}(${paramNames}) { ... }`
+        const pipeArgsForWithSpan = pipeArguments.slice(0, -1)
+        const pipeArgsSuffix = (args: ReadonlyArray<ts.Expression>) => args.length > 0 ? ", ...pipeTransformations" : ""
+
+        switch (firstFix.fixName) {
+          case "effectFnOpportunity_toEffectFnWithSpan": {
+            const traceName = explicitTraceExpression
+              ? sourceFile.text.slice(explicitTraceExpression.pos, explicitTraceExpression.end).trim()
+              : undefined
+            return `${effectModuleName}.fn(${traceName})(${fnSignature}${pipeArgsSuffix(pipeArgsForWithSpan)})`
+          }
+          case "effectFnOpportunity_toEffectFnUntraced":
+            return `${effectModuleName}.fnUntraced(${fnSignature}${pipeArgsSuffix(pipeArguments)})`
+          case "effectFnOpportunity_toEffectFnNoSpan":
+            return `${effectModuleName}.fn(${fnSignature}${pipeArgsSuffix(pipeArguments)})`
+          case "effectFnOpportunity_toEffectFnSpanInferred":
+            return `${effectModuleName}.fn("${inferredTraceName}")(${fnSignature}${pipeArgsSuffix(pipeArguments)})`
+          default:
+            return `${effectModuleName}.fn(${fnSignature})`
+        }
+      }
+
+      const expectedSignature = generateExpectedSignature()
 
       report({
         location: nameIdentifier ?? targetNode,
-        messageText:
-          `This function could benefit from Effect.fn's automatic tracing and concise syntax${orFnUntraced}.${pipeArgsSuffix}${suggestConsultingQuickFixes}`,
+        messageText: `Can be rewritten as a reusable function: ${expectedSignature}`,
         fixes
       })
     }

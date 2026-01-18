@@ -1,3 +1,4 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
 import * as Effect from "effect/Effect"
 
 // For these cases we should suggest using Effect.fn (not Effect.fnUntraced)

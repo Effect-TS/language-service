@@ -1,3 +1,4 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
 import * as Effect from "effect/Effect"
 
 // This case differs from pipeWithSpan because the withSpan is not the last

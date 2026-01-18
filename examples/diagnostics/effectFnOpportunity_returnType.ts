@@ -1,3 +1,4 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
 import * as Effect from "effect/Effect"
 
 // The diagnostic should never trigger on these cases because there is

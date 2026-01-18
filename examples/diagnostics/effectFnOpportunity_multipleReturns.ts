@@ -1,3 +1,4 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
 import * as Effect from "effect/Effect"
 
 // These should not trigger because they are not returning just Effect.gen,

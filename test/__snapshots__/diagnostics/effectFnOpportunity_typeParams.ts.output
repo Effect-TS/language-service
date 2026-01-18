@@ -1,17 +1,17 @@
 arrowWithTypeParams
-6:13 - 6:32 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+7:13 - 7:32 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*<T>(value) { ... })    effect(effectFnOpportunity)
 
 functionExpressionWithTypeParams
-12:13 - 12:45 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+13:13 - 13:45 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*<T>(value) { ... })    effect(effectFnOpportunity)
 
 functionDeclarationWithTypeParams
-18:16 - 18:49 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+19:16 - 19:49 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*<T>(value) { ... })    effect(effectFnOpportunity)
 
 arrowWithTypeParamsNoGen
-27:13 - 27:37 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+28:13 - 28:37 | 2 | Can be rewritten as a reusable function: Effect.fn(function*<T>(value) { ... })    effect(effectFnOpportunity)
 
 functionExpressionWithTypeParamsNoGen
-36:13 - 36:50 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+37:13 - 37:50 | 2 | Can be rewritten as a reusable function: Effect.fn(function*<T>(value) { ... })    effect(effectFnOpportunity)
 
 functionDeclarationWithTypeParamsNoGen
-45:16 - 45:54 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+46:16 - 46:54 | 2 | Can be rewritten as a reusable function: Effect.fn(function*<T>(value) { ... })    effect(effectFnOpportunity)

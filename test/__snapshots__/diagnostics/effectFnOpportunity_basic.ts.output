@@ -1,11 +1,11 @@
 arrowBlockGen
-9:13 - 9:26 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+10:13 - 10:26 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
 
 arrowExpressionGen
-16:13 - 16:31 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+17:13 - 17:31 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
 
 functionExpressionGen
-22:13 - 22:34 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+23:13 - 23:34 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
 
 functionDeclarationGen
-29:16 - 29:38 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+30:16 - 30:38 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)

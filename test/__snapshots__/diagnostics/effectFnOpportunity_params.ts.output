@@ -1,8 +1,8 @@
 arrowWithParams
-6:13 - 6:28 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+7:13 - 7:28 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a, b) { ... })    effect(effectFnOpportunity)
 
 functionExpressionWithParams
-13:13 - 13:41 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+14:13 - 14:41 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a, b) { ... })    effect(effectFnOpportunity)
 
 functionDeclarationWithParams
-20:16 - 20:45 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+21:16 - 21:45 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a, b) { ... })    effect(effectFnOpportunity)

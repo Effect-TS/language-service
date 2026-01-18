@@ -1,3 +1,5 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
+
 // Generator functions
 export const generatorExpression = function*() {
   yield 1

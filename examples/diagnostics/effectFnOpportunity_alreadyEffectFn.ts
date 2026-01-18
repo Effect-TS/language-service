@@ -1,3 +1,4 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
 import * as Effect from "effect/Effect"
 
 export const alreadyEffectFnWithName = Effect.fn("alreadyEffectFnWithName")(function*() {
