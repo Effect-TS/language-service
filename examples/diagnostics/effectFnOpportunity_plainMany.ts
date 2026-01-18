@@ -1,0 +1,35 @@
+import * as Effect from "effect/Effect"
+
+// There should be two code fixes offered:
+// 1. Effect.fn("inferredName") - uses the inferred span name, improves
+//    tracing by adding spans. Recommended for app code.
+// 2. Effect.fn (without name) - won't add tracing spans.
+
+export const arrowPlainMany = () => {
+  const a = 1
+  const b = 2
+  const c = 3
+  const d = 4
+  const e = 5
+  return Effect.succeed(a + b + c + d + e)
+}
+
+export const functionExpressionPlainMany = function<T>(value: T) {
+  const a = 1
+  const b = 2
+  const c = 3
+  const d = 4
+  const e = 5
+  if (value === null) return Effect.fail("Error!")
+  return Effect.succeed(a + b + c + d + e)
+}
+
+export function functionDeclarationPlainMany<T>(value: T) {
+  const a = 1
+  const b = 2
+  const c = 3
+  const d = 4
+  const e = 5
+  if (value === null) return Effect.fail("Error!")
+  return Effect.succeed(a + b + c + d + e)
+}
