@@ -441,11 +441,15 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         ? ` Effect.fn also accepts the piped transformations as additional arguments.`
         : ``
 
+      const suggestConsultingQuickFixes =
+        ` Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.`
+
+      const orFnUntraced = target.value.generatorFunction ? `, or Effect.fnUntraced` : ``
+
       report({
         location: nameIdentifier ?? targetNode,
-        messageText: target.value.generatorFunction
-          ? `This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced to get just a more concise syntax.${pipeArgsSuffix}`
-          : `This function could benefit from Effect.fn's automatic tracing and concise syntax.${pipeArgsSuffix}`,
+        messageText:
+          `This function could benefit from Effect.fn's automatic tracing and concise syntax${orFnUntraced}.${pipeArgsSuffix}${suggestConsultingQuickFixes}`,
         fixes
       })
     }
