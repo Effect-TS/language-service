@@ -1,0 +1,28 @@
+// code fix effectFnOpportunity_skipNextLine  output for range 255 - 270
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
+import * as Effect from "effect/Effect"
+
+// These cases are okay and should trigger the diagnostic.
+// Functions with parameters can be converted to Effect.fn.
+
+// @effect-diagnostics-next-line effectFnOpportunity:off
+export const arrowWithParams = (a: number, b: string) => {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(a)
+    return b
+  })
+}
+
+export const functionExpressionWithParams = function(a: number, b: string) {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(a)
+    return b
+  })
+}
+
+export function functionDeclarationWithParams(a: number, b: string) {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(a)
+    return b
+  })
+}

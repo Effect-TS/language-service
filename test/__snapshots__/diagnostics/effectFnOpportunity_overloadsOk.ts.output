@@ -1,0 +1,11 @@
+overloadedArrow
+12:13 - 12:28 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a) { ... })    effect(effectFnOpportunity)
+
+overloadedFunctionExpression
+22:13 - 22:41 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a) { ... })    effect(effectFnOpportunity)
+
+overloadedArrowNoGen
+32:13 - 32:33 | 2 | Can be rewritten as a reusable function: Effect.fn(function*(a) { ... })    effect(effectFnOpportunity)
+
+overloadedFunctionExpressionNoGen
+45:13 - 45:46 | 2 | Can be rewritten as a reusable function: Effect.fn(function*(a) { ... })    effect(effectFnOpportunity)

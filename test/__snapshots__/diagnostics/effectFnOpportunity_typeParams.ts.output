@@ -1,0 +1,17 @@
+arrowWithTypeParams
+7:13 - 7:32 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*<T>(value) { ... })    effect(effectFnOpportunity)
+
+functionExpressionWithTypeParams
+13:13 - 13:45 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*<T>(value) { ... })    effect(effectFnOpportunity)
+
+functionDeclarationWithTypeParams
+19:16 - 19:49 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*<T>(value) { ... })    effect(effectFnOpportunity)
+
+arrowWithTypeParamsNoGen
+28:13 - 28:37 | 2 | Can be rewritten as a reusable function: Effect.fn(function*<T>(value) { ... })    effect(effectFnOpportunity)
+
+functionExpressionWithTypeParamsNoGen
+37:13 - 37:50 | 2 | Can be rewritten as a reusable function: Effect.fn(function*<T>(value) { ... })    effect(effectFnOpportunity)
+
+functionDeclarationWithTypeParamsNoGen
+46:16 - 46:54 | 2 | Can be rewritten as a reusable function: Effect.fn(function*<T>(value) { ... })    effect(effectFnOpportunity)

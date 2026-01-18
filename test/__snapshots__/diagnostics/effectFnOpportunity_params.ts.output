@@ -1,0 +1,8 @@
+arrowWithParams
+7:13 - 7:28 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a, b) { ... })    effect(effectFnOpportunity)
+
+functionExpressionWithParams
+14:13 - 14:41 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a, b) { ... })    effect(effectFnOpportunity)
+
+functionDeclarationWithParams
+21:16 - 21:45 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*(a, b) { ... })    effect(effectFnOpportunity)

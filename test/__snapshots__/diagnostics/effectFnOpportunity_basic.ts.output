@@ -1,0 +1,11 @@
+arrowBlockGen
+10:13 - 10:26 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
+
+arrowExpressionGen
+17:13 - 17:31 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
+
+functionExpressionGen
+23:13 - 23:34 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
+
+functionDeclarationGen
+30:16 - 30:38 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... })    effect(effectFnOpportunity)
