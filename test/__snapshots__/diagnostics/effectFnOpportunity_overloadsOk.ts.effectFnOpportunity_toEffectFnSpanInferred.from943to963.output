@@ -1,0 +1,52 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 943 - 963
+import * as Effect from "effect/Effect"
+
+// The diagnostic should trigger for these cases. When assigning to a const
+// with an overloaded interface type, the overload signature is preserved
+// by the interface, so it's safe to convert to Effect.fn.
+
+interface OverloadedArrow {
+  (a: number): Effect.Effect<number>
+  (a: string): Effect.Effect<string>
+}
+export const overloadedArrow: OverloadedArrow = (a: number | string) => {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(a as any)
+  })
+}
+
+interface OverloadedFunctionExpression {
+  (a: number): Effect.Effect<number>
+  (a: string): Effect.Effect<string>
+}
+export const overloadedFunctionExpression: OverloadedFunctionExpression = function(a: number | string) {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(a as any)
+  })
+}
+
+interface OverloadedArrowNoGen {
+  (a: number): Effect.Effect<number>
+  (a: string): Effect.Effect<string>
+}
+export const overloadedArrowNoGen: OverloadedArrowNoGen = Effect.fn("overloadedArrowNoGen")(function(a: number | string) {
+    const _a = 1
+    const _b = 2
+    const _c = 3
+    const _d = 4
+    const _e = 5
+    return Effect.succeed(a as any)
+})
+
+interface OverloadedFunctionExpressionNoGen {
+  (a: number): Effect.Effect<number>
+  (a: string): Effect.Effect<string>
+}
+export const overloadedFunctionExpressionNoGen: OverloadedFunctionExpressionNoGen = function(a: number | string) {
+  const _a = 1
+  const _b = 2
+  const _c = 3
+  const _d = 4
+  const _e = 5
+  return Effect.succeed(a as any)
+}

@@ -1,0 +1,21 @@
+// code fix effectFnOpportunity_toEffectFnUntraced  output for range 410 - 436
+import * as Effect from "effect/Effect"
+
+// This case differs from pipeWithSpan because the withSpan is not the last
+// piped transformation, so we cannot extract the span name to use with
+// Effect.fn. Instead, we should suggest Effect.fnUntraced for these cases.
+
+export const arrowWithPipe = () =>
+  Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.ignoreLogged)
+
+export const functionExpressionWithPipe = Effect.fnUntraced(function*() {
+    return yield* Effect.succeed(42)
+}, Effect.withSpan("functionExpressionWithPipe"), Effect.ignoreLogged)
+
+export function functionDeclarationWithPipe() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.map((x) => x + 1), Effect.withSpan("functionDeclarationWithPipe"), Effect.ignoreLogged)
+}

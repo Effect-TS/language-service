@@ -1,0 +1,8 @@
+arrowPlainMany
+8:13 - 8:27 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+functionExpressionPlainMany
+17:13 - 17:40 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+functionDeclarationPlainMany
+27:16 - 27:44 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)

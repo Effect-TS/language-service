@@ -15,7 +15,10 @@ interface EffectFnOpportunityTarget {
   readonly node: SupportedFunctionNode
   readonly nameIdentifier: ts.Identifier | ts.StringLiteral | undefined
   readonly effectModuleName: string
-  readonly traceName: string | undefined
+  /** Inferred trace name from the function/variable name */
+  readonly inferredTraceName: string | undefined
+  /** Explicit trace expression extracted from withSpan (if last pipe arg is withSpan) */
+  readonly explicitTraceExpression: ts.Expression | undefined
   readonly pipeArguments: ReadonlyArray<ts.Expression>
   /** Present if the opportunity originated from an Effect.gen call */
   readonly generatorFunction: ts.FunctionExpression | undefined
@@ -98,7 +101,9 @@ export const effectFnOpportunity = LSP.createDiagnostic({
     interface ParsedOpportunity {
       readonly effectModuleName: string
       readonly pipeArguments: ReadonlyArray<ts.Expression>
-      readonly generatorFunction?: ts.FunctionExpression
+      readonly generatorFunction: ts.FunctionExpression | undefined
+      /** Explicit trace expression extracted from withSpan (if last pipe arg is withSpan) */
+      readonly explicitTraceExpression: ts.Expression | undefined
     }
 
     /**
@@ -156,6 +161,33 @@ export const effectFnOpportunity = LSP.createDiagnostic({
     }
 
     /**
+     * Checks if an expression is a call to Effect.withSpan and extracts the span name expression.
+     * Returns the span name expression if it's a withSpan call, undefined otherwise.
+     */
+    const tryExtractWithSpanExpression = (
+      expr: ts.Expression
+    ): Nano.Nano<ts.Expression | undefined, never, never> =>
+      Nano.gen(function*() {
+        // Check if it's a call expression
+        if (!ts.isCallExpression(expr)) return undefined
+
+        // Check if the callee is Effect.withSpan
+        const callee = expr.expression
+        const isWithSpan = yield* pipe(
+          typeParser.isNodeReferenceToEffectModuleApi("withSpan")(callee),
+          Nano.map(() => true),
+          Nano.orElse(() => Nano.succeed(false))
+        )
+
+        if (!isWithSpan) return undefined
+
+        // withSpan has at least one argument (the span name)
+        if (expr.arguments.length === 0) return undefined
+
+        return expr.arguments[0]
+      })
+
+    /**
      * Tries to parse a function as a Gen opportunity (returning Effect.gen with a single return statement).
      */
     const tryParseGenOpportunity = (
@@ -177,7 +209,19 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           ? ts.idText(effectModule)
           : sourceEffectModuleName
 
-        return { effectModuleName, generatorFunction, pipeArguments }
+        // Check if the last pipe argument is Effect.withSpan and extract the span name
+        // We keep all pipe arguments intact here; the autofix will remove withSpan when needed
+        let explicitTraceExpression: ts.Expression | undefined
+
+        if (pipeArguments.length > 0) {
+          const lastArg = pipeArguments[pipeArguments.length - 1]
+          const withSpanExpr = yield* tryExtractWithSpanExpression(lastArg)
+          if (withSpanExpr) {
+            explicitTraceExpression = withSpanExpr
+          }
+        }
+
+        return { effectModuleName, generatorFunction, pipeArguments, explicitTraceExpression }
       })
 
     /**
@@ -219,6 +263,11 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
         // Skip named function expressions (they are typically used for recursion)
         if (ts.isFunctionExpression(node) && node.name) {
+          return yield* TypeParser.TypeParserIssue.issue
+        }
+
+        // Skip functions with return type annotations (they could be recursive)
+        if (node.type) {
           return yield* TypeParser.TypeParserIssue.issue
         }
 
@@ -271,7 +320,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
             return Nano.succeed({
               effectModuleName: sourceEffectModuleName,
               pipeArguments: [],
-              generatorFunction: undefined
+              generatorFunction: undefined,
+              explicitTraceExpression: undefined
             })
           })
         )
@@ -280,7 +330,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           node,
           nameIdentifier,
           effectModuleName: opportunity.effectModuleName,
-          traceName,
+          inferredTraceName: traceName,
+          explicitTraceExpression: opportunity.explicitTraceExpression,
           pipeArguments: opportunity.pipeArguments,
           generatorFunction: opportunity.generatorFunction,
           hasParamsInPipeArgs: areParametersReferencedIn(node, opportunity.pipeArguments)
@@ -313,13 +364,14 @@ export const effectFnOpportunity = LSP.createDiagnostic({
     }
 
     /**
-     * Creates the Effect.fn node for both Gen and Regular opportunities
+     * Creates the Effect.fn node for both Gen and Regular opportunities.
+     * @param traceNameOrExpression - Either an inferred string trace name or an explicit expression from withSpan
      */
     const createEffectFnNode = (
       originalNode: SupportedFunctionNode,
       innerFunction: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration,
       effectModuleName: string,
-      traceName: string | undefined,
+      traceNameOrExpression: string | ts.Expression | undefined,
       pipeArguments: ReadonlyArray<ts.Expression>
     ): ts.Node => {
       const isGenerator = isGeneratorFunction(innerFunction)
@@ -338,11 +390,16 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         "fn"
       )
 
-      if (traceName) {
+      if (traceNameOrExpression) {
+        // If it's a string, create a string literal; otherwise use the expression directly
+        const traceArg = typeof traceNameOrExpression === "string"
+          ? ts.factory.createStringLiteral(traceNameOrExpression)
+          : traceNameOrExpression
+
         fnExpression = ts.factory.createCallExpression(
           fnExpression,
           undefined,
-          [ts.factory.createStringLiteral(traceName)]
+          [traceArg]
         )
       }
 
@@ -408,23 +465,41 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       // (unsafe to convert - parameters wouldn't be in scope after transformation)
       if (target.value.hasParamsInPipeArgs) continue
 
-      const { effectModuleName, nameIdentifier, node: targetNode, pipeArguments, traceName } = target.value
+      const {
+        effectModuleName,
+        explicitTraceExpression,
+        inferredTraceName,
+        nameIdentifier,
+        node: targetNode,
+        pipeArguments
+      } = target.value
       const innerFunction = target.value.generatorFunction ?? targetNode
 
       const fixes: Array<LSP.ApplicableDiagnosticDefinitionFix> = []
 
-      fixes.push({
-        fixName: "effectFnOpportunity_toEffectFn",
-        description: traceName ? `Convert to Effect.fn("${traceName}")` : "Convert to Effect.fn",
-        apply: Nano.gen(function*() {
-          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-          const newNode = createEffectFnNode(targetNode, innerFunction, effectModuleName, traceName, pipeArguments)
-          changeTracker.replaceNode(sourceFile, targetNode, newNode)
+      // toEffectFnWithSpan: available when we have explicit span from withSpan
+      if (explicitTraceExpression) {
+        fixes.push({
+          fixName: "effectFnOpportunity_toEffectFnWithSpan",
+          description: "Convert to Effect.fn (with span from withSpan)",
+          apply: Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+            // Remove the withSpan from pipe args since Effect.fn adds the span
+            const finalPipeArguments = pipeArguments.slice(0, -1)
+            const newNode = createEffectFnNode(
+              targetNode,
+              innerFunction,
+              effectModuleName,
+              explicitTraceExpression,
+              finalPipeArguments
+            )
+            changeTracker.replaceNode(sourceFile, targetNode, newNode)
+          })
         })
-      })
+      }
 
-      // Only offer fnUntraced when there's a generator function (from Effect.gen),
-      // since that's the only case where tracing overhead exists to be avoided
+      // toEffectFnUntraced: available when we have a generator function
+      // Keeps ALL pipe arguments including withSpan since fnUntraced doesn't add tracing
       if (target.value.generatorFunction) {
         fixes.push({
           fixName: "effectFnOpportunity_toEffectFnUntraced",
@@ -432,6 +507,36 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           apply: Nano.gen(function*() {
             const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
             const newNode = createEffectFnUntracedNode(targetNode, innerFunction, effectModuleName, pipeArguments)
+            changeTracker.replaceNode(sourceFile, targetNode, newNode)
+          })
+        })
+      }
+
+      // toEffectFnNoSpan: available always
+      fixes.push({
+        fixName: "effectFnOpportunity_toEffectFnNoSpan",
+        description: "Convert to Effect.fn (no span)",
+        apply: Nano.gen(function*() {
+          const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+          const newNode = createEffectFnNode(targetNode, innerFunction, effectModuleName, undefined, pipeArguments)
+          changeTracker.replaceNode(sourceFile, targetNode, newNode)
+        })
+      })
+
+      // toEffectFnSpanInferred: available if we have inferred span name AND no explicit one
+      if (inferredTraceName && !explicitTraceExpression) {
+        fixes.push({
+          fixName: "effectFnOpportunity_toEffectFnSpanInferred",
+          description: `Convert to Effect.fn("${inferredTraceName}")`,
+          apply: Nano.gen(function*() {
+            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+            const newNode = createEffectFnNode(
+              targetNode,
+              innerFunction,
+              effectModuleName,
+              inferredTraceName,
+              pipeArguments
+            )
             changeTracker.replaceNode(sourceFile, targetNode, newNode)
           })
         })

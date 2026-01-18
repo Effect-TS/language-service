@@ -1,0 +1,8 @@
+arrowWithPipe
+7:13 - 7:26 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Effect.fn also accepts the piped transformations as additional arguments. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+functionExpressionWithPipe
+12:13 - 12:39 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Effect.fn also accepts the piped transformations as additional arguments. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+functionDeclarationWithPipe
+18:16 - 18:43 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Effect.fn also accepts the piped transformations as additional arguments. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)

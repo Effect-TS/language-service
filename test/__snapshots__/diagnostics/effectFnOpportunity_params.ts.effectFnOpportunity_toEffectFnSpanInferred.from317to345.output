@@ -1,0 +1,24 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 317 - 345
+import * as Effect from "effect/Effect"
+
+// These cases are okay and should trigger the diagnostic.
+// Functions with parameters can be converted to Effect.fn.
+
+export const arrowWithParams = (a: number, b: string) => {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(a)
+    return b
+  })
+}
+
+export const functionExpressionWithParams = Effect.fn("functionExpressionWithParams")(function*(a: number, b: string) {
+    yield* Effect.succeed(a)
+    return b
+})
+
+export function functionDeclarationWithParams(a: number, b: string) {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(a)
+    return b
+  })
+}

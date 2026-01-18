@@ -1,0 +1,11 @@
+overloadedArrow
+11:13 - 11:28 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+overloadedFunctionExpression
+21:13 - 21:41 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax, or Effect.fnUntraced. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+overloadedArrowNoGen
+31:13 - 31:33 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
+
+overloadedFunctionExpressionNoGen
+44:13 - 44:46 | 2 | This function could benefit from Effect.fn's automatic tracing and concise syntax. Your editor quickfixes or the "effect-language-service" cli can show you how to convert to Effect.fn or Effect.fnUntraced.    effect(effectFnOpportunity)
