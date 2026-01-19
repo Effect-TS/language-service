@@ -1,0 +1,35 @@
+// code fix effectSucceedWithVoid_skipNextLine  output for range 536 - 560
+import { Effect } from "effect"
+
+// Should trigger: Effect.succeed(undefined)
+export const shouldTriggerUndefined = Effect.succeed(undefined)
+
+// Should trigger: Effect.succeed(void 0)
+export const shouldTriggerVoid0 = Effect.succeed(void 0)
+
+// Should trigger: Effect.succeed((undefined)) - parenthesized
+// eslint-disable-next-line @effect/dprint
+export const shouldTriggerParenthesizedUndefined = Effect.succeed((undefined))
+
+// Should trigger: Effect.succeed((void 0)) - parenthesized
+// @effect-diagnostics-next-line effectSucceedWithVoid:off
+export const shouldTriggerParenthesizedVoid0 = Effect.succeed((void 0))
+
+// Should trigger: Effect.succeed(((undefined))) - double parenthesized
+// eslint-disable-next-line @effect/dprint
+export const shouldTriggerDoubleParenthesizedUndefined = Effect.succeed(((undefined)))
+
+// Should NOT trigger: Effect.succeed with actual value
+export const shouldNotTriggerNumber = Effect.succeed(1)
+
+// Should NOT trigger: Effect.succeed with string value
+export const shouldNotTriggerString = Effect.succeed("hello")
+
+// Should NOT trigger: Effect.succeed with null (not void)
+export const shouldNotTriggerNull = Effect.succeed(null)
+
+// Should NOT trigger: Effect.succeed with object
+export const shouldNotTriggerObject = Effect.succeed({ foo: "bar" })
+
+// Should NOT trigger: already using Effect.void
+export const shouldNotTriggerVoid = Effect.void
