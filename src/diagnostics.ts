@@ -9,6 +9,7 @@ import { effectFnOpportunity } from "./diagnostics/effectFnOpportunity.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
+import { effectSucceedWithVoid } from "./diagnostics/effectSucceedWithVoid.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
@@ -89,6 +90,7 @@ export const diagnostics = [
   globalErrorInEffectFailure,
   layerMergeAllWithDependencies,
   effectMapVoid,
+  effectSucceedWithVoid,
   effectFnIife,
   effectFnOpportunity,
   redundantSchemaTagIdentifier,

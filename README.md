@@ -84,6 +84,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn when `Effect.fn` or `Effect.fnUntraced` is used as an IIFE (Immediately Invoked Function Expression), suggesting `Effect.gen` instead
 - Suggest removing redundant identifier argument when it equals the tag value in `Schema.TaggedClass`, `Schema.TaggedError`, or `Schema.TaggedRequest`
 - Suggest using `Schema.is` instead of `instanceof` for Effect Schema types
+- Suggest using `Effect.void` instead of `Effect.succeed(undefined)` or `Effect.succeed(void 0)`
 
 ### Completions
 
