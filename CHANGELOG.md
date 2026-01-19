@@ -1,5 +1,42 @@
 # @effect/language-service
 
+## 0.71.0
+
+### Minor Changes
+
+- [#619](https://github.com/Effect-TS/language-service/pull/619) [`f171350`](https://github.com/Effect-TS/language-service/commit/f171350ffc34d9dfe0989027ec3d39eed42eaabe) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `effectSucceedWithVoid` diagnostic to suggest using `Effect.void` instead of `Effect.succeed(undefined)` or `Effect.succeed(void 0)`.
+
+  The diagnostic detects calls to `Effect.succeed` where the argument is exactly `undefined` or `void 0` (including parenthesized variants) and suggests replacing them with the more idiomatic `Effect.void`. A quick fix is provided to automatically apply the replacement.
+
+  Before:
+
+  ```typescript
+  Effect.succeed(undefined);
+  Effect.succeed(void 0);
+  ```
+
+  After:
+
+  ```typescript
+  Effect.void;
+  ```
+
+### Patch Changes
+
+- [#621](https://github.com/Effect-TS/language-service/pull/621) [`74ef937`](https://github.com/Effect-TS/language-service/commit/74ef937ae072e051b113d75429b48338fcc57bc4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve diagnostic messages for `globalErrorInEffectFailure` and `globalErrorInEffectCatch` to be more concise and actionable.
+
+  Before:
+
+  ```
+  The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.
+  ```
+
+  After:
+
+  ```
+  Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.
+  ```
+
 ## 0.70.0
 
 ### Minor Changes
