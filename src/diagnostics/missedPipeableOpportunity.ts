@@ -196,9 +196,40 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
           // Get the remaining transformations after the pipeable range (the "after" portion)
           const afterTransformations = flow.transformations.slice(pipeableEndIndex)
 
+          // Get the original source node for the pipeable subject by traversing from flow.node
+          const getOriginalSubjectNode = (): ts.Expression | undefined => {
+            if (firstPipeableIndex === 0) {
+              return flow.subject.node
+            }
+
+            // Traverse from flow.node into arguments to find the node at the right depth
+            // We need to go (transformations.length - firstPipeableIndex) levels deep
+            let current: ts.Expression = flow.node
+            for (let i = flow.transformations.length; i > firstPipeableIndex; i--) {
+              const t = flow.transformations[i - 1]
+              if (t.kind === "call" && ts.isCallExpression(current) && current.arguments.length > 0) {
+                // For call transformations, the subject is the first argument
+                current = current.arguments[0]
+              } else {
+                // For other kinds, we can't reliably traverse
+                return undefined
+              }
+            }
+            return current
+          }
+
+          const originalSubjectNode = getOriginalSubjectNode()
+          const subjectText = originalSubjectNode ?
+            sourceFile.text.slice(
+              ts.getTokenPosOfNode(originalSubjectNode, sourceFile),
+              originalSubjectNode.end
+            ).trim() :
+            ""
+
           report({
             location: flow.node,
-            messageText: `Nested function calls can be converted to pipeable style for better readability.`,
+            messageText:
+              `Nested function calls can be converted to pipeable style for better readability; consider using ${subjectText}.pipe(...) instead.`,
             fixes: [{
               fixName: "missedPipeableOpportunity_fix",
               description: "Convert to pipe style",
