@@ -1,17 +1,17 @@
 new Error("global error")
-7:40 - 7:65 | 0 | The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+7:40 - 7:65 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)
 
 new globalThis.Error("global error")
-8:41 - 8:77 | 0 | The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+8:41 - 8:77 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)
 
 new BaseExtendsError()
-14:41 - 14:63 | 0 | The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+14:41 - 14:63 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)
 
 new Error("global error in gen")
-27:28 - 27:60 | 0 | The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+27:28 - 27:60 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)
 
 new Error("global error in map")
-37:35 - 37:67 | 0 | The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+37:35 - 37:67 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)
 
 new Error("mapped to global error")
-47:24 - 47:59 | 0 | The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.    effect(globalErrorInEffectFailure)
+47:24 - 47:59 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)
