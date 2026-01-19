@@ -78,7 +78,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn when using `Schema.Union` with multiple `Schema.Literal` calls that can be simplified to a single `Schema.Literal` call
 - Suggest using `Schema.TaggedStruct` instead of `Schema.Struct` when a `_tag` field with `Schema.Literal` is present to make the tag optional in the constructor
 - Warn when using `yield* Effect.fail()` with yieldable error types that can be yielded directly
-- Warn when using `Effect.fail` with the global `Error` type, recommending tagged errors
+- Warn when the global `Error` type is used in an Effect failure channel, recommending tagged errors
 - Warn when `Layer.mergeAll` contains layers with interdependencies (where one layer provides a service that another layer in the same call requires)
 - Suggest using `Effect.fn` for functions that return `Effect.gen` for better tracing and concise syntax
 - Warn when `Effect.fn` or `Effect.fnUntraced` is used as an IIFE (Immediately Invoked Function Expression), suggesting `Effect.gen` instead
