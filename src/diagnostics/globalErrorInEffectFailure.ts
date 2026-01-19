@@ -9,7 +9,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const globalErrorInEffectFailure = LSP.createDiagnostic({
   name: "globalErrorInEffectFailure",
   code: 35,
-  description: "Warns when Effect.fail is called with the global Error type",
+  description: "Warns when the global Error type is used in an Effect failure channel",
   severity: "warning",
   apply: Nano.fn("globalErrorInEffectFailure.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
@@ -27,34 +27,48 @@ export const globalErrorInEffectFailure = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      // Check for call expressions
-      if (ts.isCallExpression(node)) {
-        // Check if this is Effect.fail call using TypeParser
-        yield* pipe(
-          typeParser.isNodeReferenceToEffectModuleApi("fail")(node.expression),
-          Nano.flatMap(() => {
-            if (node.arguments.length > 0) {
-              const failArgument = node.arguments[0]
+      // Check for new expressions where the constructed type is the global Error type
+      if (ts.isNewExpression(node)) {
+        const newExpressionType = typeCheckerUtils.getTypeAtLocation(node)
 
-              // Get the type of the argument passed to Effect.fail
-              const argumentType = typeCheckerUtils.getTypeAtLocation(failArgument)
+        // Skip if not a global Error type
+        if (!newExpressionType || !typeCheckerUtils.isGlobalErrorType(newExpressionType)) {
+          continue
+        }
 
-              // Check if the argument type is exactly the global Error type
-              if (argumentType && typeCheckerUtils.isGlobalErrorType(argumentType)) {
-                return Nano.sync(() =>
-                  report({
-                    location: node,
-                    messageText:
-                      `Effect.fail is called with the global Error type. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.`,
-                    fixes: []
-                  })
-                )
+        // Traverse up the parent nodes to find an Effect type
+        let current: ts.Node | undefined = node.parent
+        while (current) {
+          // Check if current node's type is an Effect
+          const currentType = typeCheckerUtils.getTypeAtLocation(current)
+          if (currentType) {
+            const effectTypeResult = yield* pipe(
+              typeParser.effectType(currentType, current),
+              Nano.option
+            )
+
+            if (effectTypeResult._tag === "Some") {
+              const effectType = effectTypeResult.value
+              // Unroll the union members of the failure type (E)
+              const failureMembers = typeCheckerUtils.unrollUnionMembers(effectType.E)
+
+              // Check if at least one member is exactly the global Error type
+              const hasGlobalError = failureMembers.some((member) => typeCheckerUtils.isGlobalErrorType(member))
+
+              if (hasGlobalError) {
+                report({
+                  location: node,
+                  messageText:
+                    `The global Error type is used in an Effect failure channel. It's not recommended to use the global Error type in Effect failures as they can get merged together. Instead, use tagged errors or custom errors with a discriminator property to get properly type-checked errors.`,
+                  fixes: []
+                })
               }
+              // Stop traversing once we find an Effect type
+              break
             }
-            return Nano.void_
-          }),
-          Nano.ignore
-        )
+          }
+          current = current.parent
+        }
       }
     }
   })

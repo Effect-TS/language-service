@@ -1,3 +1,4 @@
+// code fix globalErrorInEffectFailure_skipNextLine  output for range 486 - 508
 import { Data, Effect } from "effect"
 
 class CustomError extends Data.TaggedError("CustomError")<{}> {}
@@ -11,6 +12,7 @@ export class BaseExtendsError extends Error {
 }
 
 // this is not fine because it extends the global Error type without changing it
+// @effect-diagnostics-next-line globalErrorInEffectFailure:off
 export const shouldReport3 = Effect.fail(new BaseExtendsError())
 
 export class BaseExtendsErrorWithTag extends Error {

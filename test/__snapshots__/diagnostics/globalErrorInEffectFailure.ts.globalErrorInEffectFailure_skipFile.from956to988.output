@@ -1,3 +1,5 @@
+// code fix globalErrorInEffectFailure_skipFile  output for range 956 - 988
+/** @effect-diagnostics globalErrorInEffectFailure:skip-file */
 import { Data, Effect } from "effect"
 
 class CustomError extends Data.TaggedError("CustomError")<{}> {}

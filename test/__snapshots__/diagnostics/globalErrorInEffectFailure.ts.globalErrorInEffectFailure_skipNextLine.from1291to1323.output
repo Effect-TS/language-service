@@ -1,3 +1,4 @@
+// code fix globalErrorInEffectFailure_skipNextLine  output for range 1291 - 1323
 import { Data, Effect } from "effect"
 
 class CustomError extends Data.TaggedError("CustomError")<{}> {}
@@ -33,6 +34,7 @@ export const shouldNotReportGen = Effect.gen(function* () {
 })
 
 // should report - global Error in Effect.map
+// @effect-diagnostics-next-line globalErrorInEffectFailure:off
 export const shouldReportMap = Effect.succeed(1).pipe(
   Effect.flatMap(() => Effect.fail(new Error("global error in map")))
 )
