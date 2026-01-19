@@ -1,5 +1,36 @@
 # @effect/language-service
 
+## 0.70.0
+
+### Minor Changes
+
+- [#618](https://github.com/Effect-TS/language-service/pull/618) [`ed689f8`](https://github.com/Effect-TS/language-service/commit/ed689f8e557481eddee3ed4bdd56d8e1320f164d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve `globalErrorInEffectFailure` diagnostic to detect global Error type in any Effect failure channel.
+
+  The diagnostic now works by finding `new Error()` expressions and checking if they end up in an Effect's failure channel, rather than only checking `Effect.fail` calls. This means it will now detect global Error usage in:
+
+  - `Effect.fail(new Error(...))`
+  - `Effect.gen` functions that fail with global Error
+  - `Effect.mapError` converting to global Error
+  - `Effect.flatMap` chains that include global Error
+
+  The diagnostic now reports at the `new Error()` location for better precision.
+
+### Patch Changes
+
+- [#616](https://github.com/Effect-TS/language-service/pull/616) [`b32da44`](https://github.com/Effect-TS/language-service/commit/b32da446de65bcc1dad802a9b6c82c43ae4dd6fd) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve `missedPipeableOpportunity` diagnostic message to show the suggested subject for `.pipe(...)`.
+
+  Before:
+
+  ```
+  Nested function calls can be converted to pipeable style for better readability.
+  ```
+
+  After:
+
+  ```
+  Nested function calls can be converted to pipeable style for better readability; consider using addOne(5).pipe(...) instead.
+  ```
+
 ## 0.69.2
 
 ### Patch Changes
