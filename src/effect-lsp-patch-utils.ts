@@ -105,3 +105,28 @@ export function checkSourceFileWorker(
     Array.map(addDiagnostic)
   )
 }
+
+export function extractDiagnosticsForExitStatus(
+  tsInstance: TypeScriptApi.TypeScriptApi,
+  program: ts.Program,
+  diagnostics: Array<ts.Diagnostic>,
+  _moduleName: string
+) {
+  // always exclude suggestions
+  let newDiagnostics = Array.filter(
+    diagnostics,
+    (_) => !(_.source === "effect" && _.category === tsInstance.DiagnosticCategory.Message)
+  )
+  const options = extractEffectLspOptions(program.getCompilerOptions())
+  const parsedOptions = LanguageServicePluginOptions.parse(options)
+
+  // if the option is enabled, exclude warnings
+  if (parsedOptions.ignoreEffectWarningsInTscExitCode) {
+    newDiagnostics = Array.filter(
+      newDiagnostics,
+      (_) => !(_.source === "effect" && _.category === tsInstance.DiagnosticCategory.Warning)
+    )
+  }
+
+  return newDiagnostics
+}

@@ -22,6 +22,7 @@ export interface LanguageServicePluginOptions {
   diagnosticsName: boolean
   missingDiagnosticNextLine: DiagnosticSeverity | "off"
   includeSuggestionsInTsc: boolean
+  ignoreEffectWarningsInTscExitCode: boolean
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
   quickinfoMaximumLength: number
@@ -91,6 +92,7 @@ export const defaults: LanguageServicePluginOptions = {
     skipLeadingPath: ["src/"]
   }],
   extendedKeyDetection: false,
+  ignoreEffectWarningsInTscExitCode: false,
   pipeableMinArgCount: 2,
   effectFn: ["span"],
   layerGraphFollowDepth: 0,
@@ -142,6 +144,10 @@ export function parse(config: any): LanguageServicePluginOptions {
         isBoolean(config.includeSuggestionsInTsc)
       ? config.includeSuggestionsInTsc
       : defaults.includeSuggestionsInTsc,
+    ignoreEffectWarningsInTscExitCode: isObject(config) && hasProperty(config, "ignoreEffectWarningsInTscExitCode") &&
+        isBoolean(config.ignoreEffectWarningsInTscExitCode)
+      ? config.ignoreEffectWarningsInTscExitCode
+      : defaults.ignoreEffectWarningsInTscExitCode,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
       : defaults.quickinfo,

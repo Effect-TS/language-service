@@ -60,6 +60,8 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     let insertAppendMetadataRelationErrorPosition: Option.Option<
       { position: number; sourceIdentifier: string; targetIdentifier: string }
     > = Option.none()
+    let insertExtractDiagnosticsForExitStatusPosition: Option.Option<{ position: number }> = Option.none()
+    let replacedBindingExtractDiagnosticsForExitStatus: Option.Option<{ pos: number; end: number }> = Option.none()
 
     // nodes where to start finding (optimization to avoid the entire file)
     let nodesToCheck: Array<ts.Node> = []
@@ -99,6 +101,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     if (!pushFunctionDeclarationNode("checkSourceFileWorker")) requiresFullScan = true
     if (!pushFunctionDeclarationNode("markPrecedingCommentDirectiveLine")) requiresFullScan = true
     if (!pushFunctionDeclarationNode("reportRelationError")) requiresFullScan = true
+    if (!pushFunctionDeclarationNode("emitFilesAndReportErrorsAndGetExitStatus")) requiresFullScan = true
     if (requiresFullScan) nodesToCheck = [sourceFile]
 
     // then find the checkSourceFile function, and insert the call to checking the effect lsp diagnostics
@@ -155,6 +158,33 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
               sourceIdentifier,
               targetIdentifier
             })
+          }
+        }
+      } else if (ts.isCallExpression(node)) {
+        const callee = node.expression
+        if (ts.isIdentifier(callee) && ts.idText(callee) === "emitFilesAndReportErrors") {
+          const parentVariableDeclaration = ts.findAncestor(node, ts.isVariableDeclaration)
+          if (parentVariableDeclaration) {
+            const parentVariableStatement = ts.findAncestor(parentVariableDeclaration, ts.isVariableStatement)
+            if (parentVariableStatement) {
+              const parentBlock = parentVariableStatement.parent
+              if (ts.isBlock(parentBlock)) {
+                const parentFunctionDeclaration = parentBlock.parent
+                if (
+                  ts.isFunctionDeclaration(parentFunctionDeclaration) && parentFunctionDeclaration.name &&
+                  ts.isIdentifier(parentFunctionDeclaration.name) &&
+                  ts.idText(parentFunctionDeclaration.name) === "emitFilesAndReportErrorsAndGetExitStatus"
+                ) {
+                  insertExtractDiagnosticsForExitStatusPosition = Option.some({
+                    position: parentVariableStatement.end
+                  })
+                  replacedBindingExtractDiagnosticsForExitStatus = Option.some({
+                    pos: parentVariableDeclaration.name.pos,
+                    end: parentVariableDeclaration.name.end
+                  })
+                }
+              }
+            }
           }
         }
       }
@@ -221,9 +251,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
 
     // insert the skip preceding comment directive
     if (Option.isNone(insertSkipPrecedingCommentDirectivePosition)) {
-      return yield* Effect.fail(
-        new UnableToFindPositionToPatchError({ positionToFind: "skip preceding comment directive" })
-      )
+      return yield* new UnableToFindPositionToPatchError({ positionToFind: "skip preceding comment directive" })
     }
     patches.push(
       yield* makeEffectLspPatchChange(
@@ -231,6 +259,36 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
         insertSkipPrecedingCommentDirectivePosition.value.position,
         insertSkipPrecedingCommentDirectivePosition.value.position,
         "if(diagnostic && diagnostic.source === \"effect\"){ return -1; }\n",
+        "\n",
+        version
+      )
+    )
+
+    // insert the extractDiagnosticsForExitStatus call
+    if (Option.isNone(insertExtractDiagnosticsForExitStatusPosition)) {
+      return yield* new UnableToFindPositionToPatchError({ positionToFind: "extractDiagnosticsForExitStatus" })
+    }
+    if (Option.isNone(replacedBindingExtractDiagnosticsForExitStatus)) {
+      return yield* new UnableToFindPositionToPatchError({ positionToFind: "extractDiagnosticsForExitStatus-binding" })
+    }
+    patches.push(
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
+        replacedBindingExtractDiagnosticsForExitStatus.value.pos,
+        replacedBindingExtractDiagnosticsForExitStatus.value.end,
+        ` { emitResult, diagnostics: tscDiagnostics }`,
+        " ",
+        version
+      )
+    )
+    patches.push(
+      yield* makeEffectLspPatchChange(
+        sourceFile.text,
+        insertExtractDiagnosticsForExitStatusPosition.value.position,
+        insertExtractDiagnosticsForExitStatusPosition.value.position,
+        `const diagnostics = effectLspPatchUtils().extractDiagnosticsForExitStatus(${
+          moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis()"
+        }, program, tscDiagnostics, "${moduleName}")\n`,
         "\n",
         version
       )
