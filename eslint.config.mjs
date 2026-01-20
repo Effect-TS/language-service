@@ -20,7 +20,15 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["dist", "build", "docs", "**/*.md"]
+    ignores: [
+      "**/dist/**",
+      "**/build/**",
+      "**/node_modules/**",
+      "packages/*/dist/**",
+      "packages/*/__snapshots__/**",
+      "docs/**",
+      "**/*.md"
+    ]
   },
   ...compat.extends(
     "eslint:recommended",
@@ -134,7 +142,7 @@ export default [
     }
   },
   {
-    files: ["src/**/*.ts"],
+    files: ["packages/language-service/src/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
         "error",

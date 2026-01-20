@@ -13,13 +13,22 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
-const getExamplesLayerGraphDir = () => path.join(__dirname, "..", "examples", "layer-graph")
+const getExamplesLayerGraphDir = () => getExamplesSubdir("layer-graph")
 
 function testAllLayerInfoExamples() {
   // read all filenames from layer-graph examples
-  const allExampleFiles = fs.readdirSync(getExamplesLayerGraphDir())
+  const allExampleFiles = safeReaddirSync(getExamplesLayerGraphDir())
+
+  // skip all tests if no example files exist for this harness
+  if (allExampleFiles.length === 0) {
+    describe("LayerInfo (skipped - no example files)", () => {
+      it.skip("no example files for this harness", () => {})
+    })
+    return
+  }
 
   describe("LayerInfo", () => {
     // for each example file
@@ -84,9 +93,7 @@ async function testLayerInfoByName(
 
   // create snapshot path with pattern: filename.ts.layerName.layerinfo
   const snapshotFilePath = path.join(
-    __dirname,
-    "__snapshots__",
-    "layerinfo",
+    getSnapshotsSubdir("layerinfo"),
     `${fileName}.${layerName}.layerinfo`
   )
 

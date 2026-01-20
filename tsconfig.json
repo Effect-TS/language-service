@@ -1,17 +1,8 @@
 {
-  "extends": "./tsconfig.base.json",
+  "files": [],
   "references": [
-    {
-      "path": "./tsconfig.src.json"
-    },
-    {
-      "path": "./tsconfig.test.json"
-    },
-    {
-      "path": "./tsconfig.examples.json"
-    },
-    {
-      "path": "./tsconfig.config.json"
-    }
+    { "path": "packages/language-service" },
+    { "path": "packages/harness-effect-v3" },
+    { "path": "packages/harness-effect-v4" }
   ]
 }

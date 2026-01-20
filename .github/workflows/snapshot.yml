@@ -32,8 +32,8 @@ jobs:
         run: npm install -g npm@latest
       - run: pnpm build
       - name: Check source state
-        run: git add src && git diff-index --cached HEAD --exit-code src
+        run: git add packages && git diff-index --cached HEAD --exit-code packages
       - run: pnpm circular
       - name: Create snapshot
         id: snapshot
-        run: pnpx pkg-pr-new@0.0.28 publish --pnpm --comment=off ./dist
+        run: pnpx pkg-pr-new@0.0.28 publish --pnpm --comment=off ./packages/language-service/dist
