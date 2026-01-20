@@ -1,4 +1,5 @@
 {
+  "name": "@effect/harness-effect-v4",
   "private": true,
   "scripts": {
     "check": "tsc -b tsconfig.json"
