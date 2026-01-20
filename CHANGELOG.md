@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.71.2
+
+### Patch Changes
+
+- [#625](https://github.com/Effect-TS/language-service/pull/625) [`422087d`](https://github.com/Effect-TS/language-service/commit/422087d01211da6e917da0a5f67cf1d8b08924e5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix CLI patching to target `emitFilesAndReportErrors` function instead of `emitFilesAndReportErrorsAndGetExitStatus`, updating the injection approach to replace the diagnostics property in the return statement's object literal.
+
 ## 0.71.1
 
 ### Patch Changes
