@@ -1,39 +1,3 @@
-## Development Workflow
-
-### Core Principles
-- **Research → Plan → Implement**: Never jump straight to coding
-- **Reality Checkpoints**: Regularly validate progress and approach
-- **Zero Tolerance for Errors**: All automated checks must pass
-- **Clarity over Cleverness**: Choose clear, maintainable solutions
-
-### Implementation Specifications
-- **Specifications Directory**: `.specs/` contains detailed implementation plans and specifications for all features; may be worth looking into when researching how to implement something
-- **Organization**: Each specification is organized by feature name (e.g., `creating-new-diagnostics`, `parsing-effects`)
-- **Purpose**: Reference these specifications when implementing new features or understanding existing implementation plans
-
-### Structured Development Process
-1. **Research Phase**
-   - Understand the codebase and existing patterns
-   - Identify related modules and dependencies
-   - Review test files and usage examples
-   - Use multiple approaches for complex problems
-
-2. **Planning Phase**
-   - Create detailed implementation plan
-   - Identify validation checkpoints
-   - Consider edge cases and error handling
-   - Validate plan before implementation
-
-3. **Implementation Phase**
-   - Execute with frequent validation
-   - **🚨 CRITICAL**: IMMEDIATELY run `pnpm lint --fix <typescript_file.ts>` and `pnpm check` after editing ANY TypeScript file
-   - Run automated checks at each step
-   - Use parallel approaches when possible
-   - Stop and reassess if stuck
-
-4. **Note taking**
-   - If during all previous phases, something took significant iterations to get right or lot of time to research, consider writing a specification file in the .specs folder that contains all the information you've found in a format that is easy searchable
-
 ## Push PR to GitHub workflow
 This workflow should be initiated only if asked by the user.
 
