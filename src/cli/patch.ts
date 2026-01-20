@@ -60,8 +60,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     let insertAppendMetadataRelationErrorPosition: Option.Option<
       { position: number; sourceIdentifier: string; targetIdentifier: string }
     > = Option.none()
-    let insertExtractDiagnosticsForExitStatusPosition: Option.Option<{ position: number }> = Option.none()
-    let replacedBindingExtractDiagnosticsForExitStatus: Option.Option<{ pos: number; end: number }> = Option.none()
+    let insertEmitFilesAndReportErrorsDiagnosticsRange: Option.Option<{ pos: number; end: number }> = Option.none()
 
     // nodes where to start finding (optimization to avoid the entire file)
     let nodesToCheck: Array<ts.Node> = []
@@ -101,7 +100,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     if (!pushFunctionDeclarationNode("checkSourceFileWorker")) requiresFullScan = true
     if (!pushFunctionDeclarationNode("markPrecedingCommentDirectiveLine")) requiresFullScan = true
     if (!pushFunctionDeclarationNode("reportRelationError")) requiresFullScan = true
-    if (!pushFunctionDeclarationNode("emitFilesAndReportErrorsAndGetExitStatus")) requiresFullScan = true
+    if (!pushFunctionDeclarationNode("emitFilesAndReportErrors")) requiresFullScan = true
     if (requiresFullScan) nodesToCheck = [sourceFile]
 
     // then find the checkSourceFile function, and insert the call to checking the effect lsp diagnostics
@@ -160,27 +159,26 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
             })
           }
         }
-      } else if (ts.isCallExpression(node)) {
-        const callee = node.expression
-        if (ts.isIdentifier(callee) && ts.idText(callee) === "emitFilesAndReportErrors") {
-          const parentVariableDeclaration = ts.findAncestor(node, ts.isVariableDeclaration)
-          if (parentVariableDeclaration) {
-            const parentVariableStatement = ts.findAncestor(parentVariableDeclaration, ts.isVariableStatement)
-            if (parentVariableStatement) {
-              const parentBlock = parentVariableStatement.parent
-              if (ts.isBlock(parentBlock)) {
-                const parentFunctionDeclaration = parentBlock.parent
+      } else if (ts.isReturnStatement(node)) {
+        const parentBlock = node.parent
+        if (parentBlock && ts.isBlock(parentBlock)) {
+          const parentFunctionDeclaration = parentBlock.parent
+          if (
+            parentFunctionDeclaration &&
+            ts.isFunctionDeclaration(parentFunctionDeclaration) && parentFunctionDeclaration.name &&
+            ts.isIdentifier(parentFunctionDeclaration.name) &&
+            ts.idText(parentFunctionDeclaration.name) === "emitFilesAndReportErrors"
+          ) {
+            if (node.expression && ts.isObjectLiteralExpression(node.expression)) {
+              const properties = node.expression.properties
+              for (const property of properties) {
                 if (
-                  ts.isFunctionDeclaration(parentFunctionDeclaration) && parentFunctionDeclaration.name &&
-                  ts.isIdentifier(parentFunctionDeclaration.name) &&
-                  ts.idText(parentFunctionDeclaration.name) === "emitFilesAndReportErrorsAndGetExitStatus"
+                  property && ts.isShorthandPropertyAssignment(property) && property.name &&
+                  ts.isIdentifier(property.name) && ts.idText(property.name) === "diagnostics"
                 ) {
-                  insertExtractDiagnosticsForExitStatusPosition = Option.some({
-                    position: parentVariableStatement.end
-                  })
-                  replacedBindingExtractDiagnosticsForExitStatus = Option.some({
-                    pos: parentVariableDeclaration.name.pos,
-                    end: parentVariableDeclaration.name.end
+                  insertEmitFilesAndReportErrorsDiagnosticsRange = Option.some({
+                    pos: property.pos,
+                    end: property.end
                   })
                 }
               }
@@ -265,31 +263,18 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
     )
 
     // insert the extractDiagnosticsForExitStatus call
-    if (Option.isNone(insertExtractDiagnosticsForExitStatusPosition)) {
+    if (Option.isNone(insertEmitFilesAndReportErrorsDiagnosticsRange)) {
       return yield* new UnableToFindPositionToPatchError({ positionToFind: "extractDiagnosticsForExitStatus" })
     }
-    if (Option.isNone(replacedBindingExtractDiagnosticsForExitStatus)) {
-      return yield* new UnableToFindPositionToPatchError({ positionToFind: "extractDiagnosticsForExitStatus-binding" })
-    }
     patches.push(
       yield* makeEffectLspPatchChange(
         sourceFile.text,
-        replacedBindingExtractDiagnosticsForExitStatus.value.pos,
-        replacedBindingExtractDiagnosticsForExitStatus.value.end,
-        ` { emitResult, diagnostics: tscDiagnostics }`,
-        " ",
-        version
-      )
-    )
-    patches.push(
-      yield* makeEffectLspPatchChange(
-        sourceFile.text,
-        insertExtractDiagnosticsForExitStatusPosition.value.position,
-        insertExtractDiagnosticsForExitStatusPosition.value.position,
-        `const diagnostics = effectLspPatchUtils().extractDiagnosticsForExitStatus(${
+        insertEmitFilesAndReportErrorsDiagnosticsRange.value.pos,
+        insertEmitFilesAndReportErrorsDiagnosticsRange.value.end,
+        `diagnostics: effectLspPatchUtils().extractDiagnosticsForExitStatus(${
           moduleName === "typescript" ? "module.exports" : "effectLspTypeScriptApis()"
-        }, program, tscDiagnostics, "${moduleName}")\n`,
-        "\n",
+        }, program, diagnostics, "${moduleName}")\n`,
+        " ",
         version
       )
     )
