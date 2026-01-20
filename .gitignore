@@ -11,3 +11,4 @@ scripts/
 Dockerfile
 .env
 .pnpm-store/
+specs/
