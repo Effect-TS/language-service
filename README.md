@@ -156,6 +156,7 @@ Few options can be provided alongside the initialization of the Language Service
         "importAliases": { "Array": "Arr" }, // allows to chose some different names for import name aliases (only when not chosing to import the whole module) (default: {})
         "noExternal": false, // disables features that provides links to external websites (such as links to mermaidchart.com) (default: false)
         "keyPatterns": [{ "target": "service", "pattern": "default", "skipLeadingPath": ["src/"] }], // configure the key patterns; recommended reading more on the section "Configuring Key Patterns"
+        "effectFn": ["span"], // what types of Effect.fn you want to get suggested, zero or multiple between "untraced" for fnUntraced, "span" for Effect.fn with span, "inferred-span" for Effect.fn with the inferred span name, "no-span" for Effect.fn with no span (default: ["span"])
         "layerGraphFollowDepth": 0, // controls the depth level that the layer graph will follow when resolving layer dependencies, depth is counted only when exiting the currently hovered/analyzed layer definition (default: 0)
         "mermaidProvider": "mermaid.live" // which provider to use for mermaid, can also be a uri like http://localhost:8080 if running mermaid-live-editor locally.
       }
