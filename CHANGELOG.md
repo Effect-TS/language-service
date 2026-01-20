@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.71.1
+
+### Patch Changes
+
+- [#624](https://github.com/Effect-TS/language-service/pull/624) [`d279457`](https://github.com/Effect-TS/language-service/commit/d279457ed54c389e6725b4ed8a19edf53f4e7094) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `ignoreEffectSuggestionsInTscExitCode` option (default: `true`) to control whether Effect-related suggestions affect the TSC exit code. When enabled, suggestions won't cause `tsc` to return a non-zero exit code.
+
+- [#622](https://github.com/Effect-TS/language-service/pull/622) [`5eab20a`](https://github.com/Effect-TS/language-service/commit/5eab20a1a8fd86f19360a573f074f1dec0dcf308) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `ignoreEffectWarningsInTscExitCode` option to allow Effect-related warnings to not affect the TSC exit code. When enabled, `tsc` will compile successfully even if Effect warnings are emitted. This is useful for CI/CD pipelines where Effect diagnostics should be informational rather than blocking.
+
 ## 0.71.0
 
 ### Minor Changes
