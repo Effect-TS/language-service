@@ -12,6 +12,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 interface RenameRunner {
@@ -33,7 +34,7 @@ const renames: Record<string, RenameRunner> = {
   keyStrings: keyStrings.renameKeyStrings
 }
 
-const getExamplesRenamesDir = () => path.join(__dirname, "..", "examples", "renames")
+const getExamplesRenamesDir = () => getExamplesSubdir("renames")
 
 function testRenamesOnExample(
   runner: RenameRunner,
@@ -65,9 +66,7 @@ function testRenamesOnExample(
 
   // create snapshot path
   const snapshotFilePath = path.join(
-    __dirname,
-    "__snapshots__",
-    "renames",
+    getSnapshotsSubdir("renames"),
     fileName + "." + humanLineCol + ".output"
   )
 
@@ -124,7 +123,16 @@ function testRenamesOnExample(
 
 function testAllRenames() {
   // read all filenames
-  const allExampleFiles = fs.readdirSync(getExamplesRenamesDir())
+  const allExampleFiles = safeReaddirSync(getExamplesRenamesDir())
+
+  // skip all tests if no example files exist for this harness
+  if (allExampleFiles.length === 0) {
+    describe("Renames (skipped - no example files)", () => {
+      it.skip("no example files for this harness", () => {})
+    })
+    return
+  }
+
   // for each diagnostic definition
   for (const [name, runner] of Object.entries(renames)) {
     // all files that start with the diagnostic name and end with .ts
@@ -132,6 +140,9 @@ function testAllRenames() {
       fileName === name + ".ts" ||
       fileName.startsWith(name + "_") && fileName.endsWith(".ts")
     )
+    // skip if no example files for this rename
+    if (exampleFiles.length === 0) continue
+
     describe("Rename " + name, () => {
       // for each example file
       for (const fileName of exampleFiles) {

@@ -13,9 +13,10 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
-const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
+const getExamplesDiagnosticsDir = () => getExamplesSubdir("diagnostics")
 
 function diagnosticToLogFormat(
   sourceFile: ts.SourceFile,
@@ -48,9 +49,7 @@ function testDiagnosticOnExample(
 
   // create snapshot path
   const snapshotFilePath = path.join(
-    __dirname,
-    "__snapshots__",
-    "diagnostics",
+    getSnapshotsSubdir("diagnostics"),
     fileName + ".output"
   )
 
@@ -110,9 +109,7 @@ function testDiagnosticQuickfixesOnExample(
 
   // create snapshot path
   const snapshotFilePathList = path.join(
-    __dirname,
-    "__snapshots__",
-    "diagnostics",
+    getSnapshotsSubdir("diagnostics"),
     fileName + ".codefixes"
   )
 
@@ -130,9 +127,7 @@ function testDiagnosticQuickfixesOnExample(
         ) {
           // create snapshot path
           const snapshotFilePath = path.join(
-            __dirname,
-            "__snapshots__",
-            "diagnostics",
+            getSnapshotsSubdir("diagnostics"),
             fileName + "." + codeFix.fixName + ".from" + codeFix.start + "to" + codeFix.end +
               ".output"
           )
@@ -199,7 +194,16 @@ function testDiagnosticQuickfixesOnExample(
 
 function testAllDagnostics() {
   // read all filenames
-  const allExampleFiles = fs.readdirSync(getExamplesDiagnosticsDir())
+  const allExampleFiles = safeReaddirSync(getExamplesDiagnosticsDir())
+
+  // skip all tests if no example files exist for this harness
+  if (allExampleFiles.length === 0) {
+    describe("Diagnostics (skipped - no example files)", () => {
+      it.skip("no example files for this harness", () => {})
+    })
+    return
+  }
+
   // for each diagnostic definition
   for (const diagnostic of diagnostics) {
     // all files that start with the diagnostic name and end with .ts
@@ -207,6 +211,9 @@ function testAllDagnostics() {
       fileName === diagnostic.name + ".ts" ||
       fileName.startsWith(diagnostic.name + "_") && fileName.endsWith(".ts")
     )
+    // skip if no example files for this diagnostic
+    if (exampleFiles.length === 0) continue
+
     describe("Diagnostic " + diagnostic.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {

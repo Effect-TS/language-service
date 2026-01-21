@@ -11,9 +11,10 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
-const getExamplesPipingDir = () => path.join(__dirname, "..", "examples", "piping")
+const getExamplesPipingDir = () => getExamplesSubdir("piping")
 
 function formatPipingFlow(
   sourceFile: ts.SourceFile,
@@ -72,9 +73,7 @@ function testPipingFlowsOnExample(
 
   // create snapshot path
   const snapshotFilePath = path.join(
-    __dirname,
-    "__snapshots__",
-    "piping",
+    getSnapshotsSubdir("piping"),
     fileName + ".output"
   )
 
@@ -120,8 +119,16 @@ function testPipingFlowsOnExample(
 
 function testAllPipingFlows() {
   // read all filenames
-  const exampleFiles = fs.readdirSync(getExamplesPipingDir())
+  const exampleFiles = safeReaddirSync(getExamplesPipingDir())
     .filter((fileName) => fileName.endsWith(".ts"))
+
+  // skip all tests if no example files exist for this harness
+  if (exampleFiles.length === 0) {
+    describe("Piping Flows (skipped - no example files)", () => {
+      it.skip("no example files for this harness", () => {})
+    })
+    return
+  }
 
   describe("Piping Flows", () => {
     for (const fileName of exampleFiles) {

@@ -13,9 +13,10 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getExamplesSubdir, safeReaddirSync } from "./utils/harness.js"
 import { configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
-const getExamplesCompletionsDir = () => path.join(__dirname, "..", "examples", "completions")
+const getExamplesCompletionsDir = () => getExamplesSubdir("completions")
 
 function testCompletionOnExample(
   completion: LSP.CompletionDefinition,
@@ -75,7 +76,16 @@ function testCompletionOnExample(
 
 function testAllCompletions() {
   // read all filenames
-  const allExampleFiles = fs.readdirSync(getExamplesCompletionsDir())
+  const allExampleFiles = safeReaddirSync(getExamplesCompletionsDir())
+
+  // skip all tests if no example files exist for this harness
+  if (allExampleFiles.length === 0) {
+    describe("Completions (skipped - no example files)", () => {
+      it.skip("no example files for this harness", () => {})
+    })
+    return
+  }
+
   // for each definition
   for (const completion of completions) {
     // all files that start with the name and end with .ts
@@ -83,6 +93,9 @@ function testAllCompletions() {
       fileName === completion.name + ".ts" ||
       fileName.startsWith(completion.name + "_") && fileName.endsWith(".ts")
     )
+    // skip if no example files for this completion
+    if (exampleFiles.length === 0) continue
+
     describe("Completion " + completion.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {

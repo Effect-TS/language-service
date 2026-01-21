@@ -13,9 +13,10 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
-const getExamplesRefactorsDir = () => path.join(__dirname, "..", "examples", "refactors")
+const getExamplesRefactorsDir = () => getExamplesSubdir("refactors")
 
 function testRefactorOnExample(
   refactor: LSP.RefactorDefinition,
@@ -47,9 +48,7 @@ function testRefactorOnExample(
 
   // create snapshot path
   const snapshotFilePath = path.join(
-    __dirname,
-    "__snapshots__",
-    "refactors",
+    getSnapshotsSubdir("refactors"),
     fileName + "." + humanLineCol + ".output"
   )
 
@@ -149,7 +148,16 @@ function testRefactorOnExample(
 
 function testAllRefactors() {
   // read all filenames
-  const allExampleFiles = fs.readdirSync(getExamplesRefactorsDir())
+  const allExampleFiles = safeReaddirSync(getExamplesRefactorsDir())
+
+  // skip all tests if no example files exist for this harness
+  if (allExampleFiles.length === 0) {
+    describe("Refactors (skipped - no example files)", () => {
+      it.skip("no example files for this harness", () => {})
+    })
+    return
+  }
+
   // for each diagnostic definition
   for (const refactor of refactors) {
     // all files that start with the diagnostic name and end with .ts
@@ -157,6 +165,9 @@ function testAllRefactors() {
       fileName === refactor.name + ".ts" ||
       fileName.startsWith(refactor.name + "_") && fileName.endsWith(".ts")
     )
+    // skip if no example files for this refactor
+    if (exampleFiles.length === 0) continue
+
     describe("Refactor " + refactor.name, () => {
       // for each example file
       for (const fileName of exampleFiles) {

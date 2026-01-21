@@ -7,3 +7,8 @@ dist/
 build/
 docs/examples/
 .direnv/
+scripts/
+Dockerfile
+.env
+.pnpm-store/
+specs/

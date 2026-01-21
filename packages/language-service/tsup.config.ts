@@ -17,12 +17,12 @@ export default defineConfig({
       const fs = yield* (FileSystem.FileSystem)
       const path = yield* (Path.Path)
 
-      // copy over readme.md
-      const readme = yield* (fs.readFileString("README.md"))
+      // copy over readme.md (from repo root)
+      const readme = yield* (fs.readFileString("../../README.md"))
       yield* (fs.writeFileString(path.join("dist", "README.md"), readme))
 
-      // copy over license
-      const license = yield* (fs.readFileString("LICENSE"))
+      // copy over license (from repo root)
+      const license = yield* (fs.readFileString("../../LICENSE"))
       yield* (fs.writeFileString(path.join("dist", "LICENSE"), license))
 
       // generate package.json

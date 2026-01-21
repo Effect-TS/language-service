@@ -1,0 +1,762 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > AGENTS.md 1`] = `
+"# AGENTS.md
+
+This file provides guidance to AI agents working with this codebase.
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+
+<!-- effect-language-service:start -->
+## Effect Language Service
+
+The Effect Language Service comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+<!-- effect-language-service:end -->
+"
+`;
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Add Effect Language Service section to AGENTS.md",
+    "file": "AGENTS.md",
+  },
+]
+`;
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should add Effect Language Service section to existing AGENTS.md when enabling LSP > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should add LSP plugin alongside existing plugins > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add @effect/language-service plugin to existing plugins array",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should add LSP plugin alongside existing plugins > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should add LSP plugin alongside existing plugins > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      },
+{ "name": "@effect/language-service" }
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > .vscode/settings.json 1`] = `
+"{
+	"typescript.tsdk": "./node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true
+}"
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Add typescript.tsdk setting; Add typescript.enablePromptUseWorkspaceTsdk setting",
+    "file": ".vscode/settings.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with custom diagnostic severities > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with custom diagnostic severities > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with custom diagnostic severities > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{
+		"name": "@effect/language-service",
+		"diagnosticSeverity": {
+			"effect/floatingEffect": "error",
+			"effect/anyUnknownInErrorContext": "warning"
+		}
+	}
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with defaults > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with defaults > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with defaults > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with prepare script > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies; Add scripts section with prepare script",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with prepare script > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"scripts": { "prepare": "effect-language-service patch" },
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for adding LSP with prepare script > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for removing LSP and prepare script > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies; Remove prepare script with patch command",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes for removing LSP and prepare script > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for removing LSP and prepare script > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for removing LSP when already installed > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes for removing LSP when already installed > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for removing LSP when already installed > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should generate changes for updating existing LSP with new diagnostic severities > change summary 1`] = `
+[
+  {
+    "description": "Update @effect/language-service plugin diagnostic severities",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes for updating existing LSP with new diagnostic severities > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+"diagnosticSeverity": {
+	"effect/floatingEffect": "error",
+	"effect/catchUnfailableEffect": "off"
+}
+      }
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should handle tsconfig with existing plugin having custom options and diagnosticSeverity > change summary 1`] = `
+[
+  {
+    "description": "Update @effect/language-service plugin diagnostic severities",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should handle tsconfig with existing plugin having custom options and diagnosticSeverity > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "reportSuggestionsAsWarningsInTsc": true,
+        "pipeableMinArgCount": 2,
+        "diagnosticSeverity": {
+					"missedPipeableOpportunity": "warning",
+					"schemaUnionOfLiterals": "error",
+					"anyUnknownInErrorContext": "warning"
+				}
+      }
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}"
+`;
+
+exports[`Setup CLI > should not override existing plugins when adding LSP plugin > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add @effect/language-service plugin to existing plugins array",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should not override existing plugins when adding LSP plugin > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should not override existing plugins when adding LSP plugin > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules",
+        "options": {
+          "classnameTransform": "camelCase"
+        }
+      },
+      {
+        "name": "another-typescript-plugin"
+      },
+{
+	"name": "@effect/language-service",
+	"diagnosticSeverity": {
+		"effect/floatingEffect": "error"
+	}
+}
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should preserve all existing VSCode settings from real repository config > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve all existing VSCode settings from real repository config > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should preserve all existing VSCode settings from real repository config > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing LSP plugin options when updating diagnostic severities > change summary 1`] = `
+[
+  {
+    "description": "Update @effect/language-service plugin diagnostic severities",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve existing LSP plugin options when updating diagnostic severities > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "namespaceImportPackages": [
+          "effect"
+        ],
+        "enableCodeLens": true,
+"diagnosticSeverity": {
+	"effect/floatingEffect": "error",
+	"effect/catchUnfailableEffect": "warning"
+}
+      }
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > .vscode/settings.json 1`] = `
+"{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.autoSave": "onFocusChange",
+"typescript.enablePromptUseWorkspaceTsdk": true,
+"typescript.tsdk": "./node_modules/typescript/lib"
+}"
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Add typescript.tsdk setting; Add typescript.enablePromptUseWorkspaceTsdk setting",
+    "file": ".vscode/settings.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > CLAUDE.md 1`] = `
+"# CLAUDE.md
+
+This file provides guidance to Claude when working with this codebase.
+## Project Overview
+
+This is a TypeScript project using Effect.
+"
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Remove Effect Language Service section from CLAUDE.md",
+    "file": "CLAUDE.md",
+  },
+]
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "devDependencies": {
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove Effect Language Service section from CLAUDE.md when uninstalling LSP > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies; Remove effect-language-service patch command from prepare script",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "test": "vitest"
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove only LSP patch command from prepare script with multiple commands > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove only LSP plugin while preserving other plugins > change summary 1`] = `
+[
+  {
+    "description": "Remove @effect/language-service from dependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Remove @effect/language-service plugin from tsconfig",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should remove only LSP plugin while preserving other plugins > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}"
+`;
+
+exports[`Setup CLI > should remove only LSP plugin while preserving other plugins > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      }
+    ]
+  }
+}"
+`;
+
+exports[`Setup CLI > should update LSP version when already installed with older version > change summary 1`] = `
+[
+  {
+    "description": "Update @effect/language-service from ^0.1.0 to ^0.2.0",
+    "file": "package.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should update LSP version when already installed with older version > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@effect/language-service": "^0.2.0",
+    "typescript": "^5.0.0"
+  }
+}"
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > AGENTS.md 1`] = `
+"# AGENTS.md
+
+This file provides guidance to AI agents working with this codebase.
+
+<!-- effect-language-service:start -->
+## Effect Language Service
+
+The Effect Language Service comes in with a useful CLI that can help you with commands to get a better understanding your Effect Layers and Services, and to help you compose them correctly.
+<!-- effect-language-service:end -->
+
+## Project Overview
+
+This is a TypeScript project using Effect.
+"
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Update Effect Language Service section in AGENTS.md",
+    "file": "AGENTS.md",
+  },
+]
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should update outdated Effect Language Service section in AGENTS.md when enabling LSP > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;

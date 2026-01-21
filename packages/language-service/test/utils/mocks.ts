@@ -1,10 +1,13 @@
 import * as fs from "fs"
+import * as path from "path"
 import * as ts from "typescript"
+import { getExamplesDir } from "./harness.js"
 
 export function createMockLanguageServiceHost(
   fileName: string,
   sourceText: string
 ): ts.LanguageServiceHost {
+  const examplesDir = getExamplesDir()
   return {
     getCompilationSettings() {
       return {
@@ -15,7 +18,7 @@ export function createMockLanguageServiceHost(
         module: ts.ModuleKind.NodeNext,
         moduleResolution: ts.ModuleResolutionKind.NodeNext,
         paths: {
-          "@/*": ["./examples/*"]
+          "@/*": [path.join(examplesDir, "*")]
         }
       }
     },
