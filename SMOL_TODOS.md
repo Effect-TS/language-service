@@ -12,9 +12,9 @@ This file tracks all language service features and their compatibility status wi
 
 ## Diagnostics (47 total)
 
-- [ ] missingEffectContext
-- [ ] catchUnfailableEffect
 - [X] floatingEffect
+- [X] missingEffectContext
+- [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] unnecessaryEffectGen
 - [ ] duplicatePackage

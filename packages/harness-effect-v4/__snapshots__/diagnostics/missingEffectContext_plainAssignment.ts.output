@@ -1,0 +1,14 @@
+missingAllServices
+21:13 - 21:31 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.    effect(missingEffectContext)
+
+missingServiceC
+24:13 - 24:28 | 1 | Missing 'ServiceC' in the expected Effect context.    effect(missingEffectContext)
+
+missingServiceCWithSubtyping
+29:13 - 29:41 | 1 | Missing 'ServiceC' in the expected Effect context.    effect(missingEffectContext)
+
+missingServiceA
+33:8 - 33:23 | 1 | Missing 'A' in the expected Effect context.    effect(missingEffectContext)
+
+effectWithServices
+38:10 - 38:28 | 1 | Missing 'ServiceA | ServiceB | ServiceC' in the expected Effect context.    effect(missingEffectContext)
