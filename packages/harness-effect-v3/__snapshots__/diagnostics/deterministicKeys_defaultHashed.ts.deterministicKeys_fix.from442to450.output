@@ -8,4 +8,4 @@ export class ExpectedServiceIdentifier
   extends Context.Tag("ExpectedServiceIdentifier")<ExpectedServiceIdentifier, {}>()
 {}
 
-export class ErrorA extends Data.TaggedError("34c252132a18b23d")<{}> {}
+export class ErrorA extends Data.TaggedError("753e8f1c4c8ed091")<{}> {}

@@ -1,13 +1,16 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
-import { getExamplesDir } from "./harness.js"
+import { getExamplesDir, getHarnessDir } from "./harness.js"
 
 export function createMockLanguageServiceHost(
   fileName: string,
   sourceText: string
 ): ts.LanguageServiceHost {
   const examplesDir = getExamplesDir()
+  const harnessDir = getHarnessDir()
+  const realPath = (fileName: string) => path.resolve(harnessDir, fileName)
+
   return {
     getCompilationSettings() {
       return {
@@ -32,7 +35,7 @@ export function createMockLanguageServiceHost(
       if (_fileName === fileName) {
         return ts.ScriptSnapshot.fromString(sourceText)
       }
-      return ts.ScriptSnapshot.fromString(fs.readFileSync(_fileName).toString())
+      return ts.ScriptSnapshot.fromString(fs.readFileSync(realPath(_fileName)).toString())
     },
     getCurrentDirectory: () => ".",
     getDefaultLibFileName(options) {
@@ -40,11 +43,11 @@ export function createMockLanguageServiceHost(
     },
     fileExists: (_fileName) => {
       if (_fileName === fileName) return true
-      return fs.existsSync(_fileName)
+      return fs.existsSync(realPath(_fileName))
     },
     readFile: (_fileName) => {
       if (_fileName === fileName) return sourceText
-      return fs.readFileSync(_fileName).toString()
+      return fs.readFileSync(realPath(_fileName)).toString()
     }
   }
 }

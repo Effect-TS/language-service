@@ -3,7 +3,7 @@
 exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] = `
 [
   {
-    "insertText": "Context.Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "insertText": "Context.Tag("@effect/harness-effect-v3/MyService")<MyService, \${0}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",
@@ -19,7 +19,7 @@ exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] =
 exports[`Completion contextSelfInClasses > contextSelfInClasses_directImportTag.ts at 4:35 1`] = `
 [
   {
-    "insertText": "Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "insertText": "Tag("@effect/harness-effect-v3/MyService")<MyService, \${0}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",
@@ -35,7 +35,7 @@ exports[`Completion contextSelfInClasses > contextSelfInClasses_directImportTag.
 exports[`Completion contextSelfInClasses > contextSelfInClasses_identifierKey.ts at 5:40 1`] = `
 [
   {
-    "insertText": "Context.Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "insertText": "Context.Tag("@effect/harness-effect-v3/MyService")<MyService, \${0}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",
@@ -453,7 +453,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
 exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
 [
   {
-    "insertText": "Effect.Service<MyService>()("@effect/language-service/MyService", {\${0}}){}",
+    "insertText": "Effect.Service<MyService>()("@effect/harness-effect-v3/MyService", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService>",
@@ -464,7 +464,7 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
     "sortText": "11",
   },
   {
-    "insertText": "Effect.Tag("@effect/language-service/MyService")<MyService, {\${0}}>(){}",
+    "insertText": "Effect.Tag("@effect/harness-effect-v3/MyService")<MyService, {\${0}}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",
@@ -480,7 +480,7 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
 exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportService.ts at 4:39 1`] = `
 [
   {
-    "insertText": "Service<MyService>()("@effect/language-service/MyService", {\${0}}){}",
+    "insertText": "Service<MyService>()("@effect/harness-effect-v3/MyService", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService>",
@@ -496,7 +496,7 @@ exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportServic
 exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportTag.ts at 4:35 1`] = `
 [
   {
-    "insertText": "Tag("@effect/language-service/MyService")<MyService, {\${0}}>(){}",
+    "insertText": "Tag("@effect/harness-effect-v3/MyService")<MyService, {\${0}}>(){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Tag("MyService")",

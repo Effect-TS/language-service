@@ -11,8 +11,5 @@
     "@effect/rpc": "^0.73.0",
     "@effect/sql": "^0.49.0",
     "effect": "^3.19.14"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3"
   }
 }

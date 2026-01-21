@@ -8,4 +8,4 @@ export class ExpectedServiceIdentifier
   extends Context.Tag("ExpectedServiceIdentifier")<ExpectedServiceIdentifier, {}>()
 {}
 
-export class ErrorA extends Data.TaggedError("@effect/language-service/ErrorA")<{}> {}
+export class ErrorA extends Data.TaggedError("@effect/harness-effect-v3/ErrorA")<{}> {}

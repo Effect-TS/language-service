@@ -6,6 +6,7 @@ import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { pipe } from "effect/Function"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { getHarnessVersion } from "./utils/harness.js"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
 function testAutoImport(
@@ -57,123 +58,129 @@ function testAutoImport(
   }
 }
 
-describe("autoimport", () => {
-  // NAMESPACE IMPORT
-  describe("namespace import", () => {
-    it("import { Effect } from 'effect'", () => {
-      const { result, toFilename } = testAutoImport("Effect", "effect", { namespaceImportPackages: ["effect"] })
-      expect(result).toEqual({
-        _tag: "NamespaceImport",
-        fileName: toFilename("effect/Effect"),
-        moduleName: "effect/Effect",
-        name: "Effect",
-        introducedPrefix: undefined
+if (getHarnessVersion() === "v3") {
+  describe("autoimport", () => {
+    // NAMESPACE IMPORT
+    describe("namespace import", () => {
+      it("import { Effect } from 'effect'", () => {
+        const { result, toFilename } = testAutoImport("Effect", "effect", { namespaceImportPackages: ["effect"] })
+        expect(result).toEqual({
+          _tag: "NamespaceImport",
+          fileName: toFilename("effect/Effect"),
+          moduleName: "effect/Effect",
+          name: "Effect",
+          introducedPrefix: undefined
+        })
+      })
+      it("import { succeed } from 'effect/Effect'", () => {
+        const { result, toFilename } = testAutoImport("succeed", "effect/Effect", {
+          namespaceImportPackages: ["effect"]
+        })
+        expect(result).toEqual({
+          _tag: "NamespaceImport",
+          fileName: toFilename("effect/Effect"),
+          moduleName: "effect/Effect",
+          name: "Effect",
+          introducedPrefix: "Effect"
+        })
+      })
+      it("import { pipe } from 'effect'", () => {
+        const { result } = testAutoImport("pipe", "effect", { namespaceImportPackages: ["effect"] })
+        expect(result).toBeUndefined()
+      })
+      it("import { pipe } from 'effect' with topLevelNamedReexports: follow", () => {
+        const { result, toFilename } = testAutoImport("pipe", "effect", {
+          namespaceImportPackages: ["effect"],
+          topLevelNamedReexports: "follow"
+        })
+        expect(result).toEqual({
+          _tag: "NamedImport",
+          fileName: toFilename("effect/Function"),
+          moduleName: "effect/Function",
+          name: "pipe",
+          introducedPrefix: undefined
+        })
+      })
+      it("import { pipe } from 'effect/Function'", () => {
+        const { result, toFilename } = testAutoImport("pipe", "effect/Function", {
+          namespaceImportPackages: ["effect"]
+        })
+        expect(result).toEqual({
+          _tag: "NamespaceImport",
+          fileName: toFilename("effect/Function"),
+          moduleName: "effect/Function",
+          name: "Function",
+          introducedPrefix: "Function"
+        })
+      })
+      it("import { pipe } from 'effect/Function' with topLevelNamedReexports: follow", () => {
+        const { result, toFilename } = testAutoImport("pipe", "effect/Function", {
+          namespaceImportPackages: ["effect"],
+          topLevelNamedReexports: "follow"
+        })
+        expect(result).toEqual({
+          _tag: "NamedImport",
+          fileName: toFilename("effect/Function"),
+          moduleName: "effect/Function",
+          name: "pipe",
+          introducedPrefix: undefined
+        })
+      })
+      it("import { Array as Arr } from 'effect/Array'", () => {
+        const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
+          namespaceImportPackages: ["effect"],
+          importAliases: { Array: "Arr" }
+        })
+        expect(result).toEqual({
+          _tag: "NamespaceImport",
+          fileName: toFilename("effect/Array"),
+          moduleName: "effect/Array",
+          name: "Array",
+          aliasName: "Arr",
+          introducedPrefix: "Arr"
+        })
       })
     })
-    it("import { succeed } from 'effect/Effect'", () => {
-      const { result, toFilename } = testAutoImport("succeed", "effect/Effect", { namespaceImportPackages: ["effect"] })
-      expect(result).toEqual({
-        _tag: "NamespaceImport",
-        fileName: toFilename("effect/Effect"),
-        moduleName: "effect/Effect",
-        name: "Effect",
-        introducedPrefix: "Effect"
-      })
-    })
-    it("import { pipe } from 'effect'", () => {
-      const { result } = testAutoImport("pipe", "effect", { namespaceImportPackages: ["effect"] })
-      expect(result).toBeUndefined()
-    })
-    it("import { pipe } from 'effect' with topLevelNamedReexports: follow", () => {
-      const { result, toFilename } = testAutoImport("pipe", "effect", {
-        namespaceImportPackages: ["effect"],
-        topLevelNamedReexports: "follow"
-      })
-      expect(result).toEqual({
-        _tag: "NamedImport",
-        fileName: toFilename("effect/Function"),
-        moduleName: "effect/Function",
-        name: "pipe",
-        introducedPrefix: undefined
-      })
-    })
-    it("import { pipe } from 'effect/Function'", () => {
-      const { result, toFilename } = testAutoImport("pipe", "effect/Function", {
-        namespaceImportPackages: ["effect"]
-      })
-      expect(result).toEqual({
-        _tag: "NamespaceImport",
-        fileName: toFilename("effect/Function"),
-        moduleName: "effect/Function",
-        name: "Function",
-        introducedPrefix: "Function"
-      })
-    })
-    it("import { pipe } from 'effect/Function' with topLevelNamedReexports: follow", () => {
-      const { result, toFilename } = testAutoImport("pipe", "effect/Function", {
-        namespaceImportPackages: ["effect"],
-        topLevelNamedReexports: "follow"
-      })
-      expect(result).toEqual({
-        _tag: "NamedImport",
-        fileName: toFilename("effect/Function"),
-        moduleName: "effect/Function",
-        name: "pipe",
-        introducedPrefix: undefined
-      })
-    })
-    it("import { Array as Arr } from 'effect/Array'", () => {
-      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
-        namespaceImportPackages: ["effect"],
-        importAliases: { Array: "Arr" }
-      })
-      expect(result).toEqual({
-        _tag: "NamespaceImport",
-        fileName: toFilename("effect/Array"),
-        moduleName: "effect/Array",
-        name: "Array",
-        aliasName: "Arr",
-        introducedPrefix: "Arr"
-      })
-    })
-  })
 
-  // BARREL IMPORT
-  describe("barrel import", () => {
-    it("import { succeed } from 'effect/Effect'", () => {
-      const { result, toFilename } = testAutoImport("succeed", "effect/Effect", { barrelImportPackages: ["effect"] })
-      expect(result).toEqual({
-        _tag: "NamedImport",
-        fileName: toFilename("effect"),
-        moduleName: "effect",
-        name: "Effect",
-        introducedPrefix: "Effect"
+    // BARREL IMPORT
+    describe("barrel import", () => {
+      it("import { succeed } from 'effect/Effect'", () => {
+        const { result, toFilename } = testAutoImport("succeed", "effect/Effect", { barrelImportPackages: ["effect"] })
+        expect(result).toEqual({
+          _tag: "NamedImport",
+          fileName: toFilename("effect"),
+          moduleName: "effect",
+          name: "Effect",
+          introducedPrefix: "Effect"
+        })
       })
-    })
-    it("import { pipe } from 'effect'", () => {
-      const { result } = testAutoImport("pipe", "effect", { barrelImportPackages: ["effect"] })
-      expect(result).toBeUndefined()
-    })
-    it("import { pipe } from 'effect'", () => {
-      const { result } = testAutoImport("pipe", "effect", {
-        barrelImportPackages: ["effect"],
-        topLevelNamedReexports: "follow"
+      it("import { pipe } from 'effect'", () => {
+        const { result } = testAutoImport("pipe", "effect", { barrelImportPackages: ["effect"] })
+        expect(result).toBeUndefined()
       })
-      expect(result).toBeUndefined()
-    })
-    it("import { Array as Arr } from 'effect/Array'", () => {
-      const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
-        barrelImportPackages: ["effect"],
-        importAliases: { Array: "Arr" }
+      it("import { pipe } from 'effect'", () => {
+        const { result } = testAutoImport("pipe", "effect", {
+          barrelImportPackages: ["effect"],
+          topLevelNamedReexports: "follow"
+        })
+        expect(result).toBeUndefined()
       })
-      expect(result).toEqual({
-        _tag: "NamedImport",
-        fileName: toFilename("effect"),
-        moduleName: "effect",
-        name: "Array",
-        aliasName: "Arr",
-        introducedPrefix: "Arr"
+      it("import { Array as Arr } from 'effect/Array'", () => {
+        const { result, toFilename } = testAutoImport("fromIterable", "effect/Array", {
+          barrelImportPackages: ["effect"],
+          importAliases: { Array: "Arr" }
+        })
+        expect(result).toEqual({
+          _tag: "NamedImport",
+          fileName: toFilename("effect"),
+          moduleName: "effect",
+          name: "Array",
+          aliasName: "Arr",
+          introducedPrefix: "Arr"
+        })
       })
     })
   })
-})
+} else {
+  it.skip("autoimport v4 TODO", () => {})
+}

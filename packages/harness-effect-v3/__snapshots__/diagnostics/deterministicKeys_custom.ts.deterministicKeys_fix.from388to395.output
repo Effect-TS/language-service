@@ -9,7 +9,7 @@ export function MyConstructor(/** @effect-identifier */ identifier: string) {
   return Context.Tag("hey/" + identifier)
 }
 
-export class MyClass extends MyConstructor("@effect/language-service/MyClass")<MyClass, {}>() {
+export class MyClass extends MyConstructor("@effect/harness-effect-v3/MyClass")<MyClass, {}>() {
 }
 
 // referenced on another file

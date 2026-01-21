@@ -5,7 +5,7 @@ import * as Context from "effect/Context"
 import * as Data from "effect/Data"
 
 export class ExpectedServiceIdentifier
-  extends Context.Tag("@effect/language-service/ExpectedServiceIdentifier")<ExpectedServiceIdentifier, {}>()
+  extends Context.Tag("@effect/harness-effect-v3/ExpectedServiceIdentifier")<ExpectedServiceIdentifier, {}>()
 {}
 
 export class ErrorA extends Data.TaggedError("ErrorA")<{}> {}

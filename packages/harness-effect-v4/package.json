@@ -6,8 +6,5 @@
   },
   "dependencies": {
     "effect": "https://pkg.pr.new/Effect-TS/effect-smol/effect@e177d6c"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3"
   }
 }

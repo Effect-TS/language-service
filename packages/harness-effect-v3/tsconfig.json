@@ -10,6 +10,5 @@
       "@/*": ["./examples/*"]
     }
   },
-  "include": ["examples/**/*"],
   "exclude": ["examples/completions"]
 }
