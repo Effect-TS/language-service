@@ -17,8 +17,15 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/2, 2/2]
+        harness: [v3, v4]
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
         uses: ./.github/actions/setup
-      - run: pnpm test
+      - run: pnpm vitest --shard=${{ matrix.shard }}
+        env:
+          EFFECT_HARNESS_VERSION: ${{ matrix.harness }}
