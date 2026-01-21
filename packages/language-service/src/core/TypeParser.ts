@@ -1118,11 +1118,11 @@ export function make(
               }))
             )
           ),
-          Nano.option
+          Nano.orUndefined
         )
 
-        if (Option.isSome(isEffectGen)) {
-          effectGenResult = isEffectGen.value
+        if (isEffectGen) {
+          effectGenResult = isEffectGen
         }
       }
 
@@ -1582,9 +1582,9 @@ export function make(
               if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("Class")(schemaCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode: schemaCall.typeArguments[0]!
@@ -1627,9 +1627,9 @@ export function make(
                 const selfTypeNode = schemaTaggedClassTCall.typeArguments[0]!
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("TaggedClass")(schemaTaggedClassTCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1680,9 +1680,9 @@ export function make(
                 const selfTypeNode = schemaTaggedErrorTCall.typeArguments[0]!
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("TaggedError")(schemaTaggedErrorTCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1734,9 +1734,9 @@ export function make(
                 const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("TaggedRequest")(schemaTaggedRequestTCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1787,9 +1787,9 @@ export function make(
               ) {
                 const parsedDataModule = yield* pipe(
                   importedDataModule(dataIdentifier.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(parsedDataModule)) {
+                if (parsedDataModule) {
                   // For Data.TaggedError, the structure is: Data.TaggedError("name")<{}>
                   // The string literal is in the single call expression
                   return {
@@ -1798,7 +1798,7 @@ export function make(
                         ts.isStringLiteral(dataTaggedErrorCall.arguments[0])
                       ? dataTaggedErrorCall.arguments[0]
                       : undefined,
-                    Data: parsedDataModule.value
+                    Data: parsedDataModule
                   }
                 }
               }
@@ -1839,9 +1839,9 @@ export function make(
               ) {
                 const parsedDataModule = yield* pipe(
                   importedDataModule(dataIdentifier.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(parsedDataModule)) {
+                if (parsedDataModule) {
                   // For Data.TaggedClass, the structure is: Data.TaggedClass("name")<{}>
                   // The string literal is in the single call expression
                   return {
@@ -1850,7 +1850,7 @@ export function make(
                         ts.isStringLiteral(dataTaggedClassCall.arguments[0])
                       ? dataTaggedClassCall.arguments[0]
                       : undefined,
-                    Data: parsedDataModule.value
+                    Data: parsedDataModule
                   }
                 }
               }
@@ -1893,9 +1893,9 @@ export function make(
                 ) {
                   const parsedContextModule = yield* pipe(
                     importedContextModule(contextTagIdentifier.expression),
-                    Nano.option
+                    Nano.orUndefined
                   )
-                  if (Option.isSome(parsedContextModule)) {
+                  if (parsedContextModule) {
                     const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
                     if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
                     const type = typeChecker.getTypeOfSymbol(classSym)
@@ -1908,7 +1908,7 @@ export function make(
                         : undefined,
                       args: contextTagCall.arguments,
                       Identifier: tagType.Identifier,
-                      Tag: parsedContextModule.value
+                      Tag: parsedContextModule
                     }
                   }
                 }
@@ -1952,9 +1952,9 @@ export function make(
                 const selfTypeNode = wholeCall.typeArguments[0]!
                 const isEffectTag = yield* pipe(
                   isNodeReferenceToEffectModuleApi("Tag")(effectTagIdentifier),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectTag)) {
+                if (isEffectTag) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -2002,17 +2002,17 @@ export function make(
                 const selfTypeNode = effectServiceCall.typeArguments[0]!
                 const isEffectService = yield* pipe(
                   isNodeReferenceToEffectModuleApi("Service")(effectServiceIdentifier),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectService)) {
+                if (isEffectService) {
                   const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
                   if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
                   const type = typeChecker.getTypeOfSymbol(classSym)
                   const parsedContextTag = yield* pipe(
                     contextTag(type, atLocation),
-                    Nano.option
+                    Nano.orUndefined
                   )
-                  if (Option.isSome(parsedContextTag)) {
+                  if (parsedContextTag) {
                     // try to parse some settings
                     let accessors: boolean | undefined = undefined
                     let dependencies: ts.NodeArray<ts.Expression> | undefined = undefined
@@ -2038,7 +2038,7 @@ export function make(
                       }
                     }
                     return ({
-                      ...parsedContextTag.value,
+                      ...parsedContextTag,
                       className: atLocation.name,
                       selfTypeNode,
                       args: wholeCall.arguments,
@@ -2125,9 +2125,9 @@ export function make(
               if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSqlModelModuleApi("Class")(schemaCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode: schemaCall.typeArguments[0]!
@@ -2290,11 +2290,11 @@ export function make(
                   Nano.map((s) => ({ _tag: "call" as const, ...s }))
                 )
               ),
-              Nano.option
+              Nano.orUndefined
             )
 
-            if (Option.isSome(parsed)) {
-              const result = parsed.value
+            if (parsed) {
+              const result = parsed
 
               // Build transformations based on parse result type
               let transformations: Array<ParsedPipingFlowTransformation>

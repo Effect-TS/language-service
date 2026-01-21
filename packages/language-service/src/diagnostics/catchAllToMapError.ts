@@ -1,5 +1,4 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
@@ -35,16 +34,16 @@ export const catchAllToMapError = LSP.createDiagnostic({
      */
     const getEffectFailCallInfo = (
       body: ts.Expression | ts.Block
-    ): Nano.Nano<Option.Option<{ failCall: ts.CallExpression; failArg: ts.Expression }>> => {
+    ): Nano.Nano<{ failCall: ts.CallExpression; failArg: ts.Expression } | undefined> => {
       return Nano.gen(function*() {
         // If body is an expression (arrow function without braces)
         if (ts.isCallExpression(body)) {
           const isFailCall = yield* pipe(
             typeParser.isNodeReferenceToEffectModuleApi("fail")(body.expression),
-            Nano.option
+            Nano.orUndefined
           )
-          if (Option.isSome(isFailCall) && body.arguments.length >= 1) {
-            return Option.some({ failCall: body, failArg: body.arguments[0] })
+          if (isFailCall && body.arguments.length >= 1) {
+            return ({ failCall: body, failArg: body.arguments[0] })
           }
         }
 
@@ -56,16 +55,14 @@ export const catchAllToMapError = LSP.createDiagnostic({
             if (ts.isReturnStatement(stmt) && stmt.expression && ts.isCallExpression(stmt.expression)) {
               const isFailCall = yield* pipe(
                 typeParser.isNodeReferenceToEffectModuleApi("fail")(stmt.expression.expression),
-                Nano.option
+                Nano.orUndefined
               )
-              if (Option.isSome(isFailCall) && stmt.expression.arguments.length >= 1) {
-                return Option.some({ failCall: stmt.expression, failArg: stmt.expression.arguments[0] })
+              if (isFailCall && stmt.expression.arguments.length >= 1) {
+                return ({ failCall: stmt.expression, failArg: stmt.expression.arguments[0] })
               }
             }
           }
         }
-
-        return Option.none()
       })
     }
 
@@ -83,10 +80,10 @@ export const catchAllToMapError = LSP.createDiagnostic({
         // Check if the callee is Effect.catchAll
         const isCatchAllCall = yield* pipe(
           typeParser.isNodeReferenceToEffectModuleApi("catchAll")(transformation.callee),
-          Nano.option
+          Nano.orUndefined
         )
 
-        if (Option.isNone(isCatchAllCall)) {
+        if (!isCatchAllCall) {
           continue
         }
 
@@ -100,9 +97,9 @@ export const catchAllToMapError = LSP.createDiagnostic({
 
         // Check if the function body is a single Effect.fail call or a block with a single return Effect.fail
         const failCallInfo = yield* getEffectFailCallInfo(functionBody)
-        if (Option.isNone(failCallInfo)) continue
+        if (!failCallInfo) continue
 
-        const { failArg, failCall } = failCallInfo.value
+        const { failArg, failCall } = failCallInfo
 
         // Create the quick fix
         report({
