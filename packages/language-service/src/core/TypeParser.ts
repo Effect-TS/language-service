@@ -673,23 +673,31 @@ export function make(
       type: ts.Type,
       atLocation: ts.Node
     ) {
-      // get the properties to check (exclude non-property and optional properties)
-      const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
-      )
-      // early exit
-      if (propertiesSymbols.length === 0) {
-        return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+      // Effect v4 TypeId shortcut
+      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Effect")
+      if (typeIdSymbol) {
+        const typeIdType = typeChecker.getTypeOfSymbolAtLocation(typeIdSymbol, atLocation)
+        return yield* effectVarianceStruct(typeIdType, atLocation)
+      } else {
+        // EFFECT-SMOL: This should be removed in v4-only mode
+        // get the properties to check (exclude non-property and optional properties)
+        const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+          _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
+        )
+        // early exit
+        if (propertiesSymbols.length === 0) {
+          return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+        }
+        // try to put typeid first (heuristic to optimize hot path)
+        propertiesSymbols.sort((a, b) =>
+          ts.symbolName(b).indexOf("EffectTypeId") - ts.symbolName(a).indexOf("EffectTypeId")
+        )
+        // has a property symbol which is an effect variance struct
+        return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
+          const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+          return effectVarianceStruct(propertyType, atLocation)
+        }))
       }
-      // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) =>
-        ts.symbolName(b).indexOf("EffectTypeId") - ts.symbolName(a).indexOf("EffectTypeId")
-      )
-      // has a property symbol which is an effect variance struct
-      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
-        const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        return effectVarianceStruct(propertyType, atLocation)
-      }))
     }),
     "TypeParser.effectType",
     (type) => type

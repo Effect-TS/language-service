@@ -1,0 +1,2 @@
+Stream.succeed(42)
+5:2 - 5:20 | 1 | Effect-able Stream<number, never, never> must be yielded or assigned to a variable.    effect(floatingEffect)

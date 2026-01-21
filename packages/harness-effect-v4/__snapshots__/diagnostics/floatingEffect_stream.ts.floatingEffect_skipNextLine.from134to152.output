@@ -1,0 +1,8 @@
+// code fix floatingEffect_skipNextLine  output for range 134 - 152
+import * as Effect from "effect/Effect"
+import * as Stream from "effect/Stream"
+
+export const shouldWarn = Effect.gen(function*() {
+  // @effect-diagnostics-next-line floatingEffect:off
+  Stream.succeed(42)
+})

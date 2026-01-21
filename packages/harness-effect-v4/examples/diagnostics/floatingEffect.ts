@@ -25,3 +25,6 @@ const main = Effect.gen(function*() {
   yield* Effect.exit(Effect.void)
   // ^- This is fine, returns an exit
 })
+
+// exit is fine
+Effect.runSyncExit(Effect.succeed(1))
