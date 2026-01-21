@@ -51,6 +51,7 @@
     "@effect/rpc": "^0.73.0",
     "@effect/sql": "^0.49.0",
     "@types/pako": "^2.0.4",
-    "effect": "^3.19.14"
+    "effect": "^3.19.14",
+    "ts-patch": "^3.3.0"
   }
 }
