@@ -26,6 +26,7 @@ export default [
       "**/node_modules/**",
       "packages/*/dist/**",
       "packages/*/__snapshots__/**",
+      "packages/*/examples/**",
       "docs/**",
       "**/*.md"
     ]

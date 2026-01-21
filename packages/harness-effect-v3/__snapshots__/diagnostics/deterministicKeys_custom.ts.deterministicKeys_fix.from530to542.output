@@ -15,6 +15,6 @@ export class MyClass extends MyConstructor("Hello")<MyClass, {}>() {
 // referenced on another file
 export class TTLRequest extends Persistable.Class<{
   payload: { id: number }
-}>()("@effect/language-service/TTLRequest", {
+}>()("@effect/harness-effect-v3/TTLRequest", {
   primaryKey: (req) => `TTLRequest:${req.id}`
 }) {}

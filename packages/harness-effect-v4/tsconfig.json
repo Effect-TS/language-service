@@ -8,8 +8,15 @@
     "skipLibCheck": true,
     "paths": {
       "@/*": ["./examples/*"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "namespaceImportPackages": [
+          "effect"
+        ]
+      }
+    ]
   },
-  "include": ["examples/**/*"],
-  "exclude": ["examples/completions"]
+  "exclude": ["examples/completions"]  
 }
