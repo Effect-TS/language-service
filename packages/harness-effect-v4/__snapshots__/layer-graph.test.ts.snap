@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Layer Graph  > documented.ts 1`] = `
+[
+  "CacheLive",
+  "AppLive",
+]
+`;
+
+exports[`Layer Graph  > duplicated.ts 1`] = `
+[
+  "AppLive",
+]
+`;
+
+exports[`Layer Graph  > effect.ts 1`] = `
+[
+  "AppLive",
+]
+`;
+
+exports[`Layer Graph  > followSymbols.ts 1`] = `
+[
+  "followSymbols",
+  "moreComplex",
+]
+`;
+
+exports[`Layer Graph  > generics.ts 1`] = `
+[
+  "NoComment",
+]
+`;
+
+exports[`Layer Graph  > incorrectInference.ts 1`] = `
+[
+  "testInference",
+]
+`;
+
+exports[`Layer Graph  > multiple.ts 1`] = `
+[
+  "AppLive",
+]
+`;
+
+exports[`Layer Graph  > simple.ts 1`] = `
+[
+  "expect",
+  "simplePipeIn",
+  "liveWithPipeable",
+  "cacheWithFs",
+]
+`;
+
+exports[`Layer Graph  > specialChars.ts 1`] = `
+[
+  "NoComment",
+]
+`;

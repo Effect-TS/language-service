@@ -1,0 +1,614 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "Context.Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 8,
+      "start": 144,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses_directImportTag.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 3,
+      "start": 139,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses_identifierKey.ts at 5:40 1`] = `
+[
+  {
+    "insertText": "Context.Tag("@effect/language-service/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 8,
+      "start": 240,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion durationInput > durationInput.ts at 4:38 1`] = `
+[
+  {
+    "insertText": "\${0} nanos",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "nanos",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} micros",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "micros",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} millis",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "millis",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} seconds",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "seconds",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} minutes",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "minutes",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} hours",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "hours",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} days",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "days",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} weeks",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "weeks",
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion durationInput > durationInput_props.ts at 5:14 1`] = `
+[
+  {
+    "insertText": "\${0} nanos",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "nanos",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} micros",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "micros",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} millis",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "millis",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} seconds",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "seconds",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} minutes",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "minutes",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} hours",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "hours",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} days",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "days",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} weeks",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "weeks",
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectCodegensComment > effectCodegensComment.ts at 2:5 1`] = `
+[
+  {
+    "insertText": "@effect-codegens \${1|accessors,annotate,typeToSchema|} $0",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "@effect-codegens",
+    "replacementSpan": {
+      "length": 1,
+      "start": 73,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Data.TaggedError("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError("MyError")",
+    "replacementSpan": {
+      "length": 5,
+      "start": 133,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "Data.TaggedClass("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass("MyError")",
+    "replacementSpan": {
+      "length": 5,
+      "start": 133,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectDataClasses > effectDataClasses_directImportTaggedClass.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedClass("MyClass")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass("MyClass")",
+    "replacementSpan": {
+      "length": 11,
+      "start": 139,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectDataClasses > effectDataClasses_directImportTaggedError.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedError("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError("MyError")",
+    "replacementSpan": {
+      "length": 11,
+      "start": 139,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:5 1`] = `
+[
+  {
+    "insertText": "@effect-diagnostics \${1|anyUnknownInErrorContext,catchAllToMapError,catchUnfailableEffect,classSelfMismatch,deterministicKeys,duplicatePackage,effectFnIife,effectFnOpportunity,effectGenUsesAdapter,effectInVoidSuccess,effectMapVoid,effectSucceedWithVoid,floatingEffect,genericEffectServices,globalErrorInEffectCatch,globalErrorInEffectFailure,importFromBarrel,instanceOfSchema,layerMergeAllWithDependencies,leakingRequirements,missedPipeableOpportunity,missingEffectContext,missingEffectError,missingEffectServiceDependency,missingLayerContext,missingReturnYieldStar,missingStarInYieldEffectGen,multipleEffectProvide,nonObjectEffectServiceType,outdatedEffectCodegen,overriddenSchemaConstructor,preferSchemaOverJson,redundantSchemaTagIdentifier,returnEffectInGen,runEffectInsideEffect,schemaStructWithTag,schemaSyncInEffect,schemaUnionOfLiterals,scopeInLayerEffect,strictBooleanExpressions,strictEffectProvide,tryCatchInEffectGen,unknownInEffectCatch,unnecessaryEffectGen,unnecessaryFailYieldableError,unnecessaryPipe,unnecessaryPipeChain,unsupportedServiceAccessors|}:\${2|off,warning,error,message,suggestion|}$0",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "@effect-diagnostics",
+    "replacementSpan": {
+      "length": 1,
+      "start": 76,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "@effect-diagnostics-next-line \${1|anyUnknownInErrorContext,catchAllToMapError,catchUnfailableEffect,classSelfMismatch,deterministicKeys,duplicatePackage,effectFnIife,effectFnOpportunity,effectGenUsesAdapter,effectInVoidSuccess,effectMapVoid,effectSucceedWithVoid,floatingEffect,genericEffectServices,globalErrorInEffectCatch,globalErrorInEffectFailure,importFromBarrel,instanceOfSchema,layerMergeAllWithDependencies,leakingRequirements,missedPipeableOpportunity,missingEffectContext,missingEffectError,missingEffectServiceDependency,missingLayerContext,missingReturnYieldStar,missingStarInYieldEffectGen,multipleEffectProvide,nonObjectEffectServiceType,outdatedEffectCodegen,overriddenSchemaConstructor,preferSchemaOverJson,redundantSchemaTagIdentifier,returnEffectInGen,runEffectInsideEffect,schemaStructWithTag,schemaSyncInEffect,schemaUnionOfLiterals,scopeInLayerEffect,strictBooleanExpressions,strictEffectProvide,tryCatchInEffectGen,unknownInEffectCatch,unnecessaryEffectGen,unnecessaryFailYieldableError,unnecessaryPipe,unnecessaryPipeChain,unsupportedServiceAccessors|}:\${2|off,warning,error,message,suggestion|}$0",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "@effect-diagnostics-next-line",
+    "replacementSpan": {
+      "length": 1,
+      "start": 76,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectJsdocComment > effectJsdocComment.ts at 2:6 1`] = `
+[
+  {
+    "insertText": "@effect-identifier",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "@effect-identifier",
+    "replacementSpan": {
+      "length": 1,
+      "start": 71,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportClass.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Class<MyClass>("MyClass")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<MyClass>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 143,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedClass.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedClass<MyClass>()("MyClass", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass<MyClass>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedError.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedError<MyError>()("MyError", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<MyError>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedRequest.ts at 4:44 1`] = `
+[
+  {
+    "insertText": "TaggedRequest<MyRequest>()("MyRequest", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedRequest<MyRequest>",
+    "replacementSpan": {
+      "length": 13,
+      "start": 153,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotToken.ts at 4:22 1`] = `
+[
+  {
+    "insertText": "S.Class<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedError<Test>()("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedClass<Test>()("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedRequest<Test>()("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedRequest<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.ts at 4:25 1`] = `
+[
+  {
+    "insertText": "S.Class<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedError<Test>()("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedClass<Test>()("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.TaggedRequest<Test>()("Test", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedRequest<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSelfInClasses > effectSelfInClasses.ts at 4:39 1`] = `
+[
+  {
+    "insertText": "Effect.Service<MyService>()("@effect/language-service/MyService", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>",
+    "replacementSpan": {
+      "length": 7,
+      "start": 141,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "Effect.Tag("@effect/language-service/MyService")<MyService, {\${0}}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 7,
+      "start": 141,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportService.ts at 4:39 1`] = `
+[
+  {
+    "insertText": "Service<MyService>()("@effect/language-service/MyService", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>",
+    "replacementSpan": {
+      "length": 7,
+      "start": 141,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSelfInClasses > effectSelfInClasses_directImportTag.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Tag("@effect/language-service/MyService")<MyService, {\${0}}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 3,
+      "start": 137,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSqlModelSelfInClasses > effectSqlModelSelfInClasses.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "Model.Class<MyDataModel>("MyDataModel")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<MyDataModel>",
+    "replacementSpan": {
+      "length": 6,
+      "start": 154,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion fnFunctionStar > fnFunctionStar.ts at 4:24 1`] = `
+[
+  {
+    "insertText": "fn("program")(function*(\${1}){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "fn("program")",
+    "replacementSpan": {
+      "length": 0,
+      "start": 128,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "fn(function*(\${1}){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "fn(function*(){})",
+    "replacementSpan": {
+      "length": 0,
+      "start": 128,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "fnUntraced(function*(\${1}){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "fnUntraced(function*(){})",
+    "replacementSpan": {
+      "length": 0,
+      "start": 128,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
+[
+  {
+    "insertText": "gen(function*(){\${0}})",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "gen(function*(){})",
+    "replacementSpan": {
+      "length": 0,
+      "start": 129,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion genFunctionStar > genFunctionStar_imports.ts at 2:16 1`] = `[]`;
+
+exports[`Completion rpcMakeClasses > rpcMakeClasses.ts at 4:36 1`] = `
+[
+  {
+    "insertText": "Rpc.make("MyRequest", {\${0}}) {}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "make("MyRequest")",
+    "replacementSpan": {
+      "length": 4,
+      "start": 135,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion schemaBrand > schemaBrand.ts at 4:60 1`] = `
+[
+  {
+    "insertText": "brand("ProductId")",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "brand("ProductId")",
+    "replacementSpan": {
+      "length": 0,
+      "start": 161,
+    },
+    "sortText": "11",
+  },
+]
+`;

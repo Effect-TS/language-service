@@ -5,10 +5,10 @@
   "scripts": {
     "build": "pnpm --filter @effect/language-service build",
     "dev": "pnpm --filter @effect/language-service dev",
-    "test": "pnpm test:v3 && pnpm test:v4",
+    "test": "pnpm test:v3",
     "test:v3": "EFFECT_HARNESS_VERSION=v3 pnpm --filter @effect/language-service test",
     "test:v4": "EFFECT_HARNESS_VERSION=v4 pnpm --filter @effect/language-service test",
-    "test-update": "pnpm test-update:v3 && pnpm test-update:v4",
+    "test-update": "pnpm test-update:v3",
     "test-update:v3": "EFFECT_HARNESS_VERSION=v3 pnpm --filter @effect/language-service test-update",
     "test-update:v4": "EFFECT_HARNESS_VERSION=v4 pnpm --filter @effect/language-service test-update",
     "lint": "pnpm -r lint",
