@@ -149,12 +149,26 @@ function testDiagnosticQuickfixesOnExample(
                 (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
               )
           )
-          promises.push(
-            expect(
-              "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
-                codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
-            ).toMatchFileSnapshot(snapshotFilePath)
-          )
+          // final source
+          const finalSource = "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
+            codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
+
+          if (codeFix.fixName.endsWith("_skipFile") || codeFix.fixName.endsWith("_skipNextLine")) {
+            promises.push(
+              expect(finalSource).toMatchFileSnapshot(snapshotFilePath)
+            )
+          } else {
+            const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(fileName, finalSource)
+            const typeDiags = program.getSemanticDiagnostics()
+            const syntaxDiags = program.getSyntacticDiagnostics()
+            const snapshotText = [
+              finalSource,
+              [...syntaxDiags, ...typeDiags].map((diag) => diagnosticToLogFormat(newSourceFile, finalSource, diag))
+            ].join("\n\n")
+            promises.push(
+              expect(snapshotText).toMatchFileSnapshot(snapshotFilePath)
+            )
+          }
         }
 
         return codeFixes.length === 0
