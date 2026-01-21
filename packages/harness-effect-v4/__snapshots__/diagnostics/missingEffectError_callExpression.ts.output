@@ -1,0 +1,5 @@
+effectWithErrors
+23:7 - 23:23 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.    effect(missingEffectError)
+
+effectWithErrors
+30:20 - 30:36 | 1 | Missing 'ErrorC' in the expected Effect errors.    effect(missingEffectError)

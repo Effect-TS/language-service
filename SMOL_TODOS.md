@@ -14,6 +14,7 @@ This file tracks all language service features and their compatibility status wi
 
 - [X] floatingEffect
 - [X] missingEffectContext
+- [X] missingEffectError
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] unnecessaryEffectGen
