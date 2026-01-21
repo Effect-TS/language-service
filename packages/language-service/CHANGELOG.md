@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.72.1
+
+### Patch Changes
+
+- [#630](https://github.com/Effect-TS/language-service/pull/630) [`689a012`](https://github.com/Effect-TS/language-service/commit/689a01258a62bda671408045572649936c09ea39) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Restructure test harness setup by moving shared test utilities and updating package dependencies
+
 ## 0.72.0
 
 ### Minor Changes
