@@ -17,6 +17,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] missingEffectError
 - [X] unnecessaryPipe
 - [X] unnecessaryPipeChain
+- [X] returnEffectInGen
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] unnecessaryEffectGen
@@ -24,7 +25,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] missingReturnYieldStar
 - [ ] leakingRequirements
 - [ ] genericEffectServices
-- [ ] returnEffectInGen
 - [ ] importFromBarrel
 - [ ] scopeInLayerEffect
 - [ ] effectInVoidSuccess
