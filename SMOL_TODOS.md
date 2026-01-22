@@ -18,9 +18,9 @@ This file tracks all language service features and their compatibility status wi
 - [X] unnecessaryPipe
 - [X] unnecessaryPipeChain
 - [X] returnEffectInGen
+- [X] unnecessaryEffectGen
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
-- [ ] unnecessaryEffectGen
 - [ ] duplicatePackage
 - [ ] missingReturnYieldStar
 - [ ] leakingRequirements

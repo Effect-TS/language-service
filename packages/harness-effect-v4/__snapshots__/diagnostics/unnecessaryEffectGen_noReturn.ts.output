@@ -1,0 +1,9 @@
+Effect.gen(function*() {
+  yield* Effect.succeed(42)
+})
+12:36 - 14:2 | 2 | This Effect.gen contains a single return statement.    effect(unnecessaryEffectGen)
+
+Effect.gen(function*() {
+  yield* Effect.void
+})
+16:46 - 18:2 | 2 | This Effect.gen contains a single return statement.    effect(unnecessaryEffectGen)
