@@ -59,8 +59,7 @@ function testDiagnosticOnExample(
     const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === sourceFile.fileName)
     const tsDiagsText = [...syntaxDiags, ...typeDiags].map((diag) =>
       diagnosticToLogFormat(sourceFile, sourceText, diag)
-    )
-      .join("\n\n")
+    ).join("\n\n")
     expect(tsDiagsText).toBe("")
   }
 
@@ -169,11 +168,11 @@ function testDiagnosticQuickfixesOnExample(
 
           if (getHarnessVersion() === "v4") {
             const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(fileName, finalSource)
-            const typeDiags = program.getSemanticDiagnostics()
-            const syntaxDiags = program.getSyntacticDiagnostics()
+            const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
+            const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
             const snapshotText = [
               finalSource,
-              [...syntaxDiags, ...typeDiags].map((diag) => diagnosticToLogFormat(newSourceFile, finalSource, diag))
+              ...[...syntaxDiags, ...typeDiags].map((diag) => diagnosticToLogFormat(newSourceFile, finalSource, diag))
             ].join("\n\n")
             promises.push(
               expect(snapshotText).toMatchFileSnapshot(snapshotFilePath)
@@ -212,7 +211,7 @@ function testDiagnosticQuickfixesOnExample(
     Nano.unsafeRun,
     async (result) => {
       expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
-      await Promise.allSettled(promises)
+      await Promise.all(promises)
       await expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
         snapshotFilePathList
       )

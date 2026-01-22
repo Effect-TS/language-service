@@ -5,6 +5,7 @@
     "check": "tsc -b tsconfig.json"
   },
   "dependencies": {
+    "@standard-schema/spec": "^1.0.0",
     "@effect/cli": "^0.73.0",
     "@effect/experimental": "^0.58.0",
     "@effect/platform": "^0.94.1",

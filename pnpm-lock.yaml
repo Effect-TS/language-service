@@ -107,15 +107,21 @@ importers:
       '@effect/sql':
         specifier: ^0.49.0
         version: 0.49.0(@effect/experimental@0.58.0)(@effect/platform@0.94.1)(effect@3.19.14)
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.1.0
       effect:
         specifier: ^3.19.14
         version: 3.19.14
 
   packages/harness-effect-v4:
     dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
       effect:
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@e177d6c
-        version: '@pkg.pr.new/Effect-TS/effect-smol/effect/e177d6c'
+        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7
+        version: '@pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7'
 
   packages/language-service:
     devDependencies:
@@ -6489,8 +6495,8 @@ packages:
     hasBin: true
     dev: true
 
-  '@pkg.pr.new/Effect-TS/effect-smol/effect/e177d6c':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@e177d6c}
+  '@pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7}
     name: effect
     version: 4.0.0
     dependencies:
