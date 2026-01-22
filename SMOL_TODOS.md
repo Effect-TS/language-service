@@ -21,7 +21,8 @@ This file tracks all language service features and their compatibility status wi
 - [X] unnecessaryEffectGen
 - [-] effectGenUsesAdapter
 - [X] duplicatePackage
-- [ ] globalErrorInEffectFailure
+- [X] globalErrorInEffectFailure
+- [X] effectInVoidSuccess
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] missingReturnYieldStar
@@ -29,7 +30,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] genericEffectServices
 - [ ] importFromBarrel
 - [ ] scopeInLayerEffect
-- [ ] effectInVoidSuccess
 - [ ] tryCatchInEffectGen
 - [ ] strictBooleanExpressions
 - [ ] multipleEffectProvide
