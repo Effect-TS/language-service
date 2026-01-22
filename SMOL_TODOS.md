@@ -23,6 +23,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] duplicatePackage
 - [X] globalErrorInEffectFailure
 - [X] effectInVoidSuccess
+- [X] effectSucceedWithVoid
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] missingReturnYieldStar
@@ -59,7 +60,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] preferSchemaOverJson
 - [ ] instanceOfSchema
 - [ ] effectFnIife
-- [ ] effectSucceedWithVoid
 
 ---
 
