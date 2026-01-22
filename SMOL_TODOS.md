@@ -15,20 +15,20 @@ This file tracks all language service features and their compatibility status wi
 - [X] floatingEffect
 - [X] missingEffectContext
 - [X] missingEffectError
+- [X] unnecessaryPipe
+- [X] unnecessaryPipeChain
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] unnecessaryEffectGen
 - [ ] duplicatePackage
 - [ ] missingReturnYieldStar
 - [ ] leakingRequirements
-- [ ] unnecessaryPipe
 - [ ] genericEffectServices
 - [ ] returnEffectInGen
 - [ ] importFromBarrel
 - [ ] scopeInLayerEffect
 - [ ] effectInVoidSuccess
 - [ ] tryCatchInEffectGen
-- [ ] unnecessaryPipeChain
 - [ ] strictBooleanExpressions
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
