@@ -1,5 +1,4 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeCheckerApi from "./TypeCheckerApi.js"
@@ -2294,23 +2293,21 @@ export function make(
             )
 
             if (parsed) {
-              const result = parsed
-
               // Build transformations based on parse result type
               let transformations: Array<ParsedPipingFlowTransformation>
               let flowNode: ts.Expression
               let childrenToTraverse: Array<ts.Node> = []
 
-              if (result._tag === "pipe") {
+              if (parsed._tag === "pipe") {
                 // Get the resolved signature to extract intermediate types
-                const signature = typeChecker.getResolvedSignature(result.node)
+                const signature = typeChecker.getResolvedSignature(parsed.node)
                 const typeArguments = signature
                   ? typeChecker.getTypeArgumentsForResolvedSignature(signature) as Array<ts.Type> | undefined
                   : undefined
 
                 transformations = []
-                for (let i = 0; i < result.args.length; i++) {
-                  const arg = result.args[i]
+                for (let i = 0; i < parsed.args.length; i++) {
+                  const arg = parsed.args[i]
                   // For pipe(subject, f1, f2, f3), typeArguments are [A, B, C, D]
                   // where A=input, B=after f1, C=after f2, D=after f3
                   // So for transformation at index i, outType is typeArguments[i+1]
@@ -2322,7 +2319,7 @@ export function make(
                       callee: arg.expression, // e.g., Effect.map
                       args: Array.from(arg.arguments), // e.g., [(x) => x + 1]
                       outType,
-                      kind: result.kind
+                      kind: parsed.kind
                     })
                   } else {
                     // Constant like Effect.asVoid
@@ -2330,21 +2327,21 @@ export function make(
                       callee: arg, // e.g., Effect.asVoid
                       args: undefined,
                       outType,
-                      kind: result.kind
+                      kind: parsed.kind
                     })
                   }
                 }
 
-                flowNode = result.node
+                flowNode = parsed.node
                 // Queue the transformation arguments for independent traversal
-                childrenToTraverse = result.args
+                childrenToTraverse = parsed.args
               } else {
                 // Single-argument call (dual API pattern)
                 const callSignature = typeChecker.getResolvedSignature(node)
                 const outType = callSignature ? typeChecker.getReturnTypeOfSignature(callSignature) : undefined
 
                 transformations = [{
-                  callee: result.callee,
+                  callee: parsed.callee,
                   args: undefined,
                   outType,
                   kind: "call"
@@ -2358,21 +2355,21 @@ export function make(
                 parentFlow.transformations.unshift(...transformations)
                 // Update subject to the inner expression (will be updated further if chain continues)
                 parentFlow.subject = {
-                  node: result.subject,
-                  outType: typeCheckerUtils.getTypeAtLocation(result.subject)
+                  node: parsed.subject,
+                  outType: typeCheckerUtils.getTypeAtLocation(parsed.subject)
                 }
-                workQueue.push([result.subject, parentFlow])
+                workQueue.push([parsed.subject, parentFlow])
               } else {
                 // Start a new flow with subject set to current inner expression
                 const newFlow: ParsedPipingFlow = {
                   node: flowNode,
                   subject: {
-                    node: result.subject,
-                    outType: typeCheckerUtils.getTypeAtLocation(result.subject)
+                    node: parsed.subject,
+                    outType: typeCheckerUtils.getTypeAtLocation(parsed.subject)
                   },
                   transformations
                 }
-                workQueue.push([result.subject, newFlow])
+                workQueue.push([parsed.subject, newFlow])
               }
 
               // Queue children for independent traversal (they may contain their own pipe flows)
@@ -2387,27 +2384,21 @@ export function make(
             // Try to parse as Effect.fn or Effect.fnUntraced with pipe transformations
             if (includeEffectFn) {
               // Try generator versions first
-              const effectFnGenParsed = yield* pipe(effectFnGen(node), Nano.option)
-              const effectFnUntracedGenParsed = Option.isNone(effectFnGenParsed)
-                ? yield* pipe(effectFnUntracedGen(node), Nano.option)
-                : Option.none()
-              // Try non-generator version if generator versions didn't match
-              const effectFnNonGenParsed = Option.isNone(effectFnGenParsed) && Option.isNone(effectFnUntracedGenParsed)
-                ? yield* pipe(effectFn(node), Nano.option)
-                : Option.none()
-
-              const isEffectFnGen = Option.isSome(effectFnGenParsed)
-              const isEffectFnUntracedGen = Option.isSome(effectFnUntracedGenParsed)
-              const isEffectFnNonGen = Option.isSome(effectFnNonGenParsed)
-              const transformationKind: "effectFn" | "effectFnUntraced" = isEffectFnUntracedGen
-                ? "effectFnUntraced"
-                : "effectFn"
+              const effectFnKind = yield* pipe(
+                Nano.map(effectFnGen(node), (_) => ({ kind: "effectFnGen" as const, ..._ })),
+                Nano.orElse(() =>
+                  Nano.map(effectFnUntracedGen(node), (_) => ({ kind: "effectFnUntracedGen" as const, ..._ }))
+                ),
+                Nano.orElse(() => Nano.map(effectFn(node), (_) => ({ kind: "effectFn" as const, ..._ }))),
+                Nano.orUndefined
+              )
 
               // Handle generator versions (Effect.fn with function*() or Effect.fnUntraced with function*())
-              if ((isEffectFnGen || isEffectFnUntracedGen)) {
-                const effectFnParsed = isEffectFnGen ? effectFnGenParsed : effectFnUntracedGenParsed
-                if (Option.isSome(effectFnParsed) && effectFnParsed.value.pipeArguments.length > 0) {
-                  const fnResult = effectFnParsed.value
+              if (
+                effectFnKind && (effectFnKind.kind === "effectFnGen" || effectFnKind.kind === "effectFnUntracedGen")
+              ) {
+                if (effectFnKind.pipeArguments.length > 0) {
+                  const fnResult = effectFnKind
                   const pipeArgs = fnResult.pipeArguments
 
                   // Build transformations from pipeArguments
@@ -2442,14 +2433,14 @@ export function make(
                         callee: arg.expression,
                         args: Array.from(arg.arguments),
                         outType,
-                        kind: transformationKind
+                        kind: effectFnKind.kind === "effectFnUntracedGen" ? "effectFnUntraced" : "effectFn"
                       })
                     } else {
                       transformations.push({
                         callee: arg,
                         args: undefined,
                         outType,
-                        kind: transformationKind
+                        kind: effectFnKind.kind === "effectFnUntracedGen" ? "effectFnUntraced" : "effectFn"
                       })
                     }
                   }
@@ -2478,10 +2469,10 @@ export function make(
 
               // Handle non-generator version (Effect.fn with regular function or arrow function)
               if (
-                isEffectFnNonGen && Option.isSome(effectFnNonGenParsed) &&
-                effectFnNonGenParsed.value.pipeArguments.length > 0
+                effectFnKind && effectFnKind.kind === "effectFn" &&
+                effectFnKind.pipeArguments.length > 0
               ) {
-                const fnResult = effectFnNonGenParsed.value
+                const fnResult = effectFnKind
                 const pipeArgs = fnResult.pipeArguments
 
                 // Build transformations from pipeArguments
