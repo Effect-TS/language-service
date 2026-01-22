@@ -24,6 +24,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] globalErrorInEffectFailure
 - [X] effectInVoidSuccess
 - [X] effectSucceedWithVoid
+- [ ] effectMapVoid
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] missingReturnYieldStar
@@ -53,7 +54,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext
 - [ ] catchAllToMapError
-- [ ] effectMapVoid
 - [ ] effectFnOpportunity
 - [ ] redundantSchemaTagIdentifier
 - [ ] schemaSyncInEffect
