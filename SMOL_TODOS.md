@@ -19,9 +19,11 @@ This file tracks all language service features and their compatibility status wi
 - [X] unnecessaryPipeChain
 - [X] returnEffectInGen
 - [X] unnecessaryEffectGen
+- [-] effectGenUsesAdapter
+- [X] duplicatePackage
+- [ ] globalErrorInEffectFailure
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
-- [ ] duplicatePackage
 - [ ] missingReturnYieldStar
 - [ ] leakingRequirements
 - [ ] genericEffectServices
@@ -35,7 +37,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] classSelfMismatch
 - [ ] unsupportedServiceAccessors
 - [ ] missingEffectServiceDependency
-- [ ] effectGenUsesAdapter
 - [ ] nonObjectEffectServiceType
 - [ ] deterministicKeys
 - [ ] missedPipeableOpportunity
@@ -47,7 +48,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] runEffectInsideEffect
 - [ ] schemaUnionOfLiterals
 - [ ] schemaStructWithTag
-- [ ] globalErrorInEffectFailure
 - [ ] globalErrorInEffectCatch
 - [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext

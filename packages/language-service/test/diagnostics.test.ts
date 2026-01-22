@@ -53,6 +53,17 @@ function testDiagnosticOnExample(
     fileName + ".output"
   )
 
+  if (getHarnessVersion() === "v4") {
+    // expect valid initial code
+    const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+    const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+    const tsDiagsText = [...syntaxDiags, ...typeDiags].map((diag) =>
+      diagnosticToLogFormat(sourceFile, sourceText, diag)
+    )
+      .join("\n\n")
+    expect(tsDiagsText).toBe("")
+  }
+
   // attempt to run the diagnostic and get the output
   return pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
