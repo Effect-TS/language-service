@@ -13,7 +13,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
+import { getExamplesSubdir, getHarnessVersion, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesDiagnosticsDir = () => getExamplesSubdir("diagnostics")
@@ -156,9 +156,22 @@ function testDiagnosticQuickfixesOnExample(
           const finalSource = "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
             codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
 
-          promises.push(
-            expect(finalSource).toMatchFileSnapshot(snapshotFilePath)
-          )
+          if (getHarnessVersion() === "v4") {
+            const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(fileName, finalSource)
+            const typeDiags = program.getSemanticDiagnostics()
+            const syntaxDiags = program.getSyntacticDiagnostics()
+            const snapshotText = [
+              finalSource,
+              [...syntaxDiags, ...typeDiags].map((diag) => diagnosticToLogFormat(newSourceFile, finalSource, diag))
+            ].join("\n\n")
+            promises.push(
+              expect(snapshotText).toMatchFileSnapshot(snapshotFilePath)
+            )
+          } else {
+            promises.push(
+              expect(finalSource).toMatchFileSnapshot(snapshotFilePath)
+            )
+          }
         }
 
         return codeFixes.length === 0
