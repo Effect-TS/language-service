@@ -26,6 +26,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] effectSucceedWithVoid
 - [X] effectMapVoid
 - [X] tryCatchInEffectGen
+- [X] instanceOfSchema
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] missingReturnYieldStar
@@ -58,7 +59,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] redundantSchemaTagIdentifier
 - [ ] schemaSyncInEffect
 - [ ] preferSchemaOverJson
-- [ ] instanceOfSchema
 - [ ] effectFnIife
 
 ---

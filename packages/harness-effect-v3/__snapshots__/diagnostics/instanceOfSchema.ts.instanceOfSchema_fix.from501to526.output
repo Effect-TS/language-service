@@ -1,3 +1,4 @@
+// code fix instanceOfSchema_fix  output for range 501 - 526
 // @effect-diagnostics instanceOfSchema:warning
 import { Schema } from "effect"
 
@@ -16,7 +17,9 @@ if (value instanceof MySchema) {
 class PersonSchema extends Schema.Class<PersonSchema>("MySchema")({
   name: Schema.String,
 }){}
-export const checkPerson = (x: unknown) => x instanceof PersonSchema
+export const checkPerson = (x: unknown) => Schema.is(PersonSchema
+    // Should NOT trigger - regular class
+)(x)
 
 // Should NOT trigger - regular class
 class MyClass {}

@@ -32,3 +32,4 @@ if (value instanceof Date) {
 if (value instanceof RegExp) {
   console.log("is regexp")
 }
+

@@ -1,3 +1,4 @@
+// code fix instanceOfSchema_fix  output for range 259 - 284
 // @effect-diagnostics instanceOfSchema:warning
 import { Schema } from "effect"
 
@@ -8,7 +9,7 @@ class MySchema extends Schema.Class<MySchema>("MySchema")({
 declare const value: unknown
 
 // Should trigger - instanceof used with Effect Schema
-if (value instanceof MySchema) {
+if (Schema.is(MySchema)(value)) {
   console.log("is my schema")
 }
 

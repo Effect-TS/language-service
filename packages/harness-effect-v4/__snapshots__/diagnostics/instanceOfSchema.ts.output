@@ -1,0 +1,5 @@
+value instanceof MySchema
+11:4 - 11:29 | 0 | Consider using Schema.is instead of instanceof for Effect Schema types.    effect(instanceOfSchema)
+
+x instanceof PersonSchema
+19:43 - 19:68 | 0 | Consider using Schema.is instead of instanceof for Effect Schema types.    effect(instanceOfSchema)

@@ -1277,6 +1277,22 @@ export function make(
     ) {
       // should be pipeable
       yield* pipeableType(type, atLocation)
+      // Effect v4 shortcut
+      const typeId = typeChecker.getPropertyOfType(type, "~effect/Schema/Schema")
+      if (typeId) {
+        const typeKey = typeChecker.getPropertyOfType(type, "Type")
+        const encodedKey = typeChecker.getPropertyOfType(type, "Encoded")
+        if (typeKey && encodedKey) {
+          const typeType = typeChecker.getTypeOfSymbolAtLocation(typeKey, atLocation)
+          const encodedType = typeChecker.getTypeOfSymbolAtLocation(encodedKey, atLocation)
+          return {
+            A: typeType,
+            I: encodedType,
+            R: typeChecker.getNeverType()
+          }
+        }
+        return yield* typeParserIssue("missing Type and Encoded")
+      }
       // should have an 'ast' property
       const ast = typeChecker.getPropertyOfType(type, "ast")
       if (!ast) return yield* typeParserIssue("Has no 'ast' property", type, atLocation)
