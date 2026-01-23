@@ -1,0 +1,20 @@
+
+[0;1mCacheLive[0m
+  [0;90mdocumented.ts:42:14[0m
+  [0;90mLayer<Cache, never, never>[0m
+  [0;90mProvides cache with file system backing store[0m
+
+[0;1mProvides (1):[0m
+  [0;90m- Cache[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90mNot sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)[0m
+  [0;90mthen run this command again and use --outputs to select which outputs to include in composition.[0m
+  [0;90mExample: --outputs 1,2,3[0m
+  [0;90m[0m
+  [0;90m[x] 1. Cache[0m
+  [0;90m[ ] 2. FileSystem[0m
+  [0;90m[0m
+  [0;90mexport const CacheLive = Cache.Default.pipe([0m
+    [0;90mLayer.provide(FileSystem.Default)[0m
+  [0;90m)[0m

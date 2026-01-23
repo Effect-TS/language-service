@@ -1,0 +1,43 @@
+
+[0;1mAppLive[0m
+  [0;90mmultiple.ts:47:14[0m
+  [0;90mLayer<Database | UserRepository | EventsRepository | Analytics | UserService | EventService | AppService, never, Database | UserRepository | EventsRepository | Analytics | UserService | EventService>[0m
+
+[0;1mProvides (7):[0m
+  [0;90m- Analytics[0m
+  [0;90m- AppService[0m
+  [0;90m- Database[0m
+  [0;90m- EventService[0m
+  [0;90m- EventsRepository[0m
+  [0;90m- UserRepository[0m
+  [0;90m- UserService[0m
+
+[0;1mRequires (6):[0m
+  [0;90m- Analytics[0m
+  [0;90m- Database[0m
+  [0;90m- EventService[0m
+  [0;90m- EventsRepository[0m
+  [0;90m- UserRepository[0m
+  [0;90m- UserService[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90mNot sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)[0m
+  [0;90mthen run this command again and use --outputs to select which outputs to include in composition.[0m
+  [0;90mExample: --outputs 1,2,3[0m
+  [0;90m[0m
+  [0;90m[x] 1. Analytics[0m
+  [0;90m[x] 2. AppService[0m
+  [0;90m[x] 3. Database[0m
+  [0;90m[x] 4. EventService[0m
+  [0;90m[x] 5. EventsRepository[0m
+  [0;90m[x] 6. UserRepository[0m
+  [0;90m[x] 7. UserService[0m
+  [0;90m[0m
+  [0;90mexport const AppLive = AppService.Default.pipe([0m
+    [0;90mLayer.provideMerge(EventService.Default),[0m
+    [0;90mLayer.provideMerge(UserService.Default),[0m
+    [0;90mLayer.provideMerge(Analytics.Default),[0m
+    [0;90mLayer.provideMerge(EventsRepository.Default),[0m
+    [0;90mLayer.provideMerge(UserRepository.Default),[0m
+    [0;90mLayer.provideMerge(DatabaseLive)[0m
+  [0;90m)[0m

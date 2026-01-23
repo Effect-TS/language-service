@@ -1,0 +1,8 @@
+
+[0;1mLayers (1)[0m
+  AppLive
+    [0;90mduplicated.ts:45:14[0m
+    [0;90mLayer<Database | UserRepository | Analytics | UserService | EventsRepository | EventService | AppService, never, Database | UserRepository | Analytics | UserService | EventsRepository | EventService>[0m
+
+
+[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

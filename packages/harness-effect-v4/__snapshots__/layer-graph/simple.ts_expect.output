@@ -1,0 +1,2 @@
+flowchart TD
+  0["UserRepository.Default<br/>provides: UserRepository<br/>requires: Cache, DbConnection"]

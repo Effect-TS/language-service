@@ -1,0 +1,54 @@
+
+[0;1mServices (4)[0m
+  DbConnection
+    [0;90msimple.ts:3:1[0m
+    [0;90m{}[0m
+
+  FileSystem
+    [0;90msimple.ts:8:1[0m
+    [0;90m{}[0m
+
+  Cache
+    [0;90msimple.ts:13:1[0m
+    [0;90m{}[0m
+
+  UserRepository
+    [0;90msimple.ts:18:1[0m
+    [0;90m{}[0m
+
+
+[0;1mLayers (8)[0m
+  DbConnection.Default
+    [0;90msimple.ts:3:1[0m
+    [0;90mLayer<DbConnection, never, never>[0m
+
+  FileSystem.Default
+    [0;90msimple.ts:8:1[0m
+    [0;90mLayer<FileSystem, never, never>[0m
+
+  Cache.Default
+    [0;90msimple.ts:13:1[0m
+    [0;90mLayer<Cache, never, FileSystem>[0m
+
+  UserRepository.Default
+    [0;90msimple.ts:18:1[0m
+    [0;90mLayer<UserRepository, never, DbConnection | Cache>[0m
+
+  expect
+    [0;90msimple.ts:23:14[0m
+    [0;90mLayer<UserRepository, never, DbConnection | Cache>[0m
+
+  simplePipeIn
+    [0;90msimple.ts:25:14[0m
+    [0;90mLayer<UserRepository, never, DbConnection | FileSystem>[0m
+
+  liveWithPipeable
+    [0;90msimple.ts:27:14[0m
+    [0;90mLayer<DbConnection | Cache | UserRepository, never, DbConnection | FileSystem>[0m
+
+  cacheWithFs
+    [0;90msimple.ts:32:14[0m
+    [0;90mLayer<Cache, never, never>[0m
+
+
+[0;90mTip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.[0m

@@ -1,0 +1,4 @@
+flowchart TD
+  0["DatabaseContext.Default"]
+  1["Layer.effectDiscard#40;Effect.gen#40;function*#40;#41; #123;<br/>  const databaseContext = yield* DatabaseContext.asEffect#40;#41;<br/><br/>  return yield* Effect.log#40;databaseContext.value#41;<br/>#125;#41;#41;"]
+  1 --> 0

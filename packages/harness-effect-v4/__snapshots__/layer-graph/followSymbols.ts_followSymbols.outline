@@ -1,0 +1,6 @@
+flowchart TD
+  0["Layer.effect#40;this, this.make#41;<br/>_in simple.ts at ln 6 col 19_"]
+  1["Cache.Default<br/>_in simple.ts at ln 25 col 70_"]
+  2["UserRepository.Default<br/>_in simple.ts at ln 25 col 28_"]
+  2 --> 1
+  2 --> 0

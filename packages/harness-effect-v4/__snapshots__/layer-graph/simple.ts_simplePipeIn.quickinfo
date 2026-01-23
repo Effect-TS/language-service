@@ -1,0 +1,6 @@
+/**
+ * - UserRepository provided at ln 25 col 28 by `UserRepository.Default`
+ * 
+ * - DbConnection required at ln 25 col 28 by `UserRepository.Default`
+ * - FileSystem required at ln 25 col 70 by `Cache.Default`
+ */

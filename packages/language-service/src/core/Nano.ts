@@ -165,7 +165,7 @@ class NanoFiber {
   _yielded: NanoExit | undefined = undefined
   _services: Record<string, any> = {}
   _cache: Record<string, WeakMap<any, any>> = {}
-  _perf: boolean = true
+  _perf: boolean = false
   _lastSpan: string = ""
 
   runLoop(nano: Nano<any, any, any>) {
