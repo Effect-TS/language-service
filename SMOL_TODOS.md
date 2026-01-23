@@ -31,6 +31,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] missingStarInYieldEffectGen
 - [X] missingReturnYieldStar
 - [X] strictBooleanExpressions
+- [X] globalErrorInEffectCatch
 - [ ] catchUnfailableEffect
 - [ ] leakingRequirements
 - [ ] genericEffectServices
@@ -51,7 +52,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] runEffectInsideEffect
 - [ ] schemaUnionOfLiterals
 - [ ] schemaStructWithTag
-- [ ] globalErrorInEffectCatch
 - [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext
 - [ ] catchAllToMapError
