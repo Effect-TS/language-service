@@ -29,7 +29,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] instanceOfSchema
 - [X] anyUnknownInErrorContext
 - [X] missingStarInYieldEffectGen
-- [ ] missingReturnYieldStar
+- [X] missingReturnYieldStar
 - [ ] catchUnfailableEffect
 - [ ] leakingRequirements
 - [ ] genericEffectServices
