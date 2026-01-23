@@ -34,6 +34,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] missingReturnYieldStar
 - [X] strictBooleanExpressions
 - [X] globalErrorInEffectCatch
+- [X] preferSchemaOverJson
 - [ ] catchUnfailableEffect
 - [ ] leakingRequirements
 - [ ] genericEffectServices
@@ -58,7 +59,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] effectFnOpportunity
 - [ ] redundantSchemaTagIdentifier
 - [ ] schemaSyncInEffect
-- [ ] preferSchemaOverJson
 - [ ] effectFnIife
 
 ---
