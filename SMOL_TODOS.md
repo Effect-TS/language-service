@@ -27,6 +27,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] effectMapVoid
 - [X] tryCatchInEffectGen
 - [X] instanceOfSchema
+- [X] anyUnknownInErrorContext
 - [ ] catchUnfailableEffect
 - [ ] missingStarInYieldEffectGen
 - [ ] missingReturnYieldStar
@@ -44,7 +45,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] deterministicKeys
 - [ ] missedPipeableOpportunity
 - [ ] strictEffectProvide
-- [ ] anyUnknownInErrorContext
 - [ ] unnecessaryFailYieldableError
 - [ ] overriddenSchemaConstructor
 - [ ] unknownInEffectCatch
