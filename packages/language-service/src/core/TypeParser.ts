@@ -1,10 +1,15 @@
 import { pipe } from "effect/Function"
+import * as Predicate from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeCheckerApi from "./TypeCheckerApi.js"
 import * as TypeCheckerUtils from "./TypeCheckerUtils.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
+
+export type ResolvedPackagesCache = Record<string, Record<string, any>>
+const checkedPackagesCache = new Map<string, ResolvedPackagesCache>()
+const programResolvedCacheSize = new Map<string, number>()
 
 export interface ParsedPipeCall {
   node: ts.CallExpression
@@ -312,6 +317,8 @@ export interface TypeParser {
     includeEffectFn: boolean
   ) => (sourceFile: ts.SourceFile) => Nano.Nano<Array<ParsedPipingFlow>, never, never>
   reconstructPipingFlow: (flow: Pick<ParsedPipingFlow, "subject" | "transformations">) => ts.Expression
+  getEffectRelatedPackages: (sourceFile: ts.SourceFile) => ResolvedPackagesCache
+  supportedEffect: () => "v3" | "v4"
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -351,6 +358,51 @@ export function make(
   typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils,
   program: TypeScriptApi.TypeScriptProgram
 ): TypeParser {
+  function supportedEffect(): "v3" | "v4" {
+    for (const fileName of program.getRootFileNames()) {
+      const sourceFile = program.getSourceFile(fileName)
+      if (!sourceFile) continue
+      const resolvedPackages = getEffectRelatedPackages(sourceFile)
+      for (const version of Object.keys(resolvedPackages["effect"])) {
+        if (String(version).startsWith("4")) return "v4"
+        if (String(version).startsWith("3")) return "v3"
+      }
+    }
+    return "v3"
+  }
+
+  function getEffectRelatedPackages(sourceFile: ts.SourceFile) {
+    // whenever we detect the resolution cache size has changed, try again the check
+    // this should mitigate how frequently this rule is triggered
+    let resolvedPackages: ResolvedPackagesCache = checkedPackagesCache.get(sourceFile.fileName) ||
+      {}
+    const newResolvedModuleSize =
+      Predicate.hasProperty(program, "resolvedModules") && Predicate.hasProperty(program.resolvedModules, "size") &&
+        Predicate.isNumber(program.resolvedModules.size) ?
+        program.resolvedModules.size :
+        0
+    const oldResolvedSize = programResolvedCacheSize.get(sourceFile.fileName) || -1
+    if (newResolvedModuleSize !== oldResolvedSize) {
+      const seenPackages = new Set<string>()
+      resolvedPackages = {}
+      program.getSourceFiles().map((_) => {
+        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(_)
+        if (!packageInfo) return
+        const packageNameAndVersion = packageInfo.name + "@" + packageInfo.version
+        if (seenPackages.has(packageNameAndVersion)) return
+        seenPackages.add(packageNameAndVersion)
+        if (
+          !(packageInfo.name === "effect" || packageInfo.hasEffectInPeerDependencies)
+        ) return
+        resolvedPackages[packageInfo.name] = resolvedPackages[packageInfo.name] || {}
+        resolvedPackages[packageInfo.name][packageInfo.version] = packageInfo.packageDirectory
+      })
+      checkedPackagesCache.set(sourceFile.fileName, resolvedPackages)
+      programResolvedCacheSize.set(sourceFile.fileName, newResolvedModuleSize)
+    }
+    return resolvedPackages
+  }
+
   const getSourceFilePackageInfo = Nano.cachedBy(
     Nano.fn("TypeParser.getSourceFilePackageInfo")(function*(sourceFile: ts.SourceFile) {
       return tsUtils.resolveModuleWithPackageInfoFromSourceFile(program, sourceFile)
@@ -672,13 +724,15 @@ export function make(
       type: ts.Type,
       atLocation: ts.Node
     ) {
-      // Effect v4 TypeId shortcut
-      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Effect")
-      if (typeIdSymbol) {
-        const typeIdType = typeChecker.getTypeOfSymbolAtLocation(typeIdSymbol, atLocation)
-        return yield* effectVarianceStruct(typeIdType, atLocation)
+      if (supportedEffect() === "v4") {
+        // Effect v4 TypeId shortcut
+        const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Effect")
+        if (typeIdSymbol) {
+          const typeIdType = typeChecker.getTypeOfSymbolAtLocation(typeIdSymbol, atLocation)
+          return yield* effectVarianceStruct(typeIdType, atLocation)
+        }
+        return yield* typeParserIssue("Type is not an effect", type, atLocation)
       } else {
-        // EFFECT-SMOL: This should be removed in v4-only mode
         // get the properties to check (exclude non-property and optional properties)
         const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
           _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
@@ -2684,6 +2738,8 @@ export function make(
     lazyExpression,
     emptyFunction,
     pipingFlows,
-    reconstructPipingFlow
+    reconstructPipingFlow,
+    getEffectRelatedPackages,
+    supportedEffect
   }
 }

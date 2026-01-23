@@ -35,6 +35,8 @@ This file tracks all language service features and their compatibility status wi
 - [X] strictBooleanExpressions
 - [X] globalErrorInEffectCatch
 - [X] preferSchemaOverJson
+- [ ] catchAllToMapError
+- [ ] unnecessaryFailYieldableError
 - [ ] catchUnfailableEffect
 - [ ] leakingRequirements
 - [ ] genericEffectServices
@@ -48,14 +50,12 @@ This file tracks all language service features and their compatibility status wi
 - [ ] deterministicKeys
 - [ ] missedPipeableOpportunity
 - [ ] strictEffectProvide
-- [ ] unnecessaryFailYieldableError
 - [ ] overriddenSchemaConstructor
 - [ ] unknownInEffectCatch
 - [ ] runEffectInsideEffect
 - [ ] schemaStructWithTag
 - [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext
-- [ ] catchAllToMapError
 - [ ] effectFnOpportunity
 - [ ] redundantSchemaTagIdentifier
 - [ ] schemaSyncInEffect
