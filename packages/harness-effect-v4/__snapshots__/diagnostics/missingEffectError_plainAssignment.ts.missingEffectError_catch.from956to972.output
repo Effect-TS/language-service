@@ -1,4 +1,4 @@
-// code fix missingEffectError_catchAll  output for range 843 - 856
+// code fix missingEffectError_catch  output for range 956 - 972
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 
@@ -31,9 +31,9 @@ export const missingErrorCWithSubtyping: EffectSubtyping<number> = effectWithErr
 
 export function missingErrorWithGenericType<A>(error: A) {
   // @ts-expect-error
-  const missingErrorA: Effect.Effect<never> = Effect.catchAll(Effect.fail(error), () => Effect.dieMessage("TODO: catchAll not implemented"))
+  const missingErrorA: Effect.Effect<never> = Effect.fail(error)
   return missingErrorA
 }
 
 // @ts-expect-error
-const _ = effectWithErrors satisfies Effect.Effect<number, never, never>
+const _ = Effect.catch(effectWithErrors, () => Effect.dieMessage("TODO: catch not implemented")) satisfies Effect.Effect<number, never, never>

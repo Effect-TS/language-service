@@ -1,4 +1,4 @@
-// code fix missingEffectError_catchAll  output for range 956 - 972
+// code fix missingEffectError_catch  output for range 400 - 416
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 
@@ -19,7 +19,7 @@ declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
 export const noError: Effect.Effect<number> = Effect.succeed(1)
 
 // @ts-expect-error
-export const missingAllErrors: Effect.Effect<number> = effectWithErrors
+export const missingAllErrors: Effect.Effect<number> = Effect.catch(effectWithErrors, () => Effect.dieMessage("TODO: catch not implemented"))
 
 // @ts-expect-error
 export const missingErrorC: Effect.Effect<number, ErrorA | ErrorB> = effectWithErrors
@@ -36,4 +36,4 @@ export function missingErrorWithGenericType<A>(error: A) {
 }
 
 // @ts-expect-error
-const _ = Effect.catchAll(effectWithErrors, () => Effect.dieMessage("TODO: catchAll not implemented")) satisfies Effect.Effect<number, never, never>
+const _ = effectWithErrors satisfies Effect.Effect<number, never, never>

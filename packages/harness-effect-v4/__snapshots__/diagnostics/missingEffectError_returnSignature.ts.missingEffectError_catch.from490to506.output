@@ -1,4 +1,4 @@
-// code fix missingEffectError_catchAll  output for range 490 - 506
+// code fix missingEffectError_catch  output for range 490 - 506
 import * as Data from "effect/Data"
 import type * as Effect from "effect/Effect"
 
@@ -22,7 +22,7 @@ export function testFn(): Effect.Effect<number> {
 }
 
 // @ts-expect-error
-export const conciseBody: () => Effect.Effect<number> = () => Effect.catchAll(effectWithErrors, () => Effect.dieMessage("TODO: catchAll not implemented"))
+export const conciseBody: () => Effect.Effect<number> = () => Effect.catch(effectWithErrors, () => Effect.dieMessage("TODO: catch not implemented"))
 
 // @ts-expect-error
 export const conciseBodyMissingServiceC: () => Effect.Effect<number, ErrorA | ErrorB> = () => effectWithErrors

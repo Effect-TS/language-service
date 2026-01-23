@@ -1,4 +1,4 @@
-// code fix missingEffectError_catchAll  output for range 402 - 418
+// code fix missingEffectError_catch  output for range 402 - 418
 import * as Data from "effect/Data"
 import type * as Effect from "effect/Effect"
 
@@ -21,7 +21,7 @@ function testFn(effect: Effect.Effect<number>) {
 }
 
 // @ts-expect-error
-testFn(Effect.catchAll(effectWithErrors, () => Effect.dieMessage("TODO: catchAll not implemented")))
+testFn(Effect.catch(effectWithErrors, () => Effect.dieMessage("TODO: catch not implemented")))
 
 function testFnWithServiceAB(effect: Effect.Effect<number, ErrorA | ErrorB>) {
   return effect

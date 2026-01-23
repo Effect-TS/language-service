@@ -1,4 +1,4 @@
-// code fix missingEffectError_catchAll  output for range 437 - 453
+// code fix missingEffectError_catch  output for range 437 - 453
 import * as Data from "effect/Data"
 import type * as Effect from "effect/Effect"
 
@@ -17,7 +17,7 @@ class ErrorC extends Data.TaggedClass("ErrorC")<{
 declare const effectWithErrors: Effect.Effect<number, ErrorA | ErrorB | ErrorC>
 
 // @ts-expect-error
-export const conciseBody: () => Effect.Effect<number> = () => Effect.catchAll(effectWithErrors, () => Effect.dieMessage("TODO: catchAll not implemented"))
+export const conciseBody: () => Effect.Effect<number> = () => Effect.catch(effectWithErrors, () => Effect.dieMessage("TODO: catch not implemented"))
 
 // @ts-expect-error
 export const conciseBody2: () => Effect.Effect<number, ErrorB> = () => effectWithErrors
