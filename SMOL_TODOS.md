@@ -30,12 +30,12 @@ This file tracks all language service features and their compatibility status wi
 - [X] anyUnknownInErrorContext
 - [X] missingStarInYieldEffectGen
 - [X] missingReturnYieldStar
+- [X] strictBooleanExpressions
 - [ ] catchUnfailableEffect
 - [ ] leakingRequirements
 - [ ] genericEffectServices
 - [ ] importFromBarrel
 - [ ] scopeInLayerEffect
-- [ ] strictBooleanExpressions
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
 - [ ] classSelfMismatch
