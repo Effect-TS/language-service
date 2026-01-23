@@ -14,6 +14,7 @@ export const catchAllToMapError = LSP.createDiagnostic({
   apply: Nano.fn("catchAllToMapError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const catchAllName = typeParser.supportedEffect() === "v3" ? "catchAll" : "catch"
 
     /**
      * Gets the body of a function expression or arrow function
@@ -79,7 +80,7 @@ export const catchAllToMapError = LSP.createDiagnostic({
 
         // Check if the callee is Effect.catchAll
         const isCatchAllCall = yield* pipe(
-          typeParser.isNodeReferenceToEffectModuleApi("catchAll")(transformation.callee),
+          typeParser.isNodeReferenceToEffectModuleApi(catchAllName)(transformation.callee),
           Nano.orUndefined
         )
 
@@ -105,7 +106,7 @@ export const catchAllToMapError = LSP.createDiagnostic({
         report({
           location: transformation.callee,
           messageText:
-            `You can use Effect.mapError instead of Effect.catchAll + Effect.fail to transform the error type.`,
+            `You can use Effect.mapError instead of Effect.${catchAllName} + Effect.fail to transform the error type.`,
           fixes: [{
             fixName: "catchAllToMapError_fix",
             description: "Replace with Effect.mapError",
