@@ -12,6 +12,9 @@ This file tracks all language service features and their compatibility status wi
 
 ## Diagnostics (47 total)
 
+- [-] effectGenUsesAdapter
+- [-] unsupportedServiceAccessors
+- [-] schemaUnionOfLiterals
 - [X] floatingEffect
 - [X] missingEffectContext
 - [X] missingEffectError
@@ -19,7 +22,6 @@ This file tracks all language service features and their compatibility status wi
 - [X] unnecessaryPipeChain
 - [X] returnEffectInGen
 - [X] unnecessaryEffectGen
-- [-] effectGenUsesAdapter
 - [X] duplicatePackage
 - [X] globalErrorInEffectFailure
 - [X] effectInVoidSuccess
@@ -40,7 +42,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
 - [ ] classSelfMismatch
-- [ ] unsupportedServiceAccessors
 - [ ] missingEffectServiceDependency
 - [ ] nonObjectEffectServiceType
 - [ ] deterministicKeys
@@ -50,7 +51,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] overriddenSchemaConstructor
 - [ ] unknownInEffectCatch
 - [ ] runEffectInsideEffect
-- [ ] schemaUnionOfLiterals
 - [ ] schemaStructWithTag
 - [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext
