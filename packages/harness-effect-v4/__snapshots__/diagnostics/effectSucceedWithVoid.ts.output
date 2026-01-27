@@ -1,0 +1,14 @@
+Effect.succeed(undefined)
+4:38 - 4:63 | 2 | Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)    effect(effectSucceedWithVoid)
+
+Effect.succeed(void 0)
+7:34 - 7:56 | 2 | Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)    effect(effectSucceedWithVoid)
+
+Effect.succeed((undefined))
+11:51 - 11:78 | 2 | Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)    effect(effectSucceedWithVoid)
+
+Effect.succeed((void 0))
+14:47 - 14:71 | 2 | Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)    effect(effectSucceedWithVoid)
+
+Effect.succeed(((undefined)))
+18:57 - 18:86 | 2 | Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)    effect(effectSucceedWithVoid)

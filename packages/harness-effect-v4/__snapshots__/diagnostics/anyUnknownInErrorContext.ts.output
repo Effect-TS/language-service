@@ -1,0 +1,68 @@
+withUnknownContext
+4:13 - 4:31 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+Effect.services<unknown>()
+5:9 - 5:35 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+withAnyContext
+8:13 - 8:27 | 0 | This has any in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+Effect.services<any>()
+9:9 - 9:31 | 0 | This has any in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+withAnyFailure
+12:13 - 12:27 | 0 | This has any in the error channel which is not recommended.
+Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
+
+Effect.fail<any>(42)
+13:16 - 13:36 | 0 | This has any in the error channel which is not recommended.
+Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
+
+withUnknownFailure
+16:13 - 16:31 | 0 | This has unknown in the error channel which is not recommended.
+Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
+
+Effect.fail<unknown>(42)
+17:16 - 17:40 | 0 | This has unknown in the error channel which is not recommended.
+Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
+
+hasBothAnyUnknown
+20:13 - 20:30 | 0 | This has unknown in the requirements channel and any in the error channel which is not recommended.
+Only service identifiers should appear in the requirements channel.
+Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
+
+Effect.services<unknown>()
+21:9 - 21:35 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+Effect.fail<any>(42)
+22:16 - 22:36 | 0 | This has any in the error channel which is not recommended.
+Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
+
+effectUnkown
+37:6 - 37:18 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+Effect.services<unknown>()
+37:21 - 37:47 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+layerUnknown
+38:6 - 38:18 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+effectUnkown
+38:41 - 38:53 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+composedLayerUnknown
+39:13 - 39:33 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
+
+layerUnknown
+39:67 - 39:79 | 0 | This has unknown in the requirements channel which is not recommended.
+Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)

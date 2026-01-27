@@ -1,0 +1,39 @@
+// @effect-diagnostics anyUnknownInErrorContext:warning
+import { Effect, Layer } from "effect"
+
+export const withUnknownContext = Effect.gen(function*() {
+  yield* Effect.services<unknown>()
+})
+
+export const withAnyContext = Effect.gen(function*() {
+  yield* Effect.services<any>()
+})
+
+export const withAnyFailure = Effect.gen(function*() {
+  return yield* Effect.fail<any>(42)
+})
+
+export const withUnknownFailure = Effect.gen(function*() {
+  return yield* Effect.fail<unknown>(42)
+})
+
+export const hasBothAnyUnknown = Effect.gen(function*() {
+  yield* Effect.services<unknown>()
+  return yield* Effect.fail<any>(42)
+})
+
+export const thisIsFine: Effect.Effect<void, number> = Effect.fail<any>(42) as any
+
+export function explicitAny(_a: Effect.Effect<void, number, any>) {
+  return Effect.succeed(42)
+}
+
+export const thisIsAlsoFine: Effect.Effect<void, number, any> = Effect.succeed(42)
+
+export class Test {
+  a: Effect.Effect<void, number, any> = Effect.succeed(42)
+}
+
+const effectUnkown = Effect.services<unknown>()
+const layerUnknown = Layer.effectDiscard(effectUnkown)
+export const composedLayerUnknown = Layer.empty.pipe(Layer.provide(layerUnknown))

@@ -1,0 +1,40 @@
+flowchart TB
+  subgraph 0 ["`providesStringLayer<br/><small>_ln 11 col 61_</small>`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_provides [Provides]
+        0_provides_0["string"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
+  subgraph 1 ["`Layer.provide(providesStringLayer)<br/><small>_ln 11 col 47_</small>`"]
+    subgraph 1_wrap[" "]
+    end
+    style 1_wrap fill:transparent
+    style 1_wrap stroke:none
+  end
+  style 1 fill:transparent
+  subgraph 2 ["`requiresUser<br/><small>_ln 11 col 29_</small>`"]
+    subgraph 2_wrap[" "]
+      subgraph 2_requires [Requires]
+        2_requires_0["#quot;UsersString#quot;"]
+      end
+      style 2_requires stroke:none
+    end
+    style 2_wrap fill:transparent
+    style 2_wrap stroke:none
+  end
+  style 2 fill:transparent
+  subgraph 3 ["`testInference<br/><small>_ln 11 col 13_</small>`"]
+    subgraph 3_wrap[" "]
+    end
+    style 3_wrap fill:transparent
+    style 3_wrap stroke:none
+  end
+  style 3 fill:transparent
+  1 -.-x 0
+  1 -.-x 2
+  3 -.-x 1

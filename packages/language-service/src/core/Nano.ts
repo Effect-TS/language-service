@@ -487,6 +487,14 @@ export const option = <A, E, R>(fa: Nano<A, E, R>): Nano<Option.Option<A>, never
   return nano
 }
 
+export const orUndefined = <A, E, R>(fa: Nano<A, E, R>): Nano<A | undefined, never, R> => {
+  const nano = Object.create(MatchProto)
+  nano[args] = fa
+  nano[contA] = (_: A) => succeed(_)
+  nano[contE] = (_: E | NanoDefectException) => _ instanceof NanoDefectException ? fail(_) : succeed(undefined)
+  return nano
+}
+
 export const ignore = <A, E, R>(fa: Nano<A, E, R>): Nano<void, never, R> => {
   const nano = Object.create(MatchProto)
   nano[args] = fa

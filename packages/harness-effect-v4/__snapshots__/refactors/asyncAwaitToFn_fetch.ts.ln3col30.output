@@ -1,0 +1,7 @@
+// Result of running refactor asyncAwaitToFn at position 3:30
+
+export const getUserName = Effect.fn("getUserName")(function*(userId: string) {
+    const user = yield* Effect.promise(() => fetch(`https://api.example.com/users/${userId}`))
+    const userData = yield* Effect.promise(() => user.json())
+    return userData.name
+})

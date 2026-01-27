@@ -1,0 +1,32 @@
+testString
+3:36 - 3:46 | 1 | Unexpected `string` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar
+6:44 - 6:49 | 1 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar3
+9:39 - 9:45 | 1 | Unexpected `null` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar4
+12:44 - 12:50 | 1 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar4
+14:41 - 14:47 | 1 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+testString
+16:54 - 16:64 | 1 | Unexpected `string` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+(myVar8 || (myVar9 && fn()))
+21:29 - 21:57 | 1 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+testString
+22:53 - 22:63 | 1 | Unexpected `string` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar3 || myVar4
+24:4 - 24:20 | 1 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar3
+24:4 - 24:10 | 1 | Unexpected `null` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+myVar4
+24:14 - 24:20 | 1 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)

@@ -1,0 +1,14 @@
+Effect.catch
+15:2 - 15:14 | 2 | You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)
+
+Effect.catch
+20:2 - 20:14 | 2 | You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)
+
+Effect.catch
+28:2 - 28:14 | 2 | You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)
+
+Effect.catch
+33:2 - 33:14 | 2 | You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)
+
+Effect.catch
+62:2 - 62:14 | 2 | You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)

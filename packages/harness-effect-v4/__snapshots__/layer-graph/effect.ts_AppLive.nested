@@ -1,0 +1,40 @@
+flowchart TB
+  subgraph 0 ["`DatabaseContext.Default<br/><small>_ln 15 col 23_</small>`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_provides [Provides]
+        0_provides_0["DatabaseContext"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
+  subgraph 1 ["`Layer.provide(DatabaseContext.Default)<br/><small>_ln 15 col 9_</small>`"]
+    subgraph 1_wrap[" "]
+    end
+    style 1_wrap fill:transparent
+    style 1_wrap stroke:none
+  end
+  style 1 fill:transparent
+  subgraph 2 ["`Layer.effectDiscard(Effect.gen(function*() { const<br/><small>_ln 11 col 23_</small>`"]
+    subgraph 2_wrap[" "]
+      subgraph 2_requires [Requires]
+        2_requires_0["DatabaseContext"]
+      end
+      style 2_requires stroke:none
+    end
+    style 2_wrap fill:transparent
+    style 2_wrap stroke:none
+  end
+  style 2 fill:transparent
+  subgraph 3 ["`AppLive<br/><small>_ln 11 col 13_</small>`"]
+    subgraph 3_wrap[" "]
+    end
+    style 3_wrap fill:transparent
+    style 3_wrap stroke:none
+  end
+  style 3 fill:transparent
+  1 -.-x 0
+  1 -.-x 2
+  3 -.-x 1

@@ -26,18 +26,6 @@ exports[`Layer Graph  > followSymbols.ts 1`] = `
 ]
 `;
 
-exports[`Layer Graph  > generics.ts 1`] = `
-[
-  "NoComment",
-]
-`;
-
-exports[`Layer Graph  > incorrectInference.ts 1`] = `
-[
-  "testInference",
-]
-`;
-
 exports[`Layer Graph  > multiple.ts 1`] = `
 [
   "AppLive",

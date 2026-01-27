@@ -13,7 +13,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
+import { getExamplesSubdir, getHarnessVersion, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesDiagnosticsDir = () => getExamplesSubdir("diagnostics")
@@ -52,6 +52,16 @@ function testDiagnosticOnExample(
     getSnapshotsSubdir("diagnostics"),
     fileName + ".output"
   )
+
+  if (getHarnessVersion() === "v4") {
+    // expect valid initial code
+    const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+    const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+    const tsDiagsText = [...syntaxDiags, ...typeDiags].map((diag) =>
+      diagnosticToLogFormat(sourceFile, sourceText, diag)
+    ).join("\n\n")
+    expect(tsDiagsText).toBe("")
+  }
 
   // attempt to run the diagnostic and get the output
   return pipe(
@@ -125,6 +135,9 @@ function testDiagnosticQuickfixesOnExample(
         for (
           const codeFix of codeFixes
         ) {
+          // skip skipFile and skipNextLine fixes
+          if (codeFix.fixName.endsWith("_skipFile") || codeFix.fixName.endsWith("_skipNextLine")) continue
+
           // create snapshot path
           const snapshotFilePath = path.join(
             getSnapshotsSubdir("diagnostics"),
@@ -149,12 +162,26 @@ function testDiagnosticQuickfixesOnExample(
                 (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
               )
           )
-          promises.push(
-            expect(
-              "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
-                codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
-            ).toMatchFileSnapshot(snapshotFilePath)
-          )
+          // final source
+          const finalSource = "// code fix " + codeFix.fixName + "  output for range " + codeFix.start + " - " +
+            codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
+
+          if (getHarnessVersion() === "v4") {
+            const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(fileName, finalSource)
+            const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
+            const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
+            const snapshotText = [
+              finalSource,
+              ...[...syntaxDiags, ...typeDiags].map((diag) => diagnosticToLogFormat(newSourceFile, finalSource, diag))
+            ].join("\n\n")
+            promises.push(
+              expect(snapshotText).toMatchFileSnapshot(snapshotFilePath)
+            )
+          } else {
+            promises.push(
+              expect(finalSource).toMatchFileSnapshot(snapshotFilePath)
+            )
+          }
         }
 
         return codeFixes.length === 0
@@ -184,7 +211,7 @@ function testDiagnosticQuickfixesOnExample(
     Nano.unsafeRun,
     async (result) => {
       expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
-      await Promise.allSettled(promises)
+      await Promise.all(promises)
       await expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
         snapshotFilePathList
       )

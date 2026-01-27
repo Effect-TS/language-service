@@ -14,7 +14,7 @@ import * as TypeScriptUtils from "../src/core/TypeScriptUtils"
 import { diagnostics } from "../src/diagnostics"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
-const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "examples", "diagnostics")
+const getExamplesDiagnosticsDir = () => path.join(__dirname, "..", "..", "harness-effect-v3", "examples", "diagnostics")
 
 function testAllDagnostics() {
   // read all filenames

@@ -1,0 +1,16 @@
+flowchart TD
+  0["DbConnection.Default<br/>provides: DbConnection<br/>requires: "]
+  1["Layer.provide#40;DbConnection.Default#41;<br/>provides: UserRepository, Cache<br/>requires: "]
+  2["FileSystem.Default<br/>provides: FileSystem<br/>requires: "]
+  3["Layer.provide#40;FileSystem.Default#41;<br/>provides: UserRepository, Cache<br/>requires: DbConnection"]
+  4["Cache.Default<br/>provides: Cache<br/>requires: FileSystem"]
+  5["Layer.provideMerge#40;Cache.Default#41;<br/>provides: UserRepository, Cache<br/>requires: DbConnection, FileSystem"]
+  6["UserRepository.Default<br/>provides: UserRepository<br/>requires: DbConnection, Cache"]
+  7["UserRepository.Default.pipe#40;<br/>  Layer.provideMerge#40;Cache.Default#41;,<br/>  Layer.provide#40;FileSystem.Default#41;,<br/>  Layer.provide#40;DbConnection.Default#41;<br/>#41;<br/>provides: UserRepository, Cache<br/>requires: "]
+  1 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 0
+  3 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 2
+  5 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 4
+  5 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 6
+  3 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 5
+  1 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 3
+  7 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 1

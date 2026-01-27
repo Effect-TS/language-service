@@ -1,0 +1,26 @@
+// @effect-diagnostics catchUnfailableEffect:warning
+import { Effect, Option } from "effect"
+
+// catchAll variant
+export const catchAllExample = Effect.succeed(42).pipe(
+  Effect.catch(() => Effect.void) // <- should report here
+)
+
+// catchIf variant
+export const catchIfExample = Effect.succeed(42).pipe(
+  Effect.catchIf((error) => error === "MyError", () => Effect.void) // <- should report here
+)
+
+// catchTag variant
+export const catchTagExample = Effect.succeed(42).pipe(
+  // @ts-expect-error
+  Effect.catchTag("MyError", () => Effect.void) // <- should report here
+)
+
+// catchTags variant
+export const catchTagsExample = Effect.succeed(42).pipe(
+  Effect.catchTags({
+    // @ts-expect-error
+    MyError: () => Effect.void
+  }) // <- should report here
+)

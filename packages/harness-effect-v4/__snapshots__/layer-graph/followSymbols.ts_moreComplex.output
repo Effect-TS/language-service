@@ -1,0 +1,24 @@
+flowchart TD
+  0["Layer.effect#40;this, this.make#41;<br/>provides: DbConnection<br/>requires: "]
+  1["DbConnection.Default<br/>provides: DbConnection<br/>requires: "]
+  2["Layer.merge#40;DbConnection.Default#41;<br/>provides: UserRepository, DbConnection<br/>requires: DbConnection"]
+  3["FileSystem.Default<br/>provides: FileSystem<br/>requires: "]
+  4["Layer.provide#40;FileSystem.Default#41;<br/>provides: Cache<br/>requires: "]
+  5["Cache.Default<br/>provides: Cache<br/>requires: FileSystem"]
+  6["Cache.Default.pipe#40;Layer.provide#40;FileSystem.Default#41;#41;<br/>provides: Cache<br/>requires: "]
+  7["cacheWithFs<br/>provides: Cache<br/>requires: "]
+  8["Layer.provide#40;cacheWithFs#41;<br/>provides: UserRepository<br/>requires: DbConnection"]
+  9["Layer.effect#40;this, this.make#41;<br/>provides: UserRepository<br/>requires: Cache, DbConnection"]
+  10["UserRepository.Default<br/>provides: UserRepository<br/>requires: Cache, DbConnection"]
+  11["UserRepository.Default.pipe#40;Layer.provide#40;cacheWithFs#41;, Layer.merge#40;DbConnection.Default#41;#41;<br/>provides: UserRepository, DbConnection<br/>requires: DbConnection"]
+  1 -->|"#123;#quot;relationship#quot;:#quot;symbol#quot;#125;"| 0
+  2 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 1
+  4 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 3
+  4 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 5
+  6 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 4
+  7 -->|"#123;#quot;relationship#quot;:#quot;symbol#quot;#125;"| 6
+  8 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 7
+  10 -->|"#123;#quot;relationship#quot;:#quot;symbol#quot;#125;"| 9
+  8 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 10
+  2 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 8
+  11 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 2

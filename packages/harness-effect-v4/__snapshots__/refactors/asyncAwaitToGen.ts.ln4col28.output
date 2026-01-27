@@ -1,0 +1,8 @@
+// Result of running refactor asyncAwaitToGen at position 4:28
+import * as T from "effect/Effect"
+
+export function refactorMe(arg: string) {
+    return T.gen(function*() {
+        return yield* T.promise(() => Promise.resolve(1))
+    })
+}

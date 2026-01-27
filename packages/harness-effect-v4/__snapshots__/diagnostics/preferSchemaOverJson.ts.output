@@ -1,0 +1,14 @@
+JSON.parse("{\"name\":\"Jane\"}")
+5:13 - 5:46 | 2 | Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)
+
+JSON.stringify({ name: "Alice" })
+11:13 - 11:46 | 2 | Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)
+
+JSON.parse(text)
+18:17 - 18:33 | 2 | Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)
+
+JSON.stringify(data)
+26:15 - 26:35 | 2 | Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)
+
+JSON.parse(text)
+34:17 - 34:33 | 2 | Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)

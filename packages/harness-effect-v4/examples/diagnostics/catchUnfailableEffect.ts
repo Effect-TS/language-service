@@ -1,0 +1,37 @@
+// @effect-diagnostics catchUnfailableEffect:warning
+import { Effect, pipe } from "effect"
+
+export const shouldReport = Effect.succeed(42).pipe(
+  Effect.catch(() => Effect.void) // <- should report here
+)
+
+export const shouldNotReport = Effect.fail("error").pipe(
+  Effect.catch(() => Effect.succeed(42))
+)
+
+export const shouldReportPipe = pipe(
+  Effect.succeed(42),
+  Effect.catch(() => Effect.void) // <- should report here
+)
+
+export const shouldNotReportPipe = pipe(
+  Effect.fail("error"),
+  Effect.catch(() => Effect.succeed(42)) // <- should not report here
+)
+
+export const shouldTriggerThirdArg = Effect.succeed(42).pipe(
+  Effect.flatMap(() => Effect.fail("error")),
+  Effect.catch(() => Effect.succeed(42)) // <- should not report here
+)
+
+export const shouldNotTriggerThirdArgPipe = pipe(
+  Effect.succeed(42),
+  Effect.flatMap(() => Effect.fail("error")),
+  Effect.catch(() => Effect.succeed(42)) // <- should not report here
+)
+
+export const shouldTriggerThirdArgPipe = pipe(
+  Effect.succeed(42),
+  Effect.flatMap(() => Effect.void),
+  Effect.catch(() => Effect.succeed(42)) // <- should report here
+)

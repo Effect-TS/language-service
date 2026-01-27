@@ -1,0 +1,5 @@
+pipe(Effect.succeed(42))
+5:5 - 5:29 | 2 | This pipe call contains no arguments.    effect(unnecessaryPipe)
+
+pipe(Effect.succeed(44))
+8:5 - 8:29 | 2 | This pipe call contains no arguments.    effect(unnecessaryPipe)

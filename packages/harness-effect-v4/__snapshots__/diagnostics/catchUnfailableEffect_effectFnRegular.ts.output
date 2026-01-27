@@ -1,0 +1,5 @@
+Effect.catch
+7:2 - 7:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+
+Effect.catch
+17:2 - 17:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)

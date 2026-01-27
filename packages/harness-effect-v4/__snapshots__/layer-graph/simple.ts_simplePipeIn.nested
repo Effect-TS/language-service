@@ -1,0 +1,70 @@
+flowchart TB
+  subgraph 0 ["`Cache.Default<br/><small>_ln 25 col 70_</small>`"]
+    subgraph 0_wrap[" "]
+      subgraph 0_requires [Requires]
+        0_requires_0["FileSystem"]
+      end
+      style 0_requires stroke:none
+      subgraph 0_provides [Provides]
+        0_provides_0["Cache"]
+      end
+      style 0_provides stroke:none
+    end
+    style 0_wrap fill:transparent
+    style 0_wrap stroke:none
+  end
+  style 0 fill:transparent
+  subgraph 1 ["`Layer.provide(Cache.Default)<br/><small>_ln 25 col 56_</small>`"]
+    subgraph 1_wrap[" "]
+      subgraph 1_requires [Requires]
+        1_requires_0["FileSystem"]
+        1_requires_1["DbConnection"]
+      end
+      style 1_requires stroke:none
+      subgraph 1_provides [Provides]
+        1_provides_0["UserRepository"]
+      end
+      style 1_provides stroke:none
+    end
+    style 1_wrap fill:transparent
+    style 1_wrap stroke:none
+  end
+  style 1 fill:transparent
+  subgraph 2 ["`UserRepository.Default<br/><small>_ln 25 col 28_</small>`"]
+    subgraph 2_wrap[" "]
+      subgraph 2_requires [Requires]
+        2_requires_0["Cache"]
+        2_requires_1["DbConnection"]
+      end
+      style 2_requires stroke:none
+      subgraph 2_provides [Provides]
+        2_provides_0["UserRepository"]
+      end
+      style 2_provides stroke:none
+    end
+    style 2_wrap fill:transparent
+    style 2_wrap stroke:none
+  end
+  style 2 fill:transparent
+  subgraph 3 ["`simplePipeIn<br/><small>_ln 25 col 13_</small>`"]
+    subgraph 3_wrap[" "]
+      subgraph 3_requires [Requires]
+        3_requires_0["FileSystem"]
+        3_requires_1["DbConnection"]
+      end
+      style 3_requires stroke:none
+      subgraph 3_provides [Provides]
+        3_provides_0["UserRepository"]
+      end
+      style 3_provides stroke:none
+    end
+    style 3_wrap fill:transparent
+    style 3_wrap stroke:none
+  end
+  style 3 fill:transparent
+  1_requires_0 -.-> 0_requires_0
+  1_requires_1 -.-> 2_requires_1
+  1_provides_0 -.-> 2_provides_0
+  3_requires_0 -.-> 1_requires_0
+  3_requires_1 -.-> 1_requires_1
+  3_provides_0 -.-> 1_provides_0

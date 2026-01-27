@@ -1,0 +1,16 @@
+// code fix unnecessaryPipe_fix  output for range 308 - 316
+import * as Effect from "effect/Effect"
+import { pipe } from "effect/Function"
+
+export const shouldNotReport = pipe(
+  Effect.succeed("Hello"),
+  Effect.map((x) => x + " World")
+)
+
+export const shouldNotReport2 = Effect.succeed("Hello").pipe(
+  Effect.map((x) => x + " World")
+)
+
+export const shouldReport = 32
+
+export const shouldReportNoArgs = Effect.succeed(32).pipe()

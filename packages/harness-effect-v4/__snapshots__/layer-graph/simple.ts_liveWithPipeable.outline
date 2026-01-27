@@ -1,0 +1,6 @@
+flowchart TD
+  0["DbConnection.Default"]
+  1["Cache.Default"]
+  2["UserRepository.Default"]
+  2 --> 1
+  2 --> 0

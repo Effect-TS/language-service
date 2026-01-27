@@ -1,0 +1,28 @@
+flowchart TD
+  0["AppService.Default<br/>provides: AppService<br/>requires: EventService, UserService"]
+  1["Layer.provideMerge#40;AppService.Default#41;<br/>provides: EventsRepository, EventService, Analytics, Database, UserRepository, UserService, AppService<br/>requires: EventsRepository, EventService, Analytics, Database, UserRepository, UserService"]
+  2["EventService.Default<br/>provides: EventService<br/>requires: EventsRepository, Analytics"]
+  3["Layer.provideMerge#40;EventService.Default#41;<br/>provides: EventsRepository, EventService, Analytics, Database, UserRepository, UserService<br/>requires: EventsRepository, Analytics, Database, UserRepository"]
+  4["UserService.Default<br/>provides: UserService<br/>requires: Analytics, UserRepository"]
+  5["Layer.provideMerge#40;UserService.Default#41;<br/>provides: EventsRepository, Analytics, Database, UserRepository, UserService<br/>requires: Analytics, Database, UserRepository"]
+  6["Analytics.Default<br/>provides: Analytics<br/>requires: "]
+  7["Layer.merge#40;Analytics.Default#41;<br/>provides: EventsRepository, Analytics, Database, UserRepository<br/>requires: Database"]
+  8["EventsRepository.Default<br/>provides: EventsRepository<br/>requires: Database"]
+  9["Layer.provideMerge#40;EventsRepository.Default#41;<br/>provides: EventsRepository, Database, UserRepository<br/>requires: Database"]
+  10["UserRepository.Default<br/>provides: UserRepository<br/>requires: Database"]
+  11["Layer.provideMerge#40;UserRepository.Default#41;<br/>provides: Database, UserRepository<br/>requires: Database"]
+  12["DatabaseLive<br/>provides: Database<br/>requires: "]
+  13["pipe#40;<br/>  DatabaseLive,<br/>  Layer.provideMerge#40;UserRepository.Default#41;,<br/>  Layer.provideMerge#40;EventsRepository.Default#41;,<br/>  Layer.merge#40;Analytics.Default#41;,<br/>  Layer.provideMerge#40;UserService.Default#41;,<br/>  Layer.provideMerge#40;EventService.Default#41;,<br/>  Layer.provideMerge#40;AppService.Default#41;<br/>#41;<br/>provides: EventsRepository, EventService, Analytics, Database, UserRepository, UserService, AppService<br/>requires: EventsRepository, EventService, Analytics, Database, UserRepository, UserService"]
+  1 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 0
+  3 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 2
+  5 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 4
+  7 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 6
+  9 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 8
+  11 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 10
+  11 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 12
+  9 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 11
+  7 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 9
+  5 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 7
+  3 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 5
+  1 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 3
+  13 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 1

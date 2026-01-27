@@ -12,3 +12,4 @@ Dockerfile
 .env
 .pnpm-store/
 specs/
+.context/

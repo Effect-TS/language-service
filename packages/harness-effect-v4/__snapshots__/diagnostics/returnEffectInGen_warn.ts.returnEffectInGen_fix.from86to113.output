@@ -1,0 +1,6 @@
+// code fix returnEffectInGen_fix  output for range 86 - 113
+import { Effect } from "effect"
+
+export const shouldWarn = Effect.gen(function*() {
+  return yield* Effect.fail("error")
+})

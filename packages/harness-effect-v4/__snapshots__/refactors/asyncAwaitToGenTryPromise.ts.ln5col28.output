@@ -1,0 +1,20 @@
+// Result of running refactor asyncAwaitToGenTryPromise at position 5:28
+import * as Effect from "effect/Effect"
+
+export class Error1 extends Data.TaggedError("Error1")<{
+    cause: unknown
+}> { }
+
+export class Error2 extends Data.TaggedError("Error2")<{
+    cause: unknown
+}> { }
+
+// this is a function existing jsdoc
+export function refactorMe(arg: string) {
+    return Effect.gen(function*() {
+        for (let i = 0; i < 10; i++) {
+            yield* Effect.tryPromise({ try: () => Promise.resolve(i), catch: cause => new Error1({ cause }) })
+        }
+        return yield* Effect.tryPromise({ try: () => Promise.resolve(arg), catch: cause => new Error2({ cause }) })
+    })
+}

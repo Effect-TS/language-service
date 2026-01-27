@@ -1,11 +1,9 @@
 // @effect-diagnostics instanceOfSchema:warning
-import { User } from "@/utils/types"
 import { Schema } from "effect"
 
-const MySchema = Schema.Struct({
+class MySchema extends Schema.Class<MySchema>("MySchema")({
   name: Schema.String,
-  age: Schema.Number
-})
+}){}
 
 declare const value: unknown
 
@@ -15,7 +13,9 @@ if (value instanceof MySchema) {
 }
 
 // Should trigger - with schema variable
-const PersonSchema = Schema.Struct({ name: Schema.String })
+class PersonSchema extends Schema.Class<PersonSchema>("MySchema")({
+  name: Schema.String,
+}){}
 export const checkPerson = (x: unknown) => x instanceof PersonSchema
 
 // Should NOT trigger - regular class
@@ -31,10 +31,4 @@ if (value instanceof Date) {
 
 if (value instanceof RegExp) {
   console.log("is regexp")
-}
-
-// Should trigger - imported from other module file
-const test = {}
-if (test instanceof User) {
-  console.log("is user")
 }

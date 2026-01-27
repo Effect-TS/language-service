@@ -1,0 +1,18 @@
+flowchart TD
+  0["Layer.effect#40;this, this.make#41;<br/>provides: DbConnection<br/>requires: "]
+  1["DbConnection.Default<br/>provides: DbConnection<br/>requires: "]
+  2["Layer.provide#40;DbConnection.Default#41;<br/>provides: UserRepository<br/>requires: FileSystem"]
+  3["Cache.Default<br/>provides: Cache<br/>requires: FileSystem"]
+  4["Layer.provide#40;Cache.Default#41;<br/>provides: UserRepository<br/>requires: FileSystem, DbConnection"]
+  5["UserRepository.Default<br/>provides: UserRepository<br/>requires: Cache, DbConnection"]
+  6["UserRepository.Default.pipe#40;Layer.provide#40;Cache.Default#41;#41;<br/>provides: UserRepository<br/>requires: FileSystem, DbConnection"]
+  7["simplePipeIn<br/>provides: UserRepository<br/>requires: FileSystem, DbConnection"]
+  8["simplePipeIn.pipe#40;Layer.provide#40;DbConnection.Default#41;#41;<br/>provides: UserRepository<br/>requires: FileSystem"]
+  1 -->|"#123;#quot;relationship#quot;:#quot;symbol#quot;#125;"| 0
+  2 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 1
+  4 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 3
+  4 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 5
+  6 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 4
+  7 -->|"#123;#quot;relationship#quot;:#quot;symbol#quot;#125;"| 6
+  2 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 7
+  8 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 2

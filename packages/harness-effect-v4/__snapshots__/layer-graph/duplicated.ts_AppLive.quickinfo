@@ -1,0 +1,16 @@
+/**
+ * - Analytics provided at ln 48 col 14 by `Analytics.Default`, ln 54 col 18 by `Analytics.Default`
+ * - AppService provided at ln 58 col 21 by `AppService.Default`
+ * - Database provided at ln 46 col 2 by `Database.Default`, ln 52 col 6 by `Database.Default`
+ * - EventService provided at ln 55 col 25 by `EventService.Default`
+ * - EventsRepository provided at ln 53 col 25 by `EventsRepository.Default`
+ * - UserRepository provided at ln 47 col 21 by `UserRepository.Default`
+ * - UserService provided at ln 49 col 21 by `UserService.Default`
+ * 
+ * - Analytics required at ln 49 col 21 by `UserService.Default`, ln 55 col 25 by `EventService.Default`
+ * - Database required at ln 47 col 21 by `UserRepository.Default`, ln 53 col 25 by `EventsRepository.Default`
+ * - EventService required at ln 58 col 21 by `AppService.Default`
+ * - EventsRepository required at ln 55 col 25 by `EventService.Default`
+ * - UserRepository required at ln 49 col 21 by `UserService.Default`
+ * - UserService required at ln 58 col 21 by `AppService.Default`
+ */

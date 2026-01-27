@@ -14,6 +14,20 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
+    const alternatives = typeParser.supportedEffect() === "v4" ?
+      [
+        "Effect.try",
+        "Effect.tryPromise",
+        "Effect.catch",
+        "Effect.catchTag"
+      ] :
+      [
+        "Effect.try",
+        "Effect.tryPromise",
+        "Effect.catchAll",
+        "Effect.catchTag"
+      ]
+
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
       nodeToVisit.push(node)
@@ -57,7 +71,9 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
               report({
                 location: node,
                 messageText:
-                  "Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g., Effect.try, Effect.tryPromise, Effect.catchAll, Effect.catchTag).",
+                  `Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. ${
+                    alternatives.join(", ")
+                  }).`,
                 fixes: []
               })
             }),

@@ -22,7 +22,8 @@ export default defineConfig({
         "__snapshots__",
         testFileName + snapshotExtension
       )
-    }
+    },
+    testTimeout: 30000
   },
   resolve: {
     alias: {

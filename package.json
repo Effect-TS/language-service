@@ -16,6 +16,7 @@
     "check": "pnpm -r check",
     "circular": "pnpm --filter @effect/language-service circular",
     "clean": "pnpm -r clean",
+    "perf": "pnpm -r perf",
     "pr-ai": "claude 'perform the actions described in CLAUDE.md under the section push PR to github workflow'"
   },
   "devDependencies": {

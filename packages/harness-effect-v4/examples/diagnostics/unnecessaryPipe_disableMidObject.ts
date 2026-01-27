@@ -1,0 +1,9 @@
+import { pipe } from "effect"
+import * as Effect from "effect/Effect"
+
+export const test = {
+  a: pipe(Effect.succeed(42)),
+  // @effect-diagnostics-next-line unnecessaryPipe:off
+  b: pipe(Effect.succeed(43)),
+  c: pipe(Effect.succeed(44))
+}

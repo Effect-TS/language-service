@@ -1,0 +1,8 @@
+flowchart TD
+  0["providesStringLayer<br/>provides: string<br/>requires: "]
+  1["Layer.provide#40;providesStringLayer#41;<br/>provides: <br/>requires: "]
+  2["requiresUser<br/>provides: <br/>requires: #quot;UsersString#quot;"]
+  3["requiresUser.pipe#40;Layer.provide#40;providesStringLayer#41;#41;<br/>provides: <br/>requires: "]
+  1 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 0
+  1 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 2
+  3 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 1

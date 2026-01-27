@@ -1,0 +1,16 @@
+// code fix overriddenSchemaConstructor_static  output for range 260 - 316
+import * as Schema from "effect/Schema"
+
+export class InvalidBecauseOfConstructor
+  extends Schema.Class<InvalidBecauseOfConstructor>("InvalidBecauseOfConstructor")({
+    a: Schema.Number
+  })
+{
+  b: number
+  // should be report here at constructor location
+  public static new() {
+        const _this = new this({ a: 42 })
+        _this.b = 56
+        return _this
+    }
+}

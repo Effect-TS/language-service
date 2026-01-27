@@ -31,6 +31,7 @@ export const globalErrorInEffectCatch = LSP.createDiagnostic({
 
       // Check if this is a call expression
       if (ts.isCallExpression(node)) {
+        // EFFECT-SMOL: remove tryMap and tryMapPromise?
         const isEffectWithCatch = yield* pipe(
           typeParser.isNodeReferenceToEffectModuleApi("tryPromise")(node.expression),
           Nano.orElse(() => typeParser.isNodeReferenceToEffectModuleApi("try")(node.expression)),
@@ -44,29 +45,30 @@ export const globalErrorInEffectCatch = LSP.createDiagnostic({
           const signature = typeChecker.getResolvedSignature(node)
           if (signature) {
             // we get the object type
-            const objectType = typeChecker.getParameterType(signature, 0)
+            const firstParameterType = typeChecker.getParameterType(signature, 0)
+            for (const objectType of typeCheckerUtils.unrollUnionMembers(firstParameterType)) {
+              // we get the catch symbol
+              const catchFunctionSymbol = typeChecker.getPropertyOfType(objectType, "catch")
+              if (catchFunctionSymbol) {
+                // we get the catch function type
+                const catchFunctionType = typeChecker.getTypeOfSymbolAtLocation(catchFunctionSymbol, node)
+                const signatures = typeChecker.getSignaturesOfType(catchFunctionType, ts.SignatureKind.Call)
+                if (signatures.length > 0) {
+                  const returnType = typeChecker.getReturnTypeOfSignature(signatures[0])
+                  if (returnType && typeCheckerUtils.isGlobalErrorType(returnType)) {
+                    const nodeText = sourceFile.text.substring(
+                      ts.getTokenPosOfNode(node.expression, sourceFile),
+                      node.expression.end
+                    )
 
-            // we get the catch symbol
-            const catchFunctionSymbol = typeChecker.getPropertyOfType(objectType, "catch")
-            if (catchFunctionSymbol) {
-              // we get the catch function type
-              const catchFunctionType = typeChecker.getTypeOfSymbolAtLocation(catchFunctionSymbol, node)
-              const signatures = typeChecker.getSignaturesOfType(catchFunctionType, ts.SignatureKind.Call)
-              if (signatures.length > 0) {
-                const returnType = typeChecker.getReturnTypeOfSignature(signatures[0])
-                if (returnType && typeCheckerUtils.isGlobalErrorType(returnType)) {
-                  const nodeText = sourceFile.text.substring(
-                    ts.getTokenPosOfNode(node.expression, sourceFile),
-                    node.expression.end
-                  )
-
-                  // Report diagnostic on the catch property
-                  report({
-                    location: node.expression,
-                    messageText:
-                      `The 'catch' callback in ${nodeText} returns global 'Error', which loses type safety as untagged errors merge together. Consider using a tagged error and optionally wrapping the original in a 'cause' property.`,
-                    fixes: []
-                  })
+                    // Report diagnostic on the catch property
+                    report({
+                      location: node.expression,
+                      messageText:
+                        `The 'catch' callback in ${nodeText} returns global 'Error', which loses type safety as untagged errors merge together. Consider using a tagged error and optionally wrapping the original in a 'cause' property.`,
+                      fixes: []
+                    })
+                  }
                 }
               }
             }

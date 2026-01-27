@@ -1,0 +1,4 @@
+flowchart TD
+  0["providesStringLayer"]
+  1["requiresUser"]
+  1 --> 0

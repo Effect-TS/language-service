@@ -1,0 +1,14 @@
+
+[0;1mNoComment[0m
+  [0;90mspecialChars.ts:15:14[0m
+  [0;90mLayer<IsGeneric<"With<Special>Chars#!">, never, never>[0m
+
+[0;1mProvides (1):[0m
+  [0;90m- IsGeneric<"With<Special>Chars#!">[0m
+
+[0;1mSuggested Composition:[0m
+  [0;90mNot sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)[0m
+  [0;90mthen run this command again and use --outputs to select which outputs to include in composition.[0m
+  [0;90mExample: --outputs 1,2,3[0m
+  [0;90m[0m
+  [0;90m[x] 1. IsGeneric<"With<Special>Chars#!">[0m
