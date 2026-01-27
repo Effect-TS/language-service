@@ -277,6 +277,15 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  extendsSchemaRequestClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      keyStringLiteral: ts.StringLiteral | undefined
+    },
+    TypeParserIssue,
+    never
+  >
   extendsDataTaggedError: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
@@ -1780,6 +1789,9 @@ export function make(
     Nano.fn("TypeParser.extendsSchemaTaggedRequest")(function*(
       atLocation: ts.ClassDeclaration
     ) {
+      if (supportedEffect() === "v4") {
+        return yield* typeParserIssue("Schema.TaggedClass is not supported in Effect v4", undefined, atLocation)
+      }
       if (!atLocation.name) {
         return yield* typeParserIssue("Class has no name", undefined, atLocation)
       }
@@ -1826,6 +1838,60 @@ export function make(
       return yield* typeParserIssue("Class does not extend Schema.TaggedRequest", undefined, atLocation)
     }),
     "TypeParser.extendsSchemaTaggedRequest",
+    (atLocation) => atLocation
+  )
+
+  const extendsSchemaRequestClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaRequestClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (supportedEffect() === "v3") {
+        return yield* typeParserIssue("Schema.RequestClass is not supported in Effect v3", undefined, atLocation)
+      }
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            // Schema.RequestClass<T>("name")({})
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.RequestClass<T>("name")
+              const schemaTaggedRequestTCall = expression.expression
+              if (
+                ts.isCallExpression(schemaTaggedRequestTCall) &&
+                schemaTaggedRequestTCall.typeArguments &&
+                schemaTaggedRequestTCall.typeArguments.length > 0
+              ) {
+                const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModuleApi("RequestClass")(schemaTaggedRequestTCall.expression),
+                  Nano.orUndefined
+                )
+                if (isEffectSchemaModuleApi) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode,
+                    tagStringLiteral: undefined,
+                    keyStringLiteral: schemaTaggedRequestTCall.arguments.length > 0 &&
+                        ts.isStringLiteral(schemaTaggedRequestTCall.arguments[0])
+                      ? schemaTaggedRequestTCall.arguments[0]
+                      : undefined
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.RequestClass", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaRequestClass",
     (atLocation) => atLocation
   )
 
@@ -2734,6 +2800,7 @@ export function make(
     extendsDataTaggedError,
     extendsDataTaggedClass,
     extendsSchemaTaggedRequest,
+    extendsSchemaRequestClass,
     extendsEffectSqlModelClass,
     lazyExpression,
     emptyFunction,

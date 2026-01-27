@@ -42,12 +42,12 @@ This file tracks all language service features and their compatibility status wi
 - [X] schemaStructWithTag
 - [X] importFromBarrel
 - [X] overriddenSchemaConstructor
+- [X] classSelfMismatch
 - [ ] leakingRequirements
-- [ ] genericEffectServices
+- [-] genericEffectServices
 - [ ] scopeInLayerEffect
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
-- [ ] classSelfMismatch
 - [ ] missingEffectServiceDependency
 - [ ] nonObjectEffectServiceType
 - [ ] deterministicKeys
