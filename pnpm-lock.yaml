@@ -120,8 +120,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0
       effect:
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7
-        version: '@pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7'
+        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@efa8b50
+        version: '@pkg.pr.new/Effect-TS/effect-smol/effect@efa8b50'
 
   packages/language-service:
     devDependencies:
@@ -6495,8 +6495,8 @@ packages:
     hasBin: true
     dev: true
 
-  '@pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7}
+  '@pkg.pr.new/Effect-TS/effect-smol/effect@efa8b50':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@efa8b50}
     name: effect
     version: 4.0.0
     dependencies:

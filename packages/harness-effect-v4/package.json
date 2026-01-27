@@ -5,7 +5,7 @@
     "check": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "effect": "https://pkg.pr.new/Effect-TS/effect-smol/effect@b73e5d7",
+    "effect": "https://pkg.pr.new/Effect-TS/effect-smol/effect@efa8b50",
     "@standard-schema/spec": "^1.1.0"
   }
 }

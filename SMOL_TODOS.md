@@ -36,7 +36,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] globalErrorInEffectCatch
 - [X] preferSchemaOverJson
 - [X] catchAllToMapError
-- [ ] unnecessaryFailYieldableError
+- [X] unnecessaryFailYieldableError
 - [ ] catchUnfailableEffect
 - [ ] leakingRequirements
 - [ ] genericEffectServices
