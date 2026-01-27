@@ -7,6 +7,7 @@ This file tracks all language service features and their compatibility status wi
 - [x] Compatible with effect-smol
 - [~] Partially compatible / Needs work
 - [-] Not applicable to effect-smol
+- [N] v4 only
 
 ---
 
@@ -83,7 +84,7 @@ This file tracks all language service features and their compatibility status wi
 
 ## Refactors (21 total)
 
-- [ ] asyncAwaitToFn
+- [X] asyncAwaitToFn
 - [ ] asyncAwaitToFnTryPromise
 - [ ] asyncAwaitToGen
 - [ ] asyncAwaitToGenTryPromise
