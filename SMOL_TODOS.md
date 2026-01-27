@@ -39,10 +39,10 @@ This file tracks all language service features and their compatibility status wi
 - [X] unnecessaryFailYieldableError
 - [X] catchUnfailableEffect
 - [X] effectFnIife
-- [ ] schemaStructWithTag
+- [X] schemaStructWithTag
+- [X] importFromBarrel
 - [ ] leakingRequirements
 - [ ] genericEffectServices
-- [ ] importFromBarrel
 - [ ] scopeInLayerEffect
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
