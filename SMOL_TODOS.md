@@ -41,6 +41,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] effectFnIife
 - [X] schemaStructWithTag
 - [X] importFromBarrel
+- [X] overriddenSchemaConstructor
 - [ ] leakingRequirements
 - [ ] genericEffectServices
 - [ ] scopeInLayerEffect
@@ -52,7 +53,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] deterministicKeys
 - [ ] missedPipeableOpportunity
 - [ ] strictEffectProvide
-- [ ] overriddenSchemaConstructor
 - [ ] unknownInEffectCatch
 - [ ] runEffectInsideEffect
 - [ ] layerMergeAllWithDependencies

@@ -1,0 +1,10 @@
+// code fix overriddenSchemaConstructor_fix  output for range 260 - 316
+import * as Schema from "effect/Schema"
+
+export class InvalidBecauseOfConstructor
+  extends Schema.Class<InvalidBecauseOfConstructor>("InvalidBecauseOfConstructor")({
+    a: Schema.Number
+  })
+{
+  b: number
+}
