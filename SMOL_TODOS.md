@@ -86,7 +86,7 @@ This file tracks all language service features and their compatibility status wi
 
 - [X] asyncAwaitToFn
 - [ ] asyncAwaitToFnTryPromise
-- [ ] asyncAwaitToGen
+- [X] asyncAwaitToGen
 - [ ] asyncAwaitToGenTryPromise
 - [ ] effectGenToFn
 - [ ] functionToArrow
