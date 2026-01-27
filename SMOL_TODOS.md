@@ -38,6 +38,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] catchAllToMapError
 - [X] unnecessaryFailYieldableError
 - [X] catchUnfailableEffect
+- [ ] effectFnIife
 - [ ] leakingRequirements
 - [ ] genericEffectServices
 - [ ] importFromBarrel
@@ -59,7 +60,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] effectFnOpportunity
 - [ ] redundantSchemaTagIdentifier
 - [ ] schemaSyncInEffect
-- [ ] effectFnIife
 
 ---
 
