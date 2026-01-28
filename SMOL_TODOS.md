@@ -93,13 +93,13 @@ This file tracks all language service features and their compatibility status wi
 - [ ] layerMagic
 - [ ] makeSchemaOpaque
 - [ ] makeSchemaOpaqueWithNs
-- [ ] pipeableToDatafirst
-- [ ] removeUnnecessaryEffectGen
+- [X] pipeableToDatafirst
+- [X] removeUnnecessaryEffectGen
 - [ ] structuralTypeToSchema
 - [ ] toggleLazyConst
 - [ ] togglePipeStyle
-- [ ] toggleReturnTypeAnnotation
-- [ ] toggleTypeAnnotation
+- [X] toggleReturnTypeAnnotation
+- [X] toggleTypeAnnotation
 - [ ] typeToEffectSchema
 - [ ] typeToEffectSchemaClass
 - [ ] wrapWithEffectGen
