@@ -89,19 +89,19 @@ This file tracks all language service features and their compatibility status wi
 - [X] asyncAwaitToGen
 - [ ] asyncAwaitToGenTryPromise
 - [ ] effectGenToFn
-- [ ] functionToArrow
+- [X] functionToArrow
 - [ ] layerMagic
 - [ ] makeSchemaOpaque
 - [ ] makeSchemaOpaqueWithNs
 - [X] pipeableToDatafirst
 - [X] removeUnnecessaryEffectGen
 - [ ] structuralTypeToSchema
-- [ ] toggleLazyConst
-- [ ] togglePipeStyle
+- [X] toggleLazyConst
+- [X] togglePipeStyle
 - [X] toggleReturnTypeAnnotation
 - [X] toggleTypeAnnotation
 - [ ] typeToEffectSchema
 - [ ] typeToEffectSchemaClass
-- [ ] wrapWithEffectGen
-- [ ] wrapWithPipe
+- [X] wrapWithEffectGen
+- [X] wrapWithPipe
 - [ ] writeTagClassAccessors

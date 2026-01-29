@@ -1,0 +1,7 @@
+// Result of running refactor togglePipeStyle at position 5:54
+import * as Effect from "effect/Effect"
+import { pipe } from "effect/Function"
+
+export const toRegularPipe = pipe(Effect.succeed(42), Effect.map((x) => x * 2))
+
+export const toPipeable = pipe(Effect.succeed(42), Effect.map((x) => x * 2))
