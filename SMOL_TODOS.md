@@ -70,13 +70,13 @@ This file tracks all language service features and their compatibility status wi
 - [ ] durationInput
 - [ ] effectCodegensComment
 - [ ] effectDataClasses
-- [ ] effectDiagnosticsComment
-- [ ] effectJsdocComment
+- [X] effectDiagnosticsComment
+- [X] effectJsdocComment
 - [ ] effectSchemaSelfInClasses
 - [ ] effectSelfInClasses
 - [ ] effectSqlModelSelfInClasses
-- [ ] fnFunctionStar
-- [ ] genFunctionStar
+- [X] fnFunctionStar
+- [X] genFunctionStar
 - [ ] rpcMakeClasses
 - [ ] schemaBrand
 
