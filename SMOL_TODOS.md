@@ -44,6 +44,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] importFromBarrel
 - [X] overriddenSchemaConstructor
 - [X] classSelfMismatch
+- [X] unknownInEffectCatch
 - [ ] leakingRequirements
 - [-] genericEffectServices
 - [ ] scopeInLayerEffect
@@ -54,7 +55,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] deterministicKeys
 - [ ] missedPipeableOpportunity
 - [ ] strictEffectProvide
-- [ ] unknownInEffectCatch
 - [ ] runEffectInsideEffect
 - [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext
@@ -88,7 +88,7 @@ This file tracks all language service features and their compatibility status wi
 - [ ] asyncAwaitToFnTryPromise
 - [X] asyncAwaitToGen
 - [ ] asyncAwaitToGenTryPromise
-- [ ] effectGenToFn
+- [X] effectGenToFn
 - [X] functionToArrow
 - [ ] layerMagic
 - [ ] makeSchemaOpaque

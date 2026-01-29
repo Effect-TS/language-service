@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -15,6 +16,7 @@ export const unknownInEffectCatch = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -42,29 +44,30 @@ export const unknownInEffectCatch = LSP.createDiagnostic({
           const signature = typeChecker.getResolvedSignature(node)
           if (signature) {
             // we get the object type
-            const objectType = typeChecker.getParameterType(signature, 0)
+            const parameterType = typeChecker.getParameterType(signature, 0)
+            for (const objectType of typeCheckerUtils.unrollUnionMembers(parameterType)) {
+              // we get the catch symbol
+              const catchFunctionSymbol = typeChecker.getPropertyOfType(objectType, "catch")
+              if (catchFunctionSymbol) {
+                // we get the catch function type
+                const catchFunctionType = typeChecker.getTypeOfSymbolAtLocation(catchFunctionSymbol, node)
+                const signatures = typeChecker.getSignaturesOfType(catchFunctionType, ts.SignatureKind.Call)
+                if (signatures.length > 0) {
+                  const returnType = typeChecker.getReturnTypeOfSignature(signatures[0])
+                  if (returnType && (returnType.flags & ts.TypeFlags.Unknown || returnType.flags & ts.TypeFlags.Any)) {
+                    const nodeText = sourceFile.text.substring(
+                      ts.getTokenPosOfNode(node.expression, sourceFile),
+                      node.expression.end
+                    )
 
-            // we get the catch symbol
-            const catchFunctionSymbol = typeChecker.getPropertyOfType(objectType, "catch")
-            if (catchFunctionSymbol) {
-              // we get the catch function type
-              const catchFunctionType = typeChecker.getTypeOfSymbolAtLocation(catchFunctionSymbol, node)
-              const signatures = typeChecker.getSignaturesOfType(catchFunctionType, ts.SignatureKind.Call)
-              if (signatures.length > 0) {
-                const returnType = typeChecker.getReturnTypeOfSignature(signatures[0])
-                if (returnType && (returnType.flags & ts.TypeFlags.Unknown || returnType.flags & ts.TypeFlags.Any)) {
-                  const nodeText = sourceFile.text.substring(
-                    ts.getTokenPosOfNode(node.expression, sourceFile),
-                    node.expression.end
-                  )
-
-                  // Report diagnostic on the catch property
-                  report({
-                    location: node.expression,
-                    messageText:
-                      `The 'catch' callback in ${nodeText} returns 'unknown'. The catch callback should be used to provide typed errors.\nConsider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.`,
-                    fixes: []
-                  })
+                    // Report diagnostic on the catch property
+                    report({
+                      location: node.expression,
+                      messageText:
+                        `The 'catch' callback in ${nodeText} returns 'unknown'. The catch callback should be used to provide typed errors.\nConsider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.`,
+                      fixes: []
+                    })
+                  }
                 }
               }
             }
