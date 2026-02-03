@@ -16,6 +16,9 @@ This file tracks all language service features and their compatibility status wi
 - [-] effectGenUsesAdapter
 - [-] unsupportedServiceAccessors
 - [-] schemaUnionOfLiterals
+- [-] genericEffectServices
+- [-] scopeInLayerEffect
+- [-] missingEffectServiceDependency
 - [X] floatingEffect
 - [X] missingEffectContext
 - [X] missingEffectError
@@ -45,18 +48,15 @@ This file tracks all language service features and their compatibility status wi
 - [X] overriddenSchemaConstructor
 - [X] classSelfMismatch
 - [X] unknownInEffectCatch
+- [X] layerMergeAllWithDependencies
 - [ ] leakingRequirements
-- [-] genericEffectServices
-- [ ] scopeInLayerEffect
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
-- [ ] missingEffectServiceDependency
 - [ ] nonObjectEffectServiceType
 - [ ] deterministicKeys
 - [ ] missedPipeableOpportunity
 - [ ] strictEffectProvide
 - [ ] runEffectInsideEffect
-- [ ] layerMergeAllWithDependencies
 - [ ] missingLayerContext
 - [ ] effectFnOpportunity
 - [ ] redundantSchemaTagIdentifier

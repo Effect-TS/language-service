@@ -18,6 +18,8 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
+    if (typeParser.supportedEffect() !== "v3") return
+
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
       nodeToVisit.push(node)
