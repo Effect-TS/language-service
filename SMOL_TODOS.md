@@ -50,6 +50,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] unknownInEffectCatch
 - [X] layerMergeAllWithDependencies
 - [-] redundantSchemaTagIdentifier
+- [X] effectFnOpportunity
 - [ ] leakingRequirements
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
@@ -59,7 +60,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] strictEffectProvide
 - [ ] runEffectInsideEffect
 - [ ] missingLayerContext
-- [ ] effectFnOpportunity
 - [ ] schemaSyncInEffect
 
 ---
