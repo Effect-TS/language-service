@@ -1,0 +1,23 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 360 - 373
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
+import * as Effect from "effect/Effect"
+
+// This case differs from pipeWithSpan because the withSpan is not the last
+// piped transformation, so we cannot extract the span name to use with
+// Effect.fn. Instead, we should suggest Effect.fnUntraced for these cases.
+
+export const arrowWithPipe = Effect.fn("arrowWithPipe")(function*() {
+    return yield* Effect.succeed(42)
+}, Effect.ignore)
+
+export const functionExpressionWithPipe = function() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.withSpan("functionExpressionWithPipe"), Effect.ignore)
+}
+
+export function functionDeclarationWithPipe() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.map((x) => x + 1), Effect.withSpan("functionDeclarationWithPipe"), Effect.ignore)
+}

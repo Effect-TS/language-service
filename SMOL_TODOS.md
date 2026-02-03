@@ -49,6 +49,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] classSelfMismatch
 - [X] unknownInEffectCatch
 - [X] layerMergeAllWithDependencies
+- [-] redundantSchemaTagIdentifier
 - [ ] leakingRequirements
 - [ ] multipleEffectProvide
 - [ ] outdatedEffectCodegen
@@ -59,7 +60,6 @@ This file tracks all language service features and their compatibility status wi
 - [ ] runEffectInsideEffect
 - [ ] missingLayerContext
 - [ ] effectFnOpportunity
-- [ ] redundantSchemaTagIdentifier
 - [ ] schemaSyncInEffect
 
 ---

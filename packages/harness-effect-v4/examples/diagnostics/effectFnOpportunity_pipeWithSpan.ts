@@ -1,0 +1,27 @@
+// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
+import * as Effect from "effect/Effect"
+
+// For these cases we should suggest using Effect.fn (not Effect.fnUntraced)
+// because the piped transformations end with Effect.withSpan. We can extract
+// the span name expression from withSpan and use it as the parameter to
+// Effect.fn("spanName")(function*() { ... }).
+//
+// Using Effect.fn is an improvement because the stack traces will include
+// the call site of that function, not just the span in the traces.
+
+export const arrowWithPipe = () =>
+  Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.withSpan("arrowWithPipe"))
+
+export const functionExpressionWithPipe = function() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.map((x) => x + 1), Effect.withSpan("functionExpressionWithPipe"))
+}
+
+export function functionDeclarationWithPipe() {
+  return Effect.gen(function*() {
+    return yield* Effect.succeed(42)
+  }).pipe(Effect.map((x) => x + 1), Effect.ignore, Effect.withSpan("functionDeclarationWithPipe"))
+}

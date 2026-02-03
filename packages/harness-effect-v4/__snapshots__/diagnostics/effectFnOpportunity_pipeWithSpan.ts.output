@@ -1,0 +1,8 @@
+arrowWithPipe
+12:13 - 12:26 | 2 | Can be rewritten as a reusable function: Effect.fn("arrowWithPipe")(function*() { ... })    effect(effectFnOpportunity)
+
+functionExpressionWithPipe
+17:13 - 17:39 | 2 | Can be rewritten as a reusable function: Effect.fn("functionExpressionWithPipe")(function*() { ... }, ...pipeTransformations)    effect(effectFnOpportunity)
+
+functionDeclarationWithPipe
+23:16 - 23:43 | 2 | Can be rewritten as a reusable function: Effect.fn("functionDeclarationWithPipe")(function*() { ... }, ...pipeTransformations)    effect(effectFnOpportunity)
