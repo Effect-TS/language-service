@@ -15,10 +15,14 @@ permissions: {}
 
 jobs:
   test:
-    name: Test
+    name: Test ${{ matrix.harness }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        harness: [v3, v4]
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
         uses: ./.github/actions/setup
-      - run: pnpm test
+      - run: pnpm test:${{ matrix.harness }}

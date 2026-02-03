@@ -135,7 +135,9 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
     if (!hasProperty(packageJsonScope, "packageDirectory")) return
     if (!isString(packageJsonScope.packageDirectory)) return
     const { name } = packageJsonContent
-    const version = hasProperty(packageJsonScope, "version") ? packageJsonScope.version : ""
+    const version = hasProperty(packageJsonContent, "version")
+      ? packageJsonContent.version
+      : "unknown"
     if (!isString(name)) return
     if (!isString(version)) return
     const hasEffectInPeerDependencies = hasProperty(packageJsonContent, "peerDependencies") &&

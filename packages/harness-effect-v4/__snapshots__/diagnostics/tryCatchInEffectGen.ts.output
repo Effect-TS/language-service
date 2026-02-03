@@ -1,0 +1,21 @@
+try {
+    const result = yield* Effect.succeed(42)
+    return result
+  } catch (error) {
+    console.error(error)
+  }
+4:2 - 9:3 | 2 | Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)
+
+try {
+    yield* Effect.succeed("hello")
+  } catch (e) {
+    console.error(e)
+  }
+14:2 - 18:3 | 2 | Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)
+
+try {
+      return yield* Effect.succeed(1)
+    } catch (e) {
+      console.error(e)
+    }
+39:4 - 43:5 | 2 | Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)

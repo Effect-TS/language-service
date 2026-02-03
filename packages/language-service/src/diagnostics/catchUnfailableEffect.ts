@@ -15,7 +15,9 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const catchFunctions = ["catchAll", "catch", "catchIf", "catchSome", "catchTag", "catchTags"]
+    const catchFunctions = typeParser.supportedEffect() === "v3"
+      ? ["catchAll", "catch", "catchIf", "catchSome", "catchTag", "catchTags"]
+      : ["catch", "catchIf", "catchTag", "catchTags"]
 
     // Get all piping flows for the source file (including Effect.fn pipe transformations)
     const flows = yield* typeParser.pipingFlows(true)(sourceFile)

@@ -1,0 +1,27 @@
+/** @effect-diagnostics missingReturnYieldStar:skip-file */
+import * as Data from "effect/Data"
+import * as Effect from "effect/Effect"
+import * as Schema from "effect/Schema"
+
+class NonYieldable extends Error {
+  readonly _tag = "NonYieldable"
+}
+
+class DataTaggedError extends Data.TaggedError("DataTaggedError")<{}> {}
+
+class SchemaError extends Schema.ErrorClass<SchemaError>("SchemaError")({
+  _tag: Schema.tag("SchemaError")
+}) {}
+
+export const unnecessaryFailYieldableError = Effect.gen(function*() {
+  // should not report
+  yield* Effect.fail(new NonYieldable("non-yieldable error"))
+  const err = new DataTaggedError()
+  console.log(err)
+  // should report
+  yield* Effect.fail(new DataTaggedError())
+  yield* Effect.fail(new SchemaError({}))
+})
+
+// should not report
+export const shouldNotReport = Effect.fail(new DataTaggedError())

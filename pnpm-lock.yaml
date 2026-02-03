@@ -107,15 +107,21 @@ importers:
       '@effect/sql':
         specifier: ^0.49.0
         version: 0.49.0(@effect/experimental@0.58.0)(@effect/platform@0.94.1)(effect@3.19.14)
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.1.0
       effect:
         specifier: ^3.19.14
         version: 3.19.14
 
   packages/harness-effect-v4:
     dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
       effect:
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@e177d6c
-        version: '@pkg.pr.new/Effect-TS/effect-smol/effect/e177d6c'
+        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@2153bea
+        version: '@pkg.pr.new/Effect-TS/effect-smol/effect@2153bea'
 
   packages/language-service:
     devDependencies:
@@ -4019,9 +4025,9 @@ packages:
     resolution: {integrity: sha512-X7rqawQBvfdjS10YU1y1YVreA3SsLrW9dX2CewP2EbBJM4ypVNLDkO5y04gejPwKIY9lR+7r9gn3rFPt/kmWFg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  /ini@5.0.0:
-    resolution: {integrity: sha512-+N0ngpO3e7cRUWOJAS7qw0IZIVc6XPrW4MlFBdD066F2L4k1L6ker3hLqSq7iXxU5tgS4WGkIUElWn5vogAEnw==}
-    engines: {node: ^18.17.0 || >=20.5.0}
+  /ini@6.0.0:
+    resolution: {integrity: sha512-IBTdIkzZNOpqm7q3dRqJvMaldXjDHWkEDfrwGEQTs5eaQMWV+djAhR+wahyNNMAa+qpbDUhBMVt4ZKNwpPm7xQ==}
+    engines: {node: ^20.17.0 || >=22.9.0}
     dev: false
 
   /internal-slot@1.1.0:
@@ -6489,15 +6495,15 @@ packages:
     hasBin: true
     dev: true
 
-  '@pkg.pr.new/Effect-TS/effect-smol/effect/e177d6c':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@e177d6c}
+  '@pkg.pr.new/Effect-TS/effect-smol/effect@2153bea':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@2153bea}
     name: effect
     version: 4.0.0
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 4.5.3
       find-my-way-ts: 0.1.6
-      ini: 5.0.0
+      ini: 6.0.0
       kubernetes-types: 1.30.0
       msgpackr: 1.11.8
       multipasta: 0.2.7

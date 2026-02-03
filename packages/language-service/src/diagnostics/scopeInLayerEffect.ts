@@ -20,6 +20,8 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
+    if (typeParser.supportedEffect() !== "v3") return
+
     const layerModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
       sourceFile,
       "effect",

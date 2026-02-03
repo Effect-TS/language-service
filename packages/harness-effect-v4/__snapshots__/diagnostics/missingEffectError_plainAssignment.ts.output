@@ -1,0 +1,14 @@
+missingAllErrors
+21:13 - 21:29 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.    effect(missingEffectError)
+
+missingErrorC
+24:13 - 24:26 | 1 | Missing 'ErrorC' in the expected Effect errors.    effect(missingEffectError)
+
+missingErrorCWithSubtyping
+29:13 - 29:39 | 1 | Missing 'ErrorC' in the expected Effect errors.    effect(missingEffectError)
+
+missingErrorA
+33:8 - 33:21 | 1 | Missing 'A' in the expected Effect errors.    effect(missingEffectError)
+
+effectWithErrors
+38:10 - 38:26 | 1 | Missing 'ErrorA | ErrorB | ErrorC' in the expected Effect errors.    effect(missingEffectError)

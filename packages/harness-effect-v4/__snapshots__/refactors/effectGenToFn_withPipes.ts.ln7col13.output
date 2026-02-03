@@ -1,0 +1,8 @@
+// Result of running refactor effectGenToFn at position 7:13
+import * as Effect from "effect/Effect"
+import { pipe } from "effect/Function"
+
+const test = Effect.fn("test")(function*() {
+    const test = "test"
+    return yield* Effect.succeed(test)
+}, Effect.tapError(Effect.logError))

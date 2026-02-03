@@ -78,23 +78,29 @@ export const missingEffectError = LSP.createDiagnostic({
             if (result.missingErrorTypes.length === 0) return
             const fixes: Array<LSP.ApplicableDiagnosticDefinitionFix> = []
 
-            if (ts.isExpression(valueNode) && result.expectedErrorType.flags & ts.TypeFlags.Never) {
+            const catchAllErrorsName = typeParser.supportedEffect() === "v3" ? "catchAll" : "catch"
+
+            if (
+              ts.isExpression(valueNode) &&
+              result.expectedErrorType.flags & ts.TypeFlags.Never &&
+              catchAllErrorsName
+            ) {
               fixes.push({
-                fixName: "missingEffectError_catchAll",
-                description: "Catch all errors with Effect.catchAll",
+                fixName: `missingEffectError_${catchAllErrorsName}`,
+                description: `Catch all errors with Effect.${catchAllErrorsName}`,
                 apply: Nano.gen(function*() {
                   const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
                   changeTracker.insertText(
                     sourceFile,
                     ts.getTokenPosOfNode(valueNode, sourceFile),
-                    effectModuleIdentifier + ".catchAll("
+                    effectModuleIdentifier + `.${catchAllErrorsName}(`
                   )
                   changeTracker.insertText(sourceFile, valueNode.end, ", () => ")
                   changeTracker.insertNodeAt(
                     sourceFile,
                     valueNode.end,
-                    createDieMessage("TODO: catchAll not implemented")
+                    createDieMessage(`TODO: ${catchAllErrorsName} not implemented`)
                   )
                   changeTracker.insertText(sourceFile, valueNode.end, ")")
                 })

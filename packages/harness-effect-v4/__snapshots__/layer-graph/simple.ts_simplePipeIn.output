@@ -1,0 +1,8 @@
+flowchart TD
+  0["Cache.Default<br/>provides: Cache<br/>requires: FileSystem"]
+  1["Layer.provide#40;Cache.Default#41;<br/>provides: UserRepository<br/>requires: FileSystem, DbConnection"]
+  2["UserRepository.Default<br/>provides: UserRepository<br/>requires: Cache, DbConnection"]
+  3["UserRepository.Default.pipe#40;Layer.provide#40;Cache.Default#41;#41;<br/>provides: UserRepository<br/>requires: FileSystem, DbConnection"]
+  1 -->|"#123;#quot;relationship#quot;:#quot;call#quot;,#quot;argumentIndex#quot;:0#125;"| 0
+  1 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 2
+  3 -->|"#123;#quot;relationship#quot;:#quot;pipe#quot;#125;"| 1

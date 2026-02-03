@@ -1,11 +1,15 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
+import * as Predicate from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "./Nano.js"
 import * as TypeCheckerApi from "./TypeCheckerApi.js"
 import * as TypeCheckerUtils from "./TypeCheckerUtils.js"
 import * as TypeScriptApi from "./TypeScriptApi.js"
 import * as TypeScriptUtils from "./TypeScriptUtils.js"
+
+export type ResolvedPackagesCache = Record<string, Record<string, any>>
+const checkedPackagesCache = new Map<string, ResolvedPackagesCache>()
+const programResolvedCacheSize = new Map<string, number>()
 
 export interface ParsedPipeCall {
   node: ts.CallExpression
@@ -273,6 +277,15 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
+  extendsSchemaRequestClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      keyStringLiteral: ts.StringLiteral | undefined
+    },
+    TypeParserIssue,
+    never
+  >
   extendsDataTaggedError: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
@@ -313,6 +326,8 @@ export interface TypeParser {
     includeEffectFn: boolean
   ) => (sourceFile: ts.SourceFile) => Nano.Nano<Array<ParsedPipingFlow>, never, never>
   reconstructPipingFlow: (flow: Pick<ParsedPipingFlow, "subject" | "transformations">) => ts.Expression
+  getEffectRelatedPackages: (sourceFile: ts.SourceFile) => ResolvedPackagesCache
+  supportedEffect: () => "v3" | "v4"
 }
 export const TypeParser = Nano.Tag<TypeParser>("@effect/language-service/TypeParser")
 
@@ -352,6 +367,51 @@ export function make(
   typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils,
   program: TypeScriptApi.TypeScriptProgram
 ): TypeParser {
+  function supportedEffect(): "v3" | "v4" {
+    for (const fileName of program.getRootFileNames()) {
+      const sourceFile = program.getSourceFile(fileName)
+      if (!sourceFile) continue
+      const resolvedPackages = getEffectRelatedPackages(sourceFile)
+      for (const version of Object.keys(resolvedPackages["effect"])) {
+        if (String(version).startsWith("4")) return "v4"
+        if (String(version).startsWith("3")) return "v3"
+      }
+    }
+    return "v3"
+  }
+
+  function getEffectRelatedPackages(sourceFile: ts.SourceFile) {
+    // whenever we detect the resolution cache size has changed, try again the check
+    // this should mitigate how frequently this rule is triggered
+    let resolvedPackages: ResolvedPackagesCache = checkedPackagesCache.get(sourceFile.fileName) ||
+      {}
+    const newResolvedModuleSize =
+      Predicate.hasProperty(program, "resolvedModules") && Predicate.hasProperty(program.resolvedModules, "size") &&
+        Predicate.isNumber(program.resolvedModules.size) ?
+        program.resolvedModules.size :
+        0
+    const oldResolvedSize = programResolvedCacheSize.get(sourceFile.fileName) || -1
+    if (newResolvedModuleSize !== oldResolvedSize) {
+      const seenPackages = new Set<string>()
+      resolvedPackages = {}
+      program.getSourceFiles().map((_) => {
+        const packageInfo = tsUtils.parsePackageContentNameAndVersionFromScope(_)
+        if (!packageInfo) return
+        const packageNameAndVersion = packageInfo.name + "@" + packageInfo.version
+        if (seenPackages.has(packageNameAndVersion)) return
+        seenPackages.add(packageNameAndVersion)
+        if (
+          !(packageInfo.name === "effect" || packageInfo.hasEffectInPeerDependencies)
+        ) return
+        resolvedPackages[packageInfo.name] = resolvedPackages[packageInfo.name] || {}
+        resolvedPackages[packageInfo.name][packageInfo.version] = packageInfo.packageDirectory
+      })
+      checkedPackagesCache.set(sourceFile.fileName, resolvedPackages)
+      programResolvedCacheSize.set(sourceFile.fileName, newResolvedModuleSize)
+    }
+    return resolvedPackages
+  }
+
   const getSourceFilePackageInfo = Nano.cachedBy(
     Nano.fn("TypeParser.getSourceFilePackageInfo")(function*(sourceFile: ts.SourceFile) {
       return tsUtils.resolveModuleWithPackageInfoFromSourceFile(program, sourceFile)
@@ -673,23 +733,33 @@ export function make(
       type: ts.Type,
       atLocation: ts.Node
     ) {
-      // get the properties to check (exclude non-property and optional properties)
-      const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
-      )
-      // early exit
-      if (propertiesSymbols.length === 0) {
-        return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+      if (supportedEffect() === "v4") {
+        // Effect v4 TypeId shortcut
+        const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Effect")
+        if (typeIdSymbol) {
+          const typeIdType = typeChecker.getTypeOfSymbolAtLocation(typeIdSymbol, atLocation)
+          return yield* effectVarianceStruct(typeIdType, atLocation)
+        }
+        return yield* typeParserIssue("Type is not an effect", type, atLocation)
+      } else {
+        // get the properties to check (exclude non-property and optional properties)
+        const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+          _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
+        )
+        // early exit
+        if (propertiesSymbols.length === 0) {
+          return yield* typeParserIssue("Type has no effect variance struct", type, atLocation)
+        }
+        // try to put typeid first (heuristic to optimize hot path)
+        propertiesSymbols.sort((a, b) =>
+          ts.symbolName(b).indexOf("EffectTypeId") - ts.symbolName(a).indexOf("EffectTypeId")
+        )
+        // has a property symbol which is an effect variance struct
+        return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
+          const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+          return effectVarianceStruct(propertyType, atLocation)
+        }))
       }
-      // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) =>
-        ts.symbolName(b).indexOf("EffectTypeId") - ts.symbolName(a).indexOf("EffectTypeId")
-      )
-      // has a property symbol which is an effect variance struct
-      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
-        const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        return effectVarianceStruct(propertyType, atLocation)
-      }))
     }),
     "TypeParser.effectType",
     (type) => type
@@ -1110,11 +1180,11 @@ export function make(
               }))
             )
           ),
-          Nano.option
+          Nano.orUndefined
         )
 
-        if (Option.isSome(isEffectGen)) {
-          effectGenResult = isEffectGen.value
+        if (isEffectGen) {
+          effectGenResult = isEffectGen
         }
       }
 
@@ -1270,6 +1340,22 @@ export function make(
     ) {
       // should be pipeable
       yield* pipeableType(type, atLocation)
+      // Effect v4 shortcut
+      const typeId = typeChecker.getPropertyOfType(type, "~effect/Schema/Schema")
+      if (typeId) {
+        const typeKey = typeChecker.getPropertyOfType(type, "Type")
+        const encodedKey = typeChecker.getPropertyOfType(type, "Encoded")
+        if (typeKey && encodedKey) {
+          const typeType = typeChecker.getTypeOfSymbolAtLocation(typeKey, atLocation)
+          const encodedType = typeChecker.getTypeOfSymbolAtLocation(encodedKey, atLocation)
+          return {
+            A: typeType,
+            I: encodedType,
+            R: typeChecker.getNeverType()
+          }
+        }
+        return yield* typeParserIssue("missing Type and Encoded")
+      }
       // should have an 'ast' property
       const ast = typeChecker.getPropertyOfType(type, "ast")
       if (!ast) return yield* typeParserIssue("Has no 'ast' property", type, atLocation)
@@ -1574,9 +1660,9 @@ export function make(
               if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("Class")(schemaCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode: schemaCall.typeArguments[0]!
@@ -1619,9 +1705,9 @@ export function make(
                 const selfTypeNode = schemaTaggedClassTCall.typeArguments[0]!
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("TaggedClass")(schemaTaggedClassTCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1672,9 +1758,9 @@ export function make(
                 const selfTypeNode = schemaTaggedErrorTCall.typeArguments[0]!
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("TaggedError")(schemaTaggedErrorTCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1703,6 +1789,9 @@ export function make(
     Nano.fn("TypeParser.extendsSchemaTaggedRequest")(function*(
       atLocation: ts.ClassDeclaration
     ) {
+      if (supportedEffect() === "v4") {
+        return yield* typeParserIssue("Schema.TaggedClass is not supported in Effect v4", undefined, atLocation)
+      }
       if (!atLocation.name) {
         return yield* typeParserIssue("Class has no name", undefined, atLocation)
       }
@@ -1726,9 +1815,9 @@ export function make(
                 const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSchemaModuleApi("TaggedRequest")(schemaTaggedRequestTCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1749,6 +1838,60 @@ export function make(
       return yield* typeParserIssue("Class does not extend Schema.TaggedRequest", undefined, atLocation)
     }),
     "TypeParser.extendsSchemaTaggedRequest",
+    (atLocation) => atLocation
+  )
+
+  const extendsSchemaRequestClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsSchemaRequestClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (supportedEffect() === "v3") {
+        return yield* typeParserIssue("Schema.RequestClass is not supported in Effect v3", undefined, atLocation)
+      }
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            // Schema.RequestClass<T>("name")({})
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Schema.RequestClass<T>("name")
+              const schemaTaggedRequestTCall = expression.expression
+              if (
+                ts.isCallExpression(schemaTaggedRequestTCall) &&
+                schemaTaggedRequestTCall.typeArguments &&
+                schemaTaggedRequestTCall.typeArguments.length > 0
+              ) {
+                const selfTypeNode = schemaTaggedRequestTCall.typeArguments[0]!
+                const isEffectSchemaModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModuleApi("RequestClass")(schemaTaggedRequestTCall.expression),
+                  Nano.orUndefined
+                )
+                if (isEffectSchemaModuleApi) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode,
+                    tagStringLiteral: undefined,
+                    keyStringLiteral: schemaTaggedRequestTCall.arguments.length > 0 &&
+                        ts.isStringLiteral(schemaTaggedRequestTCall.arguments[0])
+                      ? schemaTaggedRequestTCall.arguments[0]
+                      : undefined
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend Schema.RequestClass", undefined, atLocation)
+    }),
+    "TypeParser.extendsSchemaRequestClass",
     (atLocation) => atLocation
   )
 
@@ -1779,9 +1922,9 @@ export function make(
               ) {
                 const parsedDataModule = yield* pipe(
                   importedDataModule(dataIdentifier.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(parsedDataModule)) {
+                if (parsedDataModule) {
                   // For Data.TaggedError, the structure is: Data.TaggedError("name")<{}>
                   // The string literal is in the single call expression
                   return {
@@ -1790,7 +1933,7 @@ export function make(
                         ts.isStringLiteral(dataTaggedErrorCall.arguments[0])
                       ? dataTaggedErrorCall.arguments[0]
                       : undefined,
-                    Data: parsedDataModule.value
+                    Data: parsedDataModule
                   }
                 }
               }
@@ -1831,9 +1974,9 @@ export function make(
               ) {
                 const parsedDataModule = yield* pipe(
                   importedDataModule(dataIdentifier.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(parsedDataModule)) {
+                if (parsedDataModule) {
                   // For Data.TaggedClass, the structure is: Data.TaggedClass("name")<{}>
                   // The string literal is in the single call expression
                   return {
@@ -1842,7 +1985,7 @@ export function make(
                         ts.isStringLiteral(dataTaggedClassCall.arguments[0])
                       ? dataTaggedClassCall.arguments[0]
                       : undefined,
-                    Data: parsedDataModule.value
+                    Data: parsedDataModule
                   }
                 }
               }
@@ -1885,9 +2028,9 @@ export function make(
                 ) {
                   const parsedContextModule = yield* pipe(
                     importedContextModule(contextTagIdentifier.expression),
-                    Nano.option
+                    Nano.orUndefined
                   )
-                  if (Option.isSome(parsedContextModule)) {
+                  if (parsedContextModule) {
                     const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
                     if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
                     const type = typeChecker.getTypeOfSymbol(classSym)
@@ -1900,7 +2043,7 @@ export function make(
                         : undefined,
                       args: contextTagCall.arguments,
                       Identifier: tagType.Identifier,
-                      Tag: parsedContextModule.value
+                      Tag: parsedContextModule
                     }
                   }
                 }
@@ -1944,9 +2087,9 @@ export function make(
                 const selfTypeNode = wholeCall.typeArguments[0]!
                 const isEffectTag = yield* pipe(
                   isNodeReferenceToEffectModuleApi("Tag")(effectTagIdentifier),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectTag)) {
+                if (isEffectTag) {
                   return {
                     className: atLocation.name,
                     selfTypeNode,
@@ -1994,17 +2137,17 @@ export function make(
                 const selfTypeNode = effectServiceCall.typeArguments[0]!
                 const isEffectService = yield* pipe(
                   isNodeReferenceToEffectModuleApi("Service")(effectServiceIdentifier),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectService)) {
+                if (isEffectService) {
                   const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
                   if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
                   const type = typeChecker.getTypeOfSymbol(classSym)
                   const parsedContextTag = yield* pipe(
                     contextTag(type, atLocation),
-                    Nano.option
+                    Nano.orUndefined
                   )
-                  if (Option.isSome(parsedContextTag)) {
+                  if (parsedContextTag) {
                     // try to parse some settings
                     let accessors: boolean | undefined = undefined
                     let dependencies: ts.NodeArray<ts.Expression> | undefined = undefined
@@ -2030,7 +2173,7 @@ export function make(
                       }
                     }
                     return ({
-                      ...parsedContextTag.value,
+                      ...parsedContextTag,
                       className: atLocation.name,
                       selfTypeNode,
                       args: wholeCall.arguments,
@@ -2117,9 +2260,9 @@ export function make(
               if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
                 const isEffectSchemaModuleApi = yield* pipe(
                   isNodeReferenceToEffectSqlModelModuleApi("Class")(schemaCall.expression),
-                  Nano.option
+                  Nano.orUndefined
                 )
-                if (Option.isSome(isEffectSchemaModuleApi)) {
+                if (isEffectSchemaModuleApi) {
                   return {
                     className: atLocation.name,
                     selfTypeNode: schemaCall.typeArguments[0]!
@@ -2282,27 +2425,25 @@ export function make(
                   Nano.map((s) => ({ _tag: "call" as const, ...s }))
                 )
               ),
-              Nano.option
+              Nano.orUndefined
             )
 
-            if (Option.isSome(parsed)) {
-              const result = parsed.value
-
+            if (parsed) {
               // Build transformations based on parse result type
               let transformations: Array<ParsedPipingFlowTransformation>
               let flowNode: ts.Expression
               let childrenToTraverse: Array<ts.Node> = []
 
-              if (result._tag === "pipe") {
+              if (parsed._tag === "pipe") {
                 // Get the resolved signature to extract intermediate types
-                const signature = typeChecker.getResolvedSignature(result.node)
+                const signature = typeChecker.getResolvedSignature(parsed.node)
                 const typeArguments = signature
                   ? typeChecker.getTypeArgumentsForResolvedSignature(signature) as Array<ts.Type> | undefined
                   : undefined
 
                 transformations = []
-                for (let i = 0; i < result.args.length; i++) {
-                  const arg = result.args[i]
+                for (let i = 0; i < parsed.args.length; i++) {
+                  const arg = parsed.args[i]
                   // For pipe(subject, f1, f2, f3), typeArguments are [A, B, C, D]
                   // where A=input, B=after f1, C=after f2, D=after f3
                   // So for transformation at index i, outType is typeArguments[i+1]
@@ -2314,7 +2455,7 @@ export function make(
                       callee: arg.expression, // e.g., Effect.map
                       args: Array.from(arg.arguments), // e.g., [(x) => x + 1]
                       outType,
-                      kind: result.kind
+                      kind: parsed.kind
                     })
                   } else {
                     // Constant like Effect.asVoid
@@ -2322,21 +2463,21 @@ export function make(
                       callee: arg, // e.g., Effect.asVoid
                       args: undefined,
                       outType,
-                      kind: result.kind
+                      kind: parsed.kind
                     })
                   }
                 }
 
-                flowNode = result.node
+                flowNode = parsed.node
                 // Queue the transformation arguments for independent traversal
-                childrenToTraverse = result.args
+                childrenToTraverse = parsed.args
               } else {
                 // Single-argument call (dual API pattern)
                 const callSignature = typeChecker.getResolvedSignature(node)
                 const outType = callSignature ? typeChecker.getReturnTypeOfSignature(callSignature) : undefined
 
                 transformations = [{
-                  callee: result.callee,
+                  callee: parsed.callee,
                   args: undefined,
                   outType,
                   kind: "call"
@@ -2350,21 +2491,21 @@ export function make(
                 parentFlow.transformations.unshift(...transformations)
                 // Update subject to the inner expression (will be updated further if chain continues)
                 parentFlow.subject = {
-                  node: result.subject,
-                  outType: typeCheckerUtils.getTypeAtLocation(result.subject)
+                  node: parsed.subject,
+                  outType: typeCheckerUtils.getTypeAtLocation(parsed.subject)
                 }
-                workQueue.push([result.subject, parentFlow])
+                workQueue.push([parsed.subject, parentFlow])
               } else {
                 // Start a new flow with subject set to current inner expression
                 const newFlow: ParsedPipingFlow = {
                   node: flowNode,
                   subject: {
-                    node: result.subject,
-                    outType: typeCheckerUtils.getTypeAtLocation(result.subject)
+                    node: parsed.subject,
+                    outType: typeCheckerUtils.getTypeAtLocation(parsed.subject)
                   },
                   transformations
                 }
-                workQueue.push([result.subject, newFlow])
+                workQueue.push([parsed.subject, newFlow])
               }
 
               // Queue children for independent traversal (they may contain their own pipe flows)
@@ -2379,27 +2520,21 @@ export function make(
             // Try to parse as Effect.fn or Effect.fnUntraced with pipe transformations
             if (includeEffectFn) {
               // Try generator versions first
-              const effectFnGenParsed = yield* pipe(effectFnGen(node), Nano.option)
-              const effectFnUntracedGenParsed = Option.isNone(effectFnGenParsed)
-                ? yield* pipe(effectFnUntracedGen(node), Nano.option)
-                : Option.none()
-              // Try non-generator version if generator versions didn't match
-              const effectFnNonGenParsed = Option.isNone(effectFnGenParsed) && Option.isNone(effectFnUntracedGenParsed)
-                ? yield* pipe(effectFn(node), Nano.option)
-                : Option.none()
-
-              const isEffectFnGen = Option.isSome(effectFnGenParsed)
-              const isEffectFnUntracedGen = Option.isSome(effectFnUntracedGenParsed)
-              const isEffectFnNonGen = Option.isSome(effectFnNonGenParsed)
-              const transformationKind: "effectFn" | "effectFnUntraced" = isEffectFnUntracedGen
-                ? "effectFnUntraced"
-                : "effectFn"
+              const effectFnKind = yield* pipe(
+                Nano.map(effectFnGen(node), (_) => ({ kind: "effectFnGen" as const, ..._ })),
+                Nano.orElse(() =>
+                  Nano.map(effectFnUntracedGen(node), (_) => ({ kind: "effectFnUntracedGen" as const, ..._ }))
+                ),
+                Nano.orElse(() => Nano.map(effectFn(node), (_) => ({ kind: "effectFn" as const, ..._ }))),
+                Nano.orUndefined
+              )
 
               // Handle generator versions (Effect.fn with function*() or Effect.fnUntraced with function*())
-              if ((isEffectFnGen || isEffectFnUntracedGen)) {
-                const effectFnParsed = isEffectFnGen ? effectFnGenParsed : effectFnUntracedGenParsed
-                if (Option.isSome(effectFnParsed) && effectFnParsed.value.pipeArguments.length > 0) {
-                  const fnResult = effectFnParsed.value
+              if (
+                effectFnKind && (effectFnKind.kind === "effectFnGen" || effectFnKind.kind === "effectFnUntracedGen")
+              ) {
+                if (effectFnKind.pipeArguments.length > 0) {
+                  const fnResult = effectFnKind
                   const pipeArgs = fnResult.pipeArguments
 
                   // Build transformations from pipeArguments
@@ -2434,14 +2569,14 @@ export function make(
                         callee: arg.expression,
                         args: Array.from(arg.arguments),
                         outType,
-                        kind: transformationKind
+                        kind: effectFnKind.kind === "effectFnUntracedGen" ? "effectFnUntraced" : "effectFn"
                       })
                     } else {
                       transformations.push({
                         callee: arg,
                         args: undefined,
                         outType,
-                        kind: transformationKind
+                        kind: effectFnKind.kind === "effectFnUntracedGen" ? "effectFnUntraced" : "effectFn"
                       })
                     }
                   }
@@ -2470,10 +2605,10 @@ export function make(
 
               // Handle non-generator version (Effect.fn with regular function or arrow function)
               if (
-                isEffectFnNonGen && Option.isSome(effectFnNonGenParsed) &&
-                effectFnNonGenParsed.value.pipeArguments.length > 0
+                effectFnKind && effectFnKind.kind === "effectFn" &&
+                effectFnKind.pipeArguments.length > 0
               ) {
-                const fnResult = effectFnNonGenParsed.value
+                const fnResult = effectFnKind
                 const pipeArgs = fnResult.pipeArguments
 
                 // Build transformations from pipeArguments
@@ -2665,10 +2800,13 @@ export function make(
     extendsDataTaggedError,
     extendsDataTaggedClass,
     extendsSchemaTaggedRequest,
+    extendsSchemaRequestClass,
     extendsEffectSqlModelClass,
     lazyExpression,
     emptyFunction,
     pipingFlows,
-    reconstructPipingFlow
+    reconstructPipingFlow,
+    getEffectRelatedPackages,
+    supportedEffect
   }
 }

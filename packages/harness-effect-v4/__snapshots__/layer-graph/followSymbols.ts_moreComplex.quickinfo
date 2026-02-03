@@ -1,0 +1,6 @@
+/**
+ * - DbConnection provided at in simple.ts at ln 6 col 19 by `Layer.effect(this, this.make)`
+ * - UserRepository provided at in simple.ts at ln 21 col 19 by `Layer.effect(this, this.make)`
+ * 
+ * - DbConnection required at in simple.ts at ln 21 col 19 by `Layer.effect(this, this.make)`
+ */
