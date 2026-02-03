@@ -54,7 +54,7 @@ This file tracks all language service features and their compatibility status wi
 - [ ] outdatedEffectCodegen
 - [ ] nonObjectEffectServiceType
 - [ ] deterministicKeys
-- [ ] missedPipeableOpportunity
+- [X] missedPipeableOpportunity
 - [ ] strictEffectProvide
 - [ ] runEffectInsideEffect
 - [ ] missingLayerContext
