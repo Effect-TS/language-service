@@ -4,6 +4,7 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
@@ -15,6 +16,13 @@ export const effectGenToFn = LSP.createRefactor({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+
+    const effectIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+      sourceFile,
+      "effect",
+      "Effect"
+    ) || "Effect"
 
     const skipReturnBlock = (node: ts.Node) =>
       ts.isBlock(node) && node.statements.length === 1 && ts.isReturnStatement(node.statements[0]) &&
@@ -86,6 +94,45 @@ export const effectGenToFn = LSP.createRefactor({
               effectModule,
               "fn"
             )
+          let returnType: ts.TypeNode | undefined = undefined
+          if (nodeToReplace.type) {
+            const actualType = typeCheckerUtils.getTypeAtLocation(nodeToReplace.type)
+            if (actualType) {
+              const maybeType = yield* pipe(
+                typeParser.strictEffectType(actualType, nodeToReplace.type),
+                Nano.orUndefined
+              )
+              if (maybeType) {
+                const aType = typeCheckerUtils.typeToSimplifiedTypeNode(
+                  maybeType.A,
+                  nodeToReplace,
+                  ts.NodeBuilderFlags.NoTruncation
+                )
+                const eType = typeCheckerUtils.typeToSimplifiedTypeNode(
+                  maybeType.E,
+                  nodeToReplace,
+                  ts.NodeBuilderFlags.NoTruncation
+                )
+                const rType = typeCheckerUtils.typeToSimplifiedTypeNode(
+                  maybeType.R,
+                  nodeToReplace,
+                  ts.NodeBuilderFlags.NoTruncation
+                )
+                if (aType && eType && rType) {
+                  returnType = ts.factory.createTypeReferenceNode(
+                    ts.factory.createQualifiedName(
+                      ts.factory.createQualifiedName(
+                        ts.factory.createIdentifier(effectIdentifier),
+                        ts.factory.createIdentifier("fn")
+                      ),
+                      ts.factory.createIdentifier("Return")
+                    ),
+                    [aType, eType, rType]
+                  )
+                }
+              }
+            }
+          }
           // append the generator and pipe arguments to the Effect.fn call
           const effectFnCallWithGenerator = ts.factory.createCallExpression(
             effectFn,
@@ -96,7 +143,7 @@ export const effectGenToFn = LSP.createRefactor({
               undefined,
               nodeToReplace.typeParameters,
               nodeToReplace.parameters,
-              nodeToReplace.type,
+              returnType,
               generatorFunction.body
             ) as ts.Expression].concat(pipeArgs)
           )
