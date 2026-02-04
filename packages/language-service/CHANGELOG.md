@@ -1,5 +1,16 @@
 # @effect/language-service
 
+## 0.73.0
+
+### Minor Changes
+
+- [#637](https://github.com/Effect-TS/language-service/pull/637) [`616c2cc`](https://github.com/Effect-TS/language-service/commit/616c2cc21c9526da9b97f5c122ef0e2789f9bdff) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add Effect v4 completions support
+
+  - Detect installed Effect version (v3 or v4) and conditionally enable version-specific completions
+  - Add `Schema.ErrorClass` and `Schema.RequestClass` completions for Effect v4
+  - Disable v3-only completions (`Effect.Service`, `Effect.Tag`, `Schema.TaggedError`, `Schema.TaggedClass`, `Schema.TaggedRequest`, `Context.Tag` self, `Rpc.make` classes, `Schema.brand`, `Model.Class`) when Effect v4 is detected
+  - Support lowercase `taggedEnum` in addition to `TaggedEnum` for v4 API compatibility
+
 ## 0.72.1
 
 ### Patch Changes
