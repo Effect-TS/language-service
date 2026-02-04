@@ -13,6 +13,7 @@ export const contextSelfInClasses = LSP.createCompletion({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    if (typeParser.supportedEffect() === "v4") return []
 
     const maybeInfos = tsUtils.parseDataForExtendsClassCompletion(sourceFile, position)
     if (!maybeInfos) return []

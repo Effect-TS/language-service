@@ -3,6 +3,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
+import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -11,6 +12,8 @@ export const schemaBrand = LSP.createCompletion({
   apply: Nano.fn("schemaBrand")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    if (typeParser.supportedEffect() === "v4") return []
 
     const maybeInfos = tsUtils.parseAccessedExpressionForCompletion(sourceFile, position)
     if (!maybeInfos) return []

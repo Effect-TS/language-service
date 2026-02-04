@@ -1,5 +1,6 @@
 import * as LSP from "../core/LSP"
 import * as Nano from "../core/Nano"
+import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -8,6 +9,8 @@ export const rpcMakeClasses = LSP.createCompletion({
   apply: Nano.fn("rpcMakeClasses")(function*(sourceFile, position) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    if (typeParser.supportedEffect() === "v4") return []
 
     const maybeInfos = tsUtils.parseDataForExtendsClassCompletion(sourceFile, position)
     if (!maybeInfos) return []

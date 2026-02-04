@@ -1,5 +1,145 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "Context.Tag("@effect/harness-effect-v4/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 8,
+      "start": 144,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses_directImportTag.ts at 4:35 1`] = `[]`;
+
+exports[`Completion contextSelfInClasses > contextSelfInClasses_identifierKey.ts at 5:40 1`] = `
+[
+  {
+    "insertText": "Context.Tag("@effect/harness-effect-v4/MyService")<MyService, \${0}>(){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Tag("MyService")",
+    "replacementSpan": {
+      "length": 8,
+      "start": 240,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion durationInput > durationInput.ts at 4:38 1`] = `
+[
+  {
+    "insertText": "\${0} nanos",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "nanos",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} micros",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "micros",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} millis",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "millis",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} seconds",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "seconds",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} minutes",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "minutes",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} hours",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "hours",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} days",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "days",
+    "sortText": "11",
+  },
+  {
+    "insertText": "\${0} weeks",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "weeks",
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion durationInput > durationInput_props.ts at 5:14 1`] = `[]`;
+
+exports[`Completion effectCodegensComment > effectCodegensComment.ts at 2:5 1`] = `
+[
+  {
+    "insertText": "@effect-codegens \${1|accessors,annotate,typeToSchema|} $0",
+    "isSnippet": true,
+    "kind": "string",
+    "name": "@effect-codegens",
+    "replacementSpan": {
+      "length": 1,
+      "start": 73,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectDataClasses > effectDataClasses.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Data.TaggedError("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError("MyError")",
+    "replacementSpan": {
+      "length": 5,
+      "start": 133,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "Data.TaggedClass("MyError")<{\${0}}>{}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedClass("MyError")",
+    "replacementSpan": {
+      "length": 5,
+      "start": 133,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectDiagnosticsComment > effectDiagnosticsComment.ts at 2:5 1`] = `
 [
   {
@@ -37,6 +177,98 @@ exports[`Completion effectJsdocComment > effectJsdocComment.ts at 2:6 1`] = `
     "replacementSpan": {
       "length": 1,
       "start": 71,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportClass.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Class<MyClass>("MyClass")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<MyClass>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 143,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotToken.ts at 4:22 1`] = `
+[
+  {
+    "insertText": "S.Class<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.ErrorClass<Test>()({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "ErrorClass<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.RequestClass<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "RequestClass<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.ts at 4:25 1`] = `
+[
+  {
+    "insertText": "S.Class<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.ErrorClass<Test>()({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "ErrorClass<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.RequestClass<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "RequestClass<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
     },
     "sortText": "11",
   },

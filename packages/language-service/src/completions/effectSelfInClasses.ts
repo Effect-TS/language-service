@@ -37,41 +37,45 @@ export const effectSelfInClasses = LSP.createCompletion({
     const completions: Array<LSP.CompletionEntryDefinition> = []
 
     // If extending Service (either Effect.Service or direct import Service)
-    const hasServiceCompletion = isFullyQualified || Option.isSome(
-      yield* pipe(
-        typeParser.isNodeReferenceToEffectModuleApi("Service")(accessedObject),
-        Nano.option
+    if (typeParser.supportedEffect() === "v3") {
+      const hasServiceCompletion = isFullyQualified || Option.isSome(
+        yield* pipe(
+          typeParser.isNodeReferenceToEffectModuleApi("Service")(accessedObject),
+          Nano.option
+        )
       )
-    )
-    if (hasServiceCompletion) {
-      completions.push({
-        name: `Service<${name}>`,
-        kind: ts.ScriptElementKind.constElement,
-        insertText: isFullyQualified
-          ? `${effectIdentifier}.Service<${name}>()("${tagKey}", {${"${0}"}}){}`
-          : `Service<${name}>()("${tagKey}", {${"${0}"}}){}`,
-        replacementSpan,
-        isSnippet: true
-      })
+      if (hasServiceCompletion) {
+        completions.push({
+          name: `Service<${name}>`,
+          kind: ts.ScriptElementKind.constElement,
+          insertText: isFullyQualified
+            ? `${effectIdentifier}.Service<${name}>()("${tagKey}", {${"${0}"}}){}`
+            : `Service<${name}>()("${tagKey}", {${"${0}"}}){}`,
+          replacementSpan,
+          isSnippet: true
+        })
+      }
     }
 
     // If extending Tag (either Effect.Tag or direct import Tag)
-    const hasTagCompletion = isFullyQualified || Option.isSome(
-      yield* pipe(
-        typeParser.isNodeReferenceToEffectModuleApi("Tag")(accessedObject),
-        Nano.option
+    if (typeParser.supportedEffect() === "v3") {
+      const hasTagCompletion = isFullyQualified || Option.isSome(
+        yield* pipe(
+          typeParser.isNodeReferenceToEffectModuleApi("Tag")(accessedObject),
+          Nano.option
+        )
       )
-    )
-    if (hasTagCompletion) {
-      completions.push({
-        name: `Tag("${name}")`,
-        kind: ts.ScriptElementKind.constElement,
-        insertText: isFullyQualified
-          ? `${effectIdentifier}.Tag("${tagKey}")<${name}, {${"${0}"}}>(){}`
-          : `Tag("${tagKey}")<${name}, {${"${0}"}}>(){}`,
-        replacementSpan,
-        isSnippet: true
-      })
+      if (hasTagCompletion) {
+        completions.push({
+          name: `Tag("${name}")`,
+          kind: ts.ScriptElementKind.constElement,
+          insertText: isFullyQualified
+            ? `${effectIdentifier}.Tag("${tagKey}")<${name}, {${"${0}"}}>(){}`
+            : `Tag("${tagKey}")<${name}, {${"${0}"}}>(){}`,
+          replacementSpan,
+          isSnippet: true
+        })
+      }
     }
 
     return completions
