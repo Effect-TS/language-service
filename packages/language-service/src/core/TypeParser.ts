@@ -372,7 +372,9 @@ export function make(
       const sourceFile = program.getSourceFile(fileName)
       if (!sourceFile) continue
       const resolvedPackages = getEffectRelatedPackages(sourceFile)
-      for (const version of Object.keys(resolvedPackages["effect"])) {
+      const effectPkgs = resolvedPackages["effect"]
+      if (!effectPkgs) continue
+      for (const version of Object.keys(effectPkgs)) {
         if (String(version).startsWith("4")) return "v4"
         if (String(version).startsWith("3")) return "v3"
       }
@@ -941,7 +943,8 @@ export function make(
     ) {
       const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
       if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
-      const taggedEnumSymbol = typeChecker.tryGetMemberInModuleExports("TaggedEnum", moduleSymbol)
+      const taggedEnumSymbol = typeChecker.tryGetMemberInModuleExports("TaggedEnum", moduleSymbol) ||
+        typeChecker.tryGetMemberInModuleExports("taggedEnum", moduleSymbol)
       if (!taggedEnumSymbol) return yield* typeParserIssue("TaggedEnum not found", undefined, sourceFile)
       const taggedErrorSymbol = typeChecker.tryGetMemberInModuleExports("TaggedError", moduleSymbol)
       if (!taggedErrorSymbol) return yield* typeParserIssue("TaggedError not found", undefined, sourceFile)
