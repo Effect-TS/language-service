@@ -303,6 +303,16 @@ Effect.succeed(1); // This will not be reported as a floating Effect
 Effect.succeed(1); // This will be reported as a floating effect
 ```
 
+You can also use `*` as a wildcard to apply a severity to all diagnostics at once:
+
+```ts
+// @effect-diagnostics *:off
+Effect.succeed(1); // No diagnostics will be reported from this point on
+
+// @effect-diagnostics effect/floatingEffect:error
+Effect.succeed(1); // This will be reported as a floating effect (rule-specific overrides wildcard)
+```
+
 or you can set the severity for the entire project in the global plugin configuration
 
 ```jsonc
