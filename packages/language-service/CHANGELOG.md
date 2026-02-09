@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.73.1
+
+### Patch Changes
+
+- [#639](https://github.com/Effect-TS/language-service/pull/639) [`ff72045`](https://github.com/Effect-TS/language-service/commit/ff72045531c2b04318b89bb131f131b114b22818) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add wildcard (`*`) support for `@effect-diagnostics` comment directives. You can now use `*` as a rule name to apply a severity override to all diagnostics at once, e.g. `@effect-diagnostics *:off` disables all Effect diagnostics from that point on. Rule-specific overrides still take precedence over wildcard overrides.
+
 ## 0.73.0
 
 ### Minor Changes
