@@ -13,3 +13,5 @@ Dockerfile
 .pnpm-store/
 specs/
 .context/
+.cuggino.json
+.cuggino/

@@ -276,7 +276,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
     const skippedRules: Array<string> = []
 
     const regex =
-      /@effect-diagnostics(-next-line)?((?:\s[a-zA-Z0-9/]+:(?:off|warning|error|message|suggestion|skip-file))+)?/gm
+      /@effect-diagnostics(-next-line)?((?:\s(?:[a-zA-Z0-9/]+|\*):(?:off|warning|error|message|suggestion|skip-file))+)?/gm
     let match: RegExpExecArray | null
     while ((match = regex.exec(sourceFile.text)) !== null) {
       const nextLineCaptureGroup = match[1]
@@ -336,11 +336,14 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
         const ruleNameLowered = rule.name.toLowerCase()
         const defaultLevel = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
         // if file is skipped entirely, do not process the rule
-        if (skippedRules.indexOf(ruleNameLowered) > -1) return { diagnostics, codeFixes }
+        if (skippedRules.indexOf(ruleNameLowered) > -1 || skippedRules.indexOf("*") > -1) {
+          return { diagnostics, codeFixes }
+        }
         // if the default level is off, and there are no overrides, do not process the rule
         if (
           defaultLevel === "off" &&
-          ((lineOverrides[ruleNameLowered] || sectionOverrides[ruleNameLowered] || []).length === 0)
+          ((lineOverrides[ruleNameLowered] || sectionOverrides[ruleNameLowered] || lineOverrides["*"] ||
+            sectionOverrides["*"] || []).length === 0)
         ) {
           return { diagnostics, codeFixes }
         }
@@ -404,21 +407,36 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
 
         // create a list of all the comment ranges
         const unusedLineOverrides = new Set<CommentNextLineOverride>(lineOverrides[ruleNameLowered] || [])
+        // NOTE: we do not track unused `*` overrides since they apply to all rules
 
         // loop through rules
         for (const emitted of applicableDiagnostics.slice(0)) {
           // by default, use the overriden level from the plugin options
           let newLevel: string | undefined = defaultLevel
-          // attempt with line overrides
-          const lineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
+          // attempt with line overrides — pick the most recent (highest pos) from both rule-specific and wildcard
+          const specificLineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
             _.pos < emitted.range.pos && _.end >= emitted.range.end
           )
+          const wildcardLineOverride = (lineOverrides["*"] || []).find((_) =>
+            _.pos < emitted.range.pos && _.end >= emitted.range.end
+          )
+          const lineOverride = specificLineOverride && wildcardLineOverride
+            ? (specificLineOverride.pos >= wildcardLineOverride.pos ? specificLineOverride : wildcardLineOverride)
+            : specificLineOverride || wildcardLineOverride
           if (lineOverride) {
             newLevel = lineOverride.level
             unusedLineOverrides.delete(lineOverride)
           } else {
-            // then attempt with section overrides
-            const sectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) => _.pos < emitted.range.pos)
+            // then attempt with section overrides — pick the most recent (highest pos) from both rule-specific and wildcard
+            const specificSectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
+              _.pos < emitted.range.pos
+            )
+            const wildcardSectionOverride = (sectionOverrides["*"] || []).find((_) => _.pos < emitted.range.pos)
+            const sectionOverride = specificSectionOverride && wildcardSectionOverride
+              ? (specificSectionOverride.pos >= wildcardSectionOverride.pos
+                ? specificSectionOverride
+                : wildcardSectionOverride)
+              : specificSectionOverride || wildcardSectionOverride
             if (sectionOverride) newLevel = sectionOverride.level
           }
           // if level is off or not a valid level, skip and no output

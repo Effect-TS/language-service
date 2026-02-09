@@ -1,0 +1,5 @@
+Effect.succeed(1)
+3:0 - 3:17 | 1 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
+
+Effect.succeed(1)
+10:0 - 10:17 | 1 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
