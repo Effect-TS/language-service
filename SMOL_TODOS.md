@@ -54,7 +54,7 @@ This file tracks all language service features and their compatibility status wi
 - [ ] leakingRequirements
 - [X] multipleEffectProvide
 - [ ] outdatedEffectCodegen
-- [ ] nonObjectEffectServiceType
+- [-] nonObjectEffectServiceType
 - [ ] deterministicKeys
 - [X] missedPipeableOpportunity
 - [ ] strictEffectProvide
