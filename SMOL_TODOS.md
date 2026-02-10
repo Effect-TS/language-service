@@ -85,9 +85,9 @@ This file tracks all language service features and their compatibility status wi
 ## Refactors (21 total)
 
 - [X] asyncAwaitToFn
-- [ ] asyncAwaitToFnTryPromise
+- [X] asyncAwaitToFnTryPromise
 - [X] asyncAwaitToGen
-- [ ] asyncAwaitToGenTryPromise
+- [X] asyncAwaitToGenTryPromise
 - [X] effectGenToFn
 - [X] functionToArrow
 - [ ] layerMagic
