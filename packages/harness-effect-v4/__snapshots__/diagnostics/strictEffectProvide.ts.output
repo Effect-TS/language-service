@@ -1,0 +1,11 @@
+Effect.provide(MyService1.Default)
+18:2 - 18:36 | 0 | Effect.provide with a Layer should only be used at application entry points. If this is an entry point, you can safely disable this diagnostic. Otherwise, using Effect.provide may break scope lifetimes. Compose all layers at your entry point and provide them at once.    effect(strictEffectProvide)
+
+Effect.provide(Effect.void, MyService1.Default)
+22:29 - 22:76 | 0 | Effect.provide with a Layer should only be used at application entry points. If this is an entry point, you can safely disable this diagnostic. Otherwise, using Effect.provide may break scope lifetimes. Compose all layers at your entry point and provide them at once.    effect(strictEffectProvide)
+
+Effect.provide(MyService1.Default)
+27:2 - 27:36 | 0 | Effect.provide with a Layer should only be used at application entry points. If this is an entry point, you can safely disable this diagnostic. Otherwise, using Effect.provide may break scope lifetimes. Compose all layers at your entry point and provide them at once.    effect(strictEffectProvide)
+
+Effect.provide(Layer.mergeAll(MyService1.Default, MyService2.Default))
+33:2 - 33:72 | 0 | Effect.provide with a Layer should only be used at application entry points. If this is an entry point, you can safely disable this diagnostic. Otherwise, using Effect.provide may break scope lifetimes. Compose all layers at your entry point and provide them at once.    effect(strictEffectProvide)
