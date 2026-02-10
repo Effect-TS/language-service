@@ -1,0 +1,79 @@
+=== Piping Flow ===
+Location: 5:24 - 9:2
+Node: pipe(\n  Effect.succeed(1),\n  Effect.map((n) => n + 1),\n  Effect.flatMap((n) => Effect.succeed(n * 2))\n)
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (3):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+  [1] kind: pipe
+      callee: Effect.map
+      args: [(n) => n + 1]
+      outType: Effect<number, never, never>
+  [2] kind: pipe
+      callee: Effect.flatMap
+      args: [(n) => Effect.succeed(n * 2)]
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.flatMap((n) => Effect.succeed(n * 2))(Effect.map((n) => n + 1)(Effect.succeed(1)))
+
+=== Piping Flow ===
+Location: 8:25 - 8:46
+Node: Effect.succeed(n * 2)
+Node Kind: CallExpression
+
+Subject: n * 2
+Subject Type: number
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(n * 2)
+
+=== Piping Flow ===
+Location: 12:24 - 15:2
+Node: Effect.succeed(1).pipe(\n  Effect.map((n) => n + 1),\n  Effect.flatMap((n) => Effect.succeed(n * 2))\n)
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (3):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+  [1] kind: pipeable
+      callee: Effect.map
+      args: [(n) => n + 1]
+      outType: Effect<number, never, never>
+  [2] kind: pipeable
+      callee: Effect.flatMap
+      args: [(n) => Effect.succeed(n * 2)]
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.flatMap((n) => Effect.succeed(n * 2))(Effect.map((n) => n + 1)(Effect.succeed(1)))
+
+=== Piping Flow ===
+Location: 14:25 - 14:46
+Node: Effect.succeed(n * 2)
+Node Kind: CallExpression
+
+Subject: n * 2
+Subject Type: number
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(n * 2)
