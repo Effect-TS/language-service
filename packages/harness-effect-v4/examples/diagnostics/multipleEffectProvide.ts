@@ -1,0 +1,38 @@
+import { ServiceMap, Effect, Layer } from "effect"
+
+class MyService1 extends ServiceMap.Service<MyService1>()("MyService1", {
+  make: Effect.succeed({ value: 1 })
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+class MyService2 extends ServiceMap.Service<MyService2>()("MyService2", {
+  make: Effect.succeed({ value: 2 })
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+class MyService3 extends ServiceMap.Service<MyService3>()("MyService3", {
+  make: Effect.succeed({ value: 3 })
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+export const shouldReport = Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default)
+)
+
+export const shouldReportSeparately = Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default),
+  Effect.ignore,
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default)
+)
+
+export const shouldReportSingle = Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default),
+  Effect.provide(MyService3.Default)
+)

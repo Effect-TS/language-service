@@ -52,7 +52,7 @@ This file tracks all language service features and their compatibility status wi
 - [-] redundantSchemaTagIdentifier
 - [X] effectFnOpportunity
 - [ ] leakingRequirements
-- [ ] multipleEffectProvide
+- [X] multipleEffectProvide
 - [ ] outdatedEffectCodegen
 - [ ] nonObjectEffectServiceType
 - [ ] deterministicKeys
