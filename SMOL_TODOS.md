@@ -53,13 +53,13 @@ This file tracks all language service features and their compatibility status wi
 - [X] effectFnOpportunity
 - [ ] leakingRequirements
 - [X] multipleEffectProvide
-- [ ] outdatedEffectCodegen
+- [X] outdatedEffectCodegen
 - [-] nonObjectEffectServiceType
 - [ ] deterministicKeys
 - [X] missedPipeableOpportunity
 - [ ] strictEffectProvide
 - [ ] runEffectInsideEffect
-- [ ] missingLayerContext
+- [X] missingLayerContext
 - [ ] schemaSyncInEffect
 
 ---
@@ -104,4 +104,4 @@ This file tracks all language service features and their compatibility status wi
 - [ ] typeToEffectSchemaClass
 - [X] wrapWithEffectGen
 - [X] wrapWithPipe
-- [ ] writeTagClassAccessors
+- [-] writeTagClassAccessors

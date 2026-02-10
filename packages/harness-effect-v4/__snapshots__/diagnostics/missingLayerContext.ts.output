@@ -1,0 +1,5 @@
+layerWithServices
+28:7 - 28:24 | 1 | Missing 'ServiceB | ServiceC' in the expected Layer context.    effect(missingLayerContext)
+
+layerWithServices
+35:19 - 35:36 | 1 | Missing 'ServiceC' in the expected Layer context.    effect(missingLayerContext)
