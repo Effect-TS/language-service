@@ -58,7 +58,7 @@ This file tracks all language service features and their compatibility status wi
 - [ ] deterministicKeys
 - [X] missedPipeableOpportunity
 - [X] strictEffectProvide
-- [ ] runEffectInsideEffect
+- [-] runEffectInsideEffect
 - [X] missingLayerContext
 - [ ] schemaSyncInEffect
 
