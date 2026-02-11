@@ -90,7 +90,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] asyncAwaitToGenTryPromise
 - [X] effectGenToFn
 - [X] functionToArrow
-- [ ] layerMagic
+- [X] layerMagic
 - [ ] makeSchemaOpaque
 - [ ] makeSchemaOpaqueWithNs
 - [X] pipeableToDatafirst
