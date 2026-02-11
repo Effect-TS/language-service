@@ -51,13 +51,13 @@ This file tracks all language service features and their compatibility status wi
 - [X] layerMergeAllWithDependencies
 - [-] redundantSchemaTagIdentifier
 - [X] effectFnOpportunity
-- [ ] leakingRequirements
+- [X] leakingRequirements
 - [X] multipleEffectProvide
 - [X] outdatedEffectCodegen
 - [-] nonObjectEffectServiceType
 - [ ] deterministicKeys
 - [X] missedPipeableOpportunity
-- [ ] strictEffectProvide
+- [X] strictEffectProvide
 - [ ] runEffectInsideEffect
 - [X] missingLayerContext
 - [ ] schemaSyncInEffect
