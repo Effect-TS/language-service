@@ -55,7 +55,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] multipleEffectProvide
 - [X] outdatedEffectCodegen
 - [-] nonObjectEffectServiceType
-- [ ] deterministicKeys
+- [X] deterministicKeys
 - [X] missedPipeableOpportunity
 - [X] strictEffectProvide
 - [-] runEffectInsideEffect

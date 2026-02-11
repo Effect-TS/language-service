@@ -1,0 +1,10 @@
+// code fix deterministicKeys_fix  output for range 399 - 407
+// @effect-diagnostics deterministicKeys:error
+// @test-config { "keyPatterns": [ { "target": "service", "pattern": "default" }, { "target": "error", "pattern": "default" } ] }
+import { ServiceMap, Data } from "effect"
+
+export class ExpectedServiceIdentifier
+  extends ServiceMap.Service<ExpectedServiceIdentifier, {}>()("ExpectedServiceIdentifier")
+{}
+
+export class ErrorA extends Data.TaggedError("@effect/harness-effect-v4/ErrorA")<{}> {}
