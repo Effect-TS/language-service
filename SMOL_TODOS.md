@@ -91,8 +91,8 @@ This file tracks all language service features and their compatibility status wi
 - [X] effectGenToFn
 - [X] functionToArrow
 - [X] layerMagic
-- [ ] makeSchemaOpaque
-- [ ] makeSchemaOpaqueWithNs
+- [X] makeSchemaOpaque
+- [X] makeSchemaOpaqueWithNs
 - [X] pipeableToDatafirst
 - [X] removeUnnecessaryEffectGen
 - [ ] structuralTypeToSchema
