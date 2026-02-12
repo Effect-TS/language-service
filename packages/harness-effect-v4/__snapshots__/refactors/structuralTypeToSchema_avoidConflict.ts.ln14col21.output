@@ -1,0 +1,25 @@
+// Result of running refactor structuralTypeToSchema at position 14:21
+import * as Schema from "effect/Schema"
+
+type User = {
+  id: number
+  name: string
+}
+
+const User: User = {
+  id: 1,
+  name: "John Doe"
+}
+class User_1 extends Schema.Class<User_1>("User_1")({
+    id: Schema.Number,
+    name: Schema.String
+}) { }
+
+export class AppState extends Schema.Class<AppState>("AppState")({
+    users: User_1
+}) { }
+
+
+export interface AppState {
+  users: User
+}

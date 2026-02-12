@@ -95,7 +95,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] makeSchemaOpaqueWithNs
 - [X] pipeableToDatafirst
 - [X] removeUnnecessaryEffectGen
-- [ ] structuralTypeToSchema
+- [X] structuralTypeToSchema
 - [X] toggleLazyConst
 - [X] togglePipeStyle
 - [X] toggleReturnTypeAnnotation
