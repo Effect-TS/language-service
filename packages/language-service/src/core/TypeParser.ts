@@ -85,6 +85,9 @@ export interface TypeParser {
   isNodeReferenceToEffectSchemaModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectSchemaParserModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   isNodeReferenceToEffectParseResultModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
@@ -1457,6 +1460,38 @@ export function make(
         return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectParseResultSourceFile, memberName)
       }),
       `TypeParser.isNodeReferenceToEffectParseResultModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const isEffectSchemaParserSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectSchemaParserSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      // Check for ParseIssue type
+      const parseIssueSymbol = typeChecker.tryGetMemberInModuleExports("Parser", moduleSymbol)
+      if (!parseIssueSymbol) return yield* typeParserIssue("ParseIssue type not found", undefined, sourceFile)
+      // Check for decodeSync export
+      const decodeSyncSymbol = typeChecker.tryGetMemberInModuleExports("decodeEffect", moduleSymbol)
+      if (!decodeSyncSymbol) return yield* typeParserIssue("decodeSync not found", undefined, sourceFile)
+      // Check for encodeSync export
+      const encodeSyncSymbol = typeChecker.tryGetMemberInModuleExports("encodeEffect", moduleSymbol)
+      if (!encodeSyncSymbol) return yield* typeParserIssue("encodeSync not found", undefined, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isEffectSchemaParserSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectSchemaParserModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectSchemaParserModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectSchemaParserSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectSchemaParserModuleApi(${memberName})`,
       (node) => node
     )
 
@@ -2924,6 +2959,7 @@ export function make(
     isNodeReferenceToEffectContextModuleApi,
     isNodeReferenceToEffectSqlModelModuleApi,
     isNodeReferenceToEffectLayerModuleApi,
+    isNodeReferenceToEffectSchemaParserModuleApi,
     isServiceMapTypeSourceFile,
     isNodeReferenceToServiceMapModuleApi,
     effectType,

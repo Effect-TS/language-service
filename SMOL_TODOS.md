@@ -60,7 +60,7 @@ This file tracks all language service features and their compatibility status wi
 - [X] strictEffectProvide
 - [-] runEffectInsideEffect
 - [X] missingLayerContext
-- [ ] schemaSyncInEffect
+- [X] schemaSyncInEffect
 
 ---
 
