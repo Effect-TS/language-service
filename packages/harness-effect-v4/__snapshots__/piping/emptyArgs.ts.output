@@ -1,0 +1,31 @@
+=== Piping Flow ===
+Location: 5:24 - 5:47
+Node: pipe(Effect.succeed(1))
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(1)
+
+=== Piping Flow ===
+Location: 8:24 - 8:48
+Node: Effect.succeed(1).pipe()
+Node Kind: CallExpression
+
+Subject: 1
+Subject Type: 1
+
+Transformations (1):
+  [0] kind: call
+      callee: Effect.succeed
+      args: (constant)
+      outType: Effect<number, never, never>
+
+Reconstructed: Effect.succeed(1)

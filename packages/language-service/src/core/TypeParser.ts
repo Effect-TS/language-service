@@ -85,6 +85,9 @@ export interface TypeParser {
   isNodeReferenceToEffectSchemaModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectSchemaParserModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   isNodeReferenceToEffectParseResultModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
@@ -98,6 +101,10 @@ export interface TypeParser {
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   isNodeReferenceToEffectLayerModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isServiceMapTypeSourceFile: (sourceFile: ts.SourceFile) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToServiceMapModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
@@ -178,6 +185,10 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ Identifier: ts.Type; Service: ts.Type }, TypeParserIssue>
+  serviceType: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<{ Identifier: ts.Type; Service: ts.Type }, TypeParserIssue>
   pipeableType: (type: ts.Type, atLocation: ts.Node) => Nano.Nano<ts.Type, TypeParserIssue, never>
   pipeCall: (
     node: ts.Node
@@ -212,6 +223,17 @@ export interface TypeParser {
       dependencies: ts.NodeArray<ts.Expression> | undefined
       keyStringLiteral: ts.StringLiteral | undefined
       options: ts.Expression
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsServiceMapService: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+      Identifier: ts.Type
+      Service: ts.Type
+      keyStringLiteral: ts.StringLiteral | undefined
     },
     TypeParserIssue,
     never
@@ -1441,6 +1463,38 @@ export function make(
       (node) => node
     )
 
+  const isEffectSchemaParserSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectSchemaParserSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      // Check for ParseIssue type
+      const parseIssueSymbol = typeChecker.tryGetMemberInModuleExports("Parser", moduleSymbol)
+      if (!parseIssueSymbol) return yield* typeParserIssue("ParseIssue type not found", undefined, sourceFile)
+      // Check for decodeSync export
+      const decodeSyncSymbol = typeChecker.tryGetMemberInModuleExports("decodeEffect", moduleSymbol)
+      if (!decodeSyncSymbol) return yield* typeParserIssue("decodeSync not found", undefined, sourceFile)
+      // Check for encodeSync export
+      const encodeSyncSymbol = typeChecker.tryGetMemberInModuleExports("encodeEffect", moduleSymbol)
+      if (!encodeSyncSymbol) return yield* typeParserIssue("encodeSync not found", undefined, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isEffectSchemaParserSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectSchemaParserModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectSchemaParserModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectSchemaParserSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToEffectSchemaParserModuleApi(${memberName})`,
+      (node) => node
+    )
+
   const contextTagVarianceStruct = (
     type: ts.Type,
     atLocation: ts.Node
@@ -1452,6 +1506,45 @@ export function make(
       ),
       ([Identifier, Service]) => ({ Identifier, Service })
     )
+
+  const serviceVarianceStruct = (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) =>
+    Nano.map(
+      Nano.all(
+        varianceStructInvariantType(type, atLocation, "_Identifier"),
+        varianceStructInvariantType(type, atLocation, "_Service")
+      ),
+      ([Identifier, Service]) => ({ Identifier, Service })
+    )
+
+  const serviceType = Nano.cachedBy(
+    Nano.fn("TypeParser.serviceType")(function*(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      // should be pipeable
+      yield* pipeableType(type, atLocation)
+      // get the properties to check (exclude non-property and optional properties)
+      const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
+      )
+      // early exit
+      if (propertiesSymbols.length === 0) {
+        return yield* typeParserIssue("Type has no tag variance struct", type, atLocation)
+      }
+      // try to put typeid first (heuristic to optimize hot path)
+      propertiesSymbols.sort((a, b) => ts.symbolName(b).indexOf("TypeId") - ts.symbolName(a).indexOf("TypeId"))
+      // has a property symbol which is a service variance struct
+      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
+        const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
+        return serviceVarianceStruct(propertyType, atLocation)
+      }))
+    }),
+    "TypeParser.serviceType",
+    (type) => type
+  )
 
   const contextTag = Nano.cachedBy(
     Nano.fn("TypeParser.contextTag")(function*(
@@ -1577,17 +1670,26 @@ export function make(
       type: ts.Type,
       atLocation: ts.Node
     ) {
-      // should be pipeable
-      yield* pipeableType(type, atLocation)
-      // get the properties to check (exclude non-property and optional properties)
-      const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
-      )
-      // has a property scope type id (symbol name contains ScopeTypeId)
-      if (propertiesSymbols.some((s) => ts.symbolName(s).indexOf("ScopeTypeId") !== -1)) {
-        return type
+      if (supportedEffect() === "v4") {
+        // Effect v4 TypeId shortcut
+        const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Scope")
+        if (typeIdSymbol) {
+          return type
+        }
+        return yield* typeParserIssue("Type is not an effect", type, atLocation)
+      } else {
+        // should be pipeable
+        yield* pipeableType(type, atLocation)
+        // get the properties to check (exclude non-property and optional properties)
+        const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
+          _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
+        )
+        // has a property scope type id (symbol name contains ScopeTypeId)
+        if (propertiesSymbols.some((s) => ts.symbolName(s).indexOf("ScopeTypeId") !== -1)) {
+          return type
+        }
+        return yield* typeParserIssue("Type has no scope type id", type, atLocation)
       }
-      return yield* typeParserIssue("Type has no scope type id", type, atLocation)
     }),
     "TypeParser.scopeType",
     (type) => type
@@ -2201,6 +2303,64 @@ export function make(
     (atLocation) => atLocation
   )
 
+  const extendsServiceMapService = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsServiceMapService")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const wholeCall = typeX.expression
+            if (ts.isCallExpression(wholeCall)) {
+              const serviceMapServiceCall = wholeCall.expression
+              if (
+                ts.isCallExpression(serviceMapServiceCall) &&
+                serviceMapServiceCall.typeArguments && serviceMapServiceCall.typeArguments.length > 0
+              ) {
+                const serviceMapServiceIdentifier = serviceMapServiceCall.expression
+                const selfTypeNode = serviceMapServiceCall.typeArguments[0]!
+                const isServiceMapService = yield* pipe(
+                  isNodeReferenceToServiceMapModuleApi("Service")(serviceMapServiceIdentifier),
+                  Nano.orUndefined
+                )
+                if (isServiceMapService) {
+                  const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
+                  if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
+                  const type = typeChecker.getTypeOfSymbol(classSym)
+                  const parsedServiceType = yield* pipe(
+                    serviceType(type, atLocation),
+                    Nano.orUndefined
+                  )
+                  if (parsedServiceType) {
+                    return ({
+                      ...parsedServiceType,
+                      className: atLocation.name,
+                      selfTypeNode,
+                      keyStringLiteral: wholeCall.arguments.length > 0 && ts.isStringLiteral(wholeCall.arguments[0])
+                        ? wholeCall.arguments[0]
+                        : undefined
+                    })
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return yield* typeParserIssue("Class does not extend ServiceMap.Service", undefined, atLocation)
+    }),
+    "TypeParser.extendsServiceMapService",
+    (atLocation) => atLocation
+  )
+
   const isEffectSqlModelTypeSourceFile = Nano.cachedBy(
     Nano.fn("TypeParser.isEffectSqlModelTypeSourceFile")(function*(
       sourceFile: ts.SourceFile
@@ -2311,6 +2471,31 @@ export function make(
         )
       }),
       `TypeParser.isNodeReferenceToEffectLayerModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const isServiceMapTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isServiceMapTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      const serviceMapSymbol = typeChecker.tryGetMemberInModuleExports("ServiceMap", moduleSymbol)
+      if (!serviceMapSymbol) return yield* typeParserIssue("ServiceMap not found", undefined, sourceFile)
+      return sourceFile
+    }),
+    "TypeParser.isServiceMapTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToServiceMapModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToServiceMapModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isServiceMapTypeSourceFile, memberName)
+      }),
+      `TypeParser.isNodeReferenceToServiceMapModuleApi(${memberName})`,
       (node) => node
     )
 
@@ -2774,6 +2959,9 @@ export function make(
     isNodeReferenceToEffectContextModuleApi,
     isNodeReferenceToEffectSqlModelModuleApi,
     isNodeReferenceToEffectLayerModuleApi,
+    isNodeReferenceToEffectSchemaParserModuleApi,
+    isServiceMapTypeSourceFile,
+    isNodeReferenceToServiceMapModuleApi,
     effectType,
     strictEffectType,
     layerType,
@@ -2789,6 +2977,7 @@ export function make(
     unnecessaryEffectGen,
     effectSchemaType,
     contextTag,
+    serviceType,
     pipeableType,
     pipeCall,
     singleArgCall,
@@ -2796,6 +2985,7 @@ export function make(
     promiseLike,
     extendsEffectTag,
     extendsEffectService,
+    extendsServiceMapService,
     extendsContextTag,
     extendsSchemaClass,
     extendsSchemaTaggedClass,

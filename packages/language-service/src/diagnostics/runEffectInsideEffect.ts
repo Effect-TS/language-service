@@ -16,6 +16,7 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    if (typeParser.supportedEffect() === "v4") return
 
     const parseEffectMethod = (node: ts.Node, methodName: string) =>
       pipe(

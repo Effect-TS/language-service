@@ -17,6 +17,7 @@ export const nonObjectEffectServiceType = LSP.createDiagnostic({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    if (typeParser.supportedEffect() === "v4") return
 
     function isPrimitiveType(type: ts.Type): boolean {
       return typeCheckerUtils.unrollUnionMembers(type).some((type) =>

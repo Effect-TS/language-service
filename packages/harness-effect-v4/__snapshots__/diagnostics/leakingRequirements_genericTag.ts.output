@@ -1,0 +1,10 @@
+ServiceMap.Service<LeakingService>("LeakingService")
+13:26 - 13:78 | 2 | Methods of this Service require `FileSystem` from every caller.
+
+This leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.
+
+Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.
+
+To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), not to this service.
+
+More info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)

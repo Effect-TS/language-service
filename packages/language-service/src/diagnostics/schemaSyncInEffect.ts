@@ -6,11 +6,17 @@ import * as Nano from "../core/Nano.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
-const syncToEffectMethod: Record<string, string> = {
+const syncToEffectMethodV3: Record<string, string> = {
   decodeSync: "decode",
   decodeUnknownSync: "decodeUnknown",
   encodeSync: "encode",
   encodeUnknownSync: "encodeUnknown"
+}
+const syncToEffectMethodV4: Record<string, string> = {
+  decodeSync: "decodeEffect",
+  decodeUnknownSync: "decodeUnknownEffect",
+  encodeSync: "encodeEffect",
+  encodeUnknownSync: "encodeUnknownEffect"
 }
 
 export const schemaSyncInEffect = LSP.createDiagnostic({
@@ -21,10 +27,12 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
   apply: Nano.fn("schemaSyncInEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const syncToEffectMethod = typeParser.supportedEffect() === "v3" ? syncToEffectMethodV3 : syncToEffectMethodV4
 
     const parseSchemaSyncMethod = (node: ts.Node, methodName: string) =>
       pipe(
         typeParser.isNodeReferenceToEffectParseResultModuleApi(methodName)(node),
+        Nano.orElse(() => typeParser.isNodeReferenceToEffectSchemaParserModuleApi(methodName)(node)),
         Nano.map(() => ({ node, methodName }))
       )
 
@@ -68,7 +76,7 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
       report({
         location: node.expression,
         messageText:
-          `Using ${nodeText} inside an Effect generator is not recommended. Use Schema.${effectMethodName} instead to get properly typed ParseError in the error channel.`,
+          `Using ${nodeText} inside an Effect generator is not recommended. Use Schema.${effectMethodName} instead to get properly typed error channel.`,
         fixes: []
       })
     }

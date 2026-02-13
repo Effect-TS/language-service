@@ -143,6 +143,12 @@ export const leakingRequirements = LSP.createDiagnostic({
       ) {
         const nodeType = typeCheckerUtils.getTypeAtLocation(node)
         if (nodeType) typesToCheck.push([nodeType, node])
+      } else if (
+        ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.name) && ts.idText(node.expression.name) === "Service"
+      ) {
+        const nodeType = typeCheckerUtils.getTypeAtLocation(node)
+        if (nodeType) typesToCheck.push([nodeType, node])
       } else if (ts.isClassDeclaration(node) && node.name && node.heritageClauses) {
         const classSym = typeChecker.getSymbolAtLocation(node.name)
         if (classSym) {
@@ -158,6 +164,7 @@ export const leakingRequirements = LSP.createDiagnostic({
       for (const [type, reportAt] of typesToCheck) {
         yield* pipe(
           typeParser.contextTag(type, node),
+          Nano.orElse(() => typeParser.serviceType(type, node)),
           Nano.flatMap(({ Service }) =>
             pipe(
               parseLeakedRequirements(Service, node),

@@ -1,0 +1,72 @@
+// Result of running refactor structuralTypeToSchema at position 4:21
+import * as Schema from "effect/Schema"
+export class MyStruct extends Schema.Class<MyStruct>("MyStruct")({
+    anyProp: Schema.Any,
+    bigintProp: Schema.BigInt,
+    booleanProp: Schema.Boolean,
+    neverProp: Schema.Never,
+    nullProp: Schema.Null,
+    numberProp: Schema.Number,
+    stringProp: Schema.String,
+    undefinedProp: Schema.Undefined,
+    unknownProp: Schema.Unknown,
+    voidProp: Schema.Void,
+    arrayTypeProp: Schema.mutable(Schema.Array(Schema.String)),
+    arrayProp: Schema.mutable(Schema.Array(Schema.String)),
+    readonlyArrayProp: Schema.Array(Schema.String),
+    arrayWithReadonlyProp: Schema.Array(Schema.String),
+    dateProp: Schema.Date,
+    trueProp: Schema.Literal(true),
+    falseProp: Schema.Literal(false),
+    literalProp: Schema.Literal("hello"),
+    numericLiteralProp: Schema.Literal(42),
+    unionProp: Schema.Union([Schema.String, Schema.Literal(false), Schema.Literal(true)]),
+    intersectionProp: Schema.Struct({
+        a: Schema.String
+    }).pipe(Schema.extend(Schema.Struct({
+        b: Schema.Number
+    }))),
+    recordProp: Schema.StructWithRest(Schema.Struct({}), [Schema.Record(Schema.String, Schema.Number)]),
+    inlineStruct: Schema.Struct({
+        a: Schema.String,
+        b: Schema.Number
+    }),
+    optionalProp: Schema.optional(Schema.Union([Schema.Undefined, Schema.String])),
+    prop: Schema.String,
+    prop2: Schema.String
+}) { }
+
+
+export interface MyStruct {
+  anyProp: any
+  bigintProp: bigint
+  booleanProp: boolean
+  neverProp: never
+  nullProp: null
+  numberProp: number
+  stringProp: string
+  undefinedProp: undefined
+  unknownProp: unknown
+  voidProp: void
+  arrayTypeProp: Array<string>
+  arrayProp: Array<string>
+  readonlyArrayProp: ReadonlyArray<string>
+  // eslint-disable-next-line @typescript-eslint/array-type
+  arrayWithReadonlyProp: readonly string[]
+  dateProp: Date
+  trueProp: true
+  falseProp: false
+  literalProp: "hello"
+  numericLiteralProp: 42
+  unionProp: string | boolean
+  intersectionProp: { a: string } & { b: number }
+  recordProp: Record<string, number>
+  inlineStruct: { a: string; b: number }
+  optionalProp?: string
+  // single line comment
+  prop: string
+  /**
+   * Multiline comment
+   */
+  prop2: string
+}

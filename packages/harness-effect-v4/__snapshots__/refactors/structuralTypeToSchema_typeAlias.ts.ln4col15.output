@@ -1,0 +1,14 @@
+// Result of running refactor structuralTypeToSchema at position 4:15
+import * as Schema from "effect/Schema"
+export class MyType extends Schema.Class<MyType>("MyType")({
+    name: Schema.String,
+    age: Schema.Number,
+    isActive: Schema.Boolean
+}) { }
+
+
+export type MyType = {
+  name: string
+  age: number
+  isActive: boolean
+}

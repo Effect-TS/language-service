@@ -132,12 +132,14 @@ interface ProcessingContext {
   depth: number
   maxDepth: number
   hoistName: string | undefined
+  supportedEffect: "v3" | "v4"
 }
 
-const createProcessingContext = (maxDepth: number = 200): ProcessingContext => ({
+const createProcessingContext = (supportedEffect: "v3" | "v4", maxDepth: number = 200): ProcessingContext => ({
   depth: 0,
   maxDepth,
-  hoistName: undefined
+  hoistName: undefined,
+  supportedEffect
 })
 
 /**
@@ -145,12 +147,11 @@ const createProcessingContext = (maxDepth: number = 200): ProcessingContext => (
  */
 const processType: (
   type: ts.Type,
-  context?: ProcessingContext
+  context: ProcessingContext
 ) => Nano.Nano<ts.Expression, UnsupportedTypeError, StructuralSchemaGenContext> = Nano.fn(
   "StructuralSchemaGen.processType"
 )(
-  function*(type, context) {
-    const processingContext = context || createProcessingContext()
+  function*(type, processingContext) {
     const { hoistedSchemas, nameToType, ts, typeChecker, usedGlobalIdentifiers } = yield* Nano.service(
       StructuralSchemaGenContext
     )
@@ -350,7 +351,7 @@ const processUnionType: (
         (t.flags & ts.TypeFlags.BooleanLiteral)
       )
 
-      if (allLiterals) {
+      if (allLiterals && context.supportedEffect !== "v4") {
         const literals: Array<ts.Expression> = yield* Nano.all(
           ...types.map((t) => processType(t, context))
         )
@@ -362,7 +363,13 @@ const processUnionType: (
           return expr
         }).filter((arg: ts.Expression | undefined): arg is ts.Expression => arg !== undefined)
 
-        return [createApiCall("Literal", literalValues), false]
+        return [
+          createApiCall(
+            "Literal",
+            literalValues
+          ),
+          false
+        ]
       }
 
       // Process each union member
@@ -374,7 +381,13 @@ const processUnionType: (
         return [members[0], false]
       }
 
-      return [createApiCall("Union", members), false]
+      return [
+        createApiCall(
+          "Union",
+          context.supportedEffect === "v4" ? [ts.factory.createArrayLiteralExpression(members)] : members
+        ),
+        false
+      ]
     }
   )
 
@@ -450,14 +463,20 @@ const processTupleType: (
     "StructuralSchemaGen.processTupleType"
   )(
     function*(type, context) {
-      const { createApiCall, typeChecker } = yield* Nano.service(StructuralSchemaGenContext)
+      const { createApiCall, ts, typeChecker } = yield* Nano.service(StructuralSchemaGenContext)
 
       const typeArgs = typeChecker.getTypeArguments(type as ts.TypeReference)
       const elementSchemas: Array<ts.Expression> = yield* Nano.all(
         ...typeArgs.map((t) => processType(t, context))
       )
 
-      return [createApiCall("Tuple", elementSchemas), false]
+      return [
+        createApiCall(
+          "Tuple",
+          context.supportedEffect === "v4" ? [ts.factory.createArrayLiteralExpression(elementSchemas)] : elementSchemas
+        ),
+        false
+      ]
     }
   )
 
@@ -483,7 +502,6 @@ const processObjectType: (
         .service(
           StructuralSchemaGenContext
         )
-      let hasRecords = false
 
       const properties = typeChecker.getPropertiesOfType(type)
       const propertyAssignments: Array<ts.PropertyAssignment> = []
@@ -536,24 +554,33 @@ const processObjectType: (
       const args: Array<ts.Expression> = [
         ts.factory.createObjectLiteralExpression(propertyAssignments, propertyAssignments.length > 0)
       ]
+      const records: Array<{ key: ts.Expression; value: ts.Expression }> = []
 
       for (const indexInfo of indexInfos) {
-        hasRecords = true
         const keyType = indexInfo.keyType
         const valueType = indexInfo.type
 
         const keySchema: ts.Expression = yield* processType(keyType, context)
         const valueSchema: ts.Expression = yield* processType(valueType, context)
 
-        args.push(
-          ts.factory.createObjectLiteralExpression([
-            ts.factory.createPropertyAssignment("key", keySchema),
-            ts.factory.createPropertyAssignment("value", valueSchema)
-          ])
-        )
+        records.push({ key: keySchema, value: valueSchema })
       }
 
-      if (!hasRecords && context.hoistName) {
+      if (context.supportedEffect === "v4") {
+        if (records.length > 0) {
+          return [
+            createApiCall("StructWithRest", [
+              createApiCall("Struct", args),
+              ts.factory.createArrayLiteralExpression(
+                records.map(({ key, value }) => createApiCall("Record", [key, value]))
+              )
+            ]),
+            propertyAssignments.length === 0
+          ]
+        }
+      }
+
+      if (records.length === 0 && context.hoistName) {
         const ctx = yield* Nano.service(StructuralSchemaGenContext)
         yield* pushHoistedStatement(
           ctx,
@@ -587,6 +614,15 @@ const processObjectType: (
           () => ts.factory.createIdentifier(context.hoistName!)
         )
         return [ctx.hoistedSchemas.get(type)!(), true]
+      }
+
+      for (const { key, value } of records) {
+        args.push(
+          ts.factory.createObjectLiteralExpression([
+            ts.factory.createPropertyAssignment("key", key),
+            ts.factory.createPropertyAssignment("value", value)
+          ])
+        )
       }
 
       return [createApiCall("Struct", args), propertyAssignments.length === 0]
@@ -690,7 +726,7 @@ export const process = Nano.fn("StructuralSchemaGen.process")(
       Nano.all(
         ...Array.fromIterable(ctx.nameToType.entries()).map(([name, type]) =>
           pipe(
-            processType(type),
+            processType(type, createProcessingContext(typeParser.supportedEffect())),
             Nano.orElse((error) =>
               Nano.succeed(ts.addSyntheticLeadingComment(
                 ts.factory.createIdentifier(""),

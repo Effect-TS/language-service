@@ -2,6 +2,7 @@ import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 import { _createOpaqueTypes, _findSchemaVariableDeclaration } from "./makeSchemaOpaque.js"
@@ -12,6 +13,9 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
   apply: Nano.fn("makeSchemaOpaqueWithNs.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const supportedEffect = typeParser.supportedEffect()
+
     const maybeNode = yield* _findSchemaVariableDeclaration(sourceFile, textRange)
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
 
@@ -30,14 +34,16 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
           ) || "Schema"
 
           const newIdentifier = ts.factory.createIdentifier(ts.idText(identifier) + "_")
-          const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
+          const { contextEncodeType, contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,
             ts.idText(newIdentifier),
             types.A,
             ts.idText(identifier),
             types.I,
             "Encoded",
-            "Context"
+            supportedEffect === "v4" ? "DecodingServices" : "Context",
+            supportedEffect === "v4",
+            supportedEffect === "v4" ? "EncodingServices" : "Context"
           )
 
           const namespace = ts.factory.createModuleDeclaration(
@@ -46,7 +52,7 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
             ts.factory.createModuleBlock([
               encodedType,
               contextType
-            ]),
+            ].concat(supportedEffect === "v4" ? [contextEncodeType] : [])),
             ts.NodeFlags.Namespace
           )
 

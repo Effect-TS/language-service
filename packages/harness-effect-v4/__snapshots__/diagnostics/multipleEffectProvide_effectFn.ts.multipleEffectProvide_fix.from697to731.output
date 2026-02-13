@@ -1,0 +1,53 @@
+// code fix multipleEffectProvide_fix  output for range 697 - 731
+import { ServiceMap, Effect, Layer } from "effect"
+
+class MyService1 extends ServiceMap.Service<MyService1>()("MyService1", {
+  make: Effect.succeed({ value: 1 })
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+class MyService2 extends ServiceMap.Service<MyService2>()("MyService2", {
+  make: Effect.succeed({ value: 2 })
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+class MyService3 extends ServiceMap.Service<MyService3>()("MyService3", {
+  make: Effect.succeed({ value: 3 })
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+// Effect.fn with multiple provide calls
+export const shouldReportEffectFn = Effect.fn(
+  function*() {
+    return yield* Effect.void
+  },
+  Effect.provide(Layer.mergeAll(MyService1.Default, MyService2.Default))
+)
+
+export const shouldReportEffectFnTraced = Effect.fn("traced")(
+  function*() {
+    return yield* Effect.void
+  },
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default)
+)
+
+export const shouldReportEffectFnUntraced = Effect.fnUntraced(
+  function*() {
+    return yield* Effect.void
+  },
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default)
+)
+
+export const shouldReportThreeProvides = Effect.fn(
+  function*() {
+    return yield* Effect.void
+  },
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default),
+  Effect.provide(MyService3.Default)
+)

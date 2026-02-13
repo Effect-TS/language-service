@@ -1,0 +1,32 @@
+// code fix multipleEffectProvide_fix  output for range 793 - 827
+import * as Effect from "effect/Effect"
+import * as Layer from "effect/Layer"
+
+class MyService1 extends Effect.Service<MyService1>()("MyService1", {
+  succeed: { value: 1 }
+}) {}
+
+class MyService2 extends Effect.Service<MyService2>()("MyService2", {
+  succeed: { value: 2 }
+}) {}
+
+class MyService3 extends Effect.Service<MyService3>()("MyService3", {
+  succeed: { value: 3 }
+}) {}
+
+export const shouldReport = Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default)
+)
+
+export const shouldReportSeparately = Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default),
+  Effect.ignoreLogged,
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default)
+)
+
+export const shouldReportSingle = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(MyService1.Default, MyService2.Default, MyService3.Default))
+)

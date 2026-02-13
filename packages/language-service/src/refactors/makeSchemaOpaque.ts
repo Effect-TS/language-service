@@ -61,7 +61,9 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
   opaqueTypeName: string,
   typeE: ts.Type,
   opaqueEncodedName: string,
-  opaqueContextName: string
+  opaqueContextName: string,
+  isV4: boolean,
+  opaqueEncodingServicesName: string
 ) {
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
   // opaque type
@@ -99,7 +101,7 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
     ts.factory.createPropertyAccessExpression(
       ts.factory.createPropertyAccessExpression(
         ts.factory.createIdentifier(effectSchemaName),
-        ts.factory.createIdentifier("Schema")
+        ts.factory.createIdentifier(isV4 ? "Codec" : "Schema")
       ),
       ts.factory.createIdentifier("Encoded")
     ),
@@ -130,9 +132,9 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
     ts.factory.createPropertyAccessExpression(
       ts.factory.createPropertyAccessExpression(
         ts.factory.createIdentifier(effectSchemaName),
-        ts.factory.createIdentifier("Schema")
+        ts.factory.createIdentifier(isV4 ? "Codec" : "Schema")
       ),
-      ts.factory.createIdentifier("Context")
+      ts.factory.createIdentifier(isV4 ? "DecodingServices" : "Context")
     ),
     [ts.factory.createTypeQueryNode(
       ts.factory.createIdentifier(inferFromName)
@@ -145,7 +147,26 @@ export const _createOpaqueTypes = Nano.fn("_createOpaqueTypes")(function*(
     contextInferred
   )
 
-  return { contextType, encodedType, opaqueType }
+  const contextEncodeInferred = ts.factory.createExpressionWithTypeArguments(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier(effectSchemaName),
+        ts.factory.createIdentifier(isV4 ? "Codec" : "Schema")
+      ),
+      ts.factory.createIdentifier(isV4 ? "EncodingServices" : "Context")
+    ),
+    [ts.factory.createTypeQueryNode(
+      ts.factory.createIdentifier(inferFromName)
+    )]
+  )
+  const contextEncodeType = ts.factory.createTypeAliasDeclaration(
+    [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    opaqueEncodingServicesName,
+    [],
+    contextEncodeInferred
+  )
+
+  return { contextType, contextEncodeType, encodedType, opaqueType }
 })
 
 export const makeSchemaOpaque = LSP.createRefactor({
@@ -154,6 +175,8 @@ export const makeSchemaOpaque = LSP.createRefactor({
   apply: Nano.fn("makeSchemaOpaque.apply")(function*(sourceFile, textRange) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const supportedEffect = typeParser.supportedEffect()
 
     const maybeNode = yield* _findSchemaVariableDeclaration(sourceFile, textRange)
     if (Option.isNone(maybeNode)) return yield* Nano.fail(new LSP.RefactorNotApplicableError())
@@ -173,14 +196,16 @@ export const makeSchemaOpaque = LSP.createRefactor({
           ) || "Schema"
 
           const newIdentifier = ts.factory.createIdentifier(ts.idText(identifier) + "_")
-          const { contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
+          const { contextEncodeType, contextType, encodedType, opaqueType } = yield* _createOpaqueTypes(
             effectSchemaName,
             ts.idText(newIdentifier),
             types.A,
             ts.idText(identifier),
             types.I,
             ts.idText(identifier) + "Encoded",
-            ts.idText(identifier) + "Context"
+            supportedEffect === "v4" ? ts.idText(identifier) + "DecodingServices" : ts.idText(identifier) + "Context",
+            supportedEffect === "v4",
+            supportedEffect === "v4" ? ts.idText(identifier) + "EncodingServices" : ts.idText(identifier) + "Context"
           )
 
           changeTracker.replaceNode(
@@ -191,18 +216,21 @@ export const makeSchemaOpaque = LSP.createRefactor({
           changeTracker.insertNodeAfter(sourceFile, variableStatement, opaqueType)
           changeTracker.insertNodeAfter(sourceFile, variableStatement, encodedType)
           changeTracker.insertNodeAfter(sourceFile, variableStatement, contextType)
+          if (supportedEffect === "v4") {
+            changeTracker.insertNodeAfter(sourceFile, variableStatement, contextEncodeType)
+          }
 
           // insert new declaration
           const newSchemaType = ts.factory.createTypeReferenceNode(
             ts.factory.createQualifiedName(
               ts.factory.createIdentifier(effectSchemaName),
-              ts.factory.createIdentifier("Schema")
+              supportedEffect === "v4" ? ts.factory.createIdentifier("Codec") : ts.factory.createIdentifier("Schema")
             ),
             [
               ts.factory.createTypeReferenceNode(opaqueType.name),
               ts.factory.createTypeReferenceNode(encodedType.name),
               ts.factory.createTypeReferenceNode(contextType.name)
-            ]
+            ].concat(supportedEffect === "v4" ? [ts.factory.createTypeReferenceNode(contextEncodeType.name)] : [])
           )
           const newConstDeclaration = ts.factory.createVariableStatement(
             variableStatement.modifiers,

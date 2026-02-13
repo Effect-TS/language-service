@@ -51,16 +51,16 @@ This file tracks all language service features and their compatibility status wi
 - [X] layerMergeAllWithDependencies
 - [-] redundantSchemaTagIdentifier
 - [X] effectFnOpportunity
-- [ ] leakingRequirements
-- [ ] multipleEffectProvide
-- [ ] outdatedEffectCodegen
-- [ ] nonObjectEffectServiceType
-- [ ] deterministicKeys
+- [X] leakingRequirements
+- [X] multipleEffectProvide
+- [X] outdatedEffectCodegen
+- [-] nonObjectEffectServiceType
+- [X] deterministicKeys
 - [X] missedPipeableOpportunity
-- [ ] strictEffectProvide
-- [ ] runEffectInsideEffect
-- [ ] missingLayerContext
-- [ ] schemaSyncInEffect
+- [X] strictEffectProvide
+- [-] runEffectInsideEffect
+- [X] missingLayerContext
+- [X] schemaSyncInEffect
 
 ---
 
@@ -85,17 +85,17 @@ This file tracks all language service features and their compatibility status wi
 ## Refactors (21 total)
 
 - [X] asyncAwaitToFn
-- [ ] asyncAwaitToFnTryPromise
+- [X] asyncAwaitToFnTryPromise
 - [X] asyncAwaitToGen
-- [ ] asyncAwaitToGenTryPromise
+- [X] asyncAwaitToGenTryPromise
 - [X] effectGenToFn
 - [X] functionToArrow
-- [ ] layerMagic
-- [ ] makeSchemaOpaque
-- [ ] makeSchemaOpaqueWithNs
+- [X] layerMagic
+- [X] makeSchemaOpaque
+- [X] makeSchemaOpaqueWithNs
 - [X] pipeableToDatafirst
 - [X] removeUnnecessaryEffectGen
-- [ ] structuralTypeToSchema
+- [X] structuralTypeToSchema
 - [X] toggleLazyConst
 - [X] togglePipeStyle
 - [X] toggleReturnTypeAnnotation
@@ -104,4 +104,4 @@ This file tracks all language service features and their compatibility status wi
 - [ ] typeToEffectSchemaClass
 - [X] wrapWithEffectGen
 - [X] wrapWithPipe
-- [ ] writeTagClassAccessors
+- [-] writeTagClassAccessors

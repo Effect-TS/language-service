@@ -1,0 +1,5 @@
+"Hello"
+11:52 - 11:59 | 1 | Key should be '@effect/harness-effect-v4/MyClass'    effect(deterministicKeys)
+
+"TTLRequest"
+17:5 - 17:17 | 1 | Key should be '@effect/harness-effect-v4/TTLRequest'    effect(deterministicKeys)

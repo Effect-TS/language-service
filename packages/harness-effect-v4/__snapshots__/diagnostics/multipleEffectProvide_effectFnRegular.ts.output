@@ -1,0 +1,8 @@
+Effect.provide(MyService1.Default)
+24:2 - 24:36 | 0 | Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.    effect(multipleEffectProvide)
+
+Effect.provide(MyService1.Default)
+30:2 - 30:36 | 0 | Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.    effect(multipleEffectProvide)
+
+Effect.provide(MyService1.Default)
+36:2 - 36:36 | 0 | Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.    effect(multipleEffectProvide)

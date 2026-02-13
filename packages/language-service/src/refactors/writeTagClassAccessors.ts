@@ -248,6 +248,8 @@ export const parse = Nano.fn("writeTagClassAccessors.parse")(function*(node: ts.
   const typeParser = yield* Nano.service(TypeParser.TypeParser)
   const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
+  if (typeParser.supportedEffect() === "v4") return yield* Nano.fail("not applicable to Effect v4")
+
   // only applicable to class declarations
   if (!ts.isClassDeclaration(node)) return yield* Nano.fail("not a class declaration")
 

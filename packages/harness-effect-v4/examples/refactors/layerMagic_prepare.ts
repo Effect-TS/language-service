@@ -1,0 +1,36 @@
+// 25:20,27:20,32:20
+import { Effect, Layer, pipe, ServiceMap  } from "effect"
+
+class DbConnection extends ServiceMap.Service<DbConnection>()("DbConnection", {
+    make: Effect.succeed({})
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+class FileSystem extends ServiceMap.Service<FileSystem>()("FileSystem", {
+  make: Effect.succeed({})
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+class Cache extends ServiceMap.Service<Cache>()("Cache", {
+  make: Effect.as(FileSystem.asEffect(), {})
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+class UserRepository extends ServiceMap.Service<UserRepository>()("UserRepository", {
+  make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
+}) {
+  static Default = Layer.effect(this, this.make)
+}
+
+export const prepareSimple = UserRepository.Default
+
+export const prepareWithPipe = pipe(
+  UserRepository.Default,
+  Layer.provideMerge(Cache.Default)
+)
+
+export const prepareSomewhatComplex = pipe(
+  UserRepository.Default,
+  Layer.provideMerge(Cache.Default),
+  Layer.merge(DbConnection.Default)
+)

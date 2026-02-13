@@ -4,6 +4,7 @@ import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
+import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 import * as SchemaGen from "../utils/SchemaGen.js"
@@ -16,6 +17,7 @@ export const typeToEffectSchema = LSP.createRefactor({
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const maybeNode = yield* SchemaGen.findNodeToProcess(sourceFile, textRange)
 
@@ -30,7 +32,8 @@ export const typeToEffectSchema = LSP.createRefactor({
         Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
         Nano.provideService(TypeScriptUtils.TypeScriptUtils, tsUtils),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-        Nano.provideService(TypeCheckerUtils.TypeCheckerUtils, typeCheckerUtils)
+        Nano.provideService(TypeCheckerUtils.TypeCheckerUtils, typeCheckerUtils),
+        Nano.provideService(TypeParser.TypeParser, typeParser)
       )
     })
   })

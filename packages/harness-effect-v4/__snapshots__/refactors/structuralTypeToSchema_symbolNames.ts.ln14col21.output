@@ -1,0 +1,32 @@
+// Result of running refactor structuralTypeToSchema at position 14:21
+import * as Schema from "effect/Schema"
+
+type User = {
+  id: number
+  name: string
+}
+
+interface Todo {
+  id: number
+  description: string
+}
+class User extends Schema.Class<User>("User")({
+    id: Schema.Number,
+    name: Schema.String
+}) { }
+
+class Todo extends Schema.Class<Todo>("Todo")({
+    id: Schema.Number,
+    description: Schema.String
+}) { }
+
+export class AppState extends Schema.Class<AppState>("AppState")({
+    users: User,
+    tasks: Schema.mutable(Schema.Array(Schema.Tuple([Todo, User])))
+}) { }
+
+
+export interface AppState {
+  users: User
+  tasks: Array<[Todo, User]>
+}

@@ -1,0 +1,13 @@
+// Result of running refactor makeSchemaOpaque at position 4:17
+import * as Schema from "effect/Schema"
+
+export const MyUnion_ = Schema.Union([
+  Schema.Literal("A"),
+  Schema.Literal("B")
+])
+
+export type MyUnion = Schema.Schema.Type<typeof MyUnion_>
+export type MyUnionEncoded = Schema.Codec.Encoded<typeof MyUnion_>
+export type MyUnionDecodingServices = Schema.Codec.DecodingServices<typeof MyUnion_>
+export type MyUnionEncodingServices = Schema.Codec.EncodingServices<typeof MyUnion_>
+export const MyUnion: Schema.Codec<MyUnion, MyUnionEncoded, MyUnionDecodingServices, MyUnionEncodingServices> = MyUnion_
