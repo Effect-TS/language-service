@@ -5,6 +5,7 @@ import type ts from "typescript"
 import * as Nano from "../core/Nano"
 import * as TypeCheckerApi from "../core/TypeCheckerApi"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
+import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -55,6 +56,7 @@ export class IndexSignatureWithMoreThanOneParameterError {
 }
 
 interface SchemaGenContext {
+  supportedEffect: "v3" | "v4"
   sourceFile: ts.SourceFile
   ts: TypeScriptApi.TypeScriptApi
   createApiPropertyAccess(apiName: string): ts.PropertyAccessExpression
@@ -75,14 +77,16 @@ export const makeSchemaGenContext = Nano.fn("SchemaGen.makeSchemaGenContext")(fu
   ) || "Schema"
 
   const moduleToImportedName: Record<string, string> = {}
-  for (const moduleName of ["Option", "Either", "Chunk", "Duration"]) {
+  for (const moduleName of ["Option", "Either", "Chunk", "Duration", "Result"]) {
     const importedName = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", moduleName)
     if (importedName) moduleToImportedName[moduleName] = importedName
   }
 
   const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+  const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
   return {
+    supportedEffect: typeParser.supportedEffect(),
     sourceFile,
     createApiPropertyAccess: (apiName) =>
       ts.factory.createPropertyAccessExpression(
@@ -197,9 +201,10 @@ export const processNode = (
   TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | TypeCheckerUtils.TypeCheckerUtils | SchemaGenContext
 > =>
   Nano.gen(function*() {
-    const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, ts } = yield* Nano.service(
-      SchemaGenContext
-    )
+    const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, supportedEffect, ts } =
+      yield* Nano.service(
+        SchemaGenContext
+      )
     // string | number | boolean | undefined | void | never
     switch (node.kind) {
       case ts.SyntaxKind.AnyKeyword:
@@ -233,10 +238,13 @@ export const processNode = (
     if (ts.isUnionTypeNode(node)) {
       // "a" | "b" can be optimized into a single Schema.Literal("a", "b")
       const allLiterals = yield* Nano.option(parseAllLiterals(node))
-      if (Option.isSome(allLiterals)) return createApiCall("Literal", allLiterals.value)
+      if (supportedEffect !== "v4" && Option.isSome(allLiterals)) return createApiCall("Literal", allLiterals.value)
       // regular union
       const members = yield* Nano.all(...node.types.map((_) => processNode(_, isVirtualTypeNode)))
-      return createApiCall("Union", members)
+      return createApiCall(
+        "Union",
+        supportedEffect === "v4" ? [ts.factory.createArrayLiteralExpression(members)] : members
+      )
     }
     // {a: 1} & {b: 2} & {c: 3}
     if (ts.isIntersectionTypeNode(node)) {
@@ -330,6 +338,9 @@ export const processNode = (
                 : [])
             )
             if (elements.length >= 2) {
+              if (supportedEffect === "v4" && elements.length === 2) {
+                return createApiCall("Record", [elements[0], elements[1]])
+              }
               return createApiCall(parsedName.value, [
                 ts.factory.createObjectLiteralExpression([
                   ts.factory.createPropertyAssignment("key", elements[0]),

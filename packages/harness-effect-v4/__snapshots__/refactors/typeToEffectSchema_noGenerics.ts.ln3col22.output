@@ -1,0 +1,5 @@
+// Result of running refactor typeToEffectSchema at position 3:22
+
+export interface MyType<A> {
+  _A: A
+}
