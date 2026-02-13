@@ -7,7 +7,7 @@ const myVar = {
 } as const
 
 export const MyStruct = Schema.Struct({
-    prop: Schema.Literal(1, 2)
+    prop: Schema.Union([Schema.Literal(1), Schema.Literal(2)])
 })
 
 export interface MyStruct {

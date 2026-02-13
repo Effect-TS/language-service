@@ -41,9 +41,9 @@ export const makeSchemaOpaqueWithNs = LSP.createRefactor({
             ts.idText(identifier),
             types.I,
             "Encoded",
-            supportedEffect === "v4" ? ts.idText(identifier) + "DecodingServices" : ts.idText(identifier) + "Context",
+            supportedEffect === "v4" ? "DecodingServices" : "Context",
             supportedEffect === "v4",
-            supportedEffect === "v4" ? ts.idText(identifier) + "EncodingServices" : ts.idText(identifier) + "Context"
+            supportedEffect === "v4" ? "EncodingServices" : "Context"
           )
 
           const namespace = ts.factory.createModuleDeclaration(

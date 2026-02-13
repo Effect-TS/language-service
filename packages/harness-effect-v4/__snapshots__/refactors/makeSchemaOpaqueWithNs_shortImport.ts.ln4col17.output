@@ -9,7 +9,7 @@ export const MyStruct_ = Schema.Struct({
 export interface MyStruct extends Schema.Schema.Type<typeof MyStruct_> { }
 export namespace MyStruct {
     export interface Encoded extends Schema.Codec.Encoded<typeof MyStruct_> { }
-    export type MyStructDecodingServices = Schema.Codec.DecodingServices<typeof MyStruct_>
-    export type MyStructEncodingServices = Schema.Codec.EncodingServices<typeof MyStruct_>
+    export type DecodingServices = Schema.Codec.DecodingServices<typeof MyStruct_>
+    export type EncodingServices = Schema.Codec.EncodingServices<typeof MyStruct_>
 }
-export const MyStruct: Schema.Schema<MyStruct, MyStruct.Encoded, MyStruct.MyStructDecodingServices> = MyStruct_
+export const MyStruct: Schema.Schema<MyStruct, MyStruct.Encoded, MyStruct.DecodingServices> = MyStruct_

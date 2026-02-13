@@ -1,14 +1,14 @@
 Schema.decodeSync
-11:17 - 11:34 | 2 | Using Schema.decodeSync inside an Effect generator is not recommended. Use Schema.decode instead to get properly typed ParseError in the error channel.    effect(schemaSyncInEffect)
+11:17 - 11:34 | 2 | Using Schema.decodeSync inside an Effect generator is not recommended. Use Schema.decode instead to get properly typed error channel.    effect(schemaSyncInEffect)
 
 Schema.decodeUnknownSync
-19:17 - 19:41 | 2 | Using Schema.decodeUnknownSync inside an Effect generator is not recommended. Use Schema.decodeUnknown instead to get properly typed ParseError in the error channel.    effect(schemaSyncInEffect)
+19:17 - 19:41 | 2 | Using Schema.decodeUnknownSync inside an Effect generator is not recommended. Use Schema.decodeUnknown instead to get properly typed error channel.    effect(schemaSyncInEffect)
 
 Schema.encodeSync
-27:18 - 27:35 | 2 | Using Schema.encodeSync inside an Effect generator is not recommended. Use Schema.encode instead to get properly typed ParseError in the error channel.    effect(schemaSyncInEffect)
+27:18 - 27:35 | 2 | Using Schema.encodeSync inside an Effect generator is not recommended. Use Schema.encode instead to get properly typed error channel.    effect(schemaSyncInEffect)
 
 Schema.encodeUnknownSync
-35:18 - 35:42 | 2 | Using Schema.encodeUnknownSync inside an Effect generator is not recommended. Use Schema.encodeUnknown instead to get properly typed ParseError in the error channel.    effect(schemaSyncInEffect)
+35:18 - 35:42 | 2 | Using Schema.encodeUnknownSync inside an Effect generator is not recommended. Use Schema.encodeUnknown instead to get properly typed error channel.    effect(schemaSyncInEffect)
 
 Schema.decodeSync
-58:17 - 58:34 | 2 | Using Schema.decodeSync inside an Effect generator is not recommended. Use Schema.decode instead to get properly typed ParseError in the error channel.    effect(schemaSyncInEffect)
+58:17 - 58:34 | 2 | Using Schema.decodeSync inside an Effect generator is not recommended. Use Schema.decode instead to get properly typed error channel.    effect(schemaSyncInEffect)

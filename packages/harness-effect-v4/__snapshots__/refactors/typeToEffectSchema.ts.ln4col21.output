@@ -19,7 +19,7 @@ export const MyStruct = Schema.Struct({
     falseProp: Schema.Literal(false),
     literalProp: Schema.Literal("hello"),
     numericLiteralProp: Schema.Literal(42),
-    unionProp: Schema.Union(Schema.String, Schema.Boolean),
+    unionProp: Schema.Union([Schema.String, Schema.Boolean]),
     intersectionProp: Schema.Struct({
         a: Schema.String
     }).pipe(Schema.extend(Schema.Struct({
@@ -29,7 +29,7 @@ export const MyStruct = Schema.Struct({
         a: Schema.String,
         b: Schema.Boolean
     })),
-    recordProp: Schema.Record({ key: Schema.String, value: Schema.Number }),
+    recordProp: Schema.Record(Schema.String, Schema.Number),
     inlineStruct: Schema.Struct({
         a: Schema.String,
         b: Schema.Number

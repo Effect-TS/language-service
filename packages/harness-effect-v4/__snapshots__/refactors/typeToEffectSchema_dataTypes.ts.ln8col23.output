@@ -1,13 +1,13 @@
 // Result of running refactor typeToEffectSchema at position 8:23
 import type * as Chunk from "effect/Chunk"
 import type * as Duration from "effect/Duration"
-import type * as Either from "effect/Either"
+import type * as Result from "effect/Result"
 import type * as Option from "effect/Option"
 import * as Schema from "effect/Schema"
 
 export const MyStruct = Schema.Struct({
     optionProp: Schema.Option(Schema.String),
-    eitherProp: Schema.Either({ right: Schema.Number, left: Schema.String }),
+    eitherProp:  /* Not supported conversion: Result.Result<number, string> */,
     pickProp: Schema.Struct({
         a: Schema.String,
         b: Schema.Boolean
@@ -22,7 +22,7 @@ export const MyStruct = Schema.Struct({
 
 export interface MyStruct {
   optionProp: Option.Option<string>
-  eitherProp: Either.Either<number, string>
+  eitherProp: Result.Result<number, string>
   pickProp: Pick<{ a: string; b: boolean }, "a">
   omitProp: Omit<{ a: string; b: boolean }, "b">
   chunkProp: Chunk.Chunk<string>
