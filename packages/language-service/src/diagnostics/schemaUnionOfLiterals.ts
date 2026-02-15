@@ -14,6 +14,7 @@ export const schemaUnionOfLiterals = LSP.createDiagnostic({
   apply: Nano.fn("schemaUnionOfLiterals.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    if (typeParser.supportedEffect() === "v4") return
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
