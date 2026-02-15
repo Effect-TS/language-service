@@ -1,5 +1,35 @@
 # @effect/language-service
 
+## 0.74.0
+
+### Minor Changes
+
+- [#641](https://github.com/Effect-TS/language-service/pull/641) [`693e5a5`](https://github.com/Effect-TS/language-service/commit/693e5a5ef2ee184e0a7d72cb3abc8485c2c0f855) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Added Effect v4 support for diagnostics, refactors, and piping features.
+
+  **Diagnostics:**
+
+  - `multipleEffectProvide`: Warns when multiple `Effect.provide` calls are chained, suggesting consolidation
+  - `strictEffectProvide`: Warns when using `Effect.provide` with Layer outside of application entry points
+  - `missingLayerContext`: Detects missing Layer context requirements
+  - `deterministicKeys`: Extended to support `ServiceMap.Service` patterns
+  - `leakingRequirements`: Extended to detect leaking requirements in ServiceMap services
+  - `schemaSyncInEffect`: Updated with v4-specific method mappings (e.g., `decodeSync` -> `decodeEffect`)
+
+  **Refactors:**
+
+  - `layerMagic`: Automatically compose and build layers based on service dependencies
+  - `structuralTypeToSchema`: Convert TypeScript interfaces and type aliases to Effect Schema classes
+  - `makeSchemaOpaque`: Enhanced for v4 with support for `Codec`, `DecodingServices`, and `EncodingServices` types
+  - `typeToEffectSchema`: Enhanced to support Effect v4 schema patterns
+
+  **Piping:**
+
+  - Added pipe transformation support for Effect v4 including `Effect.fn`, nested pipes, and function call conversions
+
+### Patch Changes
+
+- [#643](https://github.com/Effect-TS/language-service/pull/643) [`68f6d12`](https://github.com/Effect-TS/language-service/commit/68f6d120adb3dbf46593ca125e10a070e41fbc46) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Disable `schemaUnionOfLiterals` diagnostic for Effect v4, as `Schema.Union` of multiple `Schema.Literal` calls is no longer applicable in v4.
+
 ## 0.73.1
 
 ### Patch Changes
