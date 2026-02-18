@@ -213,10 +213,10 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "sortText": "11",
   },
   {
-    "insertText": "S.ErrorClass<Test>()({\${0}}){}",
+    "insertText": "S.TaggedErrorClass<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "ErrorClass<Test>",
+    "name": "TaggedError<Test>",
     "replacementSpan": {
       "length": 2,
       "start": 130,
@@ -224,10 +224,21 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "sortText": "11",
   },
   {
-    "insertText": "S.RequestClass<Test>("Test")({\${0}}){}",
+    "insertText": "S.TaggedClass<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "RequestClass<Test>",
+    "name": "TaggedClass<Test>",
+    "replacementSpan": {
+      "length": 2,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.ErrorClass<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "ErrorClass<Test>",
     "replacementSpan": {
       "length": 2,
       "start": 130,
@@ -251,10 +262,10 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "sortText": "11",
   },
   {
-    "insertText": "S.ErrorClass<Test>()({\${0}}){}",
+    "insertText": "S.TaggedErrorClass<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "ErrorClass<Test>",
+    "name": "TaggedError<Test>",
     "replacementSpan": {
       "length": 5,
       "start": 130,
@@ -262,10 +273,21 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "sortText": "11",
   },
   {
-    "insertText": "S.RequestClass<Test>("Test")({\${0}}){}",
+    "insertText": "S.TaggedClass<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "RequestClass<Test>",
+    "name": "TaggedClass<Test>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 130,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "S.ErrorClass<Test>("Test")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "ErrorClass<Test>",
     "replacementSpan": {
       "length": 5,
       "start": 130,
