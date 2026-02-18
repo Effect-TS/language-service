@@ -11,8 +11,10 @@ import { fnFunctionStar } from "./completions/fnFunctionStar.js"
 import { genFunctionStar } from "./completions/genFunctionStar.js"
 import { rpcMakeClasses } from "./completions/rpcMakeClasses.js"
 import { schemaBrand } from "./completions/schemaBrand.js"
+import { serviceMapSelfInClasses } from "./completions/serviceMapSelfInClasses.js"
 
 export const completions = [
+  serviceMapSelfInClasses,
   effectSqlModelSelfInClasses,
   effectSchemaSelfInClasses,
   effectSelfInClasses,

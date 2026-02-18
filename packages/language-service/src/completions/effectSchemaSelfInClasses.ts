@@ -75,26 +75,43 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
         })
       }
     }
-
-    // Check for Schema.TaggedClass or direct import TaggedClass
-    if (typeParser.supportedEffect() === "v3") {
-      const hasTaggedClassCompletion = isFullyQualified || Option.isSome(
+    if (typeParser.supportedEffect() === "v4") {
+      const hasTaggedErrorCompletion = isFullyQualified || Option.isSome(
         yield* pipe(
-          typeParser.isNodeReferenceToEffectSchemaModuleApi("TaggedClass")(accessedObject),
+          typeParser.isNodeReferenceToEffectSchemaModuleApi("TaggedErrorClass")(accessedObject),
           Nano.option
         )
       )
-      if (hasTaggedClassCompletion) {
+      if (hasTaggedErrorCompletion) {
         completions.push({
-          name: `TaggedClass<${name}>`,
+          name: `TaggedError<${name}>`,
           kind: ts.ScriptElementKind.constElement,
           insertText: isFullyQualified
-            ? `${schemaIdentifier}.TaggedClass<${name}>()("${name}", {${"${0}"}}){}`
-            : `TaggedClass<${name}>()("${name}", {${"${0}"}}){}`,
+            ? `${schemaIdentifier}.TaggedErrorClass<${name}>()("${errorTagKey}", {${"${0}"}}){}`
+            : `TaggedErrorClass<${name}>()("${errorTagKey}", {${"${0}"}}){}`,
           replacementSpan,
           isSnippet: true
         })
       }
+    }
+
+    // Check for Schema.TaggedClass or direct import TaggedClass
+    const hasTaggedClassCompletion = isFullyQualified || Option.isSome(
+      yield* pipe(
+        typeParser.isNodeReferenceToEffectSchemaModuleApi("TaggedClass")(accessedObject),
+        Nano.option
+      )
+    )
+    if (hasTaggedClassCompletion) {
+      completions.push({
+        name: `TaggedClass<${name}>`,
+        kind: ts.ScriptElementKind.constElement,
+        insertText: isFullyQualified
+          ? `${schemaIdentifier}.TaggedClass<${name}>()("${name}", {${"${0}"}}){}`
+          : `TaggedClass<${name}>()("${name}", {${"${0}"}}){}`,
+        replacementSpan,
+        isSnippet: true
+      })
     }
 
     // Check for Schema.TaggedRequest or direct import TaggedRequest
@@ -130,28 +147,8 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
           name: `ErrorClass<${name}>`,
           kind: ts.ScriptElementKind.constElement,
           insertText: isFullyQualified
-            ? `${schemaIdentifier}.ErrorClass<${name}>()({${"${0}"}}){}`
+            ? `${schemaIdentifier}.ErrorClass<${name}>("${name}")({${"${0}"}}){}`
             : `ErrorClass<${name}>()({${"${0}"}}){}`,
-          replacementSpan,
-          isSnippet: true
-        })
-      }
-    }
-
-    if (typeParser.supportedEffect() === "v4") {
-      const hasRequestClassCompletion = isFullyQualified || Option.isSome(
-        yield* pipe(
-          typeParser.isNodeReferenceToEffectSchemaModuleApi("RequestClass")(accessedObject),
-          Nano.option
-        )
-      )
-      if (hasRequestClassCompletion) {
-        completions.push({
-          name: `RequestClass<${name}>`,
-          kind: ts.ScriptElementKind.constElement,
-          insertText: isFullyQualified
-            ? `${schemaIdentifier}.RequestClass<${name}>("${name}")({${"${0}"}}){}`
-            : `RequestClass<${name}>("${name}")({${"${0}"}}){}`,
           replacementSpan,
           isSnippet: true
         })
