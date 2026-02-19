@@ -641,6 +641,9 @@ export function make(
     if (signatures.length !== 1) {
       return typeParserIssue("Covariant type has no call signature", type)
     }
+    if (signatures[0].typeParameters && signatures[0].typeParameters.length > 0) {
+      return typeParserIssue("Invariant type should not have type parameters", type)
+    }
     // get the return type
     return Nano.succeed(typeChecker.getReturnTypeOfSignature(signatures[0]))
   }
@@ -651,6 +654,9 @@ export function make(
     if (signatures.length !== 1) {
       return typeParserIssue("Contravariant type has no call signature", type)
     }
+    if (signatures[0].typeParameters && signatures[0].typeParameters.length > 0) {
+      return typeParserIssue("Invariant type should not have type parameters", type)
+    }
     // get the return type
     return Nano.succeed(typeCheckerUtils.getTypeParameterAtPosition(signatures[0], 0))
   }
@@ -660,6 +666,9 @@ export function make(
     // Invariant<A> has only 1 type signature
     if (signatures.length !== 1) {
       return typeParserIssue("Invariant type has no call signature", type)
+    }
+    if (signatures[0].typeParameters && signatures[0].typeParameters.length > 0) {
+      return typeParserIssue("Invariant type should not have type parameters", type)
     }
     // get the return type
     return Nano.succeed(typeChecker.getReturnTypeOfSignature(signatures[0]))
