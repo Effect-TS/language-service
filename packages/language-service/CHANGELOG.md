@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.75.0
+
+### Minor Changes
+
+- [#645](https://github.com/Effect-TS/language-service/pull/645) [`a8a7d33`](https://github.com/Effect-TS/language-service/commit/a8a7d33f3a4ff0762c18c0858084f61e149da33f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `ServiceMap.Service` class completion for Effect v4, and fix Schema class completions for v4 (`TaggedErrorClass`, `TaggedClass` now available, `ErrorClass` fully-qualified form fixed, `RequestClass` removed)
+
 ## 0.74.0
 
 ### Minor Changes
