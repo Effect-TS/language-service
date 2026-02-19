@@ -194,6 +194,33 @@ export const getApplicableRefactors = Nano.fn("LSP.getApplicableRefactors")(func
   }
   return effectRefactors
 })
+function codeFixNameToFullyQualifiedName(name: string) {
+  return `@effect/language-service/codefixes/${name}`
+}
+
+export const codeFixesToApplicableRefactor = Nano.fn("LSP.codeFixesToApplicableRefactor")(function*(
+  codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode>,
+  sourceFile: ts.SourceFile,
+  positionOrRange: number | ts.TextRange
+) {
+  const effectRefactors: Array<ts.ApplicableRefactorInfo> = []
+  const range = typeof positionOrRange === "number"
+    ? { pos: positionOrRange, end: positionOrRange }
+    : positionOrRange
+  const inRangeCodeFixes = codeFixes.filter((_) => _.start <= range.pos && _.end >= range.end)
+  for (const codeFix of inRangeCodeFixes) {
+    effectRefactors.push({
+      name: codeFixNameToFullyQualifiedName(codeFix.fixName),
+      description: "Quick Fix: " + codeFix.description,
+      actions: [{
+        name: codeFixNameToFullyQualifiedName(codeFix.fixName),
+        description: "Quick Fix: " + codeFix.description,
+        kind: "refactor.rewrite.codeFixEffect." + codeFix.fixName
+      }]
+    })
+  }
+  return effectRefactors
+})
 
 export const getEditsForRefactor = Nano.fn("LSP.getEditsForRefactor")(function*(
   refactors: Array<RefactorDefinition>,
@@ -210,6 +237,24 @@ export const getEditsForRefactor = Nano.fn("LSP.getEditsForRefactor")(function*(
     : positionOrRange
 
   return yield* refactor.apply(sourceFile, textRange)
+})
+
+export const getEditsForCodeFixes = Nano.fn("LSP.getEditsForCodeFixes")(function*(
+  codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode>,
+  positionOrRange: number | ts.TextRange,
+  refactorName: string
+) {
+  const textRange = typeof positionOrRange === "number"
+    ? { pos: positionOrRange, end: positionOrRange }
+    : positionOrRange
+
+  const fixToRun = codeFixes.find((_) =>
+    codeFixNameToFullyQualifiedName(_.fixName) === refactorName && _.start <= textRange.pos && _.end >= textRange.end
+  )
+  if (!fixToRun) {
+    return yield* Nano.fail(new RefactorNotApplicableError())
+  }
+  return fixToRun
 })
 
 export const getCompletionsAtPosition = Nano.fn("LSP.getCompletionsAtPosition")(function*(
