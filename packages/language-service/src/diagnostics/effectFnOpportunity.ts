@@ -166,10 +166,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
      * Checks if an expression is a call to Effect.withSpan and extracts the span name expression.
      * Returns the span name expression if it's a withSpan call, undefined otherwise.
      */
-    const tryExtractWithSpanExpression = (
-      expr: ts.Expression
-    ): Nano.Nano<ts.Expression | undefined, never, never> =>
-      Nano.gen(function*() {
+    const tryExtractWithSpanExpression: (expr: ts.Expression) => Nano.Nano<ts.Expression | undefined, never, never> =
+      Nano.fn("effectFnOpportunity.tryExtractWithSpanExpression")(function*(expr: ts.Expression) {
         // Check if it's a call expression
         if (!ts.isCallExpression(expr)) return undefined
 
@@ -192,39 +190,40 @@ export const effectFnOpportunity = LSP.createDiagnostic({
     /**
      * Tries to parse a function as a Gen opportunity (returning Effect.gen with a single return statement).
      */
-    const tryParseGenOpportunity = (
+    const tryParseGenOpportunity: (
       fnNode: SupportedFunctionNode
-    ): Nano.Nano<ParsedOpportunity, TypeParser.TypeParserIssue, never> =>
-      Nano.gen(function*() {
-        const bodyExpression = getBodyExpression(fnNode)
-        if (!bodyExpression) return yield* TypeParser.TypeParserIssue.issue
+    ) => Nano.Nano<ParsedOpportunity, TypeParser.TypeParserIssue, never> = Nano.fn(
+      "effectFnOpportunity.tryParseGenOpportunity"
+    )(function*(fnNode: SupportedFunctionNode) {
+      const bodyExpression = getBodyExpression(fnNode)
+      if (!bodyExpression) return yield* TypeParser.TypeParserIssue.issue
 
-        const { pipeArguments, subject } = yield* pipe(
-          typeParser.pipeCall(bodyExpression),
-          Nano.map(({ args, subject }) => ({ subject, pipeArguments: args })),
-          Nano.orElse(() => Nano.succeed({ subject: bodyExpression, pipeArguments: [] as Array<ts.Expression> }))
-        )
+      const { pipeArguments, subject } = yield* pipe(
+        typeParser.pipeCall(bodyExpression),
+        Nano.map(({ args, subject }) => ({ subject, pipeArguments: args })),
+        Nano.orElse(() => Nano.succeed({ subject: bodyExpression, pipeArguments: [] as Array<ts.Expression> }))
+      )
 
-        const { effectModule, generatorFunction } = yield* typeParser.effectGen(subject)
+      const { effectModule, generatorFunction } = yield* typeParser.effectGen(subject)
 
-        const effectModuleName = ts.isIdentifier(effectModule)
-          ? ts.idText(effectModule)
-          : sourceEffectModuleName
+      const effectModuleName = ts.isIdentifier(effectModule)
+        ? ts.idText(effectModule)
+        : sourceEffectModuleName
 
-        // Check if the last pipe argument is Effect.withSpan and extract the span name
-        // We keep all pipe arguments intact here; the autofix will remove withSpan when needed
-        let explicitTraceExpression: ts.Expression | undefined
+      // Check if the last pipe argument is Effect.withSpan and extract the span name
+      // We keep all pipe arguments intact here; the autofix will remove withSpan when needed
+      let explicitTraceExpression: ts.Expression | undefined
 
-        if (pipeArguments.length > 0) {
-          const lastArg = pipeArguments[pipeArguments.length - 1]
-          const withSpanExpr = yield* tryExtractWithSpanExpression(lastArg)
-          if (withSpanExpr) {
-            explicitTraceExpression = withSpanExpr
-          }
+      if (pipeArguments.length > 0) {
+        const lastArg = pipeArguments[pipeArguments.length - 1]
+        const withSpanExpr = yield* tryExtractWithSpanExpression(lastArg)
+        if (withSpanExpr) {
+          explicitTraceExpression = withSpanExpr
         }
+      }
 
-        return { effectModuleName, generatorFunction, pipeArguments, explicitTraceExpression }
-      })
+      return { effectModuleName, generatorFunction, pipeArguments, explicitTraceExpression }
+    })
 
     /**
      * Checks if a function node is already inside an Effect.fn or Effect.fnUntraced call.
@@ -245,6 +244,60 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         Nano.orElse(() => Nano.succeed(false))
       )
     }
+
+    const parseEffectFnOpportunityTargetGen = Nano.fn("effectFnOpportunity.parseEffectFnOpportunityTarget")(
+      function*(
+        node: SupportedFunctionNode,
+        returnType: ts.Type,
+        traceName: string,
+        nameIdentifier: ts.Identifier | ts.StringLiteral
+      ) {
+        // Check if this function is already inside an Effect.fn call
+        if (yield* isInsideEffectFn(node)) {
+          return yield* TypeParser.TypeParserIssue.issue
+        }
+
+        // Unroll union members and check that ALL are strict Effect types
+        const unionMembers = typeCheckerUtils.unrollUnionMembers(returnType)
+        yield* Nano.all(...unionMembers.map((member) => typeParser.strictEffectType(member, node)))
+
+        // Try to parse as Gen opportunity, then fall back to Regular opportunity
+        // For regular functions (not Effect.gen), only suggest if:
+        // - Not an arrow function with concise body (expression body)
+        // - Has a block body with more than 5 statements
+        const opportunity = yield* pipe(
+          tryParseGenOpportunity(node),
+          Nano.orElse(() => {
+            // Skip arrow functions with concise body (expression body, no braces)
+            if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
+              return TypeParser.TypeParserIssue.issue
+            }
+            // For functions with a block body, only suggest if there are more than 5 statements
+            const body = ts.isArrowFunction(node) ? node.body as ts.Block : node.body
+            if (!body || !ts.isBlock(body) || body.statements.length <= 5) {
+              return TypeParser.TypeParserIssue.issue
+            }
+            return Nano.succeed({
+              effectModuleName: sourceEffectModuleName,
+              pipeArguments: [],
+              generatorFunction: undefined,
+              explicitTraceExpression: undefined
+            })
+          })
+        )
+
+        return {
+          node,
+          nameIdentifier,
+          effectModuleName: opportunity.effectModuleName,
+          inferredTraceName: traceName,
+          explicitTraceExpression: opportunity.explicitTraceExpression,
+          pipeArguments: opportunity.pipeArguments,
+          generatorFunction: opportunity.generatorFunction,
+          hasParamsInPipeArgs: areParametersReferencedIn(node, opportunity.pipeArguments)
+        }
+      }
+    )
 
     /**
      * Parses a node as an Effect.fn opportunity target.
@@ -293,52 +346,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       // Only if we have a traceName, that means basically either declaration name or parent
       if (!traceName) return TypeParser.TypeParserIssue.issue
 
-      return Nano.gen(function*() {
-        // Check if this function is already inside an Effect.fn call
-        if (yield* isInsideEffectFn(node)) {
-          return yield* TypeParser.TypeParserIssue.issue
-        }
-
-        // Unroll union members and check that ALL are strict Effect types
-        const unionMembers = typeCheckerUtils.unrollUnionMembers(returnType)
-        yield* Nano.all(...unionMembers.map((member) => typeParser.strictEffectType(member, node)))
-
-        // Try to parse as Gen opportunity, then fall back to Regular opportunity
-        // For regular functions (not Effect.gen), only suggest if:
-        // - Not an arrow function with concise body (expression body)
-        // - Has a block body with more than 5 statements
-        const opportunity = yield* pipe(
-          tryParseGenOpportunity(node),
-          Nano.orElse(() => {
-            // Skip arrow functions with concise body (expression body, no braces)
-            if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
-              return TypeParser.TypeParserIssue.issue
-            }
-            // For functions with a block body, only suggest if there are more than 5 statements
-            const body = ts.isArrowFunction(node) ? node.body as ts.Block : node.body
-            if (!body || !ts.isBlock(body) || body.statements.length <= 5) {
-              return TypeParser.TypeParserIssue.issue
-            }
-            return Nano.succeed({
-              effectModuleName: sourceEffectModuleName,
-              pipeArguments: [],
-              generatorFunction: undefined,
-              explicitTraceExpression: undefined
-            })
-          })
-        )
-
-        return {
-          node,
-          nameIdentifier,
-          effectModuleName: opportunity.effectModuleName,
-          inferredTraceName: traceName,
-          explicitTraceExpression: opportunity.explicitTraceExpression,
-          pipeArguments: opportunity.pipeArguments,
-          generatorFunction: opportunity.generatorFunction,
-          hasParamsInPipeArgs: areParametersReferencedIn(node, opportunity.pipeArguments)
-        }
-      })
+      return parseEffectFnOpportunityTargetGen(node, returnType, traceName, nameIdentifier!)
     }
 
     // ==================== Fix creation helpers ====================

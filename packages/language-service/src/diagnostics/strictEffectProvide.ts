@@ -17,16 +17,8 @@ export const strictEffectProvide = LSP.createDiagnostic({
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const parseEffectProvideWithLayer = (node: ts.Node) => {
-      // Check if this is a call expression: Effect.provide(...)
-      if (
-        !ts.isCallExpression(node) ||
-        node.arguments.length === 0
-      ) {
-        return TypeParser.TypeParserIssue.issue
-      }
-
-      return Nano.gen(function*() {
+    const parseEffectProvideWithLayerGen = Nano.fn("strictEffectProvide.parseEffectProvideWithLayer")(
+      function*(node: ts.CallExpression) {
         // Check if the expression is from the Effect module
         yield* typeParser.isNodeReferenceToEffectModuleApi("provide")(node.expression)
 
@@ -38,7 +30,19 @@ export const strictEffectProvide = LSP.createDiagnostic({
             return typeParser.layerType(argType, arg)
           })
         )
-      })
+      }
+    )
+
+    const parseEffectProvideWithLayer = (node: ts.Node) => {
+      // Check if this is a call expression: Effect.provide(...)
+      if (
+        !ts.isCallExpression(node) ||
+        node.arguments.length === 0
+      ) {
+        return TypeParser.TypeParserIssue.issue
+      }
+
+      return parseEffectProvideWithLayerGen(node)
     }
 
     const nodeToVisit: Array<ts.Node> = []
