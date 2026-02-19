@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.75.1
+
+### Patch Changes
+
+- [#647](https://github.com/Effect-TS/language-service/pull/647) [`489e3f0`](https://github.com/Effect-TS/language-service/commit/489e3f05727ded4bf62585042135a0b5cec1068b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Expose diagnostic quick fixes as refactoring actions to work around TypeScript's limited quick fix handling in some contexts
+
+- [#650](https://github.com/Effect-TS/language-service/pull/650) [`6f568cf`](https://github.com/Effect-TS/language-service/commit/6f568cf37a76b23a1a864c4852250f62083379ad) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix TypeParser to skip types with generic call signatures. When parsing covariant, contravariant, or invariant types, signatures with type parameters are now correctly rejected instead of being treated as concrete types.
+
+- [#649](https://github.com/Effect-TS/language-service/pull/649) [`5858fd1`](https://github.com/Effect-TS/language-service/commit/5858fd1d87a4cc1e16f0f1bdb69532b2a1fefac0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Performance improvements: replace `Nano.gen` with `Nano.fn` named functions across diagnostics, refactors, and code generation modules for better performance tracking and reduced runtime overhead. Add conditional `debugPerformance` flag to avoid unnecessary timing collection when not debugging.
+
 ## 0.75.0
 
 ### Minor Changes
