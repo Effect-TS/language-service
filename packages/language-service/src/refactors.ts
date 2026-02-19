@@ -1,7 +1,9 @@
+import * as Nano from "./core/Nano.js"
 import { asyncAwaitToFn } from "./refactors/asyncAwaitToFn.js"
 import { asyncAwaitToFnTryPromise } from "./refactors/asyncAwaitToFnTryPromise.js"
 import { asyncAwaitToGen } from "./refactors/asyncAwaitToGen.js"
 import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise.js"
+import { debugPerformance } from "./refactors/debugPerformance.js"
 import { effectGenToFn } from "./refactors/effectGenToFn.js"
 import { functionToArrow } from "./refactors/functionToArrow.js"
 import { layerMagic } from "./refactors/layerMagic.js"
@@ -42,4 +44,4 @@ export const refactors = [
   effectGenToFn,
   togglePipeStyle,
   writeTagClassAccessors
-]
+].concat(Nano.debugPerformance ? [debugPerformance] : [])

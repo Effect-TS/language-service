@@ -251,57 +251,57 @@ export const effectFnOpportunity = LSP.createDiagnostic({
      */
     const parseEffectFnOpportunityTarget = (
       node: ts.Node
-    ): Nano.Nano<EffectFnOpportunityTarget, TypeParser.TypeParserIssue, never> =>
-      Nano.gen(function*() {
-        // We're looking for function expressions, arrow functions, or function declarations
-        if (!ts.isFunctionExpression(node) && !ts.isArrowFunction(node) && !ts.isFunctionDeclaration(node)) {
-          return yield* TypeParser.TypeParserIssue.issue
-        }
+    ): Nano.Nano<EffectFnOpportunityTarget, TypeParser.TypeParserIssue, never> => {
+      // We're looking for function expressions, arrow functions, or function declarations
+      if (!ts.isFunctionExpression(node) && !ts.isArrowFunction(node) && !ts.isFunctionDeclaration(node)) {
+        return TypeParser.TypeParserIssue.issue
+      }
 
-        // Skip generator functions (they can't be converted)
-        if ((ts.isFunctionExpression(node) || ts.isFunctionDeclaration(node)) && node.asteriskToken) {
-          return yield* TypeParser.TypeParserIssue.issue
-        }
+      // Skip generator functions (they can't be converted)
+      if ((ts.isFunctionExpression(node) || ts.isFunctionDeclaration(node)) && node.asteriskToken) {
+        return TypeParser.TypeParserIssue.issue
+      }
 
-        // Skip named function expressions (they are typically used for recursion)
-        if (ts.isFunctionExpression(node) && node.name) {
-          return yield* TypeParser.TypeParserIssue.issue
-        }
+      // Skip named function expressions (they are typically used for recursion)
+      if (ts.isFunctionExpression(node) && node.name) {
+        return TypeParser.TypeParserIssue.issue
+      }
 
-        // Skip functions with return type annotations (they could be recursive)
-        if (node.type) {
-          return yield* TypeParser.TypeParserIssue.issue
-        }
+      // Skip functions with return type annotations (they could be recursive)
+      if (node.type) {
+        return TypeParser.TypeParserIssue.issue
+      }
 
+      // Get the type of the function to check call signatures
+      const functionType = typeChecker.getTypeAtLocation(node)
+      if (!functionType) return TypeParser.TypeParserIssue.issue
+
+      // Check if the function has only one call signature (no overloads)
+      const callSignatures = typeChecker.getSignaturesOfType(functionType, ts.SignatureKind.Call)
+      if (callSignatures.length !== 1) return TypeParser.TypeParserIssue.issue
+
+      // Get the return type of the function
+      const signature = callSignatures[0]
+      const returnType = typeChecker.getReturnTypeOfSignature(signature)
+
+      // Try to get a name identifier and trace name
+      const nameIdentifier = getNameIdentifier(node)
+      const traceName = nameIdentifier
+        ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
+        : undefined
+
+      // Only if we have a traceName, that means basically either declaration name or parent
+      if (!traceName) return TypeParser.TypeParserIssue.issue
+
+      return Nano.gen(function*() {
         // Check if this function is already inside an Effect.fn call
         if (yield* isInsideEffectFn(node)) {
           return yield* TypeParser.TypeParserIssue.issue
         }
 
-        // Get the type of the function to check call signatures
-        const functionType = typeChecker.getTypeAtLocation(node)
-        if (!functionType) return yield* TypeParser.TypeParserIssue.issue
-
-        // Check if the function has only one call signature (no overloads)
-        const callSignatures = typeChecker.getSignaturesOfType(functionType, ts.SignatureKind.Call)
-        if (callSignatures.length !== 1) return yield* TypeParser.TypeParserIssue.issue
-
-        // Get the return type of the function
-        const signature = callSignatures[0]
-        const returnType = typeChecker.getReturnTypeOfSignature(signature)
-
         // Unroll union members and check that ALL are strict Effect types
         const unionMembers = typeCheckerUtils.unrollUnionMembers(returnType)
         yield* Nano.all(...unionMembers.map((member) => typeParser.strictEffectType(member, node)))
-
-        // Try to get a name identifier and trace name
-        const nameIdentifier = getNameIdentifier(node)
-        const traceName = nameIdentifier
-          ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
-          : undefined
-
-        // Only if we have a traceName, that means basically either declaration name or parent
-        if (!traceName) return yield* TypeParser.TypeParserIssue.issue
 
         // Try to parse as Gen opportunity, then fall back to Regular opportunity
         // For regular functions (not Effect.gen), only suggest if:
@@ -339,6 +339,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           hasParamsInPipeArgs: areParametersReferencedIn(node, opportunity.pipeArguments)
         }
       })
+    }
 
     // ==================== Fix creation helpers ====================
 
