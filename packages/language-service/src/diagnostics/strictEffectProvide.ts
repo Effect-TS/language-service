@@ -17,16 +17,16 @@ export const strictEffectProvide = LSP.createDiagnostic({
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
-    const parseEffectProvideWithLayer = (node: ts.Node) =>
-      Nano.gen(function*() {
-        // Check if this is a call expression: Effect.provide(...)
-        if (
-          !ts.isCallExpression(node) ||
-          node.arguments.length === 0
-        ) {
-          return yield* TypeParser.typeParserIssue("Not an Effect.provide call")
-        }
+    const parseEffectProvideWithLayer = (node: ts.Node) => {
+      // Check if this is a call expression: Effect.provide(...)
+      if (
+        !ts.isCallExpression(node) ||
+        node.arguments.length === 0
+      ) {
+        return TypeParser.TypeParserIssue.issue
+      }
 
+      return Nano.gen(function*() {
         // Check if the expression is from the Effect module
         yield* typeParser.isNodeReferenceToEffectModuleApi("provide")(node.expression)
 
@@ -39,6 +39,7 @@ export const strictEffectProvide = LSP.createDiagnostic({
           })
         )
       })
+    }
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {

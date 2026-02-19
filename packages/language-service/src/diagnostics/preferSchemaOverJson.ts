@@ -108,28 +108,26 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
     // Match Effect.try(() => JSON.parse/stringify(...)) - simple form
     const effectTrySimple = (node: ts.CallExpression) =>
       Nano.gen(function*() {
-        if (!ts.isCallExpression(node)) return yield* Nano.fail("node is not a call expression")
         yield* typeParser.isNodeReferenceToEffectModuleApi("try")(node.expression)
-        if (node.arguments.length === 0) return yield* Nano.fail("Effect.try has no arguments")
+        if (node.arguments.length === 0) return yield* TypeParser.TypeParserIssue.issue
         const lazyFn = yield* typeParser.lazyExpression(node.arguments[0])
-        if (!isJsonCall(lazyFn.expression)) return yield* Nano.fail("not a JSON call")
+        if (!isJsonCall(lazyFn.expression)) return yield* TypeParser.TypeParserIssue.issue
         return lazyFn.expression as ts.CallExpression
       })
 
     // Match Effect.try({ try: () => JSON.parse/stringify(...), ... }) - object form
     const effectTryObject = (node: ts.CallExpression) =>
       Nano.gen(function*() {
-        if (!ts.isCallExpression(node)) return yield* Nano.fail("node is not a call expression")
         yield* typeParser.isNodeReferenceToEffectModuleApi("try")(node.expression)
-        if (node.arguments.length === 0) return yield* Nano.fail("Effect.try has no arguments")
+        if (node.arguments.length === 0) return yield* TypeParser.TypeParserIssue.issue
         const arg = node.arguments[0]
-        if (!ts.isObjectLiteralExpression(arg)) return yield* Nano.fail("argument is not an object literal")
+        if (!ts.isObjectLiteralExpression(arg)) return yield* TypeParser.TypeParserIssue.issue
         const tryProp = arg.properties.find(
           (p) => ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && ts.idText(p.name) === "try"
         ) as ts.PropertyAssignment | undefined
-        if (!tryProp) return yield* Nano.fail("object has no 'try' property")
+        if (!tryProp) return yield* TypeParser.TypeParserIssue.issue
         const lazyFn = yield* typeParser.lazyExpression(tryProp.initializer)
-        if (!isJsonCall(lazyFn.expression)) return yield* Nano.fail("not a JSON call")
+        if (!isJsonCall(lazyFn.expression)) return yield* TypeParser.TypeParserIssue.issue
         return lazyFn.expression as ts.CallExpression
       })
 
@@ -138,10 +136,10 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
       Nano.gen(function*() {
         const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(jsonCall)
         if (!effectGen || effectGen.body.statements.length === 0) {
-          return yield* Nano.fail("not inside an Effect generator")
+          return yield* TypeParser.TypeParserIssue.issue
         }
         if (scopeNode && scopeNode !== effectGen.generatorFunction) {
-          return yield* Nano.fail("inside a nested function scope")
+          return yield* TypeParser.TypeParserIssue.issue
         }
         return jsonCall
       })

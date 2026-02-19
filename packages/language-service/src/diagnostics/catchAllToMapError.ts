@@ -36,35 +36,42 @@ export const catchAllToMapError = LSP.createDiagnostic({
     const getEffectFailCallInfo = (
       body: ts.Expression | ts.Block
     ): Nano.Nano<{ failCall: ts.CallExpression; failArg: ts.Expression } | undefined> => {
-      return Nano.gen(function*() {
-        // If body is an expression (arrow function without braces)
-        if (ts.isCallExpression(body)) {
-          const isFailCall = yield* pipe(
-            typeParser.isNodeReferenceToEffectModuleApi("fail")(body.expression),
-            Nano.orUndefined
-          )
-          if (isFailCall && body.arguments.length >= 1) {
-            return ({ failCall: body, failArg: body.arguments[0] })
-          }
-        }
-
-        // If body is a block, check for single return statement with Effect.fail
-        if (ts.isBlock(body)) {
-          const statements = body.statements
-          if (statements.length === 1) {
-            const stmt = statements[0]
-            if (ts.isReturnStatement(stmt) && stmt.expression && ts.isCallExpression(stmt.expression)) {
-              const isFailCall = yield* pipe(
-                typeParser.isNodeReferenceToEffectModuleApi("fail")(stmt.expression.expression),
-                Nano.orUndefined
-              )
-              if (isFailCall && stmt.expression.arguments.length >= 1) {
-                return ({ failCall: stmt.expression, failArg: stmt.expression.arguments[0] })
-              }
+      // If body is an expression (arrow function without braces)
+      if (ts.isCallExpression(body)) {
+        return pipe(
+          typeParser.isNodeReferenceToEffectModuleApi("fail")(body.expression),
+          Nano.orUndefined,
+          Nano.map((isFailCall) => {
+            if (isFailCall && body.arguments.length >= 1) {
+              return ({ failCall: body, failArg: body.arguments[0] })
             }
+            return undefined
+          })
+        )
+      }
+
+      // If body is a block, check for single return statement with Effect.fail
+      if (ts.isBlock(body)) {
+        const statements = body.statements
+        if (statements.length === 1) {
+          const stmt = statements[0]
+          if (ts.isReturnStatement(stmt) && stmt.expression && ts.isCallExpression(stmt.expression)) {
+            const callExpr = stmt.expression
+            return pipe(
+              typeParser.isNodeReferenceToEffectModuleApi("fail")(callExpr.expression),
+              Nano.orUndefined,
+              Nano.map((isFailCall) => {
+                if (isFailCall && callExpr.arguments.length >= 1) {
+                  return ({ failCall: callExpr, failArg: callExpr.arguments[0] })
+                }
+                return undefined
+              })
+            )
           }
         }
-      })
+      }
+
+      return Nano.void_
     }
 
     // Get all piping flows for the source file (including Effect.fn pipe transformations)

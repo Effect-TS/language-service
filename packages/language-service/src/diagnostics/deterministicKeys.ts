@@ -22,21 +22,22 @@ export const deterministicKeys = LSP.createDiagnostic({
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)
 
     const parseExtendsCustom = Nano.cachedBy(
-      Nano.fn("parseExtendsCustom")(function*(classDeclaration: ts.ClassDeclaration) {
+      (classDeclaration: ts.ClassDeclaration) => {
         if (!options.extendedKeyDetection) {
-          return yield* TypeParser.typeParserIssue("Extended key detection is disabled", undefined, classDeclaration)
+          return TypeParser.TypeParserIssue.issue
         }
         if (!classDeclaration.name) {
-          return yield* TypeParser.typeParserIssue("Class has no name", undefined, classDeclaration)
+          return TypeParser.TypeParserIssue.issue
         }
         if (!ts.isIdentifier(classDeclaration.name)) {
-          return yield* TypeParser.typeParserIssue("Class name is not an identifier", undefined, classDeclaration)
+          return TypeParser.TypeParserIssue.issue
         }
         const heritageClauses = classDeclaration.heritageClauses
         if (!heritageClauses) {
-          return yield* TypeParser.typeParserIssue("Class has no heritage clauses", undefined, classDeclaration)
+          return TypeParser.TypeParserIssue.issue
         }
 
+        const className = classDeclaration.name
         const nodeToVisit: Array<ts.Node> = [...classDeclaration.heritageClauses]
         const appendNodeToVisit = (node: ts.Node) => {
           nodeToVisit.push(node)
@@ -58,7 +59,7 @@ export const deterministicKeys = LSP.createDiagnostic({
                     const parameterSourceFile = typeScriptUtils.getSourceFileOfNode(declaration)!
                     const paramText = parameterSourceFile.text.substring(declaration.pos, declaration.end)
                     if (paramText.toLowerCase().includes("@effect-identifier")) {
-                      return { className: classDeclaration.name, keyStringLiteral: arg, target: "custom" as const }
+                      return Nano.succeed({ className, keyStringLiteral: arg, target: "custom" as const })
                     }
                   }
                 }
@@ -68,12 +69,8 @@ export const deterministicKeys = LSP.createDiagnostic({
           ts.forEachChild(node, appendNodeToVisit)
         }
 
-        return yield* TypeParser.typeParserIssue(
-          "Class does not extend any custom pattern",
-          undefined,
-          classDeclaration
-        )
-      }),
+        return TypeParser.TypeParserIssue.issue
+      },
       "deterministicKeys.parseExtendsCustom",
       (classDeclaration) => classDeclaration
     )
