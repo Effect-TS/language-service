@@ -189,217 +189,216 @@ const createUnsupportedNodeComment = (
     " Not supported conversion: " + node.getText(sourceFile) + " "
   )
 
-export const processNode = (
+export const processNode: (
   node: ts.Node,
   isVirtualTypeNode: boolean
-): Nano.Nano<
+) => Nano.Nano<
   ts.Expression,
   | RequiredExplicitTypesError
   | TypeParametersNotSupportedError
   | OnlyLiteralPropertiesSupportedError
   | IndexSignatureWithMoreThanOneParameterError,
   TypeScriptApi.TypeScriptApi | TypeCheckerApi.TypeCheckerApi | TypeCheckerUtils.TypeCheckerUtils | SchemaGenContext
-> =>
-  Nano.gen(function*() {
-    const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, supportedEffect, ts } =
-      yield* Nano.service(
-        SchemaGenContext
-      )
-    // string | number | boolean | undefined | void | never
-    switch (node.kind) {
-      case ts.SyntaxKind.AnyKeyword:
-        return createApiPropertyAccess("Any")
-      case ts.SyntaxKind.NeverKeyword:
-        return createApiPropertyAccess("Never")
-      case ts.SyntaxKind.UnknownKeyword:
-        return createApiPropertyAccess("Unknown")
-      case ts.SyntaxKind.VoidKeyword:
-        return createApiPropertyAccess("Void")
-      case ts.SyntaxKind.NullKeyword:
-        return createApiPropertyAccess("Null")
-      case ts.SyntaxKind.UndefinedKeyword:
-        return createApiPropertyAccess("Undefined")
-      case ts.SyntaxKind.StringKeyword:
-        return createApiPropertyAccess("String")
-      case ts.SyntaxKind.NumberKeyword:
-        return createApiPropertyAccess("Number")
-      case ts.SyntaxKind.BooleanKeyword:
-        return createApiPropertyAccess("Boolean")
-      case ts.SyntaxKind.BigIntKeyword:
-        return createApiPropertyAccess("BigInt")
-    }
-    // null and other literals
-    if (ts.isLiteralTypeNode(node)) {
-      if (node.literal.kind === ts.SyntaxKind.NullKeyword) return createApiPropertyAccess("Null")
-      const literalMembers = yield* Nano.option(parseAllLiterals(node))
-      if (Option.isSome(literalMembers)) return createApiCall("Literal", literalMembers.value)
-    }
-    // A | B
-    if (ts.isUnionTypeNode(node)) {
-      // "a" | "b" can be optimized into a single Schema.Literal("a", "b")
-      const allLiterals = yield* Nano.option(parseAllLiterals(node))
-      if (supportedEffect !== "v4" && Option.isSome(allLiterals)) return createApiCall("Literal", allLiterals.value)
-      // regular union
-      const members = yield* Nano.all(...node.types.map((_) => processNode(_, isVirtualTypeNode)))
-      return createApiCall(
-        "Union",
-        supportedEffect === "v4" ? [ts.factory.createArrayLiteralExpression(members)] : members
-      )
-    }
-    // {a: 1} & {b: 2} & {c: 3}
-    if (ts.isIntersectionTypeNode(node)) {
-      const [firstSchema, ...otherSchemas] = yield* Nano.all(
-        ...node.types.map((_) => processNode(_, isVirtualTypeNode))
-      )
-      if (otherSchemas.length === 0) return firstSchema
-      return ts.factory.createCallExpression(
-        ts.factory.createPropertyAccessExpression(
-          firstSchema,
-          "pipe"
-        ),
-        [],
-        otherSchemas.map((_) => createApiCall("extend", [_]))
-      )
-    }
-    // keyof A
-    if (ts.isTypeOperatorNode(node)) {
-      if (node.operator === ts.SyntaxKind.KeyOfKeyword) {
-        return createApiCall("keyof", [yield* processNode(node.type, isVirtualTypeNode)])
-      } else if (node.operator === ts.SyntaxKind.ReadonlyKeyword) {
-        return yield* processNode(node.type, isVirtualTypeNode)
-      }
-    }
-    // string[]
-    if (ts.isArrayTypeNode(node)) {
-      const typeSchema = yield* processNode(node.elementType, isVirtualTypeNode)
-      return createApiCall("Array", [typeSchema])
-    }
-    // { a: string, b: boolean }
-    if (ts.isTypeLiteralNode(node)) {
-      const { properties, records } = yield* processMembers(node.members, isVirtualTypeNode)
-
-      return createApiCall(
-        "Struct",
-        [ts.factory.createObjectLiteralExpression(properties, true)].concat(records)
-      )
-    }
-    // parenthesided (A)
-    if (ts.isParenthesizedTypeNode(node)) {
+> = Nano.fn("SchemaGen.processNode")(function*(node: ts.Node, isVirtualTypeNode: boolean) {
+  const { createApiCall, createApiPropertyAccess, entityNameToDataTypeName, sourceFile, supportedEffect, ts } =
+    yield* Nano.service(
+      SchemaGenContext
+    )
+  // string | number | boolean | undefined | void | never
+  switch (node.kind) {
+    case ts.SyntaxKind.AnyKeyword:
+      return createApiPropertyAccess("Any")
+    case ts.SyntaxKind.NeverKeyword:
+      return createApiPropertyAccess("Never")
+    case ts.SyntaxKind.UnknownKeyword:
+      return createApiPropertyAccess("Unknown")
+    case ts.SyntaxKind.VoidKeyword:
+      return createApiPropertyAccess("Void")
+    case ts.SyntaxKind.NullKeyword:
+      return createApiPropertyAccess("Null")
+    case ts.SyntaxKind.UndefinedKeyword:
+      return createApiPropertyAccess("Undefined")
+    case ts.SyntaxKind.StringKeyword:
+      return createApiPropertyAccess("String")
+    case ts.SyntaxKind.NumberKeyword:
+      return createApiPropertyAccess("Number")
+    case ts.SyntaxKind.BooleanKeyword:
+      return createApiPropertyAccess("Boolean")
+    case ts.SyntaxKind.BigIntKeyword:
+      return createApiPropertyAccess("BigInt")
+  }
+  // null and other literals
+  if (ts.isLiteralTypeNode(node)) {
+    if (node.literal.kind === ts.SyntaxKind.NullKeyword) return createApiPropertyAccess("Null")
+    const literalMembers = yield* Nano.option(parseAllLiterals(node))
+    if (Option.isSome(literalMembers)) return createApiCall("Literal", literalMembers.value)
+  }
+  // A | B
+  if (ts.isUnionTypeNode(node)) {
+    // "a" | "b" can be optimized into a single Schema.Literal("a", "b")
+    const allLiterals = yield* Nano.option(parseAllLiterals(node))
+    if (supportedEffect !== "v4" && Option.isSome(allLiterals)) return createApiCall("Literal", allLiterals.value)
+    // regular union
+    const members = yield* Nano.all(...node.types.map((_) => processNode(_, isVirtualTypeNode)))
+    return createApiCall(
+      "Union",
+      supportedEffect === "v4" ? [ts.factory.createArrayLiteralExpression(members)] : members
+    )
+  }
+  // {a: 1} & {b: 2} & {c: 3}
+  if (ts.isIntersectionTypeNode(node)) {
+    const [firstSchema, ...otherSchemas] = yield* Nano.all(
+      ...node.types.map((_) => processNode(_, isVirtualTypeNode))
+    )
+    if (otherSchemas.length === 0) return firstSchema
+    return ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(
+        firstSchema,
+        "pipe"
+      ),
+      [],
+      otherSchemas.map((_) => createApiCall("extend", [_]))
+    )
+  }
+  // keyof A
+  if (ts.isTypeOperatorNode(node)) {
+    if (node.operator === ts.SyntaxKind.KeyOfKeyword) {
+      return createApiCall("keyof", [yield* processNode(node.type, isVirtualTypeNode)])
+    } else if (node.operator === ts.SyntaxKind.ReadonlyKeyword) {
       return yield* processNode(node.type, isVirtualTypeNode)
     }
-    // typeof A
-    if (ts.isTypeQueryNode(node)) {
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-      const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
-      const type = typeCheckerUtils.getTypeAtLocation(node.exprName)
-      if (type) {
-        const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
-        if (typeNode) return yield* processNode(typeNode, true)
-      }
-    }
-    // special pattern (typeof A)[keyof typeof A]
-    if (
-      !isVirtualTypeNode &&
-      ts.isIndexedAccessTypeNode(node) && ts.isParenthesizedTypeNode(node.objectType) &&
-      ts.isTypeQueryNode(node.objectType.type) && ts.isTypeOperatorNode(node.indexType) &&
-      node.indexType.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeQueryNode(node.indexType.type) &&
-      node.indexType.type.exprName.getText().trim() === node.objectType.type.exprName.getText().trim()
-    ) {
-      const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-      const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
-      const type = typeCheckerUtils.getTypeAtLocation(node)
-      if (type) {
-        const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
-        if (typeNode) return yield* processNode(typeNode, true)
-      }
-    }
-    // type reference
-    if (ts.isTypeReferenceNode(node)) {
-      const parsedName = entityNameToDataTypeName(node.typeName)
-      if (Option.isSome(parsedName)) {
-        switch (parsedName.value) {
-          case "Duration":
-          case "Date":
-            return createApiPropertyAccess(parsedName.value)
-          case "Option":
-          case "Chunk":
-          case "Array": {
-            const elements = yield* Nano.all(
-              ...(node.typeArguments
-                ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
-                : [])
-            )
-            return createApiCall(parsedName.value, elements)
-          }
-          case "Record": {
-            const elements = yield* Nano.all(
-              ...(node.typeArguments
-                ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
-                : [])
-            )
-            if (elements.length >= 2) {
-              if (supportedEffect === "v4" && elements.length === 2) {
-                return createApiCall("Record", [elements[0], elements[1]])
-              }
-              return createApiCall(parsedName.value, [
-                ts.factory.createObjectLiteralExpression([
-                  ts.factory.createPropertyAssignment("key", elements[0]),
-                  ts.factory.createPropertyAssignment("value", elements[1])
-                ])
-              ])
-            }
-            return createUnsupportedNodeComment(ts, sourceFile, node)
-          }
-          case "Either": {
-            const elements = yield* Nano.all(
-              ...(node.typeArguments
-                ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
-                : [])
-            )
-            if (elements.length >= 2) {
-              return createApiCall(parsedName.value, [
-                ts.factory.createObjectLiteralExpression([
-                  ts.factory.createPropertyAssignment("right", elements[0]),
-                  ts.factory.createPropertyAssignment("left", elements[1])
-                ])
-              ])
-            }
-            return createUnsupportedNodeComment(ts, sourceFile, node)
-          }
-          case "Pick":
-          case "Omit": {
-            const typeArguments = Array.fromIterable(node.typeArguments || [])
-            if (typeArguments.length !== 2) {
-              return createUnsupportedNodeComment(ts, sourceFile, node)
-            }
-            const baseType = yield* processNode(typeArguments[0], isVirtualTypeNode)
-            const stringLiteralArguments = yield* Nano.option(parseAllLiterals(typeArguments[1]))
+  }
+  // string[]
+  if (ts.isArrayTypeNode(node)) {
+    const typeSchema = yield* processNode(node.elementType, isVirtualTypeNode)
+    return createApiCall("Array", [typeSchema])
+  }
+  // { a: string, b: boolean }
+  if (ts.isTypeLiteralNode(node)) {
+    const { properties, records } = yield* processMembers(node.members, isVirtualTypeNode)
 
-            if (Option.isNone(stringLiteralArguments)) {
-              return createUnsupportedNodeComment(ts, sourceFile, node)
+    return createApiCall(
+      "Struct",
+      [ts.factory.createObjectLiteralExpression(properties, true)].concat(records)
+    )
+  }
+  // parenthesided (A)
+  if (ts.isParenthesizedTypeNode(node)) {
+    return yield* processNode(node.type, isVirtualTypeNode)
+  }
+  // typeof A
+  if (ts.isTypeQueryNode(node)) {
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+    const type = typeCheckerUtils.getTypeAtLocation(node.exprName)
+    if (type) {
+      const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+      if (typeNode) return yield* processNode(typeNode, true)
+    }
+  }
+  // special pattern (typeof A)[keyof typeof A]
+  if (
+    !isVirtualTypeNode &&
+    ts.isIndexedAccessTypeNode(node) && ts.isParenthesizedTypeNode(node.objectType) &&
+    ts.isTypeQueryNode(node.objectType.type) && ts.isTypeOperatorNode(node.indexType) &&
+    node.indexType.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeQueryNode(node.indexType.type) &&
+    node.indexType.type.exprName.getText().trim() === node.objectType.type.exprName.getText().trim()
+  ) {
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
+    const type = typeCheckerUtils.getTypeAtLocation(node)
+    if (type) {
+      const typeNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+      if (typeNode) return yield* processNode(typeNode, true)
+    }
+  }
+  // type reference
+  if (ts.isTypeReferenceNode(node)) {
+    const parsedName = entityNameToDataTypeName(node.typeName)
+    if (Option.isSome(parsedName)) {
+      switch (parsedName.value) {
+        case "Duration":
+        case "Date":
+          return createApiPropertyAccess(parsedName.value)
+        case "Option":
+        case "Chunk":
+        case "Array": {
+          const elements = yield* Nano.all(
+            ...(node.typeArguments
+              ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
+              : [])
+          )
+          return createApiCall(parsedName.value, elements)
+        }
+        case "Record": {
+          const elements = yield* Nano.all(
+            ...(node.typeArguments
+              ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
+              : [])
+          )
+          if (elements.length >= 2) {
+            if (supportedEffect === "v4" && elements.length === 2) {
+              return createApiCall("Record", [elements[0], elements[1]])
             }
-            return ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                baseType,
-                "pipe"
-              ),
-              [],
-              [createApiCall(parsedName.value.toLowerCase(), stringLiteralArguments.value)]
-            )
+            return createApiCall(parsedName.value, [
+              ts.factory.createObjectLiteralExpression([
+                ts.factory.createPropertyAssignment("key", elements[0]),
+                ts.factory.createPropertyAssignment("value", elements[1])
+              ])
+            ])
           }
+          return createUnsupportedNodeComment(ts, sourceFile, node)
+        }
+        case "Either": {
+          const elements = yield* Nano.all(
+            ...(node.typeArguments
+              ? node.typeArguments.map((_) => processNode(_, isVirtualTypeNode))
+              : [])
+          )
+          if (elements.length >= 2) {
+            return createApiCall(parsedName.value, [
+              ts.factory.createObjectLiteralExpression([
+                ts.factory.createPropertyAssignment("right", elements[0]),
+                ts.factory.createPropertyAssignment("left", elements[1])
+              ])
+            ])
+          }
+          return createUnsupportedNodeComment(ts, sourceFile, node)
+        }
+        case "Pick":
+        case "Omit": {
+          const typeArguments = Array.fromIterable(node.typeArguments || [])
+          if (typeArguments.length !== 2) {
+            return createUnsupportedNodeComment(ts, sourceFile, node)
+          }
+          const baseType = yield* processNode(typeArguments[0], isVirtualTypeNode)
+          const stringLiteralArguments = yield* Nano.option(parseAllLiterals(typeArguments[1]))
+
+          if (Option.isNone(stringLiteralArguments)) {
+            return createUnsupportedNodeComment(ts, sourceFile, node)
+          }
+          return ts.factory.createCallExpression(
+            ts.factory.createPropertyAccessExpression(
+              baseType,
+              "pipe"
+            ),
+            [],
+            [createApiCall(parsedName.value.toLowerCase(), stringLiteralArguments.value)]
+          )
         }
       }
     }
-    // type reference
-    if (ts.isTypeReferenceNode(node)) {
-      if (!(node.typeArguments && node.typeArguments.length > 0)) {
-        return yield* typeEntityNameToNode(node.typeName)
-      }
+  }
+  // type reference
+  if (ts.isTypeReferenceNode(node)) {
+    if (!(node.typeArguments && node.typeArguments.length > 0)) {
+      return yield* typeEntityNameToNode(node.typeName)
     }
+  }
 
-    // wtf
-    return createUnsupportedNodeComment(ts, sourceFile, node)
-  })
+  // wtf
+  return createUnsupportedNodeComment(ts, sourceFile, node)
+})
 
 const processMembers = Nano.fn(
   "SchemaGen.processMembers"

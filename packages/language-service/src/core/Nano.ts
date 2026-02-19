@@ -3,6 +3,8 @@ import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
 
+export const debugPerformance = false
+
 export class NanoTag<R> {
   declare "~nano.requirements": R
   constructor(
@@ -165,7 +167,6 @@ class NanoFiber {
   _yielded: NanoExit | undefined = undefined
   _services: Record<string, any> = {}
   _cache: Record<string, WeakMap<any, any>> = {}
-  _perf: boolean = false
   _lastSpan: string = ""
 
   runLoop(nano: Nano<any, any, any>) {
@@ -203,7 +204,7 @@ const WithSpanProto: NanoPrimitive = {
   ...PrimitiveProto,
   [evaluate](fiber) {
     const [fa, name]: [Nano<any, any, any>, string] = this[args]
-    if (!fiber._perf) return fa
+    if (!debugPerformance) return fa
     const previousSpan = fiber._lastSpan
     fiber._lastSpan = name
     const start = performance.now()
@@ -236,7 +237,6 @@ export const withSpan = (
 
 export const unsafeRun = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
   const fiber = new NanoFiber()
-  ;(globalThis as any).currentFiber = fiber
   const result = fiber.runLoop(nano)!
   if (result._tag === "Success") {
     return Either.right(result.value)
@@ -527,6 +527,7 @@ export const all: <A extends Array<Nano<any, any, any>>>(
 )
 
 export const getTimings = () => {
+  if (!debugPerformance) return []
   const result: Array<[name: string, avg: number, hits: number, total: number]> = []
   for (const key in timings) {
     result.push([key, timings[key] / (timingsCount[key] || 1), timingsCount[key], timings[key]])

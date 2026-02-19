@@ -16,8 +16,8 @@ export const middlewareAutoImportQuickfixes = Nano.fn("middlewareAutoImportQuick
   const autoImportProvider = yield* AutoImport.getOrMakeAutoImportProvider(sourceFile)
   const changedCodeFixes: Array<ts.CodeFixAction> = []
 
-  const createImportAllChanges = (imports: Array<AutoImport.ParsedImportFromTextChange>) =>
-    Nano.gen(function*() {
+  const createImportAllChanges = Nano.fn("middlewareAutoImportQuickfixes.createImportAllChanges")(
+    function*(imports: Array<AutoImport.ParsedImportFromTextChange>) {
       const newImports: Array<AutoImport.ImportKind> = []
       for (const importToAdd of imports) {
         // we should have what to import
@@ -53,7 +53,8 @@ export const middlewareAutoImportQuickfixes = Nano.fn("middlewareAutoImportQuick
           newImports.forEach((_) => AutoImport.addImport(ts, sourceFile, changeTracker, preferences, _))
       )
       return edits
-    })
+    }
+  )
 
   for (const codeFix of codeFixes) {
     const textFileChanges = codeFix.changes

@@ -179,8 +179,8 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
       })
     )
 
-  const proxySignature = (signature: ts.Signature, atLocation: ts.ClassDeclaration, className: ts.Identifier) =>
-    Nano.gen(function*() {
+  const proxySignature = Nano.fn("writeTagClassAccessors.proxySignature")(
+    function*(signature: ts.Signature, atLocation: ts.ClassDeclaration, className: ts.Identifier) {
       // generate the signature
       const signatureDeclaration = typeChecker.signatureToSignatureDeclaration(
         signature,
@@ -204,7 +204,8 @@ export const generate = Nano.fn("writeTagClassAccessors.generate")(function*(
         signatureDeclaration.parameters,
         returnType
       )
-    })
+    }
+  )
 
   for (const { property, propertyType } of involvedMembers) {
     const callSignatures: Array<ts.FunctionTypeNode> = []

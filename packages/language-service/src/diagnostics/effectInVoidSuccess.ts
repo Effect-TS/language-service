@@ -33,7 +33,7 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
         )
         return { voidedEffect }
       }
-      return yield* Nano.fail(TypeParser.typeParserIssue("expectedEffect success is not void"))
+      return yield* TypeParser.TypeParserIssue.issue
     })
 
     const entries = typeCheckerUtils.expectedAndRealType(sourceFile)

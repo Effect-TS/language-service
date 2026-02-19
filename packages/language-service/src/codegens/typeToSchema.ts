@@ -27,52 +27,51 @@ export const typeToSchema = LSP.createCodegen({
       )
     }
 
-    const parse = (node: ts.Node) =>
-      Nano.gen(function*() {
-        if (!ts.isTypeAliasDeclaration(node)) {
-          return yield* Nano.fail(
-            new LSP.CodegenNotApplicableError(
-              "this codegen is applicable only to a type alias where each object member is a schema to generate. e.g. `type ToGenerate = { UserSchema: User, TodoSchema: Todo}`"
-            )
+    const parse = Nano.fn("typeToSchema.parse")(function*(node: ts.Node) {
+      if (!ts.isTypeAliasDeclaration(node)) {
+        return yield* Nano.fail(
+          new LSP.CodegenNotApplicableError(
+            "this codegen is applicable only to a type alias where each object member is a schema to generate. e.g. `type ToGenerate = { UserSchema: User, TodoSchema: Todo}`"
           )
-        }
-
-        const type = typeCheckerUtils.getTypeAtLocation(node.name)
-        if (!type) {
-          return yield* Nano.fail(
-            new LSP.CodegenNotApplicableError(
-              "error getting the type to process"
-            )
-          )
-        }
-
-        const nameToType = new Map<string, ts.Type>()
-        const typeProperties = typeChecker.getPropertiesOfType(type)
-        for (const symProp of typeProperties) {
-          const symName = ts.symbolName(symProp)
-          const propType = typeChecker.getTypeOfSymbolAtLocation(symProp, node)
-          if (propType) nameToType.set(symName, propType)
-        }
-
-        const hash = pipe(
-          Array.fromIterable(nameToType),
-          Array.map(([name, type]) => {
-            const typeString = typeChecker.typeToString(
-              type,
-              node,
-              ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseStructuralFallback
-            )
-            return name + ": " + typeString
-          }),
-          Array.join("\n"),
-          LSP.cyrb53
         )
+      }
 
-        return ({
-          hash,
-          nameToType
-        })
+      const type = typeCheckerUtils.getTypeAtLocation(node.name)
+      if (!type) {
+        return yield* Nano.fail(
+          new LSP.CodegenNotApplicableError(
+            "error getting the type to process"
+          )
+        )
+      }
+
+      const nameToType = new Map<string, ts.Type>()
+      const typeProperties = typeChecker.getPropertiesOfType(type)
+      for (const symProp of typeProperties) {
+        const symName = ts.symbolName(symProp)
+        const propType = typeChecker.getTypeOfSymbolAtLocation(symProp, node)
+        if (propType) nameToType.set(symName, propType)
+      }
+
+      const hash = pipe(
+        Array.fromIterable(nameToType),
+        Array.map(([name, type]) => {
+          const typeString = typeChecker.typeToString(
+            type,
+            node,
+            ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseStructuralFallback
+          )
+          return name + ": " + typeString
+        }),
+        Array.join("\n"),
+        LSP.cyrb53
+      )
+
+      return ({
+        hash,
+        nameToType
       })
+    })
 
     const nodeAndCommentRange = tsUtils.findNodeWithLeadingCommentAtPosition(sourceFile, textRange.pos)
     if (!nodeAndCommentRange) {
