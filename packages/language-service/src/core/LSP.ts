@@ -372,157 +372,156 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       suggestion: ts.DiagnosticCategory.Suggestion
     }
 
-    const execute = (
+    const execute = Nano.fn("LSP.execute")(function*(
       rule: DiagnosticDefinition
-    ) =>
-      Nano.gen(function*() {
-        const diagnostics: Array<ts.Diagnostic> = []
-        const codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
-        const ruleNameLowered = rule.name.toLowerCase()
-        const defaultLevel = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
-        // if file is skipped entirely, do not process the rule
-        if (skippedRules.indexOf(ruleNameLowered) > -1 || skippedRules.indexOf("*") > -1) {
-          return { diagnostics, codeFixes }
-        }
-        // if the default level is off, and there are no overrides, do not process the rule
-        if (
-          defaultLevel === "off" &&
-          ((lineOverrides[ruleNameLowered] || sectionOverrides[ruleNameLowered] || lineOverrides["*"] ||
-            sectionOverrides["*"] || []).length === 0)
-        ) {
-          return { diagnostics, codeFixes }
-        }
-        // append a rule fix to disable this check only for next line
-        const fixByDisableNextLine = (
-          node: ts.Node
-        ): ApplicableDiagnosticDefinitionFix => ({
-          fixName: rule.name + "_skipNextLine",
-          description: "Disable " + rule.name + " for this line",
-          apply: Nano.flatMap(
-            Nano.service(TypeScriptApi.ChangeTracker),
-            (changeTracker) =>
-              Nano.gen(function*() {
-                const disableAtNode = findParentStatementForDisableNextLine(node)
-                const start = ts.getTokenPosOfNode(disableAtNode, sourceFile)
-                const { line } = ts.getLineAndCharacterOfPosition(sourceFile, start)
+    ) {
+      const diagnostics: Array<ts.Diagnostic> = []
+      const codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
+      const ruleNameLowered = rule.name.toLowerCase()
+      const defaultLevel = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
+      // if file is skipped entirely, do not process the rule
+      if (skippedRules.indexOf(ruleNameLowered) > -1 || skippedRules.indexOf("*") > -1) {
+        return { diagnostics, codeFixes }
+      }
+      // if the default level is off, and there are no overrides, do not process the rule
+      if (
+        defaultLevel === "off" &&
+        ((lineOverrides[ruleNameLowered] || sectionOverrides[ruleNameLowered] || lineOverrides["*"] ||
+          sectionOverrides["*"] || []).length === 0)
+      ) {
+        return { diagnostics, codeFixes }
+      }
+      // append a rule fix to disable this check only for next line
+      const fixByDisableNextLine = (
+        node: ts.Node
+      ): ApplicableDiagnosticDefinitionFix => ({
+        fixName: rule.name + "_skipNextLine",
+        description: "Disable " + rule.name + " for this line",
+        apply: Nano.flatMap(
+          Nano.service(TypeScriptApi.ChangeTracker),
+          (changeTracker) =>
+            Nano.gen(function*() {
+              const disableAtNode = findParentStatementForDisableNextLine(node)
+              const start = ts.getTokenPosOfNode(disableAtNode, sourceFile)
+              const { line } = ts.getLineAndCharacterOfPosition(sourceFile, start)
 
-                changeTracker.insertCommentBeforeLine(
-                  sourceFile,
-                  line,
-                  start,
-                  ` @effect-diagnostics-next-line ${rule.name}:off`
-                )
-              })
-          )
-        })
-
-        // append a rule fix to disable this check for the entire file
-        const fixByDisableEntireFile: ApplicableDiagnosticDefinitionFix = {
-          fixName: rule.name + "_skipFile",
-          description: "Disable " + rule.name + " for this entire file",
-          apply: Nano.flatMap(
-            Nano.service(TypeScriptApi.ChangeTracker),
-            (changeTracker) =>
-              Nano.sync(() =>
-                changeTracker.insertText(
-                  sourceFile,
-                  0,
-                  `/** @effect-diagnostics ${rule.name}:skip-file */\n`
-                )
+              changeTracker.insertCommentBeforeLine(
+                sourceFile,
+                line,
+                start,
+                ` @effect-diagnostics-next-line ${rule.name}:off`
               )
-          )
-        }
-        // run the executor
-        const applicableDiagnostics: Array<ApplicableDiagnosticDefinition> = []
-        yield* rule.apply(sourceFile, (entry) => {
-          const range = "kind" in entry.location
-            ? { pos: ts.getTokenPosOfNode(entry.location, sourceFile), end: entry.location.end }
-            : entry.location
-          const node = "kind" in entry.location
-            ? entry.location
-            : tsUtils.findNodeAtPositionIncludingTrivia(sourceFile, entry.location.pos)
-          applicableDiagnostics.push({
-            range,
-            messageText: pluginOptions.diagnosticsName
-              ? `${entry.messageText}    effect(${rule.name})`
-              : entry.messageText,
-            fixes: entry.fixes.concat(node ? [fixByDisableNextLine(node)] : []).concat([fixByDisableEntireFile])
-          })
-        })
+            })
+        )
+      })
 
-        // create a list of all the comment ranges
-        const unusedLineOverrides = new Set<CommentNextLineOverride>(lineOverrides[ruleNameLowered] || [])
-        // NOTE: we do not track unused `*` overrides since they apply to all rules
-
-        // loop through rules
-        for (const emitted of applicableDiagnostics.slice(0)) {
-          // by default, use the overriden level from the plugin options
-          let newLevel: string | undefined = defaultLevel
-          // attempt with line overrides — pick the most recent (highest pos) from both rule-specific and wildcard
-          const specificLineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
-            _.pos < emitted.range.pos && _.end >= emitted.range.end
-          )
-          const wildcardLineOverride = (lineOverrides["*"] || []).find((_) =>
-            _.pos < emitted.range.pos && _.end >= emitted.range.end
-          )
-          const lineOverride = specificLineOverride && wildcardLineOverride
-            ? (specificLineOverride.pos >= wildcardLineOverride.pos ? specificLineOverride : wildcardLineOverride)
-            : specificLineOverride || wildcardLineOverride
-          if (lineOverride) {
-            newLevel = lineOverride.level
-            unusedLineOverrides.delete(lineOverride)
-          } else {
-            // then attempt with section overrides — pick the most recent (highest pos) from both rule-specific and wildcard
-            const specificSectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
-              _.pos < emitted.range.pos
+      // append a rule fix to disable this check for the entire file
+      const fixByDisableEntireFile: ApplicableDiagnosticDefinitionFix = {
+        fixName: rule.name + "_skipFile",
+        description: "Disable " + rule.name + " for this entire file",
+        apply: Nano.flatMap(
+          Nano.service(TypeScriptApi.ChangeTracker),
+          (changeTracker) =>
+            Nano.sync(() =>
+              changeTracker.insertText(
+                sourceFile,
+                0,
+                `/** @effect-diagnostics ${rule.name}:skip-file */\n`
+              )
             )
-            const wildcardSectionOverride = (sectionOverrides["*"] || []).find((_) => _.pos < emitted.range.pos)
-            const sectionOverride = specificSectionOverride && wildcardSectionOverride
-              ? (specificSectionOverride.pos >= wildcardSectionOverride.pos
-                ? specificSectionOverride
-                : wildcardSectionOverride)
-              : specificSectionOverride || wildcardSectionOverride
-            if (sectionOverride) newLevel = sectionOverride.level
-          }
-          // if level is off or not a valid level, skip and no output
-          if (!(newLevel in levelToDiagnosticCategory)) continue
-          // append both diagnostic and code fix
+        )
+      }
+      // run the executor
+      const applicableDiagnostics: Array<ApplicableDiagnosticDefinition> = []
+      yield* rule.apply(sourceFile, (entry) => {
+        const range = "kind" in entry.location
+          ? { pos: ts.getTokenPosOfNode(entry.location, sourceFile), end: entry.location.end }
+          : entry.location
+        const node = "kind" in entry.location
+          ? entry.location
+          : tsUtils.findNodeAtPositionIncludingTrivia(sourceFile, entry.location.pos)
+        applicableDiagnostics.push({
+          range,
+          messageText: pluginOptions.diagnosticsName
+            ? `${entry.messageText}    effect(${rule.name})`
+            : entry.messageText,
+          fixes: entry.fixes.concat(node ? [fixByDisableNextLine(node)] : []).concat([fixByDisableEntireFile])
+        })
+      })
+
+      // create a list of all the comment ranges
+      const unusedLineOverrides = new Set<CommentNextLineOverride>(lineOverrides[ruleNameLowered] || [])
+      // NOTE: we do not track unused `*` overrides since they apply to all rules
+
+      // loop through rules
+      for (const emitted of applicableDiagnostics.slice(0)) {
+        // by default, use the overriden level from the plugin options
+        let newLevel: string | undefined = defaultLevel
+        // attempt with line overrides — pick the most recent (highest pos) from both rule-specific and wildcard
+        const specificLineOverride = (lineOverrides[ruleNameLowered] || []).find((_) =>
+          _.pos < emitted.range.pos && _.end >= emitted.range.end
+        )
+        const wildcardLineOverride = (lineOverrides["*"] || []).find((_) =>
+          _.pos < emitted.range.pos && _.end >= emitted.range.end
+        )
+        const lineOverride = specificLineOverride && wildcardLineOverride
+          ? (specificLineOverride.pos >= wildcardLineOverride.pos ? specificLineOverride : wildcardLineOverride)
+          : specificLineOverride || wildcardLineOverride
+        if (lineOverride) {
+          newLevel = lineOverride.level
+          unusedLineOverrides.delete(lineOverride)
+        } else {
+          // then attempt with section overrides — pick the most recent (highest pos) from both rule-specific and wildcard
+          const specificSectionOverride = (sectionOverrides[ruleNameLowered] || []).find((_) =>
+            _.pos < emitted.range.pos
+          )
+          const wildcardSectionOverride = (sectionOverrides["*"] || []).find((_) => _.pos < emitted.range.pos)
+          const sectionOverride = specificSectionOverride && wildcardSectionOverride
+            ? (specificSectionOverride.pos >= wildcardSectionOverride.pos
+              ? specificSectionOverride
+              : wildcardSectionOverride)
+            : specificSectionOverride || wildcardSectionOverride
+          if (sectionOverride) newLevel = sectionOverride.level
+        }
+        // if level is off or not a valid level, skip and no output
+        if (!(newLevel in levelToDiagnosticCategory)) continue
+        // append both diagnostic and code fix
+        diagnostics.push({
+          file: sourceFile,
+          start: emitted.range.pos,
+          length: emitted.range.end - emitted.range.pos,
+          messageText: emitted.messageText,
+          category: levelToDiagnosticCategory[newLevel],
+          code: rule.code,
+          source: "effect"
+        })
+        // append code fixes
+        for (const fix of emitted.fixes) {
+          codeFixes.push({
+            ...fix,
+            code: rule.code,
+            start: emitted.range.pos,
+            end: emitted.range.end
+          })
+        }
+      }
+
+      if (pluginOptions.missingDiagnosticNextLine !== "off" && unusedLineOverrides.size > 0) {
+        for (const unusedLineOverride of unusedLineOverrides) {
           diagnostics.push({
             file: sourceFile,
-            start: emitted.range.pos,
-            length: emitted.range.end - emitted.range.pos,
-            messageText: emitted.messageText,
-            category: levelToDiagnosticCategory[newLevel],
-            code: rule.code,
+            start: unusedLineOverride.commentRange.pos,
+            length: unusedLineOverride.commentRange.end - unusedLineOverride.commentRange.pos,
+            messageText:
+              `@effect-diagnostics-next-line ${rule.name}:${unusedLineOverride.level} has no effect, make sure you are suppressing the right rule.`,
+            category: levelToDiagnosticCategory[pluginOptions.missingDiagnosticNextLine],
+            code: -1,
             source: "effect"
           })
-          // append code fixes
-          for (const fix of emitted.fixes) {
-            codeFixes.push({
-              ...fix,
-              code: rule.code,
-              start: emitted.range.pos,
-              end: emitted.range.end
-            })
-          }
         }
-
-        if (pluginOptions.missingDiagnosticNextLine !== "off" && unusedLineOverrides.size > 0) {
-          for (const unusedLineOverride of unusedLineOverrides) {
-            diagnostics.push({
-              file: sourceFile,
-              start: unusedLineOverride.commentRange.pos,
-              length: unusedLineOverride.commentRange.end - unusedLineOverride.commentRange.pos,
-              messageText:
-                `@effect-diagnostics-next-line ${rule.name}:${unusedLineOverride.level} has no effect, make sure you are suppressing the right rule.`,
-              category: levelToDiagnosticCategory[pluginOptions.missingDiagnosticNextLine],
-              code: -1,
-              source: "effect"
-            })
-          }
-        }
-        return { diagnostics, codeFixes }
-      })
+      }
+      return { diagnostics, codeFixes }
+    })
 
     return { execute }
   }

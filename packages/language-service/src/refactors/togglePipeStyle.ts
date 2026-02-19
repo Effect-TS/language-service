@@ -16,56 +16,55 @@ export const togglePipeStyle = LSP.createRefactor({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
-    const togglePipeStyle = (node: ts.Node) =>
-      Nano.gen(function*() {
-        const pipeCall = yield* typeParser.pipeCall(node)
-        switch (pipeCall.kind) {
-          case "pipe": {
-            yield* typeParser.pipeableType(typeChecker.getTypeAtLocation(pipeCall.subject), pipeCall.subject)
-            return ({
-              kind: "refactor.rewrite.effect.togglePipeStyle",
-              description: "Rewrite as X.pipe(Y, Z, ...)",
-              apply: Nano.gen(function*() {
-                const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-                changeTracker.replaceNode(
-                  sourceFile,
-                  node,
-                  ts.factory.createCallExpression(
-                    ts.factory.createPropertyAccessExpression(
-                      pipeCall.subject,
-                      "pipe"
-                    ),
-                    undefined,
-                    pipeCall.args
-                  )
+    const togglePipeStyleForNode = Nano.fn("togglePipeStyle.togglePipeStyleForNode")(function*(node: ts.Node) {
+      const pipeCall = yield* typeParser.pipeCall(node)
+      switch (pipeCall.kind) {
+        case "pipe": {
+          yield* typeParser.pipeableType(typeChecker.getTypeAtLocation(pipeCall.subject), pipeCall.subject)
+          return ({
+            kind: "refactor.rewrite.effect.togglePipeStyle",
+            description: "Rewrite as X.pipe(Y, Z, ...)",
+            apply: Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+              changeTracker.replaceNode(
+                sourceFile,
+                node,
+                ts.factory.createCallExpression(
+                  ts.factory.createPropertyAccessExpression(
+                    pipeCall.subject,
+                    "pipe"
+                  ),
+                  undefined,
+                  pipeCall.args
                 )
-              })
+              )
             })
-          }
-          case "pipeable":
-            return ({
-              kind: "refactor.rewrite.effect.togglePipeStyle",
-              description: "Rewrite as pipe(X, Y, Z, ...)",
-              apply: Nano.gen(function*() {
-                const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-                changeTracker.replaceNode(
-                  sourceFile,
-                  node,
-                  ts.factory.createCallExpression(
-                    ts.factory.createIdentifier("pipe"),
-                    undefined,
-                    [pipeCall.subject].concat(pipeCall.args)
-                  )
-                )
-              })
-            })
+          })
         }
-      })
+        case "pipeable":
+          return ({
+            kind: "refactor.rewrite.effect.togglePipeStyle",
+            description: "Rewrite as pipe(X, Y, Z, ...)",
+            apply: Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+              changeTracker.replaceNode(
+                sourceFile,
+                node,
+                ts.factory.createCallExpression(
+                  ts.factory.createIdentifier("pipe"),
+                  undefined,
+                  [pipeCall.subject].concat(pipeCall.args)
+                )
+              )
+            })
+          })
+      }
+    })
 
     const ancestorNodes = tsUtils.getAncestorNodesInRange(sourceFile, textRange)
 
     return yield* pipe(
-      Nano.firstSuccessOf(ancestorNodes.map(togglePipeStyle)),
+      Nano.firstSuccessOf(ancestorNodes.map(togglePipeStyleForNode)),
       Nano.orElse(() => Nano.fail(new LSP.RefactorNotApplicableError()))
     )
   })

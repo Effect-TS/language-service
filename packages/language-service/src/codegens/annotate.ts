@@ -16,54 +16,53 @@ export const annotate = LSP.createCodegen({
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
 
-    const parse = (node: ts.Node) =>
-      Nano.gen(function*() {
-        let variableDeclarations: Array<ts.VariableDeclaration> = []
-        const result: Array<
-          { variableDeclaration: ts.VariableDeclaration; initializerTypeNode: ts.TypeNode; hash: string }
-        > = []
+    const parse = Nano.fn("annotate.parse")(function*(node: ts.Node) {
+      let variableDeclarations: Array<ts.VariableDeclaration> = []
+      const result: Array<
+        { variableDeclaration: ts.VariableDeclaration; initializerTypeNode: ts.TypeNode; hash: string }
+      > = []
 
-        if (ts.isVariableStatement(node)) {
-          variableDeclarations = [...variableDeclarations, ...node.declarationList.declarations]
-        } else if (ts.isVariableDeclarationList(node)) {
-          variableDeclarations = [...variableDeclarations, ...node.declarations]
-        } else if (ts.isVariableDeclaration(node)) {
-          variableDeclarations = [...variableDeclarations, node]
-        }
+      if (ts.isVariableStatement(node)) {
+        variableDeclarations = [...variableDeclarations, ...node.declarationList.declarations]
+      } else if (ts.isVariableDeclarationList(node)) {
+        variableDeclarations = [...variableDeclarations, ...node.declarations]
+      } else if (ts.isVariableDeclaration(node)) {
+        variableDeclarations = [...variableDeclarations, node]
+      }
 
-        if (variableDeclarations.length === 0) {
-          return yield* Nano.fail(new LSP.CodegenNotApplicableError("not a variable declaration"))
-        }
+      if (variableDeclarations.length === 0) {
+        return yield* Nano.fail(new LSP.CodegenNotApplicableError("not a variable declaration"))
+      }
 
-        for (const variableDeclaration of variableDeclarations) {
-          if (!variableDeclaration.initializer) continue
-          const initializerType = typeCheckerUtils.getTypeAtLocation(variableDeclaration.initializer)
-          if (!initializerType) continue
-          const enclosingNode = ts.findAncestor(variableDeclaration, (_) => tsUtils.isDeclarationKind(_.kind)) ||
-            sourceFile
-          const initializerTypeNode = Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
-            initializerType,
-            enclosingNode,
-            ts.NodeBuilderFlags.NoTruncation | ts.NodeBuilderFlags.IgnoreErrors
-          )).pipe(
-            Option.getOrUndefined
-          )
-          if (!initializerTypeNode) continue
-          const typeNodeString = typeChecker.typeToString(initializerType, undefined, ts.TypeFormatFlags.NoTruncation)
-          const hash = LSP.cyrb53(typeNodeString)
+      for (const variableDeclaration of variableDeclarations) {
+        if (!variableDeclaration.initializer) continue
+        const initializerType = typeCheckerUtils.getTypeAtLocation(variableDeclaration.initializer)
+        if (!initializerType) continue
+        const enclosingNode = ts.findAncestor(variableDeclaration, (_) => tsUtils.isDeclarationKind(_.kind)) ||
+          sourceFile
+        const initializerTypeNode = Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
+          initializerType,
+          enclosingNode,
+          ts.NodeBuilderFlags.NoTruncation | ts.NodeBuilderFlags.IgnoreErrors
+        )).pipe(
+          Option.getOrUndefined
+        )
+        if (!initializerTypeNode) continue
+        const typeNodeString = typeChecker.typeToString(initializerType, undefined, ts.TypeFormatFlags.NoTruncation)
+        const hash = LSP.cyrb53(typeNodeString)
 
-          result.push({ variableDeclaration, initializerTypeNode, hash })
-        }
-        if (result.length === 0) {
-          return yield* Nano.fail(new LSP.CodegenNotApplicableError("no variable declarations with initializers"))
-        }
-        const hash = LSP.cyrb53(result.map((_) => _.hash).join("/"))
+        result.push({ variableDeclaration, initializerTypeNode, hash })
+      }
+      if (result.length === 0) {
+        return yield* Nano.fail(new LSP.CodegenNotApplicableError("no variable declarations with initializers"))
+      }
+      const hash = LSP.cyrb53(result.map((_) => _.hash).join("/"))
 
-        return ({
-          hash,
-          result
-        })
+      return ({
+        hash,
+        result
       })
+    })
 
     const nodeAndCommentRange = tsUtils.findNodeWithLeadingCommentAtPosition(sourceFile, textRange.pos)
     if (!nodeAndCommentRange) return yield* Nano.fail(new LSP.CodegenNotApplicableError("no node and comment range"))

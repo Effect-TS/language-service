@@ -3,7 +3,7 @@ import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
 
-export const debugPerformance = true
+export const debugPerformance = false
 
 export class NanoTag<R> {
   declare "~nano.requirements": R
