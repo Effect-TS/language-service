@@ -17,7 +17,8 @@
     "circular": "pnpm --filter @effect/language-service circular",
     "clean": "pnpm -r clean",
     "perf": "pnpm -r perf",
-    "pr-ai": "claude 'perform the actions described in CLAUDE.md under the section push PR to github workflow'"
+    "pr-ai": "claude 'perform the actions described in CLAUDE.md under the section push PR to github workflow'",
+    "code-debug": "TSS_DEBUG=5667 code --user-data-dir ~/.vscode-debug/"
   },
   "devDependencies": {
     "@effect/language-service": "link:packages/language-service/dist",

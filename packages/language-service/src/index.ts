@@ -231,10 +231,24 @@ const init = (
       if (program) {
         const sourceFile = program.getSourceFile(fileName)
         if (sourceFile) {
+          // ensure that diagnostics are run before code fixes
+          if (!effectCodeFixesForFile.has(fileName)) {
+            runDiagnosticsAndCacheCodeFixes(fileName)
+          }
           return pipe(
             LSP.getApplicableRefactors(refactors, sourceFile, positionOrRange),
+            Nano.flatMap((effectRefactors) =>
+              Nano.map(
+                LSP.codeFixesToApplicableRefactor(
+                  effectCodeFixesForFile.get(fileName) || [],
+                  sourceFile,
+                  positionOrRange
+                ),
+                (effectCodefixes) => effectCodefixes.concat(effectRefactors)
+              )
+            ),
             runNano(program),
-            Either.map((effectRefactors) => applicableRefactors.concat(effectRefactors)),
+            Either.map((effectCodeActions) => applicableRefactors.concat(effectCodeActions)),
             Either.getOrElse(() => applicableRefactors)
           )
         }
@@ -257,11 +271,16 @@ const init = (
         if (sourceFile) {
           const result = pipe(
             Nano.gen(function*() {
-              const applicableRefactor = yield* LSP.getEditsForRefactor(
-                refactors,
-                sourceFile,
-                positionOrRange,
-                refactorName
+              const applicableRefactor = yield* pipe(
+                LSP.getEditsForRefactor(
+                  refactors,
+                  sourceFile,
+                  positionOrRange,
+                  refactorName
+                ),
+                Nano.orElse(() =>
+                  LSP.getEditsForCodeFixes(effectCodeFixesForFile.get(fileName) || [], positionOrRange, refactorName)
+                )
               )
 
               const formatContext = modules.typescript.formatting.getFormatContext(
