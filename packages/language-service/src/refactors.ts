@@ -5,6 +5,7 @@ import { asyncAwaitToGen } from "./refactors/asyncAwaitToGen.js"
 import { asyncAwaitToGenTryPromise } from "./refactors/asyncAwaitToGenTryPromise.js"
 import { debugPerformance } from "./refactors/debugPerformance.js"
 import { effectGenToFn } from "./refactors/effectGenToFn.js"
+import { effectServiceToClassWithLayer } from "./refactors/effectServiceToClassWithLayer.js"
 import { functionToArrow } from "./refactors/functionToArrow.js"
 import { layerMagic } from "./refactors/layerMagic.js"
 import { makeSchemaOpaque } from "./refactors/makeSchemaOpaque.js"
@@ -43,5 +44,6 @@ export const refactors = [
   wrapWithPipe,
   effectGenToFn,
   togglePipeStyle,
-  writeTagClassAccessors
+  writeTagClassAccessors,
+  effectServiceToClassWithLayer
 ].concat(Nano.debugPerformance ? [debugPerformance] : [])
