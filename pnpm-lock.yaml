@@ -120,8 +120,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0
       effect:
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@2153bea
-        version: '@pkg.pr.new/Effect-TS/effect-smol/effect@2153bea'
+        specifier: 4.0.0-beta.11
+        version: 4.0.0-beta.11
 
   packages/language-service:
     devDependencies:
@@ -2995,6 +2995,21 @@ packages:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
+
+  /effect@4.0.0-beta.11:
+    resolution: {integrity: sha512-xBUzwvNPoc7bcNUKS1Z7n6Nd5IL9AB/iV64GS1L44qmUgjuPex2A9DAXGUJkolTb8e65G55JerAX9T0Ha5fmRA==}
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      fast-check: 4.5.3
+      find-my-way-ts: 0.1.6
+      ini: 6.0.0
+      kubernetes-types: 1.30.0
+      msgpackr: 1.11.8
+      multipasta: 0.2.7
+      toml: 3.0.0
+      uuid: 13.0.0
+      yaml: 2.8.2
+    dev: false
 
   /electron-to-chromium@1.5.267:
     resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
@@ -6494,22 +6509,5 @@ packages:
     engines: {node: '>= 12.17.0'}
     hasBin: true
     dev: true
-
-  '@pkg.pr.new/Effect-TS/effect-smol/effect@2153bea':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@2153bea}
-    name: effect
-    version: 4.0.0
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      fast-check: 4.5.3
-      find-my-way-ts: 0.1.6
-      ini: 6.0.0
-      kubernetes-types: 1.30.0
-      msgpackr: 1.11.8
-      multipasta: 0.2.7
-      toml: 3.0.0
-      uuid: 13.0.0
-      yaml: 2.8.2
-    dev: false
 
 publishDirectory: dist
