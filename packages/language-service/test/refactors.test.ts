@@ -13,7 +13,13 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
+import {
+  getExamplesDir,
+  getExamplesSubdir,
+  getHarnessDir,
+  getSnapshotsSubdir,
+  safeReaddirSync
+} from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesRefactorsDir = () => getExamplesSubdir("refactors")
@@ -25,6 +31,8 @@ function testRefactorOnExample(
   textRangeString: string
 ) {
   const { languageService, languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
+    getHarnessDir(),
+    getExamplesDir(),
     fileName,
     sourceText
   )

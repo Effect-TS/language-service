@@ -1,14 +1,13 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
-import { getExamplesDir, getHarnessDir } from "./harness.js"
 
 export function createMockLanguageServiceHost(
+  harnessDir: string,
+  examplesDir: string,
   fileName: string,
   sourceText: string
 ): ts.LanguageServiceHost {
-  const examplesDir = getExamplesDir()
-  const harnessDir = getHarnessDir()
   const realPath = (fileName: string) => path.resolve(harnessDir, fileName)
 
   return {
@@ -53,10 +52,12 @@ export function createMockLanguageServiceHost(
 }
 
 export function createServicesWithMockedVFS(
+  harnessDir: string,
+  examplesDir: string,
   fileName: string,
   sourceText: string
 ) {
-  const languageServiceHost = createMockLanguageServiceHost(fileName, sourceText)
+  const languageServiceHost = createMockLanguageServiceHost(harnessDir, examplesDir, fileName, sourceText)
   const languageService = ts.createLanguageService(
     languageServiceHost,
     undefined,

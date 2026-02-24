@@ -13,7 +13,14 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getExamplesSubdir, getHarnessVersion, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
+import {
+  getExamplesDir,
+  getExamplesSubdir,
+  getHarnessDir,
+  getHarnessVersion,
+  getSnapshotsSubdir,
+  safeReaddirSync
+} from "./utils/harness.js"
 import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesDiagnosticsDir = () => getExamplesSubdir("diagnostics")
@@ -45,7 +52,7 @@ function testDiagnosticOnExample(
   sourceText: string
 ) {
   // create the language service with mocked services over a VFS
-  const { program, sourceFile } = createServicesWithMockedVFS(fileName, sourceText)
+  const { program, sourceFile } = createServicesWithMockedVFS(getHarnessDir(), getExamplesDir(), fileName, sourceText)
 
   // create snapshot path
   const snapshotFilePath = path.join(
@@ -113,6 +120,8 @@ function testDiagnosticQuickfixesOnExample(
 
   // create the language service with mocked services over a VFS
   const { languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
+    getHarnessDir(),
+    getExamplesDir(),
     fileName,
     sourceText
   )
@@ -167,7 +176,12 @@ function testDiagnosticQuickfixesOnExample(
             codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
 
           if (getHarnessVersion() === "v4") {
-            const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(fileName, finalSource)
+            const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(
+              getHarnessDir(),
+              getExamplesDir(),
+              fileName,
+              finalSource
+            )
             const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
             const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
             const snapshotText = [
