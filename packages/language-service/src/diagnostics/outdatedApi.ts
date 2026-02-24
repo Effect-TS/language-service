@@ -16,12 +16,12 @@ const asUnchanged: Unchanged = {
 }
 
 // is renamed between v3 and v4 and kept as is
-interface Renamed {
-  readonly _tag: "Renamed"
+interface RenamedSameBehaviour {
+  readonly _tag: "RenamedSameBehaviour"
   readonly newName: string
 }
-const asRenamed = (newName: string): Renamed => ({
-  _tag: "Renamed",
+const asRenamedSameBehaviour = (newName: string): RenamedSameBehaviour => ({
+  _tag: "RenamedSameBehaviour",
   newName
 })
 
@@ -46,7 +46,7 @@ const asRemoved = (alternativePattern: string): Removed => ({
   alternativePattern
 })
 
-export type Migration = Unchanged | Renamed | RenamedAndNeedsOptions | Removed
+export type Migration = Unchanged | RenamedSameBehaviour | RenamedAndNeedsOptions | Removed
 
 export type ModuleMigrationDb = Record<string, Migration>
 
@@ -55,7 +55,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "runtime": asRemoved(
     "Runtime module has been removed in Effect v4, you can use Effect.services to grab services and then run using Effect.runPromiseWith"
   ),
-  "catchAll": asRenamed("catch")
+  "catchAll": asRenamedSameBehaviour("catch")
 }
 
 export const outdatedApi = LSP.createDiagnostic({
@@ -93,7 +93,7 @@ export const outdatedApi = LSP.createDiagnostic({
       return pipe(
         checkRightNode(propertyAccess.expression),
         Nano.map(() => {
-          if (migration._tag === "Renamed" || migration._tag === "RenamedAndNeedsOptions") {
+          if (migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions") {
             report({
               location: propertyAccess.name,
               messageText: `Effect v3's "${identifierName}" has been renamed to "${migration.newName}" in Effect v4. ${

@@ -42,7 +42,10 @@ if (getHarnessVersion() === "v4") {
       for (
         const [property, migration] of Object.entries(effectModuleMigrationDb)
       ) {
-        if (migration._tag === "Removed" || migration._tag === "Renamed") {
+        if (
+          migration._tag === "Removed" || migration._tag === "RenamedSameBehaviour" ||
+          migration._tag === "RenamedAndNeedsOptions"
+        ) {
           expect(
             v4ApiType.properties,
             `Method ${property} is marked as deleted or unknown in effectModuleMigrationDb, but is present in the v4 api`
@@ -54,7 +57,7 @@ if (getHarnessVersion() === "v4") {
       for (
         const [property, migration] of Object.entries(effectModuleMigrationDb)
       ) {
-        if (migration._tag === "Renamed") {
+        if (migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions") {
           expect(
             v4ApiType.properties,
             `Method ${property} is marked as renamed to ${migration.newName} in effectModuleMigrationDb, but is not present in the v4 api`
