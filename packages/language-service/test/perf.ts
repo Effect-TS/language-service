@@ -2,6 +2,7 @@ import { pipe } from "effect/Function"
 import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
+import { getExamplesDir, getHarnessDir } from "test/utils/harness.js"
 import * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../src/core/LanguageServicePluginOptions.js"
 import * as LSP from "../src/core/LSP"
@@ -30,7 +31,7 @@ function testAllDagnostics() {
     for (const exampleFileName of allExampleFiles) {
       const sourceText = fs.readFileSync(path.join(getExamplesDiagnosticsDir(), exampleFileName))
         .toString("utf8")
-      const example = createServicesWithMockedVFS(exampleFileName, sourceText)
+      const example = createServicesWithMockedVFS(getHarnessDir(), getExamplesDir(), exampleFileName, sourceText)
       totalRuns++
       if (totalRuns % 10 === 0) {
         console.log("executed ", totalRuns, " samples out of ", totalSamples * allExampleFiles.length)

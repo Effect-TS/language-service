@@ -27,6 +27,7 @@ import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
 import { nonObjectEffectServiceType } from "./diagnostics/nonObjectEffectServiceType.js"
+import { outdatedApi } from "./diagnostics/outdatedApi.js"
 import { outdatedEffectCodegen } from "./diagnostics/outdatedEffectCodegen.js"
 import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConstructor.js"
 import { preferSchemaOverJson } from "./diagnostics/preferSchemaOverJson.js"
@@ -48,6 +49,7 @@ import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
 import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAccessors.js"
 
 export const diagnostics = [
+  outdatedApi,
   anyUnknownInErrorContext,
   instanceOfSchema,
   catchAllToMapError,

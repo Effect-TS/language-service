@@ -1,20 +1,11 @@
 import { pipe } from "effect/Function"
 import type * as ts from "typescript"
-import { codegens } from "../codegens.js"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
 import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
-
-// if not known yet
-interface Unknown {
-  readonly _tag: "Unknown"
-}
-const asUnknown: Unknown = {
-  _tag: "Unknown"
-}
 
 // is unchanged between v3 and v4
 interface Unchanged {
@@ -43,12 +34,16 @@ const asRemoved = (alternativePattern: string): Removed => ({
   alternativePattern
 })
 
-export type Migration = Unknown | Unchanged | Renamed | Removed
+export type Migration = Unchanged | Renamed | Removed
 
 export type ModuleMigrationDb = Record<string, Migration>
 
 export const effectModuleMigrationDb: ModuleMigrationDb = {
-  "succeed": asUnchanged
+  "succeed": asUnchanged,
+  "runtime": asRemoved(
+    "Runtime module has been removed in Effect v4, you can use Effect.services to grab services and then run using Effect.runPromiseWith"
+  ),
+  "catchAll": asRenamed("catch")
 }
 
 export const outdatedApi = LSP.createDiagnostic({
@@ -75,8 +70,6 @@ export const outdatedApi = LSP.createDiagnostic({
       const identifierName = ts.idText(identifier)
       const migration = migrationDb[identifierName]
       if (!migration) return
-      // skip unknown migrations
-      if (migration._tag === "Unknown") return
       // skip unchanged migrations
       if (migration._tag === "Unchanged") return
       // should not exist in target type
@@ -87,10 +80,37 @@ export const outdatedApi = LSP.createDiagnostic({
       if (targetPropertySymbol) return
       return pipe(
         checkRightNode(propertyAccess.expression),
-        Nano.map((result) => ({
-          result,
-          migration
-        }))
+        Nano.map(() => {
+          if (migration._tag === "Renamed") {
+            report({
+              location: propertyAccess.name,
+              messageText: `Effect v3's "${identifierName}" has been renamed to "${migration.newName}" in Effect v4`,
+              fixes: [{
+                fixName: "outdatedApi_fix",
+                description: `Replace "${identifierName}" with "${migration.newName}"`,
+                apply: Nano.gen(function*() {
+                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+                  changeTracker.deleteRange(sourceFile, {
+                    pos: ts.getTokenPosOfNode(propertyAccess.name, sourceFile),
+                    end: propertyAccess.name.end
+                  })
+                  changeTracker.insertText(
+                    sourceFile,
+                    propertyAccess.name.end,
+                    migration.newName
+                  )
+                })
+              }]
+            })
+          } else if (migration._tag === "Removed") {
+            report({
+              location: propertyAccess.name,
+              messageText:
+                `Effect v3's "${identifierName}" has been removed in Effect v4. ${migration.alternativePattern}`,
+              fixes: []
+            })
+          }
+        })
       )
     }
 
@@ -111,17 +131,7 @@ export const outdatedApi = LSP.createDiagnostic({
         effectModuleMigrationDb
       )
       if (checkEffectMigration) {
-        yield* pipe(
-          checkEffectMigration,
-          Nano.map((effectModule) => {
-            report({
-              location: node,
-              messageText: "Effect module is outdated",
-              fixes: []
-            })
-          }),
-          Nano.ignore
-        )
+        yield* Nano.ignore(checkEffectMigration)
       }
     }
   })
