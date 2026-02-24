@@ -50,6 +50,18 @@ if (getHarnessVersion() === "v4") {
         }
       }
 
+      // new v4 api should exists in the v4 api
+      for (
+        const [property, migration] of Object.entries(effectModuleMigrationDb)
+      ) {
+        if (migration._tag === "Renamed") {
+          expect(
+            v4ApiType.properties,
+            `Method ${property} is marked as renamed to ${migration.newName} in effectModuleMigrationDb, but is not present in the v4 api`
+          ).toContain(migration.newName)
+        }
+      }
+
       // every v3 api should be handled
       for (const property of v3ApiType.properties) {
         expect(
