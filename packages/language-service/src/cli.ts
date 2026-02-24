@@ -22,7 +22,24 @@ const cliCommand = Command.make(
   "effect-language-service",
   {},
   () => Console.log("Please select a command or run --help.")
-).pipe(Command.withSubcommands([setup, patch, unpatch, check, diagnostics, quickfixes, codegen, overview, layerInfo]))
+).pipe(Command.withSubcommands([
+  {
+    group: "Getting started",
+    commands: [setup]
+  },
+  {
+    group: "Diagnostics at compile-time",
+    commands: [patch, unpatch, check]
+  },
+  {
+    group: "Diagnostics",
+    commands: [diagnostics, quickfixes, codegen]
+  },
+  {
+    group: "Project utilities",
+    commands: [overview, layerInfo]
+  }
+]))
 
 const main = Command.run(cliCommand, {
   version: packageJson.version

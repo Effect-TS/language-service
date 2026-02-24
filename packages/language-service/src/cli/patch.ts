@@ -194,9 +194,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
 
     // insert the clearSourceFileMetadata call
     if (Option.isNone(insertClearSourceFileEffectMetadataPosition)) {
-      return yield* Effect.fail(
-        new UnableToFindPositionToPatchError({ positionToFind: "clearSourceFileEffectMetadata" })
-      )
+      return yield* new UnableToFindPositionToPatchError({ positionToFind: "clearSourceFileEffectMetadata" })
     }
     patches.push(
       yield* makeEffectLspPatchChange(
@@ -211,7 +209,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
 
     // insert the checkSourceFile call
     if (Option.isNone(insertCheckSourceFilePosition)) {
-      return yield* Effect.fail(new UnableToFindPositionToPatchError({ positionToFind: "checkSourceFileWorker" }))
+      return yield* new UnableToFindPositionToPatchError({ positionToFind: "checkSourceFileWorker" })
     }
     patches.push(
       yield* makeEffectLspPatchChange(
@@ -228,9 +226,7 @@ const getPatchesForModule = Effect.fn("getPatchesForModule")(
 
     // insert the appendMetadataRelationError call
     if (Option.isNone(insertAppendMetadataRelationErrorPosition)) {
-      return yield* Effect.fail(
-        new UnableToFindPositionToPatchError({ positionToFind: "appendMetadataRelationError" })
-      )
+      return yield* new UnableToFindPositionToPatchError({ positionToFind: "appendMetadataRelationError" })
     }
     const { sourceIdentifier, targetIdentifier } = insertAppendMetadataRelationErrorPosition.value
     patches.push(

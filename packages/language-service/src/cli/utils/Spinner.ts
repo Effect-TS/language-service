@@ -141,11 +141,7 @@ export const spinner: {
       ({ handle }) => effect(handle),
       // release
       ({ renderFinal, terminal }, exitValue) =>
-        Effect.gen(function*() {
-          // Signal the spinner fiber to finish by setting the exit.
-          // (No external interrupt of the spinner fiber.)
-          yield* renderFinal(exitValue)
-        }).pipe(
+        renderFinal(exitValue).pipe(
           // Ensure cursor is shown even if something above failed.
           Effect.ensuring(Effect.orDie(terminal.display(CURSOR_SHOW)))
         )
