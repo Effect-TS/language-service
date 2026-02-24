@@ -7,7 +7,7 @@ const SymbolDisplayPartEq = Eq.make<ts.SymbolDisplayPart>((fa, fb) => fa.kind ==
 
 const JSDocTagInfoEq = Eq.make<ts.JSDocTagInfo>((fa, fb) =>
   fa.name === fb.name && typeof fa.text === typeof fb.text &&
-  (typeof fa.text !== "undefined" ? Eq.array(SymbolDisplayPartEq)(fa.text!, fb.text!) : true)
+  (typeof fa.text !== "undefined" ? Eq.Array(SymbolDisplayPartEq)(fa.text!, fb.text!) : true)
 )
 
 export function dedupeJsDocs(quickInfo: ts.QuickInfo | undefined): Nano.Nano<ts.QuickInfo | undefined> {

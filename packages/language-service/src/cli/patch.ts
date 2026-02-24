@@ -1,9 +1,8 @@
-import * as Command from "@effect/cli/Command"
-import * as Options from "@effect/cli/Options"
-import * as FileSystem from "@effect/platform/FileSystem"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import * as FileSystem from "effect/FileSystem"
 import * as Option from "effect/Option"
+import { Command, Flag } from "effect/unstable/cli"
 import type * as ts from "typescript"
 import {
   applyTextChanges,
@@ -27,22 +26,22 @@ export class UnableToFindPositionToPatchError extends Data.TaggedError("UnableTo
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
-const dirPath = Options.directory("dir").pipe(
-  Options.withDefault(LOCAL_TYPESCRIPT_DIR),
-  Options.withDescription("The directory of the typescript package to patch.")
+const dirPath = Flag.directory("dir").pipe(
+  Flag.withDefault(LOCAL_TYPESCRIPT_DIR),
+  Flag.withDescription("The directory of the typescript package to patch.")
 )
 
-const moduleNames = Options.choice("module", [
+const moduleNames = Flag.choice("module", [
   "tsc",
   "typescript"
 ]).pipe(
-  Options.repeated,
-  Options.withDescription("The name of the module to patch.")
+  Flag.atLeast(0),
+  Flag.withDescription("The name of the module to patch.")
 )
 
-const force = Options.boolean("force").pipe(
-  Options.withDefault(false),
-  Options.withDescription("Force patch even if already patched.")
+const force = Flag.boolean("force").pipe(
+  Flag.withDefault(false),
+  Flag.withDescription("Force patch even if already patched.")
 )
 
 const getPatchedMarker = (version: string) => {

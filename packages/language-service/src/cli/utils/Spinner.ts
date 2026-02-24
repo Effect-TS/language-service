@@ -1,11 +1,12 @@
-import * as Terminal from "@effect/platform/Terminal"
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import * as Cause from "effect/Cause"
 import * as Effect from "effect/Effect"
 import * as Exit from "effect/Exit"
 import { dual } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Terminal from "effect/Terminal"
+import { ansi, BLUE, BOLD, CURSOR_HIDE, CURSOR_LEFT, CURSOR_SHOW, ERASE_LINE, GREEN, RED } from "../ansi"
+
+const CLEAR_LINE = ERASE_LINE + CURSOR_LEFT
 
 /**
  * Options for the spinner
@@ -26,37 +27,27 @@ export interface SpinnerHandle {
 
 // Full classic dots spinner sequence
 const DEFAULT_FRAMES: ReadonlyArray<string> = [
-  "⠋",
-  "⠙",
-  "⠹",
-  "⠸",
-  "⠼",
-  "⠴",
-  "⠦",
-  "⠧",
-  "⠇",
-  "⠏"
+  "\u280B",
+  "\u2819",
+  "\u2839",
+  "\u2838",
+  "\u283C",
+  "\u2834",
+  "\u2826",
+  "\u2827",
+  "\u2807",
+  "\u280F"
 ]
 
 // Figures for different platforms
 const isWindows = typeof process !== "undefined" && process.platform === "win32"
 const figures = {
-  tick: isWindows ? "√" : "✔",
-  cross: isWindows ? "×" : "✖"
-}
-
-// Small render helpers to reduce per-frame work.
-const CLEAR_LINE = Doc.cat(Doc.eraseLine, Doc.cursorLeft)
-const CURSOR_HIDE = Doc.render(Doc.cursorHide, { style: "pretty" })
-const CURSOR_SHOW = Doc.render(Doc.cursorShow, { style: "pretty" })
-
-const renderDoc = (columns: number, doc: Doc.AnsiDoc, addNewline = false): string => {
-  const prepared = addNewline ? Doc.cat(doc, Doc.hardLine) : doc
-  return Doc.render(prepared, { style: "pretty", options: { lineWidth: columns } })
+  tick: isWindows ? "\u221A" : "\u2714",
+  cross: isWindows ? "\u00D7" : "\u2716"
 }
 
 /**
- * A spinner that renders while `effect` runs and prints ✔/✖ on completion.
+ * A spinner that renders while `effect` runs and prints tick/cross on completion.
  * Provides a handle to update the message while running.
  */
 export const spinner: {
@@ -87,21 +78,15 @@ export const spinner: {
         const frames = options.frames ?? DEFAULT_FRAMES
         const frameCount = frames.length
 
-        const displayDoc = (doc: Doc.AnsiDoc, addNewline = false) =>
-          Effect.gen(function*() {
-            const columns = yield* terminal.columns
-            const out = renderDoc(columns, doc, addNewline)
-            yield* Effect.orDie(terminal.display(out))
-          })
+        const displayStr = (str: string) => Effect.orDie(terminal.display(str))
 
         const renderFrame = Effect.gen(function*() {
           const i = index
           index = index + 1
-          const spinnerDoc = Doc.annotate(Doc.text(frames[i % frameCount]!), Ansi.blue)
-          const messageDoc = Doc.annotate(Doc.text(currentMessage), Ansi.bold)
-
-          const line = Doc.hsep([spinnerDoc, messageDoc])
-          yield* displayDoc(Doc.cat(CLEAR_LINE, line))
+          const spinnerStr = ansi(frames[i % frameCount]!, BLUE)
+          const messageStr = ansi(currentMessage, BOLD)
+          const line = `${spinnerStr} ${messageStr}`
+          yield* displayStr(CLEAR_LINE + line)
         })
 
         const computeFinalMessage = (exit: Exit.Exit<A, E>): string =>
@@ -109,14 +94,14 @@ export const spinner: {
             onFailure: (cause) => {
               let baseMessage = currentMessage
               if (options.onFailure) {
-                const failureOption = Cause.failureOption(cause)
+                const failureOption = Cause.findErrorOption(cause)
                 if (Option.isSome(failureOption)) {
                   baseMessage = options.onFailure(failureOption.value)
                 }
               }
-              if (Cause.isInterrupted(cause)) {
+              if (Cause.hasInterrupts(cause)) {
                 return `${baseMessage} (interrupted)`
-              } else if (Cause.isDie(cause)) {
+              } else if (Cause.hasDies(cause)) {
                 return `${baseMessage} (died)`
               } else {
                 return baseMessage
@@ -128,15 +113,14 @@ export const spinner: {
         const renderFinal = (exit: Exit.Exit<A, E>) =>
           Effect.gen(function*() {
             const icon = Exit.isSuccess(exit)
-              ? Doc.annotate(Doc.text(figures.tick), Ansi.green)
-              : Doc.annotate(Doc.text(figures.cross), Ansi.red)
+              ? ansi(figures.tick, GREEN)
+              : ansi(figures.cross, RED)
 
             const finalMessage = computeFinalMessage(exit)
+            const msgStr = ansi(finalMessage, BOLD)
+            const line = `${icon} ${msgStr}`
 
-            const msgDoc = Doc.annotate(Doc.text(finalMessage), Ansi.bold)
-            const line = Doc.hsep([icon, msgDoc])
-
-            yield* displayDoc(Doc.cat(CLEAR_LINE, line), true)
+            yield* displayStr(CLEAR_LINE + line + "\n")
           })
 
         const handle: SpinnerHandle = {

@@ -1,11 +1,11 @@
-import * as Command from "@effect/cli/Command"
-import * as Prompt from "@effect/cli/Prompt"
-import type * as PlatformError from "@effect/platform/Error"
-import * as FileSystem from "@effect/platform/FileSystem"
-import * as Path from "@effect/platform/Path"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
+import * as FileSystem from "effect/FileSystem"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import type * as PlatformError from "effect/PlatformError"
+import { Command } from "effect/unstable/cli"
+import * as Prompt from "effect/unstable/cli/Prompt"
 import packageJson from "../../package.json"
 import { assess, type Assessment } from "./setup/assessment"
 import { computeChanges } from "./setup/changes"
@@ -73,7 +73,8 @@ const createAssessmentInput = (
     if (agentsMdExists) {
       // Check if it's a symlink - skip if it is
       const agentsMdStat = yield* fs.stat(agentsMdPath).pipe(Effect.option)
-      const isAgentsMdSymlink = Option.isSome(agentsMdStat) && agentsMdStat.value.type === "SymbolicLink"
+      const isAgentsMdSymlink = Option.isSome(agentsMdStat) &&
+        agentsMdStat.value.type === "SymbolicLink"
 
       if (!isAgentsMdSymlink) {
         const agentsMdText = yield* fs.readFileString(agentsMdPath).pipe(
@@ -98,7 +99,8 @@ const createAssessmentInput = (
     if (claudeMdExists) {
       // Check if it's a symlink - skip if it is
       const claudeMdStat = yield* fs.stat(claudeMdPath).pipe(Effect.option)
-      const isClaudeMdSymlink = Option.isSome(claudeMdStat) && claudeMdStat.value.type === "SymbolicLink"
+      const isClaudeMdSymlink = Option.isSome(claudeMdStat) &&
+        claudeMdStat.value.type === "SymbolicLink"
 
       if (!isClaudeMdSymlink) {
         const claudeMdText = yield* fs.readFileString(claudeMdPath).pipe(

@@ -5,9 +5,8 @@ import * as TypeCheckerUtils from "@effect/language-service/core/TypeCheckerUtil
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -38,19 +37,18 @@ async function testOverviewOnExample(fileName: string, sourceText: string) {
     Nano.unsafeRun
   )
 
-  expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
+  expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
 
-  if (Either.isLeft(result)) {
+  if (Result.isFailure(result)) {
     await expect("// error running collectExportedItems").toMatchFileSnapshot(snapshotFilePath)
     return
   }
 
-  const items = result.right
+  const items = result.success
 
   // Render the overview with the file's directory as cwd (so paths are relative)
   const cwd = path.dirname(path.resolve(fileName))
-  const doc = renderOverview({ ...items, totalFilesCount: 1 }, cwd)
-  const rendered = Doc.render(doc, { style: "pretty" })
+  const rendered = renderOverview({ ...items, totalFilesCount: 1 }, cwd)
 
   await expect(rendered).toMatchFileSnapshot(snapshotFilePath)
 }

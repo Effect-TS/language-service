@@ -1,32 +1,59 @@
-import * as Prompt from "@effect/cli/Prompt"
-import * as Terminal from "@effect/platform/Terminal"
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import * as Arr from "effect/Array"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import * as Terminal from "effect/Terminal"
+import * as Prompt from "effect/unstable/cli/Prompt"
 import type { DiagnosticSeverity } from "../../core/LanguageServicePluginOptions"
 import type { DiagnosticInfo } from "./diagnostic-info"
 import { cycleSeverity, getSeverityShortName, MAX_SEVERITY_LENGTH } from "./diagnostic-info"
+
+import {
+  ansi,
+  BEEP,
+  BG_BLACK_BRIGHT,
+  BG_BLUE,
+  BG_CYAN,
+  BG_RED,
+  BG_YELLOW,
+  BOLD,
+  CURSOR_HIDE,
+  CURSOR_LEFT,
+  CURSOR_TO_0,
+  CYAN_BRIGHT,
+  DIM,
+  ERASE_LINE,
+  GREEN,
+  WHITE
+} from "../ansi"
+
+function eraseLines(count: number): string {
+  let result = ""
+  for (let i = 0; i < count; i++) {
+    if (i > 0) result += "\x1b[1A" // cursor up
+    result += ERASE_LINE
+  }
+  if (count > 0) result += CURSOR_LEFT
+  return result
+}
 
 // ============================================================================
 // Copied internals from @effect/cli (not exported)
 // ============================================================================
 
-const Action = Data.taggedEnum<Prompt.Prompt.ActionDefinition>()
+const Action = Data.taggedEnum<Prompt.ActionDefinition>()
 
 const NEWLINE_REGEX = /\r?\n/
 
-function eraseText(text: string, columns: number): Doc.AnsiDoc {
+function eraseText(text: string, columns: number): string {
   if (columns === 0) {
-    return Doc.cat(Doc.eraseLine, Doc.cursorTo(0))
+    return ERASE_LINE + CURSOR_TO_0
   }
   let rows = 0
   const lines = text.split(/\r?\n/)
   for (const line of lines) {
     rows += 1 + Math.floor(Math.max(line.length - 1, 0) / columns)
   }
-  return Doc.eraseLines(rows)
+  return eraseLines(rows)
 }
 
 function entriesToDisplay(
@@ -44,17 +71,15 @@ function entriesToDisplay(
 }
 
 const defaultFigures = {
-  arrowUp: Doc.text("↑"),
-  arrowDown: Doc.text("↓"),
-  tick: Doc.text("✔"),
-  pointerSmall: Doc.text("›")
+  arrowUp: "\u2191",
+  arrowDown: "\u2193",
+  tick: "\u2714",
+  pointerSmall: "\u203A"
 }
 
 type Figures = typeof defaultFigures
 
-const figures: Effect.Effect<Figures> = Effect.succeed(defaultFigures)
-
-const renderBeep = Doc.render(Doc.beep, { style: "pretty" })
+const figuresValue: Figures = defaultFigures
 
 // ============================================================================
 // Diagnostic prompt types and state
@@ -75,34 +100,29 @@ interface DiagnosticPromptOptions {
 // Rendering functions (adapted from multi-select)
 // ============================================================================
 
-function getSeverityStyle(severity: DiagnosticSeverity | "off"): Ansi.Ansi {
+function getSeverityStyle(severity: DiagnosticSeverity | "off"): string {
   const styles = {
-    off: Ansi.combine(Ansi.white, Ansi.bgBlackBright),
-    suggestion: Ansi.combine(Ansi.white, Ansi.bgCyan),
-    message: Ansi.combine(Ansi.white, Ansi.bgBlue),
-    warning: Ansi.combine(Ansi.white, Ansi.bgYellow),
-    error: Ansi.combine(Ansi.white, Ansi.bgRed)
+    off: WHITE + BG_BLACK_BRIGHT,
+    suggestion: WHITE + BG_CYAN,
+    message: WHITE + BG_BLUE,
+    warning: WHITE + BG_YELLOW,
+    error: WHITE + BG_RED
   }
   return styles[severity]
 }
 
 function renderOutput(
-  leadingSymbol: Doc.AnsiDoc,
-  trailingSymbol: Doc.AnsiDoc,
+  leadingSymbol: string,
+  trailingSymbol: string,
   options: DiagnosticPromptOptions
-) {
-  const annotateLine = (line: string): Doc.AnsiDoc => Doc.annotate(Doc.text(line), Ansi.bold)
-  const prefix = Doc.cat(leadingSymbol, Doc.space)
+): string {
+  const annotateLine = (line: string): string => ansi(line, BOLD)
+  const prefix = leadingSymbol + " "
   return Arr.match(options.message.split(NEWLINE_REGEX), {
-    onEmpty: () => Doc.hsep([prefix, trailingSymbol]),
+    onEmpty: () => `${prefix}${trailingSymbol}`,
     onNonEmpty: (promptLines) => {
       const lines = Arr.map(promptLines, (line) => annotateLine(line))
-      return prefix.pipe(
-        Doc.cat(Doc.nest(Doc.vsep(lines), 2)),
-        Doc.cat(Doc.space),
-        Doc.cat(trailingSymbol),
-        Doc.cat(Doc.space)
-      )
+      return `${prefix}${lines.join("\n  ")} ${trailingSymbol} `
     }
   })
 }
@@ -110,12 +130,12 @@ function renderOutput(
 function renderDiagnostics(
   state: State,
   options: DiagnosticPromptOptions,
-  figures: Figures,
+  figs: Figures,
   columns: number
 ) {
   const diagnostics = options.diagnostics
   const toDisplay = entriesToDisplay(state.index, diagnostics.length, options.maxPerPage)
-  const documents: Array<Doc.AnsiDoc> = []
+  const documents: Array<string> = []
 
   for (let index = toDisplay.startIndex; index < toDisplay.endIndex; index++) {
     const diagnostic = diagnostics[index]
@@ -124,33 +144,25 @@ function renderDiagnostics(
     const hasChanged = currentSeverity !== diagnostic.defaultSeverity
 
     // Arrow prefix for scroll indicators
-    let prefix: Doc.AnsiDoc = Doc.space
+    let prefix: string = " "
     if (index === toDisplay.startIndex && toDisplay.startIndex > 0) {
-      prefix = figures.arrowUp
+      prefix = figs.arrowUp
     } else if (index === toDisplay.endIndex - 1 && toDisplay.endIndex < diagnostics.length) {
-      prefix = figures.arrowDown
+      prefix = figs.arrowDown
     }
 
     // Severity badge with fixed width and background color
     const shortName = getSeverityShortName(currentSeverity)
     const paddedSeverity = shortName.padEnd(MAX_SEVERITY_LENGTH, " ")
-    const severityDoc = Doc.annotate(
-      Doc.text(` ${paddedSeverity} `),
-      getSeverityStyle(currentSeverity)
-    )
+    const severityStr = ansi(` ${paddedSeverity} `, getSeverityStyle(currentSeverity))
 
     // Diagnostic name with optional * for changed, highlight if selected
     const nameText = hasChanged ? `${diagnostic.name}*` : diagnostic.name
-    const nameDoc = isHighlighted
-      ? Doc.annotate(Doc.text(nameText), Ansi.cyanBright)
-      : Doc.text(nameText)
+    const nameStr = isHighlighted
+      ? ansi(nameText, CYAN_BRIGHT)
+      : nameText
 
-    const mainLine = prefix.pipe(
-      Doc.cat(Doc.space),
-      Doc.cat(severityDoc),
-      Doc.cat(Doc.space),
-      Doc.cat(nameDoc)
-    )
+    const mainLine = `${prefix} ${severityStr} ${nameStr}`
 
     // Description - show on separate line below when highlighted
     if (isHighlighted && diagnostic.description) {
@@ -160,76 +172,59 @@ function renderDiagnostics(
       // Truncate description to fit terminal width
       const availableWidth = columns - indentWidth
       const truncatedDescription = availableWidth > 0 && diagnostic.description.length > availableWidth
-        ? diagnostic.description.substring(0, availableWidth - 1) + "…"
+        ? diagnostic.description.substring(0, availableWidth - 1) + "\u2026"
         : diagnostic.description
 
-      const descriptionDoc = Doc.annotate(
-        Doc.text(indent + truncatedDescription),
-        Ansi.blackBright
-      )
+      const descriptionStr = ansi(indent + truncatedDescription, DIM)
 
-      documents.push(Doc.vsep([mainLine, descriptionDoc]))
+      documents.push(mainLine + "\n" + descriptionStr)
     } else {
       documents.push(mainLine)
     }
   }
 
-  return Doc.vsep(documents)
+  return documents.join("\n")
 }
 
 function renderNextFrame(state: State, options: DiagnosticPromptOptions) {
   return Effect.gen(function*() {
     const terminal = yield* Terminal.Terminal
     const columns = yield* terminal.columns
-    const figs = yield* figures
+    const figs = figuresValue
 
-    const diagnosticsDoc = renderDiagnostics(state, options, figs, columns)
-    const leadingSymbol = Doc.annotate(Doc.text("?"), Ansi.cyanBright)
+    const diagnosticsStr = renderDiagnostics(state, options, figs, columns)
+    const leadingSymbol = ansi("?", CYAN_BRIGHT)
     const trailingSymbol = figs.pointerSmall
     const promptMsg = renderOutput(leadingSymbol, trailingSymbol, options)
 
-    const helpText = Doc.annotate(
-      Doc.text("Use ↑/↓ to navigate, ←/→ to change severity, Enter to finish"),
-      Ansi.blackBright
+    const helpText = ansi(
+      "Use \u2191/\u2193 to navigate, \u2190/\u2192 to change severity, Enter to finish",
+      DIM
     )
 
-    return Doc.cursorHide.pipe(
-      Doc.cat(promptMsg),
-      Doc.cat(Doc.hardLine),
-      Doc.cat(helpText),
-      Doc.cat(Doc.hardLine),
-      Doc.cat(diagnosticsDoc),
-      Doc.render({ style: "pretty", options: { lineWidth: columns } })
-    )
+    return CURSOR_HIDE + promptMsg + "\n" + helpText + "\n" + diagnosticsStr
   })
 }
 
 function renderSubmission(state: State, options: DiagnosticPromptOptions) {
   return Effect.gen(function*() {
-    const terminal = yield* Terminal.Terminal
-    const columns = yield* terminal.columns
-    const figs = yield* figures
+    const figs = figuresValue
 
     const changedCount = Object.entries(state.severities).filter(([name, severity]) => {
       const diagnostic = options.diagnostics.find((d) => d.name === name)
       return diagnostic && severity !== diagnostic.defaultSeverity
     }).length
 
-    const result = Doc.annotate(
-      Doc.text(`${changedCount} diagnostic${changedCount === 1 ? "" : "s"} configured`),
-      Ansi.white
+    const result = ansi(
+      `${changedCount} diagnostic${changedCount === 1 ? "" : "s"} configured`,
+      WHITE
     )
 
-    const leadingSymbol = Doc.annotate(figs.tick, Ansi.green)
-    const trailingSymbol = Doc.text("")
+    const leadingSymbol = ansi(figs.tick, GREEN)
+    const trailingSymbol = ""
     const promptMsg = renderOutput(leadingSymbol, trailingSymbol, options)
 
-    return promptMsg.pipe(
-      Doc.cat(Doc.space),
-      Doc.cat(result),
-      Doc.cat(Doc.hardLine),
-      Doc.render({ style: "pretty", options: { lineWidth: columns } })
-    )
+    return promptMsg + " " + result + "\n"
   })
 }
 
@@ -301,7 +296,7 @@ function handleClear(options: DiagnosticPromptOptions) {
   return Effect.gen(function*() {
     const terminal = yield* Terminal.Terminal
     const columns = yield* terminal.columns
-    const clearPrompt = Doc.cat(Doc.eraseLine, Doc.cursorLeft)
+    const clearPrompt = ERASE_LINE + CURSOR_LEFT
 
     // Match Effect CLI pattern: "\n".repeat(visibleCount) + message
     // We have 2 extra lines (helpText + hardLine) compared to Effect CLI
@@ -310,20 +305,17 @@ function handleClear(options: DiagnosticPromptOptions) {
     const visibleCount = Math.min(options.diagnostics.length, options.maxPerPage)
     const text = "\n".repeat(visibleCount + 2) + options.message
     const clearOutput = eraseText(text, columns)
-    return clearOutput.pipe(
-      Doc.cat(clearPrompt),
-      Doc.render({ style: "pretty", options: { lineWidth: columns } })
-    )
+    return clearOutput + clearPrompt
   })
 }
 
 function handleRender(options: DiagnosticPromptOptions) {
   return (
     state: State,
-    action: Prompt.Prompt.Action<State, Record<string, DiagnosticSeverity | "off">>
+    action: Prompt.Action<State, Record<string, DiagnosticSeverity | "off">>
   ) => {
     return Action.$match(action, {
-      Beep: () => Effect.succeed(renderBeep),
+      Beep: () => Effect.succeed(BEEP),
       NextFrame: ({ state }) => renderNextFrame(state, options),
       Submit: () => renderSubmission(state, options)
     })

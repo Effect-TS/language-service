@@ -119,7 +119,7 @@ export const missingEffectError = LSP.createDiagnostic({
                 ReadonlyArray.map((_) => _.literal),
                 ReadonlyArray.filter((_) => ts.isLiteralExpression(_)),
                 ReadonlyArray.map((_) => _.text),
-                ReadonlyArray.sort(Order.string),
+                ReadonlyArray.sort(Order.String),
                 ReadonlyArray.map((_) =>
                   ts.factory.createPropertyAssignment(
                     ts.factory.createIdentifier(_),

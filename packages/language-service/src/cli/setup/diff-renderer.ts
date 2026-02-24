@@ -1,9 +1,8 @@
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import type * as ts from "typescript"
+import { ansi, BOLD, CYAN, DIM, GREEN, RED, YELLOW } from "../ansi"
 import type { Assessment } from "./assessment"
 import type { ComputeChangesResult } from "./changes"
 import { renderPlainTextFileChanges } from "./text-diff-renderer"
@@ -20,19 +19,19 @@ function getLines(text: string): ReadonlyArray<string> {
  * @param lineNum - Line number (1-based) or undefined for lines without numbers (changes)
  * @param symbol - Symbol to display: "|" for unchanged, "-" for deletion, "+" for addition
  * @param text - The actual line text
- * @param color - The ANSI color to apply
+ * @param color - The ANSI color code to apply
  */
 function renderLine(
   lineNum: number | undefined,
   symbol: "|" | "-" | "+",
   text: string,
-  color: Ansi.Ansi
-): Doc.AnsiDoc {
+  color: string
+): string {
   const lineNumPart = lineNum !== undefined
     ? String(lineNum).padStart(4, " ")
     : "    "
 
-  return Doc.annotate(Doc.text(`${lineNumPart} ${symbol} ${text}`), color)
+  return ansi(`${lineNumPart} ${symbol} ${text}`, color)
 }
 
 /**
@@ -41,7 +40,7 @@ function renderLine(
 export function renderTextChange(
   sourceFile: ts.SourceFile,
   textChange: ts.TextChange
-): ReadonlyArray<Doc.AnsiDoc> {
+): ReadonlyArray<string> {
   const startPos = textChange.span.start
   const endPos = textChange.span.start + textChange.span.length
 
@@ -53,13 +52,13 @@ export function renderTextChange(
   const startCol = startLineAndChar.character
   const endCol = endLineAndChar.character
 
-  const lines: Array<Doc.AnsiDoc> = []
+  const lines: Array<string> = []
   const allLines = getLines(sourceFile.text)
 
   // Show 1 line before the change (if exists)
   if (startLine > 0) {
     const contextBefore = allLines[startLine - 1]
-    lines.push(renderLine(startLine, "|", contextBefore, Ansi.blackBright))
+    lines.push(renderLine(startLine, "|", contextBefore, DIM))
   }
 
   // ============================================================================
@@ -74,7 +73,7 @@ export function renderTextChange(
     // Only show the kept part if it contains non-whitespace characters
     const hasNonWhitespaceKept = keptBeforeDeletion.trim().length > 0
     if (hasNonWhitespaceKept) {
-      lines.push(renderLine(startLine + 1, "|", keptBeforeDeletion, Ansi.blackBright))
+      lines.push(renderLine(startLine + 1, "|", keptBeforeDeletion, DIM))
     }
 
     // Show the deleted part of the first line
@@ -85,7 +84,7 @@ export function renderTextChange(
     if (deletedOnFirstLine.length > 0) {
       // Align with spaces to match the kept part's position
       const spacePadding = hasNonWhitespaceKept ? " ".repeat(keptBeforeDeletion.length) : ""
-      lines.push(renderLine(undefined, "-", `${spacePadding}${deletedOnFirstLine}`, Ansi.red))
+      lines.push(renderLine(undefined, "-", `${spacePadding}${deletedOnFirstLine}`, RED))
     }
   }
 
@@ -93,7 +92,7 @@ export function renderTextChange(
   for (let i = startLine + 1; i < endLine; i++) {
     const lineText = allLines[i]
     if (lineText !== undefined) {
-      lines.push(renderLine(undefined, "-", lineText, Ansi.red))
+      lines.push(renderLine(undefined, "-", lineText, RED))
     }
   }
 
@@ -103,7 +102,7 @@ export function renderTextChange(
     const deletedOnLastLine = lastLineText.slice(0, endCol)
 
     if (deletedOnLastLine.length > 0) {
-      lines.push(renderLine(undefined, "-", deletedOnLastLine, Ansi.red))
+      lines.push(renderLine(undefined, "-", deletedOnLastLine, RED))
     }
   }
 
@@ -130,7 +129,7 @@ export function renderTextChange(
 
       // Align first line of addition with the kept part
       const padding = (i === 0 && hasNonWhitespaceKept) ? spacePadding : ""
-      lines.push(renderLine(undefined, "+", `${padding}${newLine}`, Ansi.green))
+      lines.push(renderLine(undefined, "+", `${padding}${newLine}`, GREEN))
     }
   }
 
@@ -183,7 +182,7 @@ export function renderTextChange(
     const keptAfterDeletion = lastLineText.slice(endCol)
     if (keptAfterDeletion.trim().length > 0) {
       const alignment = " ".repeat(alignmentForKeptPart)
-      lines.push(renderLine(endLine + 1, "|", `${alignment}${keptAfterDeletion}`, Ansi.blackBright))
+      lines.push(renderLine(endLine + 1, "|", `${alignment}${keptAfterDeletion}`, DIM))
     }
   } else if (startLine === endLine) {
     // Single line case: show the kept part after deletion
@@ -191,14 +190,14 @@ export function renderTextChange(
     const keptAfterDeletion = firstLineText.slice(endCol)
     if (keptAfterDeletion.trim().length > 0) {
       const alignment = " ".repeat(alignmentForKeptPart)
-      lines.push(renderLine(startLine + 1, "|", `${alignment}${keptAfterDeletion}`, Ansi.blackBright))
+      lines.push(renderLine(startLine + 1, "|", `${alignment}${keptAfterDeletion}`, DIM))
     }
   }
 
   // Show 1 line after the change (if exists)
   if (endLine + 1 < allLines.length) {
     const contextAfter = allLines[endLine + 1]
-    lines.push(renderLine(endLine + 2, "|", contextAfter, Ansi.blackBright))
+    lines.push(renderLine(endLine + 2, "|", contextAfter, DIM))
   }
 
   return lines
@@ -210,8 +209,8 @@ export function renderTextChange(
 export function renderFileChanges(
   sourceFile: ts.SourceFile,
   textChanges: ReadonlyArray<ts.TextChange>
-): ReadonlyArray<Doc.AnsiDoc> {
-  const lines: Array<Doc.AnsiDoc> = []
+): ReadonlyArray<string> {
+  const lines: Array<string> = []
 
   // Sort changes by position
   const sortedChanges = [...textChanges].sort((a, b) => a.span.start - b.span.start)
@@ -227,7 +226,7 @@ export function renderFileChanges(
 
     // Add separator between changes if there are multiple
     if (i < sortedChanges.length - 1) {
-      lines.push(Doc.text(""))
+      lines.push("")
     }
   }
 
@@ -235,7 +234,7 @@ export function renderFileChanges(
 }
 
 /**
- * Render code actions with diffs using @effect/printer-ansi
+ * Render code actions with diffs
  */
 export const renderCodeActions = (
   result: ComputeChangesResult,
@@ -244,12 +243,7 @@ export const renderCodeActions = (
   Effect.gen(function*() {
     // Check if there are no changes
     if (result.codeActions.length === 0) {
-      const noChanges = Doc.annotate(
-        Doc.text("No changes needed - your configuration is already up to date!"),
-        Ansi.green
-      )
-      const noChangesStr = noChanges.pipe(Doc.render({ style: "pretty" }))
-      yield* Console.log(noChangesStr)
+      yield* Console.log(ansi("No changes needed - your configuration is already up to date!", GREEN))
       return
     }
 
@@ -285,31 +279,25 @@ export const renderCodeActions = (
         const plainTextFile = plainTextFiles.find((pf) => pf.path === fileChange.fileName)
 
         // Render description and file name
-        const header = Doc.vsep([
-          Doc.empty,
-          Doc.annotate(Doc.text(codeAction.description), Ansi.bold),
-          Doc.annotate(Doc.text(fileChange.fileName), Ansi.cyan),
-          Doc.empty
-        ])
-        const headerStr = header.pipe(Doc.render({ style: "pretty" }))
-        yield* Console.log(headerStr)
+        const header = [
+          "",
+          ansi(codeAction.description, BOLD),
+          ansi(fileChange.fileName, CYAN),
+          ""
+        ].join("\n")
+        yield* Console.log(header)
 
         if (sourceFile) {
           // Use source file for diff generation (JSON files)
           const diffLines = renderFileChanges(sourceFile, fileChange.textChanges)
-          const diff = Doc.vsep(diffLines)
-          const diffStr = diff.pipe(Doc.render({ style: "pretty" }))
-          yield* Console.log(diffStr)
+          yield* Console.log(diffLines.join("\n"))
         } else if (plainTextFile) {
           // Use plain text renderer for diff generation (markdown files)
           const diffLines = renderPlainTextFileChanges(plainTextFile.text, fileChange.textChanges)
-          const diff = Doc.vsep(diffLines)
-          const diffStr = diff.pipe(Doc.render({ style: "pretty" }))
-          yield* Console.log(diffStr)
+          yield* Console.log(diffLines.join("\n"))
         } else {
           // File not in assessment state, just mention we want to change it
-          const noticeStr = Doc.text("  (file will be modified)").pipe(Doc.render({ style: "pretty" }))
-          yield* Console.log(noticeStr)
+          yield* Console.log("  (file will be modified)")
         }
       }
     }
@@ -318,11 +306,10 @@ export const renderCodeActions = (
     if (result.messages.length > 0) {
       yield* Console.log("")
       for (const message of result.messages) {
-        const messageDoc = message.includes("WARNING")
-          ? Doc.annotate(Doc.text(message), Ansi.yellow)
-          : Doc.text(message)
+        const messageStr = message.includes("WARNING")
+          ? ansi(message, YELLOW)
+          : message
 
-        const messageStr = messageDoc.pipe(Doc.render({ style: "pretty" }))
         yield* Console.log(messageStr)
       }
     }

@@ -1,14 +1,13 @@
-import * as Command from "@effect/cli/Command"
-import * as Options from "@effect/cli/Options"
-import * as Path from "@effect/platform/Path"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Array from "effect/Array"
 import * as Console from "effect/Console"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
-import * as Either from "effect/Either"
 import { identity, pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import * as Result from "effect/Result"
+import { Command, Flag } from "effect/unstable/cli"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as LSP from "../core/LSP"
@@ -165,7 +164,7 @@ const diagnosticPrettyFormatter = Effect.gen(function*() {
           (text, def) => text.replace(new RegExp(`TS${def.code}:`, "g"), `effect(${def.name}):`),
           rawFormatted
         )
-      }).pipe(Effect.flatMap(Console.log), Effect.when(() => diagnostics.length > 0)),
+      }).pipe(Effect.flatMap(Console.log), Effect.when(Effect.sync(() => diagnostics.length > 0))),
     onEnd: (state) =>
       Console.log(
         `Checked ${state.checkedCount} files out of ${state.totalFilesCount} files. \n${state.errorsCount} errors, ${state.warningsCount} warnings and ${state.messagesCount} messages.`
@@ -188,7 +187,7 @@ const diagnosticTextFormatter = Effect.gen(function*() {
           (text, def) => text.replace(new RegExp(`TS${def.code}:`, "g"), `effect(${def.name}):`),
           rawFormatted
         )
-      }).pipe(Effect.flatMap(Console.log), Effect.when(() => diagnostics.length > 0)),
+      }).pipe(Effect.flatMap(Console.log), Effect.when(Effect.sync(() => diagnostics.length > 0))),
     onEnd: (state) =>
       Console.log(
         `Checked ${state.checkedCount} files out of ${state.totalFilesCount} files. \n${state.errorsCount} errors, ${state.warningsCount} warnings and ${state.messagesCount} messages.`
@@ -278,33 +277,33 @@ const BATCH_SIZE = 50
 export const diagnostics = Command.make(
   "diagnostics",
   {
-    file: Options.file("file").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the file to check for diagnostics.")
+    file: Flag.file("file").pipe(
+      Flag.optional,
+      Flag.withDescription("The full path of the file to check for diagnostics.")
     ),
-    project: Options.file("project").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
+    project: Flag.file("project").pipe(
+      Flag.optional,
+      Flag.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
     ),
 
-    format: Options.choice("format", ["json", "pretty", "text", "github-actions"] as ReadonlyArray<OutputFormat>)
+    format: Flag.choice("format", ["json", "pretty", "text", "github-actions"] as ReadonlyArray<OutputFormat>)
       .pipe(
-        Options.withDefault("pretty" as const),
-        Options.withDescription(
+        Flag.withDefault("pretty" as const),
+        Flag.withDescription(
           "Output format: json (machine-readable), pretty (colored with context), text (plain text), github-actions (workflow commands)"
         )
       ),
-    strict: Options.boolean("strict").pipe(
-      Options.withDefault(false),
-      Options.withDescription("Treat warnings as errors (affects exit code)")
+    strict: Flag.boolean("strict").pipe(
+      Flag.withDefault(false),
+      Flag.withDescription("Treat warnings as errors (affects exit code)")
     ),
-    severity: Options.text("severity").pipe(
-      Options.optional,
-      Options.withDescription("Filter by severity levels (comma-separated: error,warning,message)")
+    severity: Flag.string("severity").pipe(
+      Flag.optional,
+      Flag.withDescription("Filter by severity levels (comma-separated: error,warning,message)")
     ),
-    progress: Options.boolean("progress").pipe(
-      Options.withDefault(false),
-      Options.withDescription("Show progress as files are checked (outputs to stderr)")
+    progress: Flag.boolean("progress").pipe(
+      Flag.withDefault(false),
+      Flag.withDescription("Show progress as files are checked (outputs to stderr)")
     )
   },
   Effect.fn("diagnostics")(function*({ file, format, progress, project, severity, strict }) {
@@ -400,15 +399,15 @@ export const diagnostics = Command.make(
               { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
             ),
             Nano.run,
-            Either.map((_) => _.diagnostics),
-            Either.map(
+            Result.map((_) => _.diagnostics),
+            Result.map(
               Array.map((_) =>
                 _.category === state.tsInstance.DiagnosticCategory.Suggestion
                   ? { ..._, category: state.tsInstance.DiagnosticCategory.Message }
                   : _
               )
             ),
-            Either.getOrElse(() => [])
+            Result.getOrElse(() => [])
           )
 
           // Apply severity filter if specified
@@ -430,7 +429,7 @@ export const diagnostics = Command.make(
           service.closeClientFile(filePath)
         }
       }
-      yield* Effect.yieldNow()
+      yield* Effect.yieldNow
     }
     disposeIfLanguageServiceChanged(undefined)
 

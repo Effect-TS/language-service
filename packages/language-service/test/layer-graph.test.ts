@@ -6,8 +6,8 @@ import * as TypeCheckerUtils from "@effect/language-service/core/TypeCheckerUtil
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -93,17 +93,17 @@ async function testLayerGraphOnExample(fileName: string, sourceText: string) {
       Nano.unsafeRun
     )
 
-    if (Either.isLeft(maybeGraph)) {
+    if (Result.isFailure(maybeGraph)) {
       await expect("no graph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
       return
     }
 
-    await expect(maybeGraph.right.layerGraph, "layerGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
-    await expect(maybeGraph.right.layerNestedGraph, "layerNestedGraph").toMatchFileSnapshot(
+    await expect(maybeGraph.success.layerGraph, "layerGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
+    await expect(maybeGraph.success.layerNestedGraph, "layerNestedGraph").toMatchFileSnapshot(
       baseSnapshotFilePath + ".nested"
     )
-    await expect(maybeGraph.right.outlineGraph, "outlineGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
-    await expect(maybeGraph.right.providersAndRequirers, "providersAndRequirers").toMatchFileSnapshot(
+    await expect(maybeGraph.success.outlineGraph, "outlineGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
+    await expect(maybeGraph.success.providersAndRequirers, "providersAndRequirers").toMatchFileSnapshot(
       baseSnapshotFilePath + ".quickinfo"
     )
   }

@@ -6,8 +6,8 @@ import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import * as keyStrings from "@effect/language-service/renames/keyStrings"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -110,11 +110,11 @@ function testRenamesOnExample(
     Nano.unsafeRun
   )
 
-  if (!(Either.isRight(canApply))) {
+  if (!(Result.isSuccess(canApply))) {
     return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
   }
 
-  const textChanges = (canApply.right || []).map((_) => ({ span: _.textSpan, newText: "NewText" }))
+  const textChanges = (canApply.success || []).map((_: ts.RenameLocation) => ({ span: _.textSpan, newText: "NewText" }))
 
   return expect(applyEdits([{ fileName, textChanges }], fileName, sourceFile.text)).toMatchFileSnapshot(
     snapshotFilePath

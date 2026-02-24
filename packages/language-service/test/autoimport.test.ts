@@ -41,10 +41,10 @@ function testAutoImport(
     Nano.run
   )
 
-  expect(test._tag).toBe("Right")
-  if (test._tag === "Left") throw new Error("error in execution of nano")
+  expect(test._tag).toBe("Success")
+  if (test._tag === "Failure") throw new Error("error in execution of nano")
   return {
-    result: test.right,
+    result: test.success,
     toFilename: (moduleName: string) => {
       const expectedResolution = ts.resolveModuleName(
         moduleName,

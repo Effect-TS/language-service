@@ -1,5 +1,5 @@
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -53,7 +53,7 @@ function testAllDagnostics() {
           goto: false
         }),
         Nano.unsafeRun,
-        Either.getOrElse(() => "// no diagnostics")
+        Result.getOrElse(() => "// no diagnostics")
       )
       const end = performance.now()
       if (i !== -1) totalTime += end - start

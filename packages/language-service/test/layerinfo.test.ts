@@ -6,9 +6,8 @@ import * as TypeCheckerUtils from "@effect/language-service/core/TypeCheckerUtil
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -55,14 +54,14 @@ function testAllLayerInfoExamples() {
           Nano.unsafeRun
         )
 
-        if (Either.isLeft(layersResult)) {
+        if (Result.isFailure(layersResult)) {
           it("should collect layers without error", () => {
-            expect(Either.isRight(layersResult)).toEqual(true)
+            expect(Result.isSuccess(layersResult)).toEqual(true)
           })
           return
         }
 
-        const layerNames = layersResult.right.layers.map((l) => l.name)
+        const layerNames = layersResult.success.layers.map((l: { name: string }) => l.name)
 
         if (layerNames.length === 0) {
           it("has no layers to test", () => {
@@ -109,12 +108,12 @@ async function testLayerInfoByName(
     Nano.run
   )
 
-  if (Either.isLeft(result)) {
-    await expect(`// error: ${String(result.left)}`).toMatchFileSnapshot(snapshotFilePath)
+  if (Result.isFailure(result)) {
+    await expect(`// error: ${String(result.failure)}`).toMatchFileSnapshot(snapshotFilePath)
     return
   }
 
-  const layerInfoResult = result.right
+  const layerInfoResult = result.success
   if (!layerInfoResult) {
     await expect(`// error: layer "${layerName}" not found`).toMatchFileSnapshot(snapshotFilePath)
     return
@@ -122,8 +121,7 @@ async function testLayerInfoByName(
 
   // Render the layer info with the file's directory as cwd (so paths are relative)
   const cwd = path.dirname(path.resolve(fileName))
-  const doc = renderLayerInfo(layerInfoResult, cwd)
-  const rendered = Doc.render(doc, { style: "pretty" })
+  const rendered = renderLayerInfo(layerInfoResult, cwd)
 
   await expect(rendered).toMatchFileSnapshot(snapshotFilePath)
 }

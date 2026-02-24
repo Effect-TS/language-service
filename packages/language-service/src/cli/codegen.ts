@@ -1,14 +1,13 @@
-import * as Command from "@effect/cli/Command"
-import * as Options from "@effect/cli/Options"
-import * as FileSystem from "@effect/platform/FileSystem"
-import * as Path from "@effect/platform/Path"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Array from "effect/Array"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
-import * as Either from "effect/Either"
+import * as FileSystem from "effect/FileSystem"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import * as Result from "effect/Result"
+import { Command, Flag } from "effect/unstable/cli"
 import type * as ts from "typescript"
 import { codegens as codegensDefinitions } from "../codegens"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
@@ -27,24 +26,24 @@ export class NoFilesToCodegenError extends Data.TaggedError("NoFilesToCodegenErr
   }
 }
 
-const file = Options.file("file").pipe(
-  Options.optional,
-  Options.withDescription("The full path of the file to codegen.")
+const file = Flag.file("file").pipe(
+  Flag.optional,
+  Flag.withDescription("The full path of the file to codegen.")
 )
 
-const project = Options.file("project").pipe(
-  Options.optional,
-  Options.withDescription("The full path of the project tsconfig.json file to codegen.")
+const project = Flag.file("project").pipe(
+  Flag.optional,
+  Flag.withDescription("The full path of the project tsconfig.json file to codegen.")
 )
 
-const verbose = Options.boolean("verbose").pipe(
-  Options.withDefault(false),
-  Options.withDescription("Verbose output.")
+const verbose = Flag.boolean("verbose").pipe(
+  Flag.withDefault(false),
+  Flag.withDescription("Verbose output.")
 )
 
-const force = Options.boolean("force").pipe(
-  Options.withDefault(false),
-  Options.withDescription("Force codegen even if no changes are needed.")
+const force = Flag.boolean("force").pipe(
+  Flag.withDefault(false),
+  Flag.withDescription("Force codegen even if no changes are needed.")
 )
 
 const BATCH_SIZE = 50
@@ -157,13 +156,15 @@ export const codegen = Command.make(
               { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
             ),
             Nano.run,
-            Either.getOrElse(() => [] as Array<ts.FileTextChanges>)
+            Result.getOrElse(() => [] as Array<ts.FileTextChanges>)
           )
           checkedFilesCount++
 
           // only changes to this file
           const thisFileChanges = allFileChanges.filter((change) => change.fileName === sourceFile.fileName)
-          const flattenedChanges = Array.flatten(thisFileChanges.map((change) => change.textChanges))
+          const flattenedChanges = Array.flatten(
+            thisFileChanges.map((change) => change.textChanges)
+          )
 
           if (verbose) {
             if (flattenedChanges.length > 0) {
@@ -183,7 +184,7 @@ export const codegen = Command.make(
           service.closeClientFile(filePath)
         }
       }
-      yield* Effect.yieldNow()
+      yield* Effect.yieldNow
     }
     disposeIfLanguageServiceChanged(undefined)
 

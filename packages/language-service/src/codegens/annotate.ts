@@ -40,7 +40,7 @@ export const annotate = LSP.createCodegen({
         if (!initializerType) continue
         const enclosingNode = ts.findAncestor(variableDeclaration, (_) => tsUtils.isDeclarationKind(_.kind)) ||
           sourceFile
-        const initializerTypeNode = Option.fromNullable(typeCheckerUtils.typeToSimplifiedTypeNode(
+        const initializerTypeNode = Option.fromNullishOr(typeCheckerUtils.typeToSimplifiedTypeNode(
           initializerType,
           enclosingNode,
           ts.NodeBuilderFlags.NoTruncation | ts.NodeBuilderFlags.IgnoreErrors

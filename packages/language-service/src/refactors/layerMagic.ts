@@ -71,7 +71,7 @@ export const layerMagic = LSP.createRefactor({
                 Array.map((_) => _.node),
                 Array.filter(ts.isExpression),
                 Array.sort(Order.mapInput(
-                  Order.number,
+                  Order.Number,
                   (_: ts.Node) => _.pos
                 ))
               )

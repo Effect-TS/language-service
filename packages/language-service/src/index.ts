@@ -1,5 +1,5 @@
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import type ts from "typescript"
 import { completions } from "./completions.js"
 import {
@@ -117,11 +117,11 @@ const init = (
           return pipe(
             LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),
             runNano(program),
-            Either.map(({ codeFixes, diagnostics }) => {
+            Result.map(({ codeFixes, diagnostics }) => {
               effectCodeFixesForFile.set(fileName, codeFixes)
               return diagnostics
             }),
-            Either.getOrElse(() => [])
+            Result.getOrElse(() => [])
           )
         }
       }
@@ -215,7 +215,7 @@ const init = (
               )
             ),
             runNano(program),
-            Either.getOrElse(() => applicableCodeFixes)
+            Result.getOrElse(() => applicableCodeFixes)
           )
         }
       }
@@ -248,8 +248,8 @@ const init = (
               )
             ),
             runNano(program),
-            Either.map((effectCodeActions) => applicableRefactors.concat(effectCodeActions)),
-            Either.getOrElse(() => applicableRefactors)
+            Result.map((effectCodeActions) => applicableRefactors.concat(effectCodeActions)),
+            Result.getOrElse(() => applicableRefactors)
           )
         }
       }
@@ -307,7 +307,7 @@ const init = (
             runNano(program)
           )
 
-          if (Either.isRight(result)) return result.right
+          if (Result.isSuccess(result)) return result.success
         }
       }
 
@@ -337,7 +337,7 @@ const init = (
                 applicableQuickInfo
               ),
               runNano(program),
-              Either.getOrElse(() => applicableQuickInfo)
+              Result.getOrElse(() => applicableQuickInfo)
             )
           }
         }
@@ -388,7 +388,7 @@ const init = (
                 )
               ),
               runNano(program),
-              Either.getOrElse(() => applicableCompletions)
+              Result.getOrElse(() => applicableCompletions)
             )
           }
         }
@@ -433,7 +433,7 @@ const init = (
                 info.languageServiceHost
               ),
               runNano(program),
-              Either.getOrElse(() => applicableCompletionEntryDetails)
+              Result.getOrElse(() => applicableCompletionEntryDetails)
             )
           }
         }
@@ -453,7 +453,7 @@ const init = (
             return pipe(
               goto(applicableDefinition, sourceFile, position),
               runNano(program),
-              Either.getOrElse(() => applicableDefinition)
+              Result.getOrElse(() => applicableDefinition)
             )
           }
         }
@@ -473,7 +473,7 @@ const init = (
             return pipe(
               middlewareGenLike(sourceFile, span, preferences, applicableInlayHints),
               runNano(program),
-              Either.getOrElse(() => applicableInlayHints)
+              Result.getOrElse(() => applicableInlayHints)
             )
           }
         }
@@ -507,7 +507,7 @@ const init = (
                 applicableRenameInfo
               ),
               runNano(program),
-              Either.getOrElse(() => applicableRenameInfo)
+              Result.getOrElse(() => applicableRenameInfo)
             )
           }
         }
@@ -542,7 +542,7 @@ const init = (
                     }
                   })),
                   runNano(program),
-                  Either.getOrElse((e) => ({
+                  Result.getOrElse((e) => ({
                     response: {
                       success: false,
                       error: e.message

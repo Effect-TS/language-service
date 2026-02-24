@@ -1,5 +1,4 @@
-import { isFunction } from "effect/Function"
-import { hasProperty } from "effect/Predicate"
+import { hasProperty, isFunction } from "effect/Predicate"
 import type ts from "typescript"
 import * as Nano from "../core/Nano.js"
 
@@ -17,7 +16,7 @@ export function makeResolveExternalModuleName(typeChecker: TypeCheckerApi) {
   if (!(hasProperty(typeChecker, "resolveExternalModuleName") && isFunction(typeChecker.resolveExternalModuleName))) {
     return
   }
-  const _internal = typeChecker.resolveExternalModuleName
+  const _internal = typeChecker.resolveExternalModuleName as (moduleSpecifier: ts.Expression) => ts.Symbol | undefined
   return (moduleSpecifier: ts.Expression): ts.Symbol | undefined => {
     return _internal(moduleSpecifier)
   }

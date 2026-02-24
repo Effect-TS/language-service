@@ -1,6 +1,6 @@
 import * as Array from "effect/Array"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import type { PluginConfig, TransformerExtras } from "ts-patch"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
@@ -34,14 +34,14 @@ export default function(
           LanguageServicePluginOptions.parse(pluginConfig)
         ),
         Nano.run,
-        Either.map((_) => _.diagnostics),
-        Either.map(
+        Result.map((_) => _.diagnostics),
+        Result.map(
           Array.filter((_) =>
             _.category === tsInstance.DiagnosticCategory.Error ||
             _.category === tsInstance.DiagnosticCategory.Warning
           )
         ),
-        Either.getOrElse(() => []),
+        Result.getOrElse(() => []),
         Array.map(addDiagnostic)
       )
 

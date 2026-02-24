@@ -1,11 +1,10 @@
-import * as Prompt from "@effect/cli/Prompt"
-import type { QuitException, Terminal } from "@effect/platform/Terminal"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
+import * as Prompt from "effect/unstable/cli/Prompt"
 import type { Assessment } from "./assessment"
 import { getAllDiagnostics } from "./diagnostic-info"
 import { createDiagnosticPrompt } from "./diagnostic-prompt"
-import type { Editor, Target } from "./target"
+import type { Editor } from "./target"
 
 /**
  * Context input for gathering target state
@@ -20,7 +19,7 @@ export interface GatherTargetContext {
 export const gatherTargetState = (
   assessment: Assessment.State,
   context: GatherTargetContext
-): Effect.Effect<Target.State, QuitException, Terminal> =>
+) =>
   Effect.gen(function*() {
     // Determine current LSP installation state
     const currentLspState = Option.match(assessment.packageJson.lspVersion, {

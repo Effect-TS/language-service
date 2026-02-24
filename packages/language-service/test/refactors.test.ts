@@ -7,8 +7,8 @@ import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { refactors } from "@effect/language-service/refactors"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -92,13 +92,13 @@ function testRefactorOnExample(
     Nano.unsafeRun
   )
 
-  if (!(Either.isRight(canApply) && canApply.right.length > 0)) {
+  if (!(Result.isSuccess(canApply) && canApply.success.length > 0)) {
     return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
   }
 
   // then get the actual edits to run it
   const applicableRefactor = pipe(
-    LSP.getEditsForRefactor([refactor], sourceFile, textRange, canApply.right[0].name),
+    LSP.getEditsForRefactor([refactor], sourceFile, textRange, canApply.success[0].name),
     TypeParser.nanoLayer,
     TypeCheckerUtils.nanoLayer,
     TypeScriptUtils.nanoLayer,
@@ -120,7 +120,7 @@ function testRefactorOnExample(
     Nano.unsafeRun
   )
 
-  if (Either.isLeft(applicableRefactor)) {
+  if (Result.isFailure(applicableRefactor)) {
     return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
   }
 
@@ -137,7 +137,7 @@ function testRefactorOnExample(
     },
     (changeTracker) =>
       pipe(
-        applicableRefactor.right.apply,
+        applicableRefactor.success.apply,
         Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
         Nano.unsafeRun
       )

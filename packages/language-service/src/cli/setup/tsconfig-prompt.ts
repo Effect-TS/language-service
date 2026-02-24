@@ -1,11 +1,9 @@
-import * as Prompt from "@effect/cli/Prompt"
-import type * as PlatformError from "@effect/platform/Error"
-import * as FileSystem from "@effect/platform/FileSystem"
-import * as Path from "@effect/platform/Path"
-import type { QuitException, Terminal } from "@effect/platform/Terminal"
 import * as Array from "effect/Array"
 import * as Effect from "effect/Effect"
-import type { FileInput } from "../utils"
+import * as FileSystem from "effect/FileSystem"
+import * as Path from "effect/Path"
+import type * as PlatformError from "effect/PlatformError"
+import * as Prompt from "effect/unstable/cli/Prompt"
 import { FileReadError, TsConfigNotFoundError } from "./errors"
 
 /**
@@ -32,11 +30,7 @@ const findTsConfigFiles = (
  */
 export const selectTsConfigFile = (
   currentDir: string
-): Effect.Effect<
-  FileInput,
-  PlatformError.PlatformError | QuitException | TsConfigNotFoundError | FileReadError,
-  FileSystem.FileSystem | Path.Path | Terminal
-> =>
+) =>
   Effect.gen(function*() {
     const fs = yield* FileSystem.FileSystem
     const path = yield* Path.Path

@@ -7,8 +7,8 @@ import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { diagnostics } from "@effect/language-service/diagnostics"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -96,8 +96,8 @@ function testDiagnosticOnExample(
     }),
     Nano.unsafeRun,
     async (result) => {
-      expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
-      await expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+      expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
+      await expect(Result.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
         snapshotFilePath
       )
     }
@@ -159,7 +159,7 @@ function testDiagnosticQuickfixesOnExample(
                 codeFix.apply,
                 Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
                 Nano.unsafeRun,
-                (result) => expect(Either.isRight(result), "should run with no error").toEqual(true)
+                (result) => expect(Result.isSuccess(result), "should run with no error").toEqual(true)
               )
           )
           // final source
@@ -210,9 +210,9 @@ function testDiagnosticQuickfixesOnExample(
     ),
     Nano.unsafeRun,
     async (result) => {
-      expect(Either.isRight(result), "should run with no error " + result).toEqual(true)
+      expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
       await Promise.all(promises)
-      await expect(Either.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+      await expect(Result.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
         snapshotFilePathList
       )
     }
