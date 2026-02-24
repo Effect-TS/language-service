@@ -499,7 +499,7 @@ export function makeTypeScriptUtils(ts: TypeScriptApi.TypeScriptApi): TypeScript
         }
       } else if (ts.isNamedImports(namedBindings)) {
         for (const importSpecifier of namedBindings.elements) {
-          const importProperty = Option.fromNullable(importSpecifier.propertyName).pipe(
+          const importProperty = Option.fromNullishOr(importSpecifier.propertyName).pipe(
             Option.orElse(() => Option.some(importSpecifier.name))
           )
           if (test(importSpecifier.name, statement.moduleSpecifier, importProperty)) {

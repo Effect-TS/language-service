@@ -616,11 +616,11 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
     const missingOutputTypes = new Set(outputTypes)
     const currentRequiredTypes = new Set<ts.Type>()
     const orderByProvidedCount = Order.mapInput(
-      Order.reverse(Order.number),
+      Order.flip(Order.Number),
       (_: LayerOutlineGraphNodeInfo) => _.provides.length
     )
     const orderByRequiredCount = Order.mapInput(
-      Order.reverse(Order.number),
+      Order.flip(Order.Number),
       (_: LayerOutlineGraphNodeInfo) => _.requires.length
     )
     const layerOrder = Order.combine(orderByProvidedCount, orderByRequiredCount)

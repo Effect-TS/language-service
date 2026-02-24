@@ -23,7 +23,7 @@ export const effectCodegensComment = LSP.createCompletion({
         length: Math.max(0, position - lastIndex)
       }
 
-      const allCodegens = Array.sort(Object.values(codegens).map((codegen) => codegen.name), Order.string)
+      const allCodegens = Array.sort(Object.values(codegens).map((codegen) => codegen.name), Order.String)
         .join(",")
       const enableSnippet = "${1|" + allCodegens + "|} $0"
 

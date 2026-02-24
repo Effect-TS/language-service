@@ -1,7 +1,7 @@
-import * as Either from "effect/Either"
 import { dual } from "effect/Function"
 import type { TypeLambda } from "effect/HKT"
 import * as Option from "effect/Option"
+import * as Result from "effect/Result"
 
 export const debugPerformance = false
 
@@ -235,25 +235,25 @@ export const withSpan = (
   return nano
 }
 
-export const unsafeRun = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
+export const unsafeRun = <A, E>(nano: Nano<A, E, never>): Result.Result<A, E | NanoDefectException> => {
   const fiber = new NanoFiber()
   const result = fiber.runLoop(nano)!
   if (result._tag === "Success") {
-    return Either.right(result.value)
+    return Result.succeed(result.value)
   }
-  return Either.left(result.value)
+  return Result.fail(result.value)
 }
 
-export const run = <A, E>(nano: Nano<A, E, never>): Either.Either<A, E | NanoDefectException> => {
+export const run = <A, E>(nano: Nano<A, E, never>): Result.Result<A, E | NanoDefectException> => {
   const fiber = new NanoFiber()
   try {
     const result = fiber.runLoop(nano)!
     if (result._tag === "Success") {
-      return Either.right(result.value)
+      return Result.succeed(result.value)
     }
-    return Either.left(result.value)
+    return Result.fail(result.value)
   } catch (e) {
-    return Either.left(new NanoDefectException(e, fiber._lastSpan))
+    return Result.fail(new NanoDefectException(e, fiber._lastSpan))
   }
 }
 

@@ -1,7 +1,7 @@
 import { isArray } from "effect/Array"
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
-import { hasProperty, isBoolean, isNumber, isObject, isRecord, isString } from "effect/Predicate"
+import { hasProperty, isBoolean, isNumber, isObject, isString } from "effect/Predicate"
 import * as Record from "effect/Record"
 import * as Nano from "./Nano"
 
@@ -52,7 +52,7 @@ function isValidSeverityLevel(value: string): value is DiagnosticSeverity | "off
 }
 
 function parseDiagnosticSeverity(config: Record<PropertyKey, unknown>): Record<string, DiagnosticSeverity | "off"> {
-  if (!isRecord(config)) return {}
+  if (!isObject(config)) return {}
   return Object.fromEntries(
     pipe(
       Object.entries(config),
@@ -132,8 +132,8 @@ export function parse(config: any): LanguageServicePluginOptions {
       ? config.diagnostics
       : defaults.diagnostics,
     diagnosticSeverity:
-      isObject(config) && hasProperty(config, "diagnosticSeverity") && isRecord(config.diagnosticSeverity)
-        ? parseDiagnosticSeverity(config.diagnosticSeverity)
+      isObject(config) && hasProperty(config, "diagnosticSeverity") && isObject(config.diagnosticSeverity)
+        ? parseDiagnosticSeverity(config.diagnosticSeverity as Record<PropertyKey, unknown>)
         : defaults.diagnosticSeverity,
     diagnosticsName: isObject(config) && hasProperty(config, "diagnosticsName") && isBoolean(config.diagnosticsName)
       ? config.diagnosticsName
@@ -188,8 +188,8 @@ export function parse(config: any): LanguageServicePluginOptions {
         isArray(config.barrelImportPackages) && config.barrelImportPackages.every(isString)
       ? config.barrelImportPackages.map((_) => _.toLowerCase())
       : defaults.barrelImportPackages,
-    importAliases: isObject(config) && hasProperty(config, "importAliases") && isRecord(config.importAliases)
-      ? Record.map(config.importAliases, (value) => String(value))
+    importAliases: isObject(config) && hasProperty(config, "importAliases") && isObject(config.importAliases)
+      ? Record.map(config.importAliases as Record<string, unknown>, (value) => String(value))
       : defaults.importAliases,
     topLevelNamedReexports: isObject(config) && hasProperty(config, "topLevelNamedReexports") &&
         isString(config.topLevelNamedReexports) &&

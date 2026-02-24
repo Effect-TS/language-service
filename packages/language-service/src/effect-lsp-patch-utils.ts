@@ -1,7 +1,7 @@
 import * as Array from "effect/Array"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as Predicate from "effect/Predicate"
+import * as Result from "effect/Result"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -76,8 +76,8 @@ export function checkSourceFileWorker(
       parsedOptions
     ),
     Nano.unsafeRun,
-    Either.map((_) => _.diagnostics),
-    Either.map(
+    Result.map((_) => _.diagnostics),
+    Result.map(
       Array.filter((_) =>
         _.category === tsInstance.DiagnosticCategory.Error ||
         _.category === tsInstance.DiagnosticCategory.Warning ||
@@ -87,7 +87,7 @@ export function checkSourceFileWorker(
         ))
       )
     ),
-    Either.map(
+    Result.map(
       Array.map((_) => {
         if (
           moduleName === "tsc" && parsedOptions.includeSuggestionsInTsc &&
@@ -98,7 +98,7 @@ export function checkSourceFileWorker(
         return _
       })
     ),
-    Either.getOrElse((e) => {
+    Result.getOrElse((e) => {
       console.error(e.message, "at", e.lastSpan)
       return []
     }),

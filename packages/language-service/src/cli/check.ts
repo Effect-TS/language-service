@@ -1,16 +1,15 @@
-import * as Command from "@effect/cli/Command"
-import * as Options from "@effect/cli/Options"
-import * as FileSystem from "@effect/platform/FileSystem"
 import { pipe } from "effect"
 import * as Array from "effect/Array"
 import * as Effect from "effect/Effect"
+import * as FileSystem from "effect/FileSystem"
+import { Command, Flag } from "effect/unstable/cli"
 import { extractAppliedEffectLspPatches, getModuleFilePath, getPackageJsonData, TypeScriptContext } from "./utils"
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
-const dirPath = Options.directory("dir").pipe(
-  Options.withDefault(LOCAL_TYPESCRIPT_DIR),
-  Options.withDescription("The directory of the typescript package to patch.")
+const dirPath = Flag.directory("dir").pipe(
+  Flag.withDefault(LOCAL_TYPESCRIPT_DIR),
+  Flag.withDescription("The directory of the typescript package to patch.")
 )
 
 export const check = Command.make(

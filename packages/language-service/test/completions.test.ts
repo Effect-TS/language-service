@@ -7,8 +7,8 @@ import * as TypeCheckerUtils from "@effect/language-service/core/TypeCheckerUtil
 import * as TypeParser from "@effect/language-service/core/TypeParser"
 import * as TypeScriptApi from "@effect/language-service/core/TypeScriptApi"
 import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -66,12 +66,12 @@ function testCompletionOnExample(
     Nano.unsafeRun
   )
 
-  if (Either.isLeft(maybeEntries)) {
+  if (Result.isFailure(maybeEntries)) {
     expect(sourceText).toMatchSnapshot()
     return
   }
 
-  expect(maybeEntries.right).toMatchSnapshot()
+  expect(maybeEntries.success).toMatchSnapshot()
 }
 
 function testAllCompletions() {

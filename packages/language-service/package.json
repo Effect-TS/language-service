@@ -43,15 +43,9 @@
   "devDependencies": {
     "pako": "^2.1.0",
     "@typescript-eslint/project-service": "^8.52.0",
-    "@effect/cli": "^0.73.0",
-    "@effect/experimental": "^0.58.0",
-    "@effect/platform": "0.94.1",
-    "@effect/platform-node": "0.104.0",
-    "@effect/printer-ansi": "^0.47.0",
-    "@effect/rpc": "^0.73.0",
-    "@effect/sql": "^0.49.0",
+    "@effect/platform-node": "^4.0.0-beta.12",
     "@types/pako": "^2.0.4",
-    "effect": "^3.19.14",
+    "effect": "^4.0.0-beta.12",
     "ts-patch": "^3.3.0"
   }
 }

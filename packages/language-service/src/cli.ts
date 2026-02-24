@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import * as Command from "@effect/cli/Command"
-import * as NodeContext from "@effect/platform-node/NodeContext"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
+import * as NodeServices from "@effect/platform-node/NodeServices"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
+import { Command } from "effect/unstable/cli"
 import packageJson from "../package.json"
 import { check } from "./cli/check"
 import { codegen } from "./cli/codegen"
@@ -22,18 +22,32 @@ const cliCommand = Command.make(
   "effect-language-service",
   {},
   () => Console.log("Please select a command or run --help.")
-).pipe(Command.withSubcommands([setup, patch, unpatch, check, diagnostics, quickfixes, codegen, overview, layerInfo]))
+).pipe(Command.withSubcommands([
+  {
+    group: "Getting started",
+    commands: [setup]
+  },
+  {
+    group: "Diagnostics at compile-time",
+    commands: [patch, unpatch, check]
+  },
+  {
+    group: "Diagnostics",
+    commands: [diagnostics, quickfixes, codegen]
+  },
+  {
+    group: "Project utilities",
+    commands: [overview, layerInfo]
+  }
+]))
 
 const main = Command.run(cliCommand, {
-  name: "effect-language-service",
   version: packageJson.version
 })
 
-const cliLayers = Layer.merge(NodeContext.layer, TypeScriptContext.live(process.cwd()))
+const cliLayers = Layer.merge(NodeServices.layer, TypeScriptContext.live(process.cwd()))
 
-main(process.argv).pipe(
-  Effect.provide(cliLayers),
-  NodeRuntime.runMain({
-    disableErrorReporting: false
-  })
+NodeRuntime.runMain(
+  main.pipe(Effect.provide(cliLayers)),
+  { disableErrorReporting: false }
 )

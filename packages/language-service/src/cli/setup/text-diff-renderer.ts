@@ -1,5 +1,4 @@
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
+import { ansi, DIM, GREEN, RED } from "../ansi"
 
 /**
  * A text change span (similar to ts.TextChange but for plain text)
@@ -48,19 +47,19 @@ function getLineAndCharacterOfPosition(
  * @param lineNum - Line number (1-based) or undefined for lines without numbers (changes)
  * @param symbol - Symbol to display: "|" for unchanged, "-" for deletion, "+" for addition
  * @param text - The actual line text
- * @param color - The ANSI color to apply
+ * @param color - The ANSI color code to apply
  */
 function renderLine(
   lineNum: number | undefined,
   symbol: "|" | "-" | "+",
   text: string,
-  color: Ansi.Ansi
-): Doc.AnsiDoc {
+  color: string
+): string {
   const lineNumPart = lineNum !== undefined
     ? String(lineNum).padStart(4, " ")
     : "    "
 
-  return Doc.annotate(Doc.text(`${lineNumPart} ${symbol} ${text}`), color)
+  return ansi(`${lineNumPart} ${symbol} ${text}`, color)
 }
 
 /**
@@ -69,7 +68,7 @@ function renderLine(
 export function renderPlainTextChange(
   text: string,
   textChange: TextChange
-): ReadonlyArray<Doc.AnsiDoc> {
+): ReadonlyArray<string> {
   const startPos = textChange.span.start
   const endPos = textChange.span.start + textChange.span.length
 
@@ -81,13 +80,13 @@ export function renderPlainTextChange(
   const startCol = startLineAndChar.character
   const endCol = endLineAndChar.character
 
-  const lines: Array<Doc.AnsiDoc> = []
+  const lines: Array<string> = []
   const allLines = getLines(text)
 
   // Show 1 line before the change (if exists)
   if (startLine > 0) {
     const contextBefore = allLines[startLine - 1]
-    lines.push(renderLine(startLine, "|", contextBefore, Ansi.blackBright))
+    lines.push(renderLine(startLine, "|", contextBefore, DIM))
   }
 
   // ============================================================================
@@ -102,7 +101,7 @@ export function renderPlainTextChange(
     // Only show the kept part if it contains non-whitespace characters
     const hasNonWhitespaceKept = keptBeforeDeletion.trim().length > 0
     if (hasNonWhitespaceKept) {
-      lines.push(renderLine(startLine + 1, "|", keptBeforeDeletion, Ansi.blackBright))
+      lines.push(renderLine(startLine + 1, "|", keptBeforeDeletion, DIM))
     }
 
     // Show the deleted part of the first line
@@ -113,7 +112,7 @@ export function renderPlainTextChange(
     if (deletedOnFirstLine.length > 0) {
       // Align with spaces to match the kept part's position
       const spacePadding = hasNonWhitespaceKept ? " ".repeat(keptBeforeDeletion.length) : ""
-      lines.push(renderLine(undefined, "-", `${spacePadding}${deletedOnFirstLine}`, Ansi.red))
+      lines.push(renderLine(undefined, "-", `${spacePadding}${deletedOnFirstLine}`, RED))
     }
   }
 
@@ -121,7 +120,7 @@ export function renderPlainTextChange(
   for (let i = startLine + 1; i < endLine; i++) {
     const lineText = allLines[i]
     if (lineText !== undefined) {
-      lines.push(renderLine(undefined, "-", lineText, Ansi.red))
+      lines.push(renderLine(undefined, "-", lineText, RED))
     }
   }
 
@@ -131,7 +130,7 @@ export function renderPlainTextChange(
     const deletedOnLastLine = lastLineText.slice(0, endCol)
 
     if (deletedOnLastLine.length > 0) {
-      lines.push(renderLine(undefined, "-", deletedOnLastLine, Ansi.red))
+      lines.push(renderLine(undefined, "-", deletedOnLastLine, RED))
     }
   }
 
@@ -158,7 +157,7 @@ export function renderPlainTextChange(
 
       // Align first line of addition with the kept part
       const padding = (i === 0 && hasNonWhitespaceKept) ? spacePadding : ""
-      lines.push(renderLine(undefined, "+", `${padding}${newLine}`, Ansi.green))
+      lines.push(renderLine(undefined, "+", `${padding}${newLine}`, GREEN))
     }
   }
 
@@ -200,21 +199,21 @@ export function renderPlainTextChange(
     const keptAfterDeletion = lastLineText.slice(endCol)
     if (keptAfterDeletion.trim().length > 0) {
       const alignment = " ".repeat(alignmentForKeptPart)
-      lines.push(renderLine(endLine + 1, "|", `${alignment}${keptAfterDeletion}`, Ansi.blackBright))
+      lines.push(renderLine(endLine + 1, "|", `${alignment}${keptAfterDeletion}`, DIM))
     }
   } else if (startLine === endLine) {
     const firstLineText = allLines[startLine]
     const keptAfterDeletion = firstLineText.slice(endCol)
     if (keptAfterDeletion.trim().length > 0) {
       const alignment = " ".repeat(alignmentForKeptPart)
-      lines.push(renderLine(startLine + 1, "|", `${alignment}${keptAfterDeletion}`, Ansi.blackBright))
+      lines.push(renderLine(startLine + 1, "|", `${alignment}${keptAfterDeletion}`, DIM))
     }
   }
 
   // Show 1 line after the change (if exists)
   if (endLine + 1 < allLines.length) {
     const contextAfter = allLines[endLine + 1]
-    lines.push(renderLine(endLine + 2, "|", contextAfter, Ansi.blackBright))
+    lines.push(renderLine(endLine + 2, "|", contextAfter, DIM))
   }
 
   return lines
@@ -226,8 +225,8 @@ export function renderPlainTextChange(
 export function renderPlainTextFileChanges(
   text: string,
   textChanges: ReadonlyArray<TextChange>
-): ReadonlyArray<Doc.AnsiDoc> {
-  const lines: Array<Doc.AnsiDoc> = []
+): ReadonlyArray<string> {
+  const lines: Array<string> = []
 
   // Sort changes by position
   const sortedChanges = [...textChanges].sort((a, b) => a.span.start - b.span.start)
@@ -243,7 +242,7 @@ export function renderPlainTextFileChanges(
 
     // Add separator between changes if there are multiple
     if (i < sortedChanges.length - 1) {
-      lines.push(Doc.text(""))
+      lines.push("")
     }
   }
 

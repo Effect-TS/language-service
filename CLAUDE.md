@@ -8,7 +8,7 @@ This workflow should be initiated only if asked by the user.
 The following steps can be skipped if no typescript file has been changed in this branch, do not attempt any file change without user consent.
 - run "pnpm lint-fix" to fix code formatting
 - run "pnpm check" to see if you should fix some type errors
-- run "pnpm test" to validate that changes did not broke anything.
+- run "pnpm test" and "pnpm test:v4" to validate that changes did not broke anything.
 
 ### 3. Documentation checks
 - if new diagnostics, completions or refactor are added, ensure they are already mentioned in the README.md. Ensure to read examples and test/__snapshots__ related to the change to ensure full understanding of whats changed

@@ -1,6 +1,6 @@
 import * as Nano from "@effect/language-service/core/Nano"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
+import * as Result from "effect/Result"
 import { configFromSourceComment } from "./utils/mocks"
 
 import { describe, expect, it } from "vitest"
@@ -22,18 +22,18 @@ describe("configFromSourceComment", () => {
 describe("nano", () => {
   it("flatMap-ping", () => {
     const program = Nano.flatMap(Nano.succeed(2), (_) => Nano.succeed(_ * 2))
-    expect(Nano.run(program)).toEqual(Either.right(4))
+    expect(Nano.run(program)).toEqual(Result.succeed(4))
   })
   it("sync", () => {
     const program = Nano.sync(() => 42)
-    expect(Nano.run(program)).toEqual(Either.right(42))
+    expect(Nano.run(program)).toEqual(Result.succeed(42))
   })
   it("provide service test", () => {
     const Tag = Nano.Tag<{ value: number }>("test")
     const program = Nano.provideService(Tag, { value: 42 })(Nano.service(Tag))
-    expect(Nano.run(program)).toEqual(Either.right({ value: 42 }))
+    expect(Nano.run(program)).toEqual(Result.succeed({ value: 42 }))
     const program2 = Nano.provideService(Tag, { value: 1 })(Nano.service(Tag))
-    expect(Nano.run(program2)).toEqual(Either.right({ value: 1 }))
+    expect(Nano.run(program2)).toEqual(Result.succeed({ value: 1 }))
     const nested = pipe(
       Nano.service(Tag),
       Nano.provideService(Tag, { value: 1 }),
@@ -42,7 +42,7 @@ describe("nano", () => {
       Nano.provideService(Tag, { value: 3 }),
       Nano.run
     )
-    expect(nested).toEqual(Either.right([{ value: 1 }, { value: 2 }]))
+    expect(nested).toEqual(Result.succeed([{ value: 1 }, { value: 2 }]))
   })
   it("should run gen", () => {
     const program = Nano.gen(function*() {
@@ -50,7 +50,7 @@ describe("nano", () => {
       const b = yield* Nano.succeed(2)
       return a + b
     })
-    expect(Nano.run(program)).toEqual(Either.right(3))
+    expect(Nano.run(program)).toEqual(Result.succeed(3))
   })
   it("should run fn", () => {
     const program = Nano.fn("program")(function*(v1: number, v2: number) {
@@ -58,7 +58,7 @@ describe("nano", () => {
       const b = yield* Nano.succeed(v2)
       return a + b
     })
-    expect(Nano.run(program(1, 2))).toEqual(Either.right(3))
+    expect(Nano.run(program(1, 2))).toEqual(Result.succeed(3))
   })
 
   it("should handle simple context", () => {
@@ -72,7 +72,7 @@ describe("nano", () => {
       Nano.run
     )
     expect(result).toEqual(
-      Either.right({ value: 42 })
+      Result.succeed({ value: 42 })
     )
   })
 
@@ -85,7 +85,7 @@ describe("nano", () => {
       Nano.run
     )
     expect(result).toEqual(
-      Either.left(new Nano.NanoDefectException("error", ""))
+      Result.fail(new Nano.NanoDefectException("error", ""))
     )
   })
   it("orElse", () => {
@@ -93,6 +93,6 @@ describe("nano", () => {
       Nano.fail("error"),
       Nano.orElse((_) => Nano.succeed(42))
     )
-    expect(Nano.run(program)).toEqual(Either.right(42))
+    expect(Nano.run(program)).toEqual(Result.succeed(42))
   })
 })

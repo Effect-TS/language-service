@@ -1,21 +1,20 @@
-import * as FileSystem from "@effect/platform/FileSystem"
-import * as Path from "@effect/platform/Path"
-import * as Context from "effect/Context"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import * as Encoding from "effect/Encoding"
+import * as FileSystem from "effect/FileSystem"
 import * as Layer from "effect/Layer"
+import * as Path from "effect/Path"
 import * as Predicate from "effect/Predicate"
+import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
+import * as ServiceMap from "effect/ServiceMap"
 import type * as ts from "typescript"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 const PackageJsonSchema = Schema.Struct({
   name: Schema.String,
   version: Schema.String,
-  scripts: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.String
-  }))
+  scripts: Schema.optional(Schema.Record(Schema.String, Schema.String))
 })
 
 export class UnableToFindPackageJsonError extends Data.TaggedError("UnableToFindPackageError")<{
@@ -66,10 +65,7 @@ export interface FileInput {
 /**
  * TypeScript API context for CLI operations
  */
-export class TypeScriptContext extends Context.Tag("TypeScriptContext")<
-  TypeScriptContext,
-  TypeScriptApi
->() {
+export class TypeScriptContext extends ServiceMap.Service<TypeScriptContext, TypeScriptApi>()("TypeScriptContext") {
   static live = (cwd: string) =>
     Layer.effect(
       TypeScriptContext,
@@ -78,7 +74,7 @@ export class TypeScriptContext extends Context.Tag("TypeScriptContext")<
         try: () => require(require.resolve("typescript", { paths: [cwd] })) as typeof ts,
         catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
       }).pipe(
-        Effect.orElse(() =>
+        Effect.catch(() =>
           Effect.try({
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             try: () => require("typescript") as typeof ts,
@@ -96,7 +92,7 @@ export const getPackageJsonData = Effect.fn("getPackageJsonData")(function*(pack
   const packageJsonContent = yield* fs.readFileString(packageJsonPath).pipe(
     Effect.mapError((cause) => new UnableToFindPackageJsonError({ packageJsonPath, cause }))
   )
-  const packageJsonData = yield* Schema.decode(Schema.parseJson(PackageJsonSchema))(packageJsonContent).pipe(
+  const packageJsonData = yield* Schema.decodeEffect(Schema.fromJsonString(PackageJsonSchema))(packageJsonContent).pipe(
     Effect.mapError((cause) => new MalformedPackageJsonError({ packageJsonPath, cause }))
   )
   return { ...packageJsonData }
@@ -149,16 +145,30 @@ function effectLspPatchUtils(){
   return patchWithWrappingFunction
 })
 
-export const AppliedPatchMetadata = Schema.compose(
-  Schema.StringFromBase64,
-  Schema.parseJson(Schema.Struct({
-    version: Schema.String,
-    replacedText: Schema.String,
-    insertedPrefixLength: Schema.Int,
-    insertedTextLength: Schema.Int
-  }))
-)
-export type AppliedPatchMetadata = Schema.Schema.Type<typeof AppliedPatchMetadata>
+const AppliedPatchMetadataStruct = Schema.Struct({
+  version: Schema.String,
+  replacedText: Schema.String,
+  insertedPrefixLength: Schema.Int,
+  insertedTextLength: Schema.Int
+})
+
+export type AppliedPatchMetadata = typeof AppliedPatchMetadataStruct.Type
+
+/** Decode a base64-encoded JSON string into AppliedPatchMetadata */
+const decodeAppliedPatchMetadata = (base64str: string): Effect.Effect<AppliedPatchMetadata, unknown> => {
+  const decoded = Encoding.decodeBase64(base64str)
+  if (Result.isFailure(decoded)) {
+    return Effect.fail(decoded.failure)
+  }
+  const jsonStr = new TextDecoder().decode(decoded.success)
+  return Schema.decodeEffect(Schema.fromJsonString(AppliedPatchMetadataStruct))(jsonStr)
+}
+
+/** Encode AppliedPatchMetadata into a base64-encoded JSON string */
+const encodeAppliedPatchMetadata = (metadata: AppliedPatchMetadata): Effect.Effect<string, Schema.SchemaError> =>
+  Schema.encodeEffect(Schema.fromJsonString(AppliedPatchMetadataStruct))(metadata).pipe(
+    Effect.map((jsonStr) => Encoding.encodeBase64(jsonStr))
+  )
 
 export const makeEffectLspPatchChange = Effect.fn("makeEffectLspPatchChange")(
   function*(
@@ -176,7 +186,7 @@ export const makeEffectLspPatchChange = Effect.fn("makeEffectLspPatchChange")(
       insertedPrefixLength: insertedPrefix.length,
       insertedTextLength: insertedText.length
     }
-    const encodedMetadata = yield* Schema.encode(AppliedPatchMetadata)(metadata)
+    const encodedMetadata = yield* encodeAppliedPatchMetadata(metadata)
     const textChange: ts.TextChange = {
       span: { start: pos, length: end - pos },
       newText: insertedPrefix + "/* @effect-lsp-patch " + encodedMetadata + " */ " + insertedText
@@ -198,7 +208,7 @@ export const extractAppliedEffectLspPatches = Effect.fn("extractAppliedEffectLsp
       const commentTextMetadata = match[1]
       const commentRange = tsUtils.getCommentAtPosition(sourceFile, match.index)
       if (!commentRange) continue
-      const metadata = yield* Schema.decode(AppliedPatchMetadata)(commentTextMetadata).pipe(
+      const metadata = yield* decodeAppliedPatchMetadata(commentTextMetadata).pipe(
         Effect.mapError((cause) => new CorruptedPatchedSourceFileError({ filePath: sourceFile.fileName, cause }))
       )
       patches.push(metadata)

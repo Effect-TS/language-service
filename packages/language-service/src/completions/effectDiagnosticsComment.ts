@@ -23,7 +23,7 @@ export const effectDiagnosticsComment = LSP.createCompletion({
         length: Math.max(0, position - lastIndex)
       }
 
-      const allDiagnostics = Array.sort(Object.values(diagnostics).map((diagnostic) => diagnostic.name), Order.string)
+      const allDiagnostics = Array.sort(Object.values(diagnostics).map((diagnostic) => diagnostic.name), Order.String)
         .join(",")
       const disableSnippet = "${1|" + allDiagnostics + "|}:${2|off,warning,error,message,suggestion|}$0"
 

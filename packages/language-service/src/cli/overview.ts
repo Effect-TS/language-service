@@ -1,19 +1,16 @@
-import * as Command from "@effect/cli/Command"
-import * as Options from "@effect/cli/Options"
-import * as Path from "@effect/platform/Path"
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Array from "effect/Array"
 import * as Console from "effect/Console"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as Number from "effect/Number"
 import * as Option from "effect/Option"
 import * as Order from "effect/Order"
+import * as Path from "effect/Path"
+import * as Result from "effect/Result"
 import * as String from "effect/String"
+import { Command, Flag } from "effect/unstable/cli"
 
 import type * as ts from "typescript"
 import * as Nano from "../core/Nano"
@@ -22,6 +19,7 @@ import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
+import { ansi, BOLD, DIM } from "./ansi"
 import { getFileNamesInTsConfig, TypeScriptContext } from "./utils"
 import * as ExportedSymbols from "./utils/ExportedSymbols"
 import * as Spinner from "./utils/Spinner"
@@ -237,119 +235,115 @@ const toRelativePath = (absolutePath: string, cwd: string): string => {
 }
 
 /**
- * Renders a dim text line
- */
-const dimLine = (text: string): Doc.AnsiDoc => Doc.annotate(Doc.text(text), Ansi.blackBright)
-
-/**
  * Renders a service item
  */
-const renderService = (svc: ServiceInfo, cwd: string): Doc.AnsiDoc => {
+const renderService = (svc: ServiceInfo, cwd: string): string => {
   const relativePath = toRelativePath(svc.filePath, cwd)
-  const details: Array<Doc.AnsiDoc> = [
-    dimLine(`${relativePath}:${svc.line}:${svc.column}`),
-    dimLine(svc.serviceType)
+  const details = [
+    ansi(`${relativePath}:${svc.line}:${svc.column}`, DIM),
+    ansi(svc.serviceType, DIM)
   ]
   if (svc.description) {
-    details.push(dimLine(svc.description))
+    details.push(ansi(svc.description, DIM))
   }
-
-  return Doc.vsep([
-    Doc.text(svc.name),
-    Doc.indent(Doc.vsep(details), 2),
-    Doc.empty
-  ])
+  return [
+    `  ${svc.name}`,
+    ...details.map((d) => `    ${d}`),
+    ""
+  ].join("\n")
 }
 
 /**
  * Renders a layer item
  */
-const renderLayer = (layer: LayerInfo, cwd: string): Doc.AnsiDoc => {
+const renderLayer = (layer: LayerInfo, cwd: string): string => {
   const relativePath = toRelativePath(layer.filePath, cwd)
-  const details: Array<Doc.AnsiDoc> = [
-    dimLine(`${relativePath}:${layer.line}:${layer.column}`),
-    dimLine(layer.layerType)
+  const details = [
+    ansi(`${relativePath}:${layer.line}:${layer.column}`, DIM),
+    ansi(layer.layerType, DIM)
   ]
   if (layer.description) {
-    details.push(dimLine(layer.description))
+    details.push(ansi(layer.description, DIM))
   }
-
-  return Doc.vsep([
-    Doc.text(layer.name),
-    Doc.indent(Doc.vsep(details), 2),
-    Doc.empty
-  ])
+  return [
+    `  ${layer.name}`,
+    ...details.map((d) => `    ${d}`),
+    ""
+  ].join("\n")
 }
 
 /**
  * Renders an error item
  */
-const renderError = (error: ErrorInfo, cwd: string): Doc.AnsiDoc => {
+const renderError = (error: ErrorInfo, cwd: string): string => {
   const relativePath = toRelativePath(error.filePath, cwd)
-  const details: Array<Doc.AnsiDoc> = [
-    dimLine(`${relativePath}:${error.line}:${error.column}`),
-    dimLine(error.errorType)
+  const details = [
+    ansi(`${relativePath}:${error.line}:${error.column}`, DIM),
+    ansi(error.errorType, DIM)
   ]
   if (error.description) {
-    details.push(dimLine(error.description))
+    details.push(ansi(error.description, DIM))
   }
-
-  return Doc.vsep([
-    Doc.text(error.name),
-    Doc.indent(Doc.vsep(details), 2),
-    Doc.empty
-  ])
+  return [
+    `  ${error.name}`,
+    ...details.map((d) => `    ${d}`),
+    ""
+  ].join("\n")
 }
 
 /**
- * Renders the overview result as a styled document
+ * Renders the overview result as a styled string
  */
-export const renderOverview = (result: OverviewResult, cwd: string): Doc.AnsiDoc => {
-  const lines: Array<Doc.AnsiDoc> = []
+export const renderOverview = (result: OverviewResult, cwd: string): string => {
+  const lines: Array<string> = []
 
   // Errors section
   if (result.errors.length > 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.annotate(Doc.text(`Yieldable Errors (${result.errors.length})`), Ansi.bold))
+    lines.push("")
+    lines.push(ansi(`Yieldable Errors (${result.errors.length})`, BOLD))
     const sortedErrors = Array.sort(result.errors, itemOrder)
-    const errorDocs = sortedErrors.map((error) => renderError(error, cwd))
-    lines.push(Doc.indent(Doc.vsep(errorDocs), 2))
+    for (const error of sortedErrors) {
+      lines.push(renderError(error, cwd))
+    }
   }
 
   // Services section
   if (result.services.length > 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.annotate(Doc.text(`Services (${result.services.length})`), Ansi.bold))
+    lines.push("")
+    lines.push(ansi(`Services (${result.services.length})`, BOLD))
     const sortedServices = Array.sort(result.services, itemOrder)
-    const serviceDocs = sortedServices.map((svc) => renderService(svc, cwd))
-    lines.push(Doc.indent(Doc.vsep(serviceDocs), 2))
+    for (const svc of sortedServices) {
+      lines.push(renderService(svc, cwd))
+    }
   }
 
   // Layers section
   if (result.layers.length > 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.annotate(Doc.text(`Layers (${result.layers.length})`), Ansi.bold))
+    lines.push("")
+    lines.push(ansi(`Layers (${result.layers.length})`, BOLD))
     const sortedLayers = Array.sort(result.layers, itemOrder)
-    const layerDocs = sortedLayers.map((layer) => renderLayer(layer, cwd))
-    lines.push(Doc.indent(Doc.vsep(layerDocs), 2))
+    for (const layer of sortedLayers) {
+      lines.push(renderLayer(layer, cwd))
+    }
   }
 
   if (result.services.length === 0 && result.layers.length === 0 && result.errors.length === 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.text("No exported services, layers, or errors found."))
+    lines.push("")
+    lines.push("No exported services, layers, or errors found.")
   }
 
   // Hint for getting automatic composition
   if (result.layers.length > 0) {
-    lines.push(Doc.empty)
+    lines.push("")
     lines.push(
-      dimLine(
-        "Tip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use."
+      ansi(
+        "Tip: Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...) command, and then run the layerinfo command to get the suggested composition order to use.",
+        DIM
       )
     )
   }
 
-  return Doc.vsep(lines)
+  return lines.join("\n")
 }
 
 /**
@@ -397,7 +391,7 @@ const collectAllItems = (
             Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
             Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
             Nano.run,
-            Either.getOrElse(() => ({ services: [], layers: [], errors: [] }))
+            Result.getOrElse(() => ({ services: [], layers: [], errors: [] }))
           )
 
           for (const svc of result.services) {
@@ -413,7 +407,7 @@ const collectAllItems = (
           service.closeClientFile(filePath)
         }
       }
-      yield* Effect.yieldNow()
+      yield* Effect.yieldNow
     }
 
     return { services, layers, errors }
@@ -422,17 +416,17 @@ const collectAllItems = (
 export const overview = Command.make(
   "overview",
   {
-    file: Options.file("file").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the file to analyze.")
+    file: Flag.file("file").pipe(
+      Flag.optional,
+      Flag.withDescription("The full path of the file to analyze.")
     ),
-    project: Options.file("project").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the project tsconfig.json file to analyze.")
+    project: Flag.file("project").pipe(
+      Flag.optional,
+      Flag.withDescription("The full path of the project tsconfig.json file to analyze.")
     ),
-    maxSymbolDepth: Options.integer("max-symbol-depth").pipe(
-      Options.withDefault(3),
-      Options.withDescription(
+    maxSymbolDepth: Flag.integer("max-symbol-depth").pipe(
+      Flag.withDefault(3),
+      Flag.withDescription(
         "Maximum depth to traverse nested symbol properties. 0 = only root exports, 1 = root + one level, etc."
       )
     )
@@ -469,8 +463,8 @@ export const overview = Command.make(
       }
     )
 
-    const doc = renderOverview({ services, layers, errors, totalFilesCount: filesToCheck.size }, cwd)
-    yield* Console.log(Doc.render(doc, { style: "pretty" }))
+    const output = renderOverview({ services, layers, errors, totalFilesCount: filesToCheck.size }, cwd)
+    yield* Console.log(output)
   })
 ).pipe(
   Command.withDescription("Provides an overview of Effect-related exports in the given files or project.")

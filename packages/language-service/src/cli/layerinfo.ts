@@ -1,14 +1,11 @@
-import * as Command from "@effect/cli/Command"
-import * as Options from "@effect/cli/Options"
-import * as Path from "@effect/platform/Path"
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import * as Result from "effect/Result"
+import { Command, Flag } from "effect/unstable/cli"
 
 import type * as ts from "typescript"
 import * as LayerGraph from "../core/LayerGraph"
@@ -18,6 +15,7 @@ import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
+import { ansi, BOLD, DIM } from "./ansi"
 import { collectExportedItems, type LayerInfo } from "./overview"
 import { TypeScriptContext } from "./utils"
 
@@ -88,29 +86,24 @@ const toRelativePath = (absolutePath: string, cwd: string): string => {
 }
 
 /**
- * Renders a dim text line
+ * Renders the layer info result as a styled string
  */
-const dimLine = (text: string): Doc.AnsiDoc => Doc.annotate(Doc.text(text), Ansi.blackBright)
-
-/**
- * Renders the layer info result as a styled document
- */
-export const renderLayerInfo = (result: LayerInfoResult, cwd: string): Doc.AnsiDoc => {
+export const renderLayerInfo = (result: LayerInfoResult, cwd: string): string => {
   const { layer, providersAndRequirers } = result
-  const lines: Array<Doc.AnsiDoc> = []
+  const lines: Array<string> = []
 
   // Header with layer name
-  lines.push(Doc.empty)
-  lines.push(Doc.annotate(Doc.text(layer.name), Ansi.bold))
+  lines.push("")
+  lines.push(ansi(layer.name, BOLD))
 
   // Location and type indented under the name
   const relativePath = toRelativePath(layer.filePath, cwd)
-  lines.push(Doc.indent(dimLine(`${relativePath}:${layer.line}:${layer.column}`), 2))
-  lines.push(Doc.indent(dimLine(layer.layerType), 2))
+  lines.push(`  ${ansi(`${relativePath}:${layer.line}:${layer.column}`, DIM)}`)
+  lines.push(`  ${ansi(layer.layerType, DIM)}`)
 
   // Description if present
   if (layer.description) {
-    lines.push(Doc.indent(dimLine(layer.description), 2))
+    lines.push(`  ${ansi(layer.description, DIM)}`)
   }
 
   // Providers and Requirers
@@ -118,75 +111,62 @@ export const renderLayerInfo = (result: LayerInfoResult, cwd: string): Doc.AnsiD
   const requiredItems = providersAndRequirers.filter((_) => _.kind === "required")
 
   if (providedItems.length > 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.annotate(Doc.text(`Provides (${providedItems.length}):`), Ansi.bold))
+    lines.push("")
+    lines.push(ansi(`Provides (${providedItems.length}):`, BOLD))
     for (const item of providedItems) {
-      lines.push(Doc.indent(dimLine(`- ${item.typeString}`), 2))
+      lines.push(`  ${ansi(`- ${item.typeString}`, DIM)}`)
     }
   }
 
   if (requiredItems.length > 0) {
-    lines.push(Doc.empty)
-    lines.push(Doc.annotate(Doc.text(`Requires (${requiredItems.length}):`), Ansi.bold))
+    lines.push("")
+    lines.push(ansi(`Requires (${requiredItems.length}):`, BOLD))
     for (const item of requiredItems) {
-      lines.push(Doc.indent(dimLine(`- ${item.typeString}`), 2))
+      lines.push(`  ${ansi(`- ${item.typeString}`, DIM)}`)
     }
   }
 
   if (providedItems.length === 0 && requiredItems.length === 0) {
-    lines.push(Doc.empty)
-    lines.push(dimLine("No providers or requirements detected."))
+    lines.push("")
+    lines.push(ansi("No providers or requirements detected.", DIM))
   }
 
   // Suggested Composition section (includes tip, output types list, and composition)
-  lines.push(Doc.empty)
-  lines.push(Doc.annotate(Doc.text("Suggested Composition:"), Ansi.bold))
+  lines.push("")
+  lines.push(ansi("Suggested Composition:", BOLD))
 
   // Tip about using Layer.mergeAll and --outputs
   lines.push(
-    Doc.indent(
-      dimLine("Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)"),
-      2
-    )
+    `  ${ansi("Not sure you got your composition right? Just write all layers inside a Layer.mergeAll(...)", DIM)}`
   )
   lines.push(
-    Doc.indent(
-      dimLine(
-        "then run this command again and use --outputs to select which outputs to include in composition."
-      ),
-      2
-    )
+    `  ${ansi("then run this command again and use --outputs to select which outputs to include in composition.", DIM)}`
   )
-  lines.push(
-    Doc.indent(
-      dimLine("Example: --outputs 1,2,3"),
-      2
-    )
-  )
+  lines.push(`  ${ansi("Example: --outputs 1,2,3", DIM)}`)
 
   // Output types list with checkboxes
   if (result.outputTypes.length > 0) {
-    lines.push(Doc.indent(dimLine(""), 2))
+    lines.push("")
     for (const output of result.outputTypes) {
       const marker = output.included ? "[x]" : "[ ]"
-      lines.push(Doc.indent(dimLine(`${marker} ${output.index}. ${output.typeString}`), 2))
+      lines.push(`  ${ansi(`${marker} ${output.index}. ${output.typeString}`, DIM)}`)
     }
   }
 
   // Actual composition code
   if (result.suggestedComposition && result.suggestedComposition.length > 1) {
-    lines.push(Doc.indent(dimLine(""), 2))
+    lines.push("")
     const [first, ...rest] = result.suggestedComposition
-    lines.push(Doc.indent(dimLine(`export const ${layer.name} = ${first!.layerName}.pipe(`), 2))
+    lines.push(`  ${ansi(`export const ${layer.name} = ${first!.layerName}.pipe(`, DIM)}`)
     for (let i = 0; i < rest.length; i++) {
       const step = rest[i]!
       const suffix = i === rest.length - 1 ? "" : ","
-      lines.push(Doc.indent(dimLine(`Layer.${step.operation}(${step.layerName})${suffix}`), 4))
+      lines.push(`    ${ansi(`Layer.${step.operation}(${step.layerName})${suffix}`, DIM)}`)
     }
-    lines.push(Doc.indent(dimLine(")"), 2))
+    lines.push(`  ${ansi(")", DIM)}`)
   }
 
-  return Doc.vsep(lines)
+  return lines.join("\n")
 }
 
 /**
@@ -442,17 +422,17 @@ const parseOutputIndices = (outputs: Option.Option<string>): ReadonlyArray<numbe
 export const layerInfo = Command.make(
   "layerinfo",
   {
-    file: Options.file("file").pipe(
-      Options.withDescription("The full path of the file containing the layer.")
+    file: Flag.file("file").pipe(
+      Flag.withDescription("The full path of the file containing the layer.")
     ),
-    name: Options.text("name").pipe(
-      Options.withDescription("The name of the exported layer to inspect.")
+    name: Flag.string("name").pipe(
+      Flag.withDescription("The name of the exported layer to inspect.")
     ),
-    outputs: Options.text("outputs").pipe(
-      Options.withDescription(
+    outputs: Flag.string("outputs").pipe(
+      Flag.withDescription(
         "Comma-separated list of output indices to include in suggested composition (e.g., 1,2,3). If not specified, all outputs are included."
       ),
-      Options.optional
+      Flag.optional
     )
   },
   Effect.fn("layerInfo")(function*({ file, name, outputs }) {
@@ -498,12 +478,12 @@ export const layerInfo = Command.make(
         Nano.run
       )
 
-      if (Either.isLeft(layerInfoResult)) {
-        return yield* Effect.fail(layerInfoResult.left)
+      if (Result.isFailure(layerInfoResult)) {
+        return yield* Effect.fail(layerInfoResult.failure)
       }
 
-      const doc = renderLayerInfo(layerInfoResult.right, cwd)
-      yield* Console.log(Doc.render(doc, { style: "pretty" }))
+      const output = renderLayerInfo(layerInfoResult.success, cwd)
+      yield* Console.log(output)
     } finally {
       service.closeClientFile(resolvedFile)
     }

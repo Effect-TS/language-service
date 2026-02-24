@@ -1,18 +1,13 @@
-import * as Command from "@effect/cli/Command"
-import * as HelpDoc from "@effect/cli/HelpDoc"
-import * as Options from "@effect/cli/Options"
-import * as ValidationError from "@effect/cli/ValidationError"
-import * as Path from "@effect/platform/Path"
-import * as Ansi from "@effect/printer-ansi/Ansi"
-import * as Doc from "@effect/printer-ansi/AnsiDoc"
 import { createProjectService } from "@typescript-eslint/project-service"
 import * as Arr from "effect/Array"
 import * as Console from "effect/Console"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
-import * as Either from "effect/Either"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import * as Result from "effect/Result"
+import { CliError, Command, Flag } from "effect/unstable/cli"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as LSP from "../core/LSP"
@@ -23,6 +18,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
+import { ansi, BOLD, CYAN, DIM, YELLOW } from "./ansi"
 import { NoFilesToCheckError } from "./diagnostics"
 import { renderTextChange } from "./setup/diff-renderer"
 import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
@@ -64,24 +60,13 @@ const isSkipFix = (fixName: string): boolean => fixName.endsWith("_skipNextLine"
 const renderQuickFix = (
   sourceFile: ts.SourceFile,
   fix: { fixName: string; description: string; changes: ReadonlyArray<ts.FileTextChanges> }
-): Doc.AnsiDoc => {
-  const lines: Array<Doc.AnsiDoc> = []
+): string => {
+  const lines: Array<string> = []
 
   // Fix header
-  lines.push(Doc.empty)
-  lines.push(
-    Doc.cat(
-      Doc.cat(
-        Doc.cat(
-          Doc.annotate(Doc.text("  Fix: "), Ansi.bold),
-          Doc.annotate(Doc.text(fix.fixName), Ansi.cyan)
-        ),
-        Doc.text(" - ")
-      ),
-      Doc.text(fix.description)
-    )
-  )
-  lines.push(Doc.annotate(Doc.text("  " + "─".repeat(60)), Ansi.blackBright))
+  lines.push("")
+  lines.push(`  ${ansi("Fix: ", BOLD)}${ansi(fix.fixName, CYAN)} - ${fix.description}`)
+  lines.push(ansi("  " + "\u2500".repeat(60), DIM))
 
   // Render the diff for each file change
   for (const fileChange of fix.changes) {
@@ -89,13 +74,13 @@ const renderQuickFix = (
       for (const textChange of fileChange.textChanges) {
         const diffLines = renderTextChange(sourceFile, textChange)
         for (const diffLine of diffLines) {
-          lines.push(Doc.cat(Doc.text("  "), diffLine))
+          lines.push(`  ${diffLine}`)
         }
       }
     }
   }
 
-  return Doc.vsep(lines)
+  return lines.join("\n")
 }
 
 /**
@@ -105,8 +90,8 @@ const renderDiagnosticWithFixes = (
   sourceFile: ts.SourceFile,
   info: QuickFixInfo,
   tsInstance: typeof ts
-): Doc.AnsiDoc => {
-  const lines: Array<Doc.AnsiDoc> = []
+): string => {
+  const lines: Array<string> = []
 
   // Get line and column for the diagnostic
   const { character, line } = tsInstance.getLineAndCharacterOfPosition(sourceFile, info.diagnostic.start)
@@ -114,19 +99,7 @@ const renderDiagnosticWithFixes = (
   // Diagnostic header: file:line:col effect(ruleName): message
   const locationStr = `${sourceFile.fileName}:${line + 1}:${character + 1}`
   lines.push(
-    Doc.cat(
-      Doc.cat(
-        Doc.cat(
-          Doc.cat(
-            Doc.annotate(Doc.text(locationStr), Ansi.cyan),
-            Doc.text(" ")
-          ),
-          Doc.annotate(Doc.text(`effect(${info.diagnostic.ruleName})`), Ansi.yellow)
-        ),
-        Doc.text(": ")
-      ),
-      Doc.text(info.diagnostic.messageText)
-    )
+    `${ansi(locationStr, CYAN)} ${ansi(`effect(${info.diagnostic.ruleName})`, YELLOW)}: ${info.diagnostic.messageText}`
   )
 
   // Render each fix
@@ -134,9 +107,9 @@ const renderDiagnosticWithFixes = (
     lines.push(renderQuickFix(sourceFile, fix))
   }
 
-  lines.push(Doc.empty)
+  lines.push("")
 
-  return Doc.vsep(lines)
+  return lines.join("\n")
 }
 
 const BATCH_SIZE = 50
@@ -144,17 +117,17 @@ const BATCH_SIZE = 50
 export const quickfixes = Command.make(
   "quickfixes",
   {
-    file: Options.file("file").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the file to check for quick fixes.")
+    file: Flag.file("file").pipe(
+      Flag.optional,
+      Flag.withDescription("The full path of the file to check for quick fixes.")
     ),
-    project: Options.file("project").pipe(
-      Options.optional,
-      Options.withDescription("The full path of the project tsconfig.json file to check for quick fixes.")
+    project: Flag.file("project").pipe(
+      Flag.optional,
+      Flag.withDescription("The full path of the project tsconfig.json file to check for quick fixes.")
     ),
-    code: Options.text("code").pipe(
-      Options.withDescription("Filter by diagnostic name or code (e.g., 'floatingEffect' or '5')."),
-      Options.mapEffect((value) => {
+    code: Flag.string("code").pipe(
+      Flag.withDescription("Filter by diagnostic name or code (e.g., 'floatingEffect' or '5')."),
+      Flag.mapEffect((value) => {
         // Validate that the code is a known diagnostic name or code
         if (validDiagnosticNames.has(value)) {
           // It's a diagnostic name, return the corresponding code
@@ -167,24 +140,24 @@ export const quickfixes = Command.make(
         // Invalid code
         const validValues = [...validDiagnosticNames].sort().join(", ")
         return Effect.fail(
-          ValidationError.invalidValue(
-            HelpDoc.p(`Invalid diagnostic code '${value}'. Valid values: ${validValues}`)
-          )
+          new CliError.UserError({
+            cause: new Error(`Invalid diagnostic code '${value}'. Valid values: ${validValues}`)
+          })
         )
       }),
-      Options.optional
+      Flag.optional
     ),
-    line: Options.integer("line").pipe(
-      Options.withDescription("Filter by line number (1-based)."),
-      Options.optional
+    line: Flag.integer("line").pipe(
+      Flag.withDescription("Filter by line number (1-based)."),
+      Flag.optional
     ),
-    column: Options.integer("column").pipe(
-      Options.withDescription("Filter by column number (1-based). Requires --line to be specified."),
-      Options.optional
+    column: Flag.integer("column").pipe(
+      Flag.withDescription("Filter by column number (1-based). Requires --line to be specified."),
+      Flag.optional
     ),
-    fix: Options.text("fix").pipe(
-      Options.withDescription("Filter by fix name (e.g., 'floatingEffect_yieldStar')."),
-      Options.optional
+    fix: Flag.string("fix").pipe(
+      Flag.withDescription("Filter by fix name (e.g., 'floatingEffect_yieldStar')."),
+      Flag.optional
     )
   },
   Effect.fn("quickfixes")(function*({ code, column, file, fix, line, project }) {
@@ -245,7 +218,9 @@ export const quickfixes = Command.make(
               { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
             ),
             Nano.run,
-            Either.getOrElse(() => ({ diagnostics: [], codeFixes: [] }))
+            Result.getOrElse(
+              () => ({ diagnostics: [], codeFixes: [] } as { diagnostics: Array<any>; codeFixes: Array<any> })
+            )
           )
 
           // Group fixes by diagnostic position and code
@@ -309,7 +284,7 @@ export const quickfixes = Command.make(
               },
               (changeTracker) =>
                 pipe(
-                  codeFix.apply,
+                  codeFix.apply as Nano.Nano<void>,
                   Nano.provideService(TypeScriptApi.ChangeTracker, changeTracker),
                   Nano.run
                 )
@@ -336,24 +311,20 @@ export const quickfixes = Command.make(
 
           // Render output for this file
           for (const info of diagnosticsWithFixes) {
-            const doc = renderDiagnosticWithFixes(sourceFile, info, tsInstance)
-            yield* Console.log(doc.pipe(Doc.render({ style: "pretty" })))
+            yield* Console.log(renderDiagnosticWithFixes(sourceFile, info, tsInstance))
           }
         } finally {
           service.closeClientFile(filePath)
         }
       }
-      yield* Effect.yieldNow()
+      yield* Effect.yieldNow
     }
 
     if (totalDiagnosticsWithFixes === 0) {
       yield* Console.log("No quick fixes available.")
     } else {
       yield* Console.log(
-        Doc.annotate(
-          Doc.text(`Found ${totalDiagnosticsWithFixes} diagnostic(s) with quick fixes.`),
-          Ansi.bold
-        ).pipe(Doc.render({ style: "pretty" }))
+        ansi(`Found ${totalDiagnosticsWithFixes} diagnostic(s) with quick fixes.`, BOLD)
       )
     }
   })
