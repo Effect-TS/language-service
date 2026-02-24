@@ -15,7 +15,7 @@ const asUnchanged: Unchanged = {
   _tag: "Unchanged"
 }
 
-// is renamed between v3 and v4
+// is renamed between v3 and v4 and kept as is
 interface Renamed {
   readonly _tag: "Renamed"
   readonly newName: string
@@ -23,6 +23,18 @@ interface Renamed {
 const asRenamed = (newName: string): Renamed => ({
   _tag: "Renamed",
   newName
+})
+
+// is renamed between v3 and v4, and needs options to be used in the v4 api to get the same behaviour of v3
+interface RenamedAndNeedsOptions {
+  readonly _tag: "RenamedAndNeedsOptions"
+  readonly newName: string
+  readonly optionsInstructions: string
+}
+const asRenamedAndNeedsOptions = (newName: string, optionsInstructions: string): RenamedAndNeedsOptions => ({
+  _tag: "RenamedAndNeedsOptions",
+  newName,
+  optionsInstructions
 })
 
 interface Removed {
@@ -34,7 +46,7 @@ const asRemoved = (alternativePattern: string): Removed => ({
   alternativePattern
 })
 
-export type Migration = Unchanged | Renamed | Removed
+export type Migration = Unchanged | Renamed | RenamedAndNeedsOptions | Removed
 
 export type ModuleMigrationDb = Record<string, Migration>
 
@@ -81,10 +93,12 @@ export const outdatedApi = LSP.createDiagnostic({
       return pipe(
         checkRightNode(propertyAccess.expression),
         Nano.map(() => {
-          if (migration._tag === "Renamed") {
+          if (migration._tag === "Renamed" || migration._tag === "RenamedAndNeedsOptions") {
             report({
               location: propertyAccess.name,
-              messageText: `Effect v3's "${identifierName}" has been renamed to "${migration.newName}" in Effect v4`,
+              messageText: `Effect v3's "${identifierName}" has been renamed to "${migration.newName}" in Effect v4. ${
+                migration._tag === "RenamedAndNeedsOptions" ? migration.optionsInstructions : ""
+              }`,
               fixes: [{
                 fixName: "outdatedApi_fix",
                 description: `Replace "${identifierName}" with "${migration.newName}"`,
