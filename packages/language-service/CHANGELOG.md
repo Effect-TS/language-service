@@ -1,5 +1,41 @@
 # @effect/language-service
 
+## 0.76.0
+
+### Minor Changes
+
+- [#651](https://github.com/Effect-TS/language-service/pull/651) [`aeab349`](https://github.com/Effect-TS/language-service/commit/aeab349b498c5bea4d050409a57f8f1900190c39) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add refactor to convert `Effect.Service` to `Context.Tag` with a static `Layer` property.
+
+  Supports all combinator kinds (`effect`, `scoped`, `sync`, `succeed`) and `dependencies`. The refactor replaces the `Effect.Service` class declaration with a `Context.Tag` class that has a `static layer` property using the corresponding `Layer` combinator.
+
+  Before:
+
+  ```ts
+  export class MyService extends Effect.Service<MyService>()("MyService", {
+    effect: Effect.gen(function* () {
+      return { value: "hello" };
+    }),
+  }) {}
+  ```
+
+  After:
+
+  ```ts
+  export class MyService extends Context.Tag("MyService")<
+    MyService,
+    { value: string }
+  >() {
+    static layer = Layer.effect(
+      this,
+      Effect.gen(function* () {
+        return { value: "hello" };
+      })
+    );
+  }
+  ```
+
+- [#654](https://github.com/Effect-TS/language-service/pull/654) [`2c93eab`](https://github.com/Effect-TS/language-service/commit/2c93eabfd7b799543832dc84304f20c90382c7eb) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Migrate internal Effect dependency from v3 to v4. This updates all CLI and core modules to use the Effect v4 API while maintaining full backward compatibility with existing functionality.
+
 ## 0.75.1
 
 ### Patch Changes
