@@ -32,9 +32,8 @@ function getPropertiesOfType(program: ts.Program, type: ts.Type) {
   return Arr.sort(Arr.map(properties, (_) => ts.unescapeLeadingUnderscores(_.escapedName)), Ord.String)
 }
 
-if (getHarnessVersion() === "v4") {
-  describe("Outdated API", () => {
-    it("effect/Effect APIs", () => {
+describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
+  it("effect/Effect APIs", () => {
       const v3ApiType = getPackageApiType("v3", "effect/Effect")
       const v4ApiType = getPackageApiType("v4", "effect/Effect")
 
@@ -73,5 +72,4 @@ if (getHarnessVersion() === "v4") {
         ).toContain(property)
       }
     })
-  })
-}
+})

@@ -200,8 +200,12 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "catchAll": asRenamedSameBehaviour("catch"),
   "catchAllCause": asRenamedSameBehaviour("catchCause"),
   "catchAllDefect": asRenamedSameBehaviour("catchDefect"),
-  "catchSome": asRenamedSameBehaviour("catchFilter"),
-  "catchSomeCause": asRenamedSameBehaviour("catchCauseFilter"),
+  "catchSome": asRemoved(
+    "Use Effect.catchIf instead. Note: the API shape changed from returning Option<Effect> to taking a predicate and handler separately."
+  ),
+  "catchSomeCause": asRemoved(
+    "Use Effect.catchCauseIf instead. Note: the API shape changed from returning Option<Effect> to taking a predicate and handler separately."
+  ),
   "fork": asRenamedSameBehaviour("forkChild"),
   "forkDaemon": asRenamedSameBehaviour("forkDetach"),
 
@@ -747,8 +751,8 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
 
 export const outdatedApi = LSP.createDiagnostic({
   name: "outdatedApi",
-  code: 19,
-  description: "Detects when generated code is outdated and needs to be regenerated",
+  code: 48,
+  description: "Detects usage of APIs that have been removed or renamed in newer versions of Effect",
   severity: "warning",
   apply: Nano.fn("outdatedEffectCodegen.apply")(function*(sourceFile, report) {
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
