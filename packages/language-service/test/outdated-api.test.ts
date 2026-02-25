@@ -2,7 +2,7 @@ import * as Arr from "effect/Array"
 import * as Ord from "effect/Order"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { effectModuleMigrationDb } from "../src/diagnostics/outdatedApi.js"
+import * as MigrationDb from "../src/diagnostics/outdatedApi.db.js"
 import { getExamplesDirForVersion, getHarnessDirForVersion, getHarnessVersion } from "./utils/harness.js"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
@@ -32,41 +32,49 @@ function getPropertiesOfType(program: ts.Program, type: ts.Type) {
   return Arr.sort(Arr.map(properties, (_) => ts.unescapeLeadingUnderscores(_.escapedName)), Ord.String)
 }
 
-describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
-  it("effect/Effect APIs", () => {
-    const v3ApiType = getPackageApiType("v3", "effect/Effect")
-    const v4ApiType = getPackageApiType("v4", "effect/Effect")
+function testMigrationDb(moduleName: string, migrationDb: MigrationDb.ModuleMigrationDb) {
+  it(`${moduleName} APIs`, () => {
+    const v3ApiType = getPackageApiType("v3", moduleName)
+    const v4ApiType = getPackageApiType("v4", moduleName)
+
+    // should not have any properties that are not in the v3 api
+    for (const [property] of Object.entries(migrationDb)) {
+      expect(
+        v3ApiType.properties,
+        `Method ${property} is not present in the v3 api, but is present in the migration db`
+      ).toContain(property)
+    }
 
     // things marked as deleted, should not be in the v4 api
     for (
-      const [property, migration] of Object.entries(effectModuleMigrationDb)
+      const [property, migration] of Object.entries(MigrationDb.effectModuleMigrationDb)
     ) {
       if (
         migration._tag === "Removed"
       ) {
         expect(
           v4ApiType.properties,
-          `Method ${property} is marked as deleted or unknown in effectModuleMigrationDb, but is present in the v4 api`
+          `Method ${property} is marked as deleted or unknown in migration db, but is present in the v4 api`
         ).not.toContain(property)
       }
     }
 
     // new v4 api should exists in the v4 api
     for (
-      const [property, migration] of Object.entries(effectModuleMigrationDb)
+      const [property, migration] of Object.entries(MigrationDb.effectModuleMigrationDb)
     ) {
       if (
         migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions"
       ) {
         expect(
           v4ApiType.properties,
-          `Method ${property} is marked as renamed to ${migration.newName} in effectModuleMigrationDb, but is not present in the v4 api`
+          `Method ${property} is marked as renamed to ${migration.newName} in migration db, but is not present in the v4 api`
         ).toContain(migration.newName)
       }
       if (migration._tag === "Unchanged") {
         expect(
           v4ApiType.properties,
-          `Method ${property} is marked as unchanged in effectModuleMigrationDb, but is not present in the v4 api`
+          `Method ${property} is marked as unchanged in migration db, but is not present in the v4 api`
         ).toContain(property)
       }
     }
@@ -74,9 +82,13 @@ describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
     // every v3 api should be handled
     for (const property of v3ApiType.properties) {
       expect(
-        Object.keys(effectModuleMigrationDb),
-        `Migration for ${property} is not handled in effectModuleMigrationDb, please add it to the effectModuleMigrationDb`
+        Object.keys(MigrationDb.effectModuleMigrationDb),
+        `Migration for ${property} is not handled in migration db, please add it to the migration db`
       ).toContain(property)
     }
   })
+}
+
+describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
+  testMigrationDb("effect/Effect", MigrationDb.effectModuleMigrationDb)
 })

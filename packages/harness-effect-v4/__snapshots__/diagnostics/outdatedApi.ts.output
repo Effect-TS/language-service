@@ -1,2 +1,5 @@
+
+1:0 - 1:0 | 0 | This project targets Effect v4, but is using Effect v3 APIs. To find the correct API to use, clone and consult the github.com/effect-ts/effect-smol repository for the corresponding v4 replacement.    effect(outdatedApi)
+
 runtime
-5:23 - 5:30 | 0 | Effect v3's "runtime" has been removed in Effect v4. Runtime has been removed in Effect v4. Use Effect.services to grab services and then run using Effect.runPromiseWith.    effect(outdatedApi)
+5:23 - 5:30 | 0 | runtime is an Effect v3 API, but the project is using Effect v4.    effect(outdatedApi)
