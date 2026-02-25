@@ -59,10 +59,14 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "andThen": asUnchanged,
   "annotateCurrentSpan": asUnchanged,
   "annotateLogs": asUnchanged,
+  "annotateLogsScoped": asUnchanged,
   "annotateSpans": asUnchanged,
   "as": asUnchanged,
   "asSome": asUnchanged,
   "asVoid": asUnchanged,
+  "awaitAllChildren": asUnchanged,
+  "bind": asUnchanged,
+  "bindTo": asUnchanged,
   "cached": asUnchanged,
   "cachedInvalidateWithTTL": asUnchanged,
   "cachedWithTTL": asUnchanged,
@@ -75,6 +79,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "currentSpan": asUnchanged,
   "delay": asUnchanged,
   "die": asUnchanged,
+  "Do": asUnchanged,
   "ensuring": asUnchanged,
   "eventually": asUnchanged,
   "exit": asUnchanged,
@@ -104,6 +109,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "isEffect": asUnchanged,
   "isFailure": asUnchanged,
   "isSuccess": asUnchanged,
+  "let": asUnchanged,
   "linkSpans": asUnchanged,
   "log": asUnchanged,
   "logDebug": asUnchanged,
@@ -131,6 +137,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "option": asUnchanged,
   "orDie": asUnchanged,
   "orElseSucceed": asUnchanged,
+  "partition": asUnchanged,
   "promise": asUnchanged,
   "provide": asUnchanged,
   "provideService": asUnchanged,
@@ -180,6 +187,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "uninterruptibleMask": asUnchanged,
   "updateService": asUnchanged,
   "useSpan": asUnchanged,
+  "validate": asUnchanged,
   "void": asUnchanged,
   "when": asUnchanged,
   "whileLoop": asUnchanged,
@@ -228,20 +236,8 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "runtime": asRemoved(
     "Runtime has been removed in Effect v4. Use Effect.services to grab services and then run using Effect.runPromiseWith."
   ),
-  "Do": asRemoved(
-    "Use Effect.gen instead of the Do notation (Effect.Do/bind/let/bindTo)."
-  ),
-  "bind": asRemoved(
-    "Use Effect.gen instead of Effect.bind."
-  ),
   "bindAll": asRemoved(
     "Use Effect.gen instead of Effect.bindAll."
-  ),
-  "bindTo": asRemoved(
-    "Use Effect.gen instead of Effect.bindTo."
-  ),
-  "let": asRemoved(
-    "Use Effect.gen instead of Effect.let."
   ),
   "EffectTypeId": asRemoved(
     "EffectTypeId has been removed in Effect v4."
@@ -258,9 +254,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "allowInterrupt": asRemoved(
     "Use Effect.yieldNow instead."
   ),
-  "annotateLogsScoped": asRemoved(
-    "Use Effect.annotateLogs within a scoped context instead."
-  ),
   "ap": asRemoved(
     "Use Effect.map and Effect.flatMap to apply functions instead."
   ),
@@ -272,9 +265,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   ),
   "asyncEffect": asRemoved(
     "Use Effect.suspend combined with Effect.promise instead."
-  ),
-  "awaitAllChildren": asRemoved(
-    "Manage child fibers explicitly using Fiber.join or Fiber.await."
   ),
   "blocked": asRemoved(
     "The request batching API has been reworked in Effect v4."
@@ -507,9 +497,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "parallelFinalizers": asRemoved(
     "Finalizer ordering configuration has been removed in Effect v4."
   ),
-  "partition": asRemoved(
-    "Use Effect.forEach with Either or Exit to partition results."
-  ),
   "patchFiberRefs": asRemoved(
     "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
   ),
@@ -650,9 +637,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   ),
   "using": asRemoved(
     "Use Effect.scoped instead."
-  ),
-  "validate": asRemoved(
-    "Use Effect.all with { mode: 'validate' } instead."
   ),
   "validateAll": asRemoved(
     "Use Effect.all with { mode: 'validate' } instead."
