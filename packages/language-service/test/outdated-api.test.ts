@@ -34,42 +34,42 @@ function getPropertiesOfType(program: ts.Program, type: ts.Type) {
 
 describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
   it("effect/Effect APIs", () => {
-      const v3ApiType = getPackageApiType("v3", "effect/Effect")
-      const v4ApiType = getPackageApiType("v4", "effect/Effect")
+    const v3ApiType = getPackageApiType("v3", "effect/Effect")
+    const v4ApiType = getPackageApiType("v4", "effect/Effect")
 
-      // things marked as deleted, should not be in the v4 api
-      for (
-        const [property, migration] of Object.entries(effectModuleMigrationDb)
+    // things marked as deleted, should not be in the v4 api
+    for (
+      const [property, migration] of Object.entries(effectModuleMigrationDb)
+    ) {
+      if (
+        migration._tag === "Removed" || migration._tag === "RenamedSameBehaviour" ||
+        migration._tag === "RenamedAndNeedsOptions"
       ) {
-        if (
-          migration._tag === "Removed" || migration._tag === "RenamedSameBehaviour" ||
-          migration._tag === "RenamedAndNeedsOptions"
-        ) {
-          expect(
-            v4ApiType.properties,
-            `Method ${property} is marked as deleted or unknown in effectModuleMigrationDb, but is present in the v4 api`
-          ).not.toContain(property)
-        }
-      }
-
-      // new v4 api should exists in the v4 api
-      for (
-        const [property, migration] of Object.entries(effectModuleMigrationDb)
-      ) {
-        if (migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions") {
-          expect(
-            v4ApiType.properties,
-            `Method ${property} is marked as renamed to ${migration.newName} in effectModuleMigrationDb, but is not present in the v4 api`
-          ).toContain(migration.newName)
-        }
-      }
-
-      // every v3 api should be handled
-      for (const property of v3ApiType.properties) {
         expect(
-          Object.keys(effectModuleMigrationDb),
-          `Migration for ${property} is not handled in effectModuleMigrationDb, please add it to the effectModuleMigrationDb`
-        ).toContain(property)
+          v4ApiType.properties,
+          `Method ${property} is marked as deleted or unknown in effectModuleMigrationDb, but is present in the v4 api`
+        ).not.toContain(property)
       }
-    })
+    }
+
+    // new v4 api should exists in the v4 api
+    for (
+      const [property, migration] of Object.entries(effectModuleMigrationDb)
+    ) {
+      if (migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions") {
+        expect(
+          v4ApiType.properties,
+          `Method ${property} is marked as renamed to ${migration.newName} in effectModuleMigrationDb, but is not present in the v4 api`
+        ).toContain(migration.newName)
+      }
+    }
+
+    // every v3 api should be handled
+    for (const property of v3ApiType.properties) {
+      expect(
+        Object.keys(effectModuleMigrationDb),
+        `Migration for ${property} is not handled in effectModuleMigrationDb, please add it to the effectModuleMigrationDb`
+      ).toContain(property)
+    }
+  })
 })
