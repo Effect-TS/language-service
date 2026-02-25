@@ -25,6 +25,24 @@ export const p6 = Effect.fork(Effect.succeed(1))
 // Effect.forkDaemon → Effect.forkDetach
 export const p7 = Effect.forkDaemon(Effect.succeed(1))
 
+// Effect.ensureErrorType → Effect.satisfiesErrorType
+export const p_ensureErrorType = Effect.ensureErrorType<string>()(Effect.fail("err"))
+
+// Effect.ensureSuccessType → Effect.satisfiesSuccessType
+export const p_ensureSuccessType = Effect.ensureSuccessType<number>()(Effect.succeed(1))
+
+// Effect.ensureRequirementsType → Effect.satisfiesServicesType
+export const p_ensureRequirementsType = Effect.ensureRequirementsType<never>()(Effect.succeed(1))
+
+// Effect.scopeWith → Effect.scopedWith
+export const p_scopeWith = Effect.scopeWith((_scope) => Effect.succeed("in scope"))
+
+// Effect.serviceOptional → Effect.serviceOption
+export const p_serviceOptional = Effect.serviceOptional(Context.GenericTag<{ value: number }>("SvcOpt"))
+
+// Effect.tapErrorCause → Effect.tapCause
+export const p_tapErrorCause = Effect.tapErrorCause(Effect.fail("err"), (_cause) => Effect.void)
+
 // --- Representative removed APIs ---
 
 // Effect.Do (removed - use Effect.gen)

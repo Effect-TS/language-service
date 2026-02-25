@@ -1,4 +1,4 @@
-import { Cause, Effect, Option, Schedule, ServiceMap } from "effect"
+import { Cause, Effect, Option, Schedule, Scope, ServiceMap } from "effect"
 
 // Effect.succeed (unchanged - same in v4)
 export const p1 = Effect.succeed(1)
@@ -25,6 +25,24 @@ export const p6 = Effect.forkChild(Effect.succeed(1))
 
 // Effect.forkDaemon → Effect.forkDetach
 export const p7 = Effect.forkDetach(Effect.succeed(1))
+
+// Effect.ensureErrorType → Effect.satisfiesErrorType
+export const p_satisfiesErrorType = Effect.satisfiesErrorType<string>()(Effect.fail("err"))
+
+// Effect.ensureSuccessType → Effect.satisfiesSuccessType
+export const p_satisfiesSuccessType = Effect.satisfiesSuccessType<number>()(Effect.succeed(1))
+
+// Effect.ensureRequirementsType → Effect.satisfiesServicesType
+export const p_satisfiesServicesType = Effect.satisfiesServicesType<never>()(Effect.succeed(1))
+
+// Effect.scopeWith → Effect.scopedWith
+export const p_scopedWith = Effect.scopedWith((_scope) => Effect.succeed("in scope"))
+
+// Effect.serviceOptional → Effect.serviceOption
+export const p_serviceOption = Effect.serviceOption(ServiceMap.Service<{ value: number }>("SvcOpt"))
+
+// Effect.tapErrorCause → Effect.tapCause
+export const p_tapCause = Effect.tapCause(Effect.fail("err"), (_cause) => Effect.void)
 
 // --- Representative removed APIs (v4 equivalents) ---
 
