@@ -42,8 +42,7 @@ describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
       const [property, migration] of Object.entries(effectModuleMigrationDb)
     ) {
       if (
-        migration._tag === "Removed" || migration._tag === "RenamedSameBehaviour" ||
-        migration._tag === "RenamedAndNeedsOptions"
+        migration._tag === "Removed"
       ) {
         expect(
           v4ApiType.properties,
@@ -56,11 +55,19 @@ describe.skipIf(getHarnessVersion() !== "v4")("Outdated API", () => {
     for (
       const [property, migration] of Object.entries(effectModuleMigrationDb)
     ) {
-      if (migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions") {
+      if (
+        migration._tag === "RenamedSameBehaviour" || migration._tag === "RenamedAndNeedsOptions"
+      ) {
         expect(
           v4ApiType.properties,
           `Method ${property} is marked as renamed to ${migration.newName} in effectModuleMigrationDb, but is not present in the v4 api`
         ).toContain(migration.newName)
+      }
+      if (migration._tag === "Unchanged") {
+        expect(
+          v4ApiType.properties,
+          `Method ${property} is marked as unchanged in effectModuleMigrationDb, but is not present in the v4 api`
+        ).toContain(property)
       }
     }
 
