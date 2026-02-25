@@ -43,6 +43,21 @@ export const p_serviceOptional = Effect.serviceOptional(Context.GenericTag<{ val
 // Effect.tapErrorCause → Effect.tapCause
 export const p_tapErrorCause = Effect.tapErrorCause(Effect.fail("err"), (_cause) => Effect.void)
 
+// --- Renamed APIs with behavioral differences (asRenamedAndNeedsOptions) ---
+
+// Effect.async → Effect.callback (in v4 the callback receives a Scheduler as 'this' context)
+export const p_async = Effect.async<number>((resume) => {
+    resume(Effect.succeed(42))
+})
+
+// Effect.either → Effect.result (returns Result.Result<A, E> instead of Either<E, A>)
+export const p_either = Effect.either(Effect.succeed(1))
+
+// Effect.withFiberRuntime → Effect.withFiber (in v4, only the Fiber is provided, not full FiberRuntime with status)
+export const p_withFiberRuntime = Effect.withFiberRuntime<string>((fiber, _status) =>
+    Effect.succeed(`fiber id: ${fiber.id()}`)
+)
+
 // --- Representative removed APIs ---
 
 // Effect.Do (removed - use Effect.gen)
@@ -53,9 +68,6 @@ export const p9 = Effect.bind(Effect.Do, "a", () => Effect.succeed(1))
 
 // Effect.Tag (removed - use Context.Tag)
 class MyTag extends Effect.Tag("MyTag")<MyTag, string>() {}
-
-// Effect.either (removed - use Effect.exit)
-export const p11 = Effect.either(Effect.succeed(1))
 
 // Effect.zipLeft (removed - use Effect.tap)
 export const p12 = Effect.zipLeft(Effect.succeed(1), Effect.succeed(2))
@@ -71,11 +83,6 @@ export const p15 = Effect.dieMessage("something went wrong")
 
 // Effect.dieSync (removed - use Effect.die)
 export const p16 = Effect.dieSync(() => new Error("boom"))
-
-// Effect.async (renamed to Effect.callback - behavioral differences)
-export const p17 = Effect.async<number>((resume) => {
-    resume(Effect.succeed(42))
-})
 
 // =============================================================================
 // Unchanged APIs (asUnchanged) — should NOT trigger diagnostic

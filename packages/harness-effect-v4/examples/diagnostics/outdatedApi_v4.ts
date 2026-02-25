@@ -44,6 +44,21 @@ export const p_serviceOption = Effect.serviceOption(ServiceMap.Service<{ value: 
 // Effect.tapErrorCause → Effect.tapCause
 export const p_tapCause = Effect.tapCause(Effect.fail("err"), (_cause) => Effect.void)
 
+// --- Renamed APIs with behavioral differences (asRenamedAndNeedsOptions) ---
+
+// Effect.async → Effect.callback (in v4 the callback receives a Scheduler as 'this' context)
+export const p_callback = Effect.callback<number>(function(resume) {
+    resume(Effect.succeed(42))
+})
+
+// Effect.either → Effect.result (returns Result.Result<A, E> instead of Either<E, A>)
+export const p_result = Effect.result(Effect.succeed(1))
+
+// Effect.withFiberRuntime → Effect.withFiber (in v4, only the Fiber is provided, not full FiberRuntime with status)
+export const p_withFiber = Effect.withFiber<string>((fiber) =>
+    Effect.succeed(`fiber id: ${fiber.id}`)
+)
+
 // --- Representative removed APIs (v4 equivalents) ---
 
 // Effect.Do (removed - use Effect.gen)
@@ -61,9 +76,6 @@ export const p9 = Effect.gen(function*() {
 // Effect.Tag (removed - use ServiceMap.Service)
 class MyTag extends ServiceMap.Service<MyTag, string>()("MyTag") {}
 
-// Effect.either (removed - use Effect.exit)
-export const p11 = Effect.exit(Effect.succeed(1))
-
 // Effect.zipLeft (removed - use Effect.tap)
 export const p12 = Effect.tap(Effect.succeed(1), () => Effect.succeed(2))
 
@@ -78,9 +90,6 @@ export const p15 = Effect.die("something went wrong")
 
 // Effect.dieSync (removed - use Effect.die)
 export const p16 = Effect.die(new Error("boom"))
-
-// Effect.async (removed in v4 - use Effect.promise or Effect.tryPromise)
-export const p17 = Effect.promise<number>(() => Promise.resolve(42))
 
 // =============================================================================
 // Unchanged APIs (asUnchanged) — should NOT trigger diagnostic
