@@ -282,9 +282,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "asSomeError": asRemoved(
     "Use Effect.mapError(Option.some) instead."
   ),
-  "async": asRemoved(
-    "Use Effect.async is removed. Use Effect.promise or Effect.tryPromise instead."
-  ),
+  "async": asRenamedAndNeedsOptions("callback", "Note: in v4 the callback receives a Scheduler as 'this' context."),
   "asyncEffect": asRemoved(
     "Use Effect.suspend combined with Effect.promise instead."
   ),
@@ -354,9 +352,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "dropWhile": asRemoved(
     "Use Array.dropWhile and Effect.forEach instead."
   ),
-  "either": asRemoved(
-    "Use Effect.exit or Effect.match instead of Effect.either."
-  ),
+  "either": asRenamedAndNeedsOptions("result", "Note: returns Result.Result<A, E> instead of Either<E, A>. Use the Result module to work with the result."),
   "ensuringChild": asRemoved(
     "Use Effect.onExit to manage child fiber cleanup instead."
   ),
@@ -684,9 +680,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "withEarlyRelease": asRemoved(
     "Use Effect.scoped with manual resource management instead."
   ),
-  "withFiberRuntime": asRemoved(
-    "Direct fiber runtime access has been removed in Effect v4."
-  ),
+  "withFiberRuntime": asRenamedAndNeedsOptions("withFiber", "Note: in v4, only the Fiber is provided (not the full FiberRuntime with status). The callback receives (fiber: Fiber<unknown, unknown>) instead of (fiber: FiberRuntime<A, E>, status: FiberStatus)."),
   "withMaxOpsBeforeYield": asRemoved(
     "Use ServiceMap.Reference for MaxOpsBeforeYield configuration instead."
   ),
