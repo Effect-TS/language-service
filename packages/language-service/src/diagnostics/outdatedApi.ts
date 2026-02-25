@@ -352,7 +352,10 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "dropWhile": asRemoved(
     "Use Array.dropWhile and Effect.forEach instead."
   ),
-  "either": asRenamedAndNeedsOptions("result", "Note: returns Result.Result<A, E> instead of Either<E, A>. Use the Result module to work with the result."),
+  "either": asRenamedAndNeedsOptions(
+    "result",
+    "Note: returns Result.Result<A, E> instead of Either<E, A>. Use the Result module to work with the result."
+  ),
   "ensuringChild": asRemoved(
     "Use Effect.onExit to manage child fiber cleanup instead."
   ),
@@ -680,7 +683,10 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "withEarlyRelease": asRemoved(
     "Use Effect.scoped with manual resource management instead."
   ),
-  "withFiberRuntime": asRenamedAndNeedsOptions("withFiber", "Note: in v4, only the Fiber is provided (not the full FiberRuntime with status). The callback receives (fiber: Fiber<unknown, unknown>) instead of (fiber: FiberRuntime<A, E>, status: FiberStatus)."),
+  "withFiberRuntime": asRenamedAndNeedsOptions(
+    "withFiber",
+    "Note: in v4, only the Fiber is provided (not the full FiberRuntime with status). The callback receives (fiber: Fiber<unknown, unknown>) instead of (fiber: FiberRuntime<A, E>, status: FiberStatus)."
+  ),
   "withMaxOpsBeforeYield": asRemoved(
     "Use ServiceMap.Reference for MaxOpsBeforeYield configuration instead."
   ),
