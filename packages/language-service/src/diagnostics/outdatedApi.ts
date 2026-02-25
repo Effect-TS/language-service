@@ -59,14 +59,10 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "andThen": asUnchanged,
   "annotateCurrentSpan": asUnchanged,
   "annotateLogs": asUnchanged,
-  "annotateLogsScoped": asUnchanged,
   "annotateSpans": asUnchanged,
   "as": asUnchanged,
   "asSome": asUnchanged,
   "asVoid": asUnchanged,
-  "awaitAllChildren": asUnchanged,
-  "bind": asUnchanged,
-  "bindTo": asUnchanged,
   "cached": asUnchanged,
   "cachedInvalidateWithTTL": asUnchanged,
   "cachedWithTTL": asUnchanged,
@@ -79,7 +75,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "currentSpan": asUnchanged,
   "delay": asUnchanged,
   "die": asUnchanged,
-  "Do": asUnchanged,
   "ensuring": asUnchanged,
   "eventually": asUnchanged,
   "exit": asUnchanged,
@@ -109,7 +104,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "isEffect": asUnchanged,
   "isFailure": asUnchanged,
   "isSuccess": asUnchanged,
-  "let": asUnchanged,
   "linkSpans": asUnchanged,
   "log": asUnchanged,
   "logDebug": asUnchanged,
@@ -137,7 +131,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "option": asUnchanged,
   "orDie": asUnchanged,
   "orElseSucceed": asUnchanged,
-  "partition": asUnchanged,
   "promise": asUnchanged,
   "provide": asUnchanged,
   "provideService": asUnchanged,
@@ -187,7 +180,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "uninterruptibleMask": asUnchanged,
   "updateService": asUnchanged,
   "useSpan": asUnchanged,
-  "validate": asUnchanged,
   "void": asUnchanged,
   "when": asUnchanged,
   "whileLoop": asUnchanged,
@@ -214,10 +206,40 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "catchSomeCause": asRemoved(
     "Use Effect.catchCauseIf instead. Note: the API shape changed from returning Option<Effect> to taking a predicate and handler separately."
   ),
+  "ensureErrorType": asRenamedSameBehaviour("satisfiesErrorType"),
+  "ensureRequirementsType": asRenamedSameBehaviour("satisfiesServicesType"),
+  "ensureSuccessType": asRenamedSameBehaviour("satisfiesSuccessType"),
   "fork": asRenamedSameBehaviour("forkChild"),
   "forkDaemon": asRenamedSameBehaviour("forkDetach"),
+  "scopeWith": asRenamedSameBehaviour("scopedWith"),
+  "serviceOptional": asRenamedSameBehaviour("serviceOption"),
+  "tapErrorCause": asRenamedSameBehaviour("tapCause"),
 
   // Removed APIs
+  "annotateLogsScoped": asRemoved(
+    "Use Effect.annotateLogs within a scoped context instead."
+  ),
+  "awaitAllChildren": asRemoved(
+    "Manage child fibers explicitly using Fiber.join or Fiber.await."
+  ),
+  "bind": asRemoved(
+    "Use Effect.gen instead of Effect.bind."
+  ),
+  "bindTo": asRemoved(
+    "Use Effect.gen instead of Effect.bindTo."
+  ),
+  "Do": asRemoved(
+    "Use Effect.gen instead of the Do notation (Effect.Do/bind/let/bindTo)."
+  ),
+  "let": asRemoved(
+    "Use Effect.gen instead of Effect.let."
+  ),
+  "partition": asRemoved(
+    "Use Effect.forEach with Either or Exit to partition results."
+  ),
+  "validate": asRemoved(
+    "Use Effect.all with { mode: 'validate' } instead."
+  ),
   "catchSomeDefect": asRemoved(
     "Use Effect.catchDefect or Effect.matchCause to handle specific defects."
   ),
@@ -334,15 +356,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   ),
   "either": asRemoved(
     "Use Effect.exit or Effect.match instead of Effect.either."
-  ),
-  "ensureErrorType": asRemoved(
-    "Type assertion helpers have been removed in Effect v4."
-  ),
-  "ensureRequirementsType": asRemoved(
-    "Type assertion helpers have been removed in Effect v4."
-  ),
-  "ensureSuccessType": asRemoved(
-    "Type assertion helpers have been removed in Effect v4."
   ),
   "ensuringChild": asRemoved(
     "Use Effect.onExit to manage child fiber cleanup instead."
@@ -533,9 +546,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "scheduleForked": asRemoved(
     "Use Effect.schedule combined with Effect.forkChild instead."
   ),
-  "scopeWith": asRemoved(
-    "Use Effect.scopedWith or Effect.scope instead."
-  ),
   "sequentialFinalizers": asRemoved(
     "Finalizer ordering configuration has been removed in Effect v4."
   ),
@@ -553,9 +563,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   ),
   "serviceMembers": asRemoved(
     "Service helpers have been removed. Use ServiceMap.Service and yield* to access services."
-  ),
-  "serviceOptional": asRemoved(
-    "Use Effect.serviceOption instead."
   ),
   "setFiberRefs": asRemoved(
     "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
@@ -583,9 +590,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   ),
   "tapBoth": asRemoved(
     "Use Effect.tap and Effect.tapError instead."
-  ),
-  "tapErrorCause": asRemoved(
-    "Use Effect.sandbox and Effect.tapError instead."
   ),
   "timedWith": asRemoved(
     "Use Effect.timed instead."
@@ -736,9 +740,9 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
 export const outdatedApi = LSP.createDiagnostic({
   name: "outdatedApi",
   code: 48,
-  description: "Detects usage of APIs that have been removed or renamed in newer versions of Effect",
+  description: "Detects usage of APIs that have been removed or renamed in Effect v4",
   severity: "warning",
-  apply: Nano.fn("outdatedEffectCodegen.apply")(function*(sourceFile, report) {
+  apply: Nano.fn("outdatedApi.apply")(function*(sourceFile, report) {
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
