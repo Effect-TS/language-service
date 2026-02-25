@@ -6,7 +6,7 @@ import * as TypeScriptUtils from "@effect/language-service/core/TypeScriptUtils"
 import { pipe } from "effect/Function"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getHarnessVersion } from "./utils/harness.js"
+import { getExamplesDir, getHarnessDir, getHarnessVersion } from "./utils/harness.js"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
 function testAutoImport(
@@ -15,6 +15,8 @@ function testAutoImport(
   settings: Partial<LanguageServicePluginOptions.LanguageServicePluginOptions>
 ) {
   const { program, sourceFile } = createServicesWithMockedVFS(
+    getHarnessDir(),
+    getExamplesDir(),
     "test.ts",
     ""
   )

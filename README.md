@@ -85,6 +85,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Suggest removing redundant identifier argument when it equals the tag value in `Schema.TaggedClass`, `Schema.TaggedError`, or `Schema.TaggedRequest`
 - Suggest using `Schema.is` instead of `instanceof` for Effect Schema types
 - Suggest using `Effect.void` instead of `Effect.succeed(undefined)` or `Effect.succeed(void 0)`
+- Warn when using outdated Effect v3 APIs in an Effect v4 project, with guidance on the correct v4 replacement (renamed, changed, or removed APIs)
 
 ### Completions
 

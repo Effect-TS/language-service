@@ -12,7 +12,13 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
+import {
+  getExamplesDir,
+  getExamplesSubdir,
+  getHarnessDir,
+  getSnapshotsSubdir,
+  safeReaddirSync
+} from "./utils/harness.js"
 import { createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesLayerGraphDir = () => getExamplesSubdir("layer-graph")
@@ -39,7 +45,12 @@ function testAllLayerInfoExamples() {
           .toString("utf8")
 
         // Create services once for the entire file
-        const { program, sourceFile } = createServicesWithMockedVFS(fileName, sourceText)
+        const { program, sourceFile } = createServicesWithMockedVFS(
+          getHarnessDir(),
+          getExamplesDir(),
+          fileName,
+          sourceText
+        )
         const typeChecker = program.getTypeChecker()
 
         // Collect all layer names from the file (depth 0 = only directly exported)
@@ -87,7 +98,12 @@ async function testLayerInfoByName(
   layerName: string
 ) {
   // Create services fresh for each test
-  const { program, sourceFile } = createServicesWithMockedVFS(fileName, sourceText)
+  const { program, sourceFile } = createServicesWithMockedVFS(
+    getHarnessDir(),
+    getExamplesDir(),
+    fileName,
+    sourceText
+  )
   const typeChecker = program.getTypeChecker()
 
   // create snapshot path with pattern: filename.ts.layerName.layerinfo

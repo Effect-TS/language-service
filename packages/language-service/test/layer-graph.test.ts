@@ -12,13 +12,21 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { getExamplesSubdir, getSnapshotsSubdir, safeReaddirSync } from "./utils/harness.js"
+import {
+  getExamplesDir,
+  getExamplesSubdir,
+  getHarnessDir,
+  getSnapshotsSubdir,
+  safeReaddirSync
+} from "./utils/harness.js"
 import { configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks.js"
 
 const getExamplesLayerGraph = () => getExamplesSubdir("layer-graph")
 
 async function testLayerGraphOnExample(fileName: string, sourceText: string) {
   const { program, sourceFile } = createServicesWithMockedVFS(
+    getHarnessDir(),
+    getExamplesDir(),
     fileName,
     sourceText
   )

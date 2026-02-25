@@ -13,13 +13,20 @@ export function getHarnessVersion(): "v3" | "v4" {
   return "v3"
 }
 
+export function getHarnessDirForVersion(version: "v3" | "v4"): string {
+  return path.join(__dirname, "..", "..", "..", `harness-effect-${version}`)
+}
+
 /**
  * Gets the root directory for the current harness package.
  * Returns the absolute path to packages/harness-effect-{version}/
  */
 export function getHarnessDir(): string {
-  const version = getHarnessVersion()
-  return path.join(__dirname, "..", "..", "..", `harness-effect-${version}`)
+  return getHarnessDirForVersion(getHarnessVersion())
+}
+
+export function getExamplesDirForVersion(version: "v3" | "v4"): string {
+  return path.join(getHarnessDirForVersion(version), "examples")
 }
 
 /**
@@ -27,7 +34,7 @@ export function getHarnessDir(): string {
  * Returns the absolute path to packages/harness-effect-{version}/examples/
  */
 export function getExamplesDir(): string {
-  return path.join(getHarnessDir(), "examples")
+  return getExamplesDirForVersion(getHarnessVersion())
 }
 
 /**
