@@ -1,2 +1,5 @@
 identity(identity(Schema.decodeEffect(MyStruct)({ x: 42, y: 42 })))
 13:40 - 13:107 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using Schema.decodeEffect(MyStruct)({ x: 42, y: 42 }).pipe(...) instead.    effect(missedPipeableOpportunity)
+
+Effect.succeed(Duration.isLessThanOrEqualTo(Duration.seconds(10))(_.duration))
+17:22 - 17:100 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using _.duration.pipe(...) instead.    effect(missedPipeableOpportunity)

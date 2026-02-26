@@ -84,7 +84,7 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
       )
       if (hasTaggedErrorCompletion) {
         completions.push({
-          name: `TaggedError<${name}>`,
+          name: `TaggedErrorClass<${name}>`,
           kind: ts.ScriptElementKind.constElement,
           insertText: isFullyQualified
             ? `${schemaIdentifier}.TaggedErrorClass<${name}>()("${errorTagKey}", {${"${0}"}}){}`

@@ -216,7 +216,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "insertText": "S.TaggedErrorClass<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "TaggedError<Test>",
+    "name": "TaggedErrorClass<Test>",
     "replacementSpan": {
       "length": 2,
       "start": 130,
@@ -265,7 +265,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "insertText": "S.TaggedErrorClass<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "TaggedError<Test>",
+    "name": "TaggedErrorClass<Test>",
     "replacementSpan": {
       "length": 5,
       "start": 130,

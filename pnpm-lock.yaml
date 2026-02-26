@@ -120,14 +120,14 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0
       effect:
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@2153bea
-        version: '@pkg.pr.new/Effect-TS/effect-smol/effect/2153bea'
+        specifier: ^4.0.0-beta.14
+        version: 4.0.0-beta.14
 
   packages/language-service:
     devDependencies:
       '@effect/platform-node':
-        specifier: ^4.0.0-beta.12
-        version: 4.0.0-beta.12(effect@4.0.0-beta.12)(ioredis@5.9.3)
+        specifier: ^4.0.0-beta.14
+        version: 4.0.0-beta.14(effect@4.0.0-beta.14)(ioredis@5.9.3)
       '@types/pako':
         specifier: ^2.0.4
         version: 2.0.4
@@ -135,8 +135,8 @@ importers:
         specifier: ^8.52.0
         version: 8.52.0(typescript@5.9.3)
       effect:
-        specifier: ^4.0.0-beta.12
-        version: 4.0.0-beta.12
+        specifier: ^4.0.0-beta.14
+        version: 4.0.0-beta.14
       pako:
         specifier: ^2.1.0
         version: 2.1.0
@@ -567,29 +567,29 @@ packages:
       uuid: 11.1.0
     dev: false
 
-  /@effect/platform-node-shared@4.0.0-beta.12(effect@4.0.0-beta.12):
-    resolution: {integrity: sha512-GP6ebikFIVYhhzQE5AV+GGtt/hdpeGpp3YBqfg7MD/6rDdd9Z/k20U5Mpj0X3Izrb+eOmEm8kJ4Trjg3T0qbqw==}
+  /@effect/platform-node-shared@4.0.0-beta.14(effect@4.0.0-beta.14):
+    resolution: {integrity: sha512-rkbflXMBJrugRvTzlqAyLbwGunqtrc9Xv9wY3YnpaxovgzGm1+l7FKZCkeBdtkc4wYkS79ygHVmsSUnOeSTf/Q==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.12
+      effect: ^4.0.0-beta.14
     dependencies:
       '@types/ws': 8.18.1
-      effect: 4.0.0-beta.12
+      effect: 4.0.0-beta.14
       ws: 8.19.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     dev: true
 
-  /@effect/platform-node@4.0.0-beta.12(effect@4.0.0-beta.12)(ioredis@5.9.3):
-    resolution: {integrity: sha512-vWrGNYjTmlSYh829uISO0xAREzsmAXL4ZvEQF1gw8nmHlzz9YV6FYPNtXoM5ZgVji+X/zGsygQAxQLCIE5SGQw==}
+  /@effect/platform-node@4.0.0-beta.14(effect@4.0.0-beta.14)(ioredis@5.9.3):
+    resolution: {integrity: sha512-q+3DIPsetQ+qTJC68KAEy7MnRn+Utx/Voj/DYW+neuxi48rreA6YmTdQYALoV5YZrLhSRYBd+TsJAgkFu1gxCg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.12
+      effect: ^4.0.0-beta.14
       ioredis: ^5.7.0
     dependencies:
-      '@effect/platform-node-shared': 4.0.0-beta.12(effect@4.0.0-beta.12)
-      effect: 4.0.0-beta.12
+      '@effect/platform-node-shared': 4.0.0-beta.14(effect@4.0.0-beta.14)
+      effect: 4.0.0-beta.14
       ioredis: 5.9.3
       mime: 4.1.0
       undici: 7.22.0
@@ -2821,8 +2821,8 @@ packages:
       fast-check: 3.23.2
     dev: false
 
-  /effect@4.0.0-beta.12:
-    resolution: {integrity: sha512-sD06m119HGZeKHfuRc1waI4F9F8KwZHkR/kKGxHtKySXdCtiJiB3fjQYiW36Tx8UofME1+KF5DrRRyuNZAzHzw==}
+  /effect@4.0.0-beta.14:
+    resolution: {integrity: sha512-3er8DIukOoOpJc2qCRqejpzBGoUdG1t8pXcvA9blttSP9nxs7Ue6BkOLSQBaq3yIXWUXmL5GPELnDARP5oMbfQ==}
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 4.5.3
@@ -2834,7 +2834,6 @@ packages:
       toml: 3.0.0
       uuid: 13.0.0
       yaml: 2.8.2
-    dev: true
 
   /electron-to-chromium@1.5.267:
     resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
@@ -6375,22 +6374,5 @@ packages:
     engines: {node: '>= 12.17.0'}
     hasBin: true
     dev: true
-
-  '@pkg.pr.new/Effect-TS/effect-smol/effect/2153bea':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@2153bea}
-    name: effect
-    version: 4.0.0
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      fast-check: 4.5.3
-      find-my-way-ts: 0.1.6
-      ini: 6.0.0
-      kubernetes-types: 1.30.0
-      msgpackr: 1.11.8
-      multipasta: 0.2.7
-      toml: 3.0.0
-      uuid: 13.0.0
-      yaml: 2.8.2
-    dev: false
 
 publishDirectory: dist

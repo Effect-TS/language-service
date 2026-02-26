@@ -75,7 +75,9 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "failSync": asUnchanged,
   "fiberId": asUnchanged,
   "filter": asUnchanged,
-  "filterMap": asUnchanged,
+  "filterMap": asRemoved(
+    "Use Effect.filter or Effect.map with Option instead."
+  ),
   "filterOrElse": asUnchanged,
   "filterOrFail": asUnchanged,
   "flatMap": asUnchanged,
@@ -104,8 +106,12 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "logTrace": asUnchanged,
   "logWarning": asUnchanged,
   "logWithLevel": asUnchanged,
-  "makeLatch": asUnchanged,
-  "makeSemaphore": asUnchanged,
+  "makeLatch": asRemoved(
+    "Use Latch.make instead of Effect.makeLatch."
+  ),
+  "makeSemaphore": asRemoved(
+    "Use Semaphore.make instead of Effect.makeSemaphore."
+  ),
   "makeSpan": asUnchanged,
   "makeSpanScoped": asUnchanged,
   "map": asUnchanged,
@@ -207,30 +213,14 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "tapErrorCause": asRenamedSameBehaviour("tapCause"),
 
   // Removed APIs
-  "annotateLogsScoped": asRemoved(
-    "Use Effect.annotateLogs within a scoped context instead."
-  ),
-  "awaitAllChildren": asRemoved(
-    "Manage child fibers explicitly using Fiber.join or Fiber.await."
-  ),
-  "bind": asRemoved(
-    "Use Effect.gen instead of Effect.bind."
-  ),
-  "bindTo": asRemoved(
-    "Use Effect.gen instead of Effect.bindTo."
-  ),
-  "Do": asRemoved(
-    "Use Effect.gen instead of the Do notation (Effect.Do/bind/let/bindTo)."
-  ),
-  "let": asRemoved(
-    "Use Effect.gen instead of Effect.let."
-  ),
-  "partition": asRemoved(
-    "Use Effect.forEach with Either or Exit to partition results."
-  ),
-  "validate": asRemoved(
-    "Use Effect.all with { mode: 'validate' } instead."
-  ),
+  "annotateLogsScoped": asUnchanged,
+  "awaitAllChildren": asUnchanged,
+  "bind": asUnchanged,
+  "bindTo": asUnchanged,
+  "Do": asUnchanged,
+  "let": asUnchanged,
+  "partition": asUnchanged,
+  "validate": asUnchanged,
   "catchSomeDefect": asRemoved(
     "Use Effect.catchDefect or Effect.matchCause to handle specific defects."
   ),

@@ -1,4 +1,4 @@
-// code fix missedPipeableOpportunity_fix  output for range 416 - 483
+// code fix missedPipeableOpportunity_fix  output for range 609 - 687
 // @effect-diagnostics missedPipeableOpportunity:warning
 // @test-config {"pipeableMinArgCount": 2}
 import { Duration, identity, pipe, Schedule, Schema } from "effect"
@@ -11,11 +11,11 @@ const MyStruct = Schema.Struct({
 
 export const shouldNotTrigger = identity(Schema.decodeEffect(MyStruct)({ x: 42, y: 42 }))
 
-export const shouldTriggerBecauseHas2 = Schema.decodeEffect(MyStruct)({ x: 42, y: 42 }).pipe(identity, identity)
+export const shouldTriggerBecauseHas2 = identity(identity(Schema.decodeEffect(MyStruct)({ x: 42, y: 42 })))
 
 export const shouldNotTriggerFunctionReturned = pipe(
   Schedule.exponential(Duration.millis(10), 4),
-  Schedule.while(_ => Effect.succeed(Duration.isLessThanOrEqualTo(Duration.seconds(10))(_.duration))) // should not report
+  Schedule.while(_ => _.duration.pipe(Duration.isLessThanOrEqualTo(Duration.seconds(10)), Effect.succeed)) // should not report
 )
 
 export const shouldNotTriggerInnerPipe = Effect.log("Hello").pipe(
