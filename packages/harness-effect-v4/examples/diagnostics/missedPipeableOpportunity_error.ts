@@ -14,7 +14,7 @@ export const shouldTriggerBecauseHas2 = identity(identity(Schema.decodeEffect(My
 
 export const shouldNotTriggerFunctionReturned = pipe(
   Schedule.exponential(Duration.millis(10), 4),
-  Schedule.while(_ => Duration.isLessThanOrEqualTo(Duration.seconds(10))(_.duration)) // should not report
+  Schedule.while(_ => Effect.succeed(Duration.isLessThanOrEqualTo(Duration.seconds(10))(_.duration))) // should not report
 )
 
 export const shouldNotTriggerInnerPipe = Effect.log("Hello").pipe(
