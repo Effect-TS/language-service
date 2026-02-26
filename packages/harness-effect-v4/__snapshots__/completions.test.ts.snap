@@ -248,6 +248,22 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
 ]
 `;
 
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_model.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "Model.Class<MyDataModel>("MyDataModel")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Class<MyDataModel>",
+    "replacementSpan": {
+      "length": 6,
+      "start": 156,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.ts at 4:25 1`] = `
 [
   {

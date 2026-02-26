@@ -155,6 +155,39 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
       }
     }
 
+    // Check for Model.Class (v4 only - Model moved to effect/unstable/schema)
+    if (typeParser.supportedEffect() === "v4") {
+      const modelIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+        sourceFile,
+        "effect/unstable/schema",
+        "Model"
+      ) || tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+        sourceFile,
+        "effect/unstable",
+        "Model"
+      ) || "Model"
+
+      const isModelFullyQualified = modelIdentifier === ts.idText(accessedObject)
+
+      const hasModelClassCompletion = isModelFullyQualified || Option.isSome(
+        yield* pipe(
+          typeParser.isNodeReferenceToEffectSchemaModelModuleApi("Class")(accessedObject),
+          Nano.option
+        )
+      )
+      if (hasModelClassCompletion) {
+        completions.push({
+          name: `Class<${name}>`,
+          kind: ts.ScriptElementKind.constElement,
+          insertText: isModelFullyQualified
+            ? `${modelIdentifier}.Class<${name}>("${name}")({${"${0}"}}){}`
+            : `Class<${name}>("${name}")({${"${0}"}}){}`,
+          replacementSpan,
+          isSnippet: true
+        })
+      }
+    }
+
     return completions
   })
 })

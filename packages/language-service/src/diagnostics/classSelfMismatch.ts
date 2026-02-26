@@ -41,6 +41,7 @@ export const classSelfMismatch = LSP.createDiagnostic({
             )
           ),
           Nano.orElse(() => typeParser.extendsEffectSqlModelClass(node)),
+          Nano.orElse(() => typeParser.extendsEffectSchemaModelClass(node)),
           Nano.orElse(() => Nano.void_)
         )
 
