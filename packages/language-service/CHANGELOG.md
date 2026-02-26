@@ -1,5 +1,36 @@
 # @effect/language-service
 
+## 0.77.0
+
+### Minor Changes
+
+- [#655](https://github.com/Effect-TS/language-service/pull/655) [`c875de2`](https://github.com/Effect-TS/language-service/commit/c875de2c2334f740155f5a1e8a1a44636506d157) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `outdatedApi` diagnostic that warns when using outdated Effect APIs in a project targeting a newer version of Effect.
+
+### Patch Changes
+
+- [#660](https://github.com/Effect-TS/language-service/pull/660) [`99a97a6`](https://github.com/Effect-TS/language-service/commit/99a97a6a4e275d03562de7ede2a2510f1c06f230) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Dispose TypeScript language services in tests to prevent resource leaks
+
+  Added `languageService.dispose()` calls via `try/finally` patterns to all test files that create language services through `createServicesWithMockedVFS()`. This ensures proper cleanup of TypeScript compiler resources after each test completes, preventing memory leaks during test runs.
+
+- [#658](https://github.com/Effect-TS/language-service/pull/658) [`0154667`](https://github.com/Effect-TS/language-service/commit/0154667a23c95a8133751b3454b9233ddc39d8e3) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix outdated API diagnostic for Effect v4 compatibility
+
+  - Fixed `TaggedError` completion to use `TaggedErrorClass` matching the v4 API
+  - Removed `Schema.RequestClass` examples that no longer exist in v4
+  - Updated Effect v4 harness to latest version
+
+- [#659](https://github.com/Effect-TS/language-service/pull/659) [`2699a80`](https://github.com/Effect-TS/language-service/commit/2699a80e3ecbce91db269cd34689752950d8d278) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add support for `Model.Class` from `effect/unstable/schema` in completions and diagnostics.
+
+  The `classSelfMismatch` diagnostic now detects mismatched Self type parameters in `Model.Class` declarations, and the autocomplete for Self type in classes now suggests `Model.Class` when typing after `Model.`.
+
+  ```ts
+  import { Model } from "effect/unstable/schema";
+
+  // autocomplete triggers after `Model.`
+  export class MyDataModel extends Model.Class<MyDataModel>("MyDataModel")({
+    id: Schema.String,
+  }) {}
+  ```
+
 ## 0.76.0
 
 ### Minor Changes
