@@ -24,96 +24,102 @@ import { configFromSourceComment, createServicesWithMockedVFS } from "./utils/mo
 const getExamplesLayerGraph = () => getExamplesSubdir("layer-graph")
 
 async function testLayerGraphOnExample(fileName: string, sourceText: string) {
-  const { program, sourceFile } = createServicesWithMockedVFS(
+  const { languageService, program, sourceFile } = createServicesWithMockedVFS(
     getHarnessDir(),
     getExamplesDir(),
     fileName,
     sourceText
   )
 
-  // get the node to test
-  const nodes: Array<[name: string, node: ts.Node]> = []
-  for (const statement of sourceFile.statements) {
-    if (
-      ts.isVariableStatement(statement) && statement.modifiers &&
-      statement.modifiers.some((_) => _.kind === ts.SyntaxKind.ExportKeyword)
-    ) {
-      for (const declaration of statement.declarationList.declarations) {
-        if (ts.isVariableDeclaration(declaration) && ts.isIdentifier(declaration.name) && declaration.initializer) {
-          nodes.push([ts.idText(declaration.name), declaration.initializer])
+  try {
+    // get the node to test
+    const nodes: Array<[name: string, node: ts.Node]> = []
+    for (const statement of sourceFile.statements) {
+      if (
+        ts.isVariableStatement(statement) && statement.modifiers &&
+        statement.modifiers.some((_) => _.kind === ts.SyntaxKind.ExportKeyword)
+      ) {
+        for (const declaration of statement.declarationList.declarations) {
+          if (ts.isVariableDeclaration(declaration) && ts.isIdentifier(declaration.name) && declaration.initializer) {
+            nodes.push([ts.idText(declaration.name), declaration.initializer])
+          }
         }
       }
     }
-  }
 
-  // at least one test
-  expect(nodes.length).toBeGreaterThan(0)
-  expect(nodes.map(([name]) => name)).toMatchSnapshot()
+    // at least one test
+    expect(nodes.length).toBeGreaterThan(0)
+    expect(nodes.map(([name]) => name)).toMatchSnapshot()
 
-  // loop and test the nodes
-  for (const [name, node] of nodes) {
-    // create snapshot path
-    const baseSnapshotFilePath = path.join(
-      getSnapshotsSubdir("layer-graph"),
-      fileName + "_" + name
-    )
+    // loop and test the nodes
+    for (const [name, node] of nodes) {
+      // create snapshot path
+      const baseSnapshotFilePath = path.join(
+        getSnapshotsSubdir("layer-graph"),
+        fileName + "_" + name
+      )
 
-    const options = LanguageServicePluginOptions.parse({
-      ...LanguageServicePluginOptions.defaults,
-      completions: true,
-      refactors: false,
-      diagnostics: false,
-      quickinfo: false,
-      goto: false,
-      ...configFromSourceComment(sourceText)
-    })
+      const options = LanguageServicePluginOptions.parse({
+        ...LanguageServicePluginOptions.defaults,
+        completions: true,
+        refactors: false,
+        diagnostics: false,
+        quickinfo: false,
+        goto: false,
+        ...configFromSourceComment(sourceText)
+      })
 
-    // check and assert the completions is executable
-    const maybeGraph = pipe(
-      Nano.gen(function*() {
-        const layerGraph = yield* LayerGraph.extractLayerGraph(node, {
-          arrayLiteralAsMerge: false,
-          explodeOnlyLayerCalls: false,
-          followSymbolsDepth: options.layerGraphFollowDepth
-        })
-        const outlineGraph = yield* LayerGraph.extractOutlineGraph(layerGraph)
-        const providersAndRequirers = yield* LayerGraph.extractProvidersAndRequirers(layerGraph)
-        return {
-          layerGraph: yield* LayerGraph.formatLayerGraph(layerGraph, sourceFile),
-          layerNestedGraph: yield* LayerGraph.formatNestedLayerGraph(layerGraph, sourceFile),
-          outlineGraph: yield* LayerGraph.formatLayerOutlineGraph(outlineGraph, sourceFile),
-          providersAndRequirers: yield* LayerGraph.formatLayerProvidersAndRequirersInfo(
-            providersAndRequirers,
-            sourceFile
-          )
-        }
-      }),
-      TypeParser.nanoLayer,
-      TypeCheckerUtils.nanoLayer,
-      TypeScriptUtils.nanoLayer,
-      Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-      Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-      Nano.provideService(
-        LanguageServicePluginOptions.LanguageServicePluginOptions,
-        options
-      ),
-      Nano.unsafeRun
-    )
+      // check and assert the completions is executable
+      const maybeGraph = pipe(
+        Nano.gen(function*() {
+          const layerGraph = yield* LayerGraph.extractLayerGraph(node, {
+            arrayLiteralAsMerge: false,
+            explodeOnlyLayerCalls: false,
+            followSymbolsDepth: options.layerGraphFollowDepth
+          })
+          const outlineGraph = yield* LayerGraph.extractOutlineGraph(layerGraph)
+          const providersAndRequirers = yield* LayerGraph.extractProvidersAndRequirers(layerGraph)
+          return {
+            layerGraph: yield* LayerGraph.formatLayerGraph(layerGraph, sourceFile),
+            layerNestedGraph: yield* LayerGraph.formatNestedLayerGraph(layerGraph, sourceFile),
+            outlineGraph: yield* LayerGraph.formatLayerOutlineGraph(outlineGraph, sourceFile),
+            providersAndRequirers: yield* LayerGraph.formatLayerProvidersAndRequirersInfo(
+              providersAndRequirers,
+              sourceFile
+            )
+          }
+        }),
+        TypeParser.nanoLayer,
+        TypeCheckerUtils.nanoLayer,
+        TypeScriptUtils.nanoLayer,
+        Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+        Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+        Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+        Nano.provideService(
+          LanguageServicePluginOptions.LanguageServicePluginOptions,
+          options
+        ),
+        Nano.unsafeRun
+      )
 
-    if (Result.isFailure(maybeGraph)) {
-      await expect("no graph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
-      return
+      if (Result.isFailure(maybeGraph)) {
+        await expect("no graph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
+        return
+      }
+
+      await expect(maybeGraph.success.layerGraph, "layerGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
+      await expect(maybeGraph.success.layerNestedGraph, "layerNestedGraph").toMatchFileSnapshot(
+        baseSnapshotFilePath + ".nested"
+      )
+      await expect(maybeGraph.success.outlineGraph, "outlineGraph").toMatchFileSnapshot(
+        baseSnapshotFilePath + ".outline"
+      )
+      await expect(maybeGraph.success.providersAndRequirers, "providersAndRequirers").toMatchFileSnapshot(
+        baseSnapshotFilePath + ".quickinfo"
+      )
     }
-
-    await expect(maybeGraph.success.layerGraph, "layerGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".output")
-    await expect(maybeGraph.success.layerNestedGraph, "layerNestedGraph").toMatchFileSnapshot(
-      baseSnapshotFilePath + ".nested"
-    )
-    await expect(maybeGraph.success.outlineGraph, "outlineGraph").toMatchFileSnapshot(baseSnapshotFilePath + ".outline")
-    await expect(maybeGraph.success.providersAndRequirers, "providersAndRequirers").toMatchFileSnapshot(
-      baseSnapshotFilePath + ".quickinfo"
-    )
+  } finally {
+    languageService.dispose()
   }
 }
 

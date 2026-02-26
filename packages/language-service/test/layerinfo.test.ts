@@ -45,7 +45,7 @@ function testAllLayerInfoExamples() {
           .toString("utf8")
 
         // Create services once for the entire file
-        const { program, sourceFile } = createServicesWithMockedVFS(
+        const { languageService: describeLanguageService, program, sourceFile } = createServicesWithMockedVFS(
           getHarnessDir(),
           getExamplesDir(),
           fileName,
@@ -64,6 +64,9 @@ function testAllLayerInfoExamples() {
           Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
           Nano.unsafeRun
         )
+
+        // Dispose the describe-level service immediately after collecting layer names
+        describeLanguageService.dispose()
 
         if (Result.isFailure(layersResult)) {
           it("should collect layers without error", () => {
@@ -98,48 +101,53 @@ async function testLayerInfoByName(
   layerName: string
 ) {
   // Create services fresh for each test
-  const { program, sourceFile } = createServicesWithMockedVFS(
+  const { languageService, program, sourceFile } = createServicesWithMockedVFS(
     getHarnessDir(),
     getExamplesDir(),
     fileName,
     sourceText
   )
-  const typeChecker = program.getTypeChecker()
 
-  // create snapshot path with pattern: filename.ts.layerName.layerinfo
-  const snapshotFilePath = path.join(
-    getSnapshotsSubdir("layerinfo"),
-    `${fileName}.${layerName}.layerinfo`
-  )
+  try {
+    const typeChecker = program.getTypeChecker()
 
-  // Collect layer info using the new Nano function
-  const result = pipe(
-    collectLayerInfoByName(sourceFile, layerName),
-    TypeParser.nanoLayer,
-    TypeCheckerUtils.nanoLayer,
-    TypeScriptUtils.nanoLayer,
-    Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.run
-  )
+    // create snapshot path with pattern: filename.ts.layerName.layerinfo
+    const snapshotFilePath = path.join(
+      getSnapshotsSubdir("layerinfo"),
+      `${fileName}.${layerName}.layerinfo`
+    )
 
-  if (Result.isFailure(result)) {
-    await expect(`// error: ${String(result.failure)}`).toMatchFileSnapshot(snapshotFilePath)
-    return
+    // Collect layer info using the new Nano function
+    const result = pipe(
+      collectLayerInfoByName(sourceFile, layerName),
+      TypeParser.nanoLayer,
+      TypeCheckerUtils.nanoLayer,
+      TypeScriptUtils.nanoLayer,
+      Nano.provideService(TypeCheckerApi.TypeCheckerApi, typeChecker),
+      Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+      Nano.run
+    )
+
+    if (Result.isFailure(result)) {
+      await expect(`// error: ${String(result.failure)}`).toMatchFileSnapshot(snapshotFilePath)
+      return
+    }
+
+    const layerInfoResult = result.success
+    if (!layerInfoResult) {
+      await expect(`// error: layer "${layerName}" not found`).toMatchFileSnapshot(snapshotFilePath)
+      return
+    }
+
+    // Render the layer info with the file's directory as cwd (so paths are relative)
+    const cwd = path.dirname(path.resolve(fileName))
+    const rendered = renderLayerInfo(layerInfoResult, cwd)
+
+    await expect(rendered).toMatchFileSnapshot(snapshotFilePath)
+  } finally {
+    languageService.dispose()
   }
-
-  const layerInfoResult = result.success
-  if (!layerInfoResult) {
-    await expect(`// error: layer "${layerName}" not found`).toMatchFileSnapshot(snapshotFilePath)
-    return
-  }
-
-  // Render the layer info with the file's directory as cwd (so paths are relative)
-  const cwd = path.dirname(path.resolve(fileName))
-  const rendered = renderLayerInfo(layerInfoResult, cwd)
-
-  await expect(rendered).toMatchFileSnapshot(snapshotFilePath)
 }
 
 testAllLayerInfoExamples()

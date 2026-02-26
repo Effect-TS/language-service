@@ -52,63 +52,72 @@ function testDiagnosticOnExample(
   sourceText: string
 ) {
   // create the language service with mocked services over a VFS
-  const { program, sourceFile } = createServicesWithMockedVFS(getHarnessDir(), getExamplesDir(), fileName, sourceText)
-
-  // create snapshot path
-  const snapshotFilePath = path.join(
-    getSnapshotsSubdir("diagnostics"),
-    fileName + ".output"
+  const { languageService, program, sourceFile } = createServicesWithMockedVFS(
+    getHarnessDir(),
+    getExamplesDir(),
+    fileName,
+    sourceText
   )
 
-  if (getHarnessVersion() === "v4") {
-    // expect valid initial code
-    const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === sourceFile.fileName)
-    const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === sourceFile.fileName)
-    const tsDiagsText = [...syntaxDiags, ...typeDiags].map((diag) =>
-      diagnosticToLogFormat(sourceFile, sourceText, diag)
-    ).join("\n\n")
-    expect(tsDiagsText).toBe("")
-  }
+  try {
+    // create snapshot path
+    const snapshotFilePath = path.join(
+      getSnapshotsSubdir("diagnostics"),
+      fileName + ".output"
+    )
 
-  // attempt to run the diagnostic and get the output
-  return pipe(
-    LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
-    TypeParser.nanoLayer,
-    TypeCheckerUtils.nanoLayer,
-    TypeScriptUtils.nanoLayer,
-    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(
-      LanguageServicePluginOptions.LanguageServicePluginOptions,
-      LanguageServicePluginOptions.parse({
-        ...LanguageServicePluginOptions.defaults,
-        diagnostics: true,
-        refactors: false,
-        quickinfo: false,
-        completions: false,
-        goto: false,
-        namespaceImportPackages: ["effect"],
-        ...configFromSourceComment(sourceText)
-      })
-    ),
-    Nano.map(({ diagnostics }) => {
-      // sort by start position
-      diagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
-      // create human readable messages
-      return diagnostics.length === 0 ?
-        "// no diagnostics" :
-        diagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
-          .join("\n\n")
-    }),
-    Nano.unsafeRun,
-    async (result) => {
-      expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
-      await expect(Result.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
-        snapshotFilePath
-      )
+    if (getHarnessVersion() === "v4") {
+      // expect valid initial code
+      const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+      const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+      const tsDiagsText = [...syntaxDiags, ...typeDiags].map((diag) =>
+        diagnosticToLogFormat(sourceFile, sourceText, diag)
+      ).join("\n\n")
+      expect(tsDiagsText).toBe("")
     }
-  )
+
+    // attempt to run the diagnostic and get the output
+    return pipe(
+      LSP.getSemanticDiagnosticsWithCodeFixes([diagnostic], sourceFile),
+      TypeParser.nanoLayer,
+      TypeCheckerUtils.nanoLayer,
+      TypeScriptUtils.nanoLayer,
+      Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+      Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+      Nano.provideService(
+        LanguageServicePluginOptions.LanguageServicePluginOptions,
+        LanguageServicePluginOptions.parse({
+          ...LanguageServicePluginOptions.defaults,
+          diagnostics: true,
+          refactors: false,
+          quickinfo: false,
+          completions: false,
+          goto: false,
+          namespaceImportPackages: ["effect"],
+          ...configFromSourceComment(sourceText)
+        })
+      ),
+      Nano.map(({ diagnostics }) => {
+        // sort by start position
+        diagnostics.sort((a, b) => (a.start || 0) - (b.start || 0))
+        // create human readable messages
+        return diagnostics.length === 0 ?
+          "// no diagnostics" :
+          diagnostics.map((error) => diagnosticToLogFormat(sourceFile, sourceText, error))
+            .join("\n\n")
+      }),
+      Nano.unsafeRun,
+      async (result) => {
+        expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
+        await expect(Result.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+          snapshotFilePath
+        )
+      }
+    )
+  } finally {
+    languageService.dispose()
+  }
 }
 
 function testDiagnosticQuickfixesOnExample(
@@ -117,14 +126,16 @@ function testDiagnosticQuickfixesOnExample(
   sourceText: string
 ) {
   const promises: Array<Promise<void>> = []
+  const languageServicesToDispose: Array<ts.LanguageService> = []
 
   // create the language service with mocked services over a VFS
-  const { languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
+  const { languageService, languageServiceHost, program, sourceFile } = createServicesWithMockedVFS(
     getHarnessDir(),
     getExamplesDir(),
     fileName,
     sourceText
   )
+  languageServicesToDispose.push(languageService)
 
   // create snapshot path
   const snapshotFilePathList = path.join(
@@ -176,17 +187,24 @@ function testDiagnosticQuickfixesOnExample(
             codeFix.end + "\n" + applyEdits(edits, fileName, sourceText)
 
           if (getHarnessVersion() === "v4") {
-            const { program, sourceFile: newSourceFile } = createServicesWithMockedVFS(
+            const result = createServicesWithMockedVFS(
               getHarnessDir(),
               getExamplesDir(),
               fileName,
               finalSource
             )
-            const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
-            const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === newSourceFile.fileName)
+            languageServicesToDispose.push(result.languageService)
+            const typeDiags = result.program.getSemanticDiagnostics().filter((_) =>
+              _.source === result.sourceFile.fileName
+            )
+            const syntaxDiags = result.program.getSyntacticDiagnostics().filter((_) =>
+              _.source === result.sourceFile.fileName
+            )
             const snapshotText = [
               finalSource,
-              ...[...syntaxDiags, ...typeDiags].map((diag) => diagnosticToLogFormat(newSourceFile, finalSource, diag))
+              ...[...syntaxDiags, ...typeDiags].map((diag) =>
+                diagnosticToLogFormat(result.sourceFile, finalSource, diag)
+              )
             ].join("\n\n")
             promises.push(
               expect(snapshotText).toMatchFileSnapshot(snapshotFilePath)
@@ -224,11 +242,17 @@ function testDiagnosticQuickfixesOnExample(
     ),
     Nano.unsafeRun,
     async (result) => {
-      expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
-      await Promise.all(promises)
-      await expect(Result.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
-        snapshotFilePathList
-      )
+      try {
+        expect(Result.isSuccess(result), "should run with no error " + result).toEqual(true)
+        await Promise.all(promises)
+        await expect(Result.getOrElse(result, () => "// no codefixes available")).toMatchFileSnapshot(
+          snapshotFilePathList
+        )
+      } finally {
+        for (const ls of languageServicesToDispose) {
+          ls.dispose()
+        }
+      }
     }
   )
 }
