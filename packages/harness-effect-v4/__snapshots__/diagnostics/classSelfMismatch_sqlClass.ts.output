@@ -1,1 +1,2 @@
-// no diagnostics
+ValidModelClass
+10:51 - 10:66 | 1 | Self type parameter should be 'InvalidModelClass'    effect(classSelfMismatch)

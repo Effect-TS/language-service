@@ -100,6 +100,9 @@ export interface TypeParser {
   isNodeReferenceToEffectSqlModelModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToEffectSchemaModelModuleApi: (
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   isNodeReferenceToEffectLayerModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
@@ -327,6 +330,14 @@ export interface TypeParser {
     never
   >
   extendsEffectSqlModelClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+    {
+      className: ts.Identifier
+      selfTypeNode: ts.TypeNode
+    },
+    TypeParserIssue,
+    never
+  >
+  extendsEffectSchemaModelClass: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
@@ -2451,6 +2462,87 @@ export function make(
     (atLocation) => atLocation
   )
 
+  const isEffectSchemaModelTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isEffectSchemaModelTypeSourceFile")(function*(
+      sourceFile: ts.SourceFile
+    ) {
+      const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
+      if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
+      // check for Class
+      const classSymbol = typeChecker.tryGetMemberInModuleExports("Class", moduleSymbol)
+      if (!classSymbol) return yield* typeParserIssue("Model's Class type not found", undefined, sourceFile)
+      // check for Generated (unique to Model, not present in Schema)
+      const generatedSymbol = typeChecker.tryGetMemberInModuleExports("Generated", moduleSymbol)
+      if (!generatedSymbol) {
+        return yield* typeParserIssue("Model's Generated type not found", undefined, sourceFile)
+      }
+      // check for FieldOption (unique to v4 Model)
+      const fieldOptionSymbol = typeChecker.tryGetMemberInModuleExports("FieldOption", moduleSymbol)
+      if (!fieldOptionSymbol) {
+        return yield* typeParserIssue("Model's FieldOption type not found", undefined, sourceFile)
+      }
+      return sourceFile
+    }),
+    "TypeParser.isEffectSchemaModelTypeSourceFile",
+    (sourceFile) => sourceFile
+  )
+
+  const isNodeReferenceToEffectSchemaModelModuleApi = (memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToEffectSchemaModelModuleApi")(function*(
+        node: ts.Node
+      ) {
+        return yield* isNodeReferenceToExportOfPackageModule(
+          node,
+          "effect",
+          isEffectSchemaModelTypeSourceFile,
+          memberName
+        )
+      }),
+      `TypeParser.isNodeReferenceToEffectSchemaModelModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const extendsEffectSchemaModelClass = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsEffectSchemaModelClass")(function*(
+      atLocation: ts.ClassDeclaration
+    ) {
+      if (!atLocation.name) {
+        return yield* typeParserIssue("Class has no name", undefined, atLocation)
+      }
+      const heritageClauses = atLocation.heritageClauses
+      if (!heritageClauses) {
+        return yield* typeParserIssue("Class has no heritage clauses", undefined, atLocation)
+      }
+      for (const heritageClause of heritageClauses) {
+        for (const typeX of heritageClause.types) {
+          if (ts.isExpressionWithTypeArguments(typeX)) {
+            const expression = typeX.expression
+            if (ts.isCallExpression(expression)) {
+              // Model.Class<T>("name")({})
+              const schemaCall = expression.expression
+              if (ts.isCallExpression(schemaCall) && schemaCall.typeArguments && schemaCall.typeArguments.length > 0) {
+                const isEffectSchemaModelModuleApi = yield* pipe(
+                  isNodeReferenceToEffectSchemaModelModuleApi("Class")(schemaCall.expression),
+                  Nano.orUndefined
+                )
+                if (isEffectSchemaModelModuleApi) {
+                  return {
+                    className: atLocation.name,
+                    selfTypeNode: schemaCall.typeArguments[0]!
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return yield* typeParserIssue("Class does not extend effect's Model.Class", undefined, atLocation)
+    }),
+    "TypeParser.extendsEffectSchemaModelClass",
+    (atLocation) => atLocation
+  )
+
   const isEffectLayerTypeSourceFile = Nano.cachedBy(
     Nano.fn("TypeParser.isEffectLayerTypeSourceFile")(function*(
       sourceFile: ts.SourceFile
@@ -2967,6 +3059,7 @@ export function make(
     isNodeReferenceToEffectDataModuleApi,
     isNodeReferenceToEffectContextModuleApi,
     isNodeReferenceToEffectSqlModelModuleApi,
+    isNodeReferenceToEffectSchemaModelModuleApi,
     isNodeReferenceToEffectLayerModuleApi,
     isNodeReferenceToEffectSchemaParserModuleApi,
     isServiceMapTypeSourceFile,
@@ -3004,6 +3097,7 @@ export function make(
     extendsSchemaTaggedRequest,
     extendsSchemaRequestClass,
     extendsEffectSqlModelClass,
+    extendsEffectSchemaModelClass,
     lazyExpression,
     emptyFunction,
     pipingFlows,
