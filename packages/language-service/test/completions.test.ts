@@ -24,56 +24,60 @@ function testCompletionOnExample(
   sourceText: string,
   textRangeString: string
 ) {
-  const { program, sourceFile } = createServicesWithMockedVFS(
+  const { languageService, program, sourceFile } = createServicesWithMockedVFS(
     getHarnessDir(),
     getExamplesDir(),
     fileName,
     sourceText
   )
 
-  // gets the position to test
-  let startPos = 0
-  for (const lineAndCol of textRangeString.split("-")) {
-    const [line, character] = lineAndCol.split(":")
-    startPos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
+  try {
+    // gets the position to test
+    let startPos = 0
+    for (const lineAndCol of textRangeString.split("-")) {
+      const [line, character] = lineAndCol.split(":")
+      startPos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
+    }
+
+    // check and assert the completions is executable
+    const maybeEntries = pipe(
+      LSP.getCompletionsAtPosition(
+        [completion],
+        sourceFile,
+        startPos,
+        undefined,
+        ts.getDefaultFormatCodeSettings("\n")
+      ),
+      TypeParser.nanoLayer,
+      TypeCheckerUtils.nanoLayer,
+      TypeScriptUtils.nanoLayer,
+      Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+      Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+      Nano.provideService(
+        LanguageServicePluginOptions.LanguageServicePluginOptions,
+        LanguageServicePluginOptions.parse({
+          ...LanguageServicePluginOptions.defaults,
+          completions: true,
+          refactors: false,
+          diagnostics: false,
+          quickinfo: false,
+          goto: false,
+          ...configFromSourceComment(sourceText)
+        })
+      ),
+      Nano.unsafeRun
+    )
+
+    if (Result.isFailure(maybeEntries)) {
+      expect(sourceText).toMatchSnapshot()
+      return
+    }
+
+    expect(maybeEntries.success).toMatchSnapshot()
+  } finally {
+    languageService.dispose()
   }
-
-  // check and assert the completions is executable
-  const maybeEntries = pipe(
-    LSP.getCompletionsAtPosition(
-      [completion],
-      sourceFile,
-      startPos,
-      undefined,
-      ts.getDefaultFormatCodeSettings("\n")
-    ),
-    TypeParser.nanoLayer,
-    TypeCheckerUtils.nanoLayer,
-    TypeScriptUtils.nanoLayer,
-    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(
-      LanguageServicePluginOptions.LanguageServicePluginOptions,
-      LanguageServicePluginOptions.parse({
-        ...LanguageServicePluginOptions.defaults,
-        completions: true,
-        refactors: false,
-        diagnostics: false,
-        quickinfo: false,
-        goto: false,
-        ...configFromSourceComment(sourceText)
-      })
-    ),
-    Nano.unsafeRun
-  )
-
-  if (Result.isFailure(maybeEntries)) {
-    expect(sourceText).toMatchSnapshot()
-    return
-  }
-
-  expect(maybeEntries.success).toMatchSnapshot()
 }
 
 function testAllCompletions() {

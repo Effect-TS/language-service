@@ -55,78 +55,85 @@ function testRenamesOnExample(
     sourceText
   )
 
-  // gets the position to test
-  let startPos = 0
-  let endPos = 0
-  let humanLineCol = ""
-  let i = 0
-  for (const lineAndCol of textRangeString.split("-")) {
-    const [line, character] = lineAndCol.split(":")
-    const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
-    if (i === 1) humanLineCol += "-"
-    humanLineCol += "ln" + line + "col" + character
-    if (i === 0) startPos = pos
-    if (i === 1) endPos = pos
-    i += 1
-  }
-  if (endPos < startPos) endPos = startPos
-  const textRange = { pos: startPos, end: endPos }
+  try {
+    // gets the position to test
+    let startPos = 0
+    let endPos = 0
+    let humanLineCol = ""
+    let i = 0
+    for (const lineAndCol of textRangeString.split("-")) {
+      const [line, character] = lineAndCol.split(":")
+      const pos = ts.getPositionOfLineAndCharacter(sourceFile, +line! - 1, +character! - 1)
+      if (i === 1) humanLineCol += "-"
+      humanLineCol += "ln" + line + "col" + character
+      if (i === 0) startPos = pos
+      if (i === 1) endPos = pos
+      i += 1
+    }
+    if (endPos < startPos) endPos = startPos
+    const textRange = { pos: startPos, end: endPos }
 
-  // create snapshot path
-  const snapshotFilePath = path.join(
-    getSnapshotsSubdir("renames"),
-    fileName + "." + humanLineCol + ".output"
-  )
+    // create snapshot path
+    const snapshotFilePath = path.join(
+      getSnapshotsSubdir("renames"),
+      fileName + "." + humanLineCol + ".output"
+    )
 
-  // ensure there are no errors in TS file
-  const diagnostics = languageService.getCompilerOptionsDiagnostics()
-    .concat(languageService.getSyntacticDiagnostics(fileName))
-    .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
-      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
-      if (diagnostic.file) {
-        const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(
-          diagnostic.start!
-        )
-        return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
-      } else {
-        return `  Error: ${message}`
-      }
-    })
-  expect(diagnostics).toEqual([])
-
-  // check and assert the refactor is executable
-  const canApply = pipe(
-    runner(sourceFile, textRange.pos, false, false, {}, undefined),
-    TypeParser.nanoLayer,
-    TypeCheckerUtils.nanoLayer,
-    TypeScriptUtils.nanoLayer,
-    Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-    Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-    Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
-    Nano.provideService(
-      LanguageServicePluginOptions.LanguageServicePluginOptions,
-      LanguageServicePluginOptions.parse({
-        ...LanguageServicePluginOptions.defaults,
-        refactors: true,
-        diagnostics: false,
-        quickinfo: false,
-        completions: false,
-        goto: false,
-        ...configFromSourceComment(sourceText)
+    // ensure there are no errors in TS file
+    const diagnostics = languageService.getCompilerOptionsDiagnostics()
+      .concat(languageService.getSyntacticDiagnostics(fileName))
+      .concat(languageService.getSemanticDiagnostics(fileName)).map((diagnostic) => {
+        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
+        if (diagnostic.file) {
+          const { character, line } = diagnostic.file.getLineAndCharacterOfPosition(
+            diagnostic.start!
+          )
+          return `  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
+        } else {
+          return `  Error: ${message}`
+        }
       })
-    ),
-    Nano.unsafeRun
-  )
+    expect(diagnostics).toEqual([])
 
-  if (!(Result.isSuccess(canApply))) {
-    return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
+    // check and assert the refactor is executable
+    const canApply = pipe(
+      runner(sourceFile, textRange.pos, false, false, {}, undefined),
+      TypeParser.nanoLayer,
+      TypeCheckerUtils.nanoLayer,
+      TypeScriptUtils.nanoLayer,
+      Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+      Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+      Nano.provideService(TypeScriptApi.TypeScriptApi, ts),
+      Nano.provideService(
+        LanguageServicePluginOptions.LanguageServicePluginOptions,
+        LanguageServicePluginOptions.parse({
+          ...LanguageServicePluginOptions.defaults,
+          refactors: true,
+          diagnostics: false,
+          quickinfo: false,
+          completions: false,
+          goto: false,
+          ...configFromSourceComment(sourceText)
+        })
+      ),
+      Nano.unsafeRun
+    )
+
+    if (!(Result.isSuccess(canApply))) {
+      return expect(sourceText).toMatchFileSnapshot(snapshotFilePath)
+    }
+
+    const textChanges = (canApply.success || []).map((_: ts.RenameLocation) => ({
+      span: _.textSpan,
+      newText: "NewText"
+    }))
+
+    return expect(applyEdits([{ fileName, textChanges }], fileName, sourceFile.text)).toMatchFileSnapshot(
+      snapshotFilePath
+    )
+  } finally {
+    languageService.dispose()
   }
-
-  const textChanges = (canApply.success || []).map((_: ts.RenameLocation) => ({ span: _.textSpan, newText: "NewText" }))
-
-  return expect(applyEdits([{ fileName, textChanges }], fileName, sourceFile.text)).toMatchFileSnapshot(
-    snapshotFilePath
-  )
 }
 
 function testAllRenames() {
