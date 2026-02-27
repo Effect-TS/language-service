@@ -82,13 +82,19 @@ export const layerMagic = LSP.createRefactor({
                 Nano.option
               )
 
-              const [existingBefore, newlyIntroduced] = pipe(
+              const sorted = pipe(
                 Array.fromIterable(layerOutputTypes),
-                Array.sort(typeCheckerUtils.deterministicTypeOrder),
-                Array.partition((_) =>
-                  Option.isNone(previouslyProvided) || typeChecker.isTypeAssignableTo(_, previouslyProvided.value)
-                )
+                Array.sort(typeCheckerUtils.deterministicTypeOrder)
               )
+              const existingBefore: Array<ts.Type> = []
+              const newlyIntroduced: Array<ts.Type> = []
+              for (const t of sorted) {
+                if (Option.isNone(previouslyProvided) || typeChecker.isTypeAssignableTo(t, previouslyProvided.value)) {
+                  newlyIntroduced.push(t)
+                } else {
+                  existingBefore.push(t)
+                }
+              }
 
               const typeReferences = pipe(
                 newlyIntroduced,
