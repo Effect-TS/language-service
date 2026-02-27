@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.77.1
+
+### Patch Changes
+
+- [#661](https://github.com/Effect-TS/language-service/pull/661) [`0f92686`](https://github.com/Effect-TS/language-service/commit/0f92686ac86b4f90eea436c542914ce59c39afb6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update effect dependency to v4.0.0-beta.19 and fix compatibility issues:
+
+  - Fix `layerMagic` refactor producing `any` types in Layer channels by replacing `Array.partition` (which now uses the v4 `Filter.Filter` API) with a native loop for boolean partition logic
+  - Add v4 Layer type detection shortcut using `"~effect/Layer"` TypeId property, matching the pattern already used for Effect type detection
+  - Mark `Effect.filterMap` as unchanged in the outdated API migration database since it was re-added in v4
+
 ## 0.77.0
 
 ### Minor Changes
