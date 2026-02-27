@@ -75,9 +75,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "failSync": asUnchanged,
   "fiberId": asUnchanged,
   "filter": asUnchanged,
-  "filterMap": asRemoved(
-    "Use Effect.filter or Effect.map with Option instead."
-  ),
+  "filterMap": asUnchanged,
   "filterOrElse": asUnchanged,
   "filterOrFail": asUnchanged,
   "flatMap": asUnchanged,

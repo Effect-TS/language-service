@@ -860,6 +860,16 @@ export function make(
       // should be pipeable
       yield* pipeableType(type, atLocation)
 
+      if (supportedEffect() === "v4") {
+        // Effect v4 TypeId shortcut
+        const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Layer")
+        if (typeIdSymbol) {
+          const typeIdType = typeChecker.getTypeOfSymbolAtLocation(typeIdSymbol, atLocation)
+          return yield* layerVarianceStruct(typeIdType, atLocation)
+        }
+        return yield* typeParserIssue("Type is not a layer", type, atLocation)
+      }
+
       // get the properties to check (exclude non-property and optional properties)
       const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
         _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
