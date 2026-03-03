@@ -1,5 +1,4 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions.js"
 import * as LSP from "../core/LSP.js"
@@ -16,7 +15,9 @@ interface EffectFnOpportunityTarget {
   readonly node: SupportedFunctionNode
   readonly nameIdentifier: ts.Identifier | ts.StringLiteral | undefined
   readonly effectModuleName: string
-  /** Inferred trace name from the function/variable name */
+  /** Suggested trace name from the function/variable name */
+  readonly suggestedTraceName: string | undefined
+  /** Inferred trace name from exported member/context */
   readonly inferredTraceName: string | undefined
   /** Explicit trace expression extracted from withSpan (if last pipe arg is withSpan) */
   readonly explicitTraceExpression: ts.Expression | undefined
@@ -78,20 +79,25 @@ export const effectFnOpportunity = LSP.createDiagnostic({
     /**
      * Gets the name identifier node from the context (variable name or function declaration name)
      */
-    const getNameIdentifier = (node: SupportedFunctionNode): ts.Identifier | ts.StringLiteral | undefined => {
+    const getNameIdentifier = (
+      node: SupportedFunctionNode
+    ): ts.Identifier | ts.StringLiteral | undefined => {
       if (ts.isFunctionDeclaration(node) && node.name) {
         return node.name
       }
-      if (node.parent && ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name)) {
+      if (
+        node.parent && ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name) &&
+        node.parent.initializer === node
+      ) {
         return node.parent.name
       }
-      if (node.parent && ts.isPropertyAssignment(node.parent)) {
+      if (node.parent && ts.isPropertyAssignment(node.parent) && node.parent.initializer === node) {
         const name = node.parent.name
         if (ts.isIdentifier(name) || ts.isStringLiteral(name)) {
           return name
         }
       }
-      if (node.parent && ts.isPropertyDeclaration(node.parent)) {
+      if (node.parent && ts.isPropertyDeclaration(node.parent) && node.parent.initializer === node) {
         const name = node.parent.name
         if (ts.isIdentifier(name)) {
           return name
@@ -249,8 +255,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       function*(
         node: SupportedFunctionNode,
         returnType: ts.Type,
-        traceName: string,
-        nameIdentifier: ts.Identifier | ts.StringLiteral
+        nameIdentifier: ts.Identifier | ts.StringLiteral | undefined
       ) {
         // Check if this function is already inside an Effect.fn call
         if (yield* isInsideEffectFn(node)) {
@@ -286,11 +291,16 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           })
         )
 
+        const suggestedTraceName = nameIdentifier
+          ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
+          : undefined
+
         return {
           node,
           nameIdentifier,
           effectModuleName: opportunity.effectModuleName,
-          inferredTraceName: traceName,
+          inferredTraceName: suggestedTraceName,
+          suggestedTraceName,
           explicitTraceExpression: opportunity.explicitTraceExpression,
           pipeArguments: opportunity.pipeArguments,
           generatorFunction: opportunity.generatorFunction,
@@ -304,34 +314,34 @@ export const effectFnOpportunity = LSP.createDiagnostic({
      */
     const parseEffectFnOpportunityTarget = (
       node: ts.Node
-    ): Nano.Nano<EffectFnOpportunityTarget, TypeParser.TypeParserIssue, never> => {
+    ): undefined | Nano.Nano<EffectFnOpportunityTarget, TypeParser.TypeParserIssue, never> => {
       // We're looking for function expressions, arrow functions, or function declarations
       if (!ts.isFunctionExpression(node) && !ts.isArrowFunction(node) && !ts.isFunctionDeclaration(node)) {
-        return TypeParser.TypeParserIssue.issue
+        return
       }
 
       // Skip generator functions (they can't be converted)
       if ((ts.isFunctionExpression(node) || ts.isFunctionDeclaration(node)) && node.asteriskToken) {
-        return TypeParser.TypeParserIssue.issue
+        return
       }
 
       // Skip named function expressions (they are typically used for recursion)
       if (ts.isFunctionExpression(node) && node.name) {
-        return TypeParser.TypeParserIssue.issue
+        return
       }
 
       // Skip functions with return type annotations (they could be recursive)
       if (node.type) {
-        return TypeParser.TypeParserIssue.issue
+        return
       }
 
       // Get the type of the function to check call signatures
       const functionType = typeChecker.getTypeAtLocation(node)
-      if (!functionType) return TypeParser.TypeParserIssue.issue
+      if (!functionType) return
 
       // Check if the function has only one call signature (no overloads)
       const callSignatures = typeChecker.getSignaturesOfType(functionType, ts.SignatureKind.Call)
-      if (callSignatures.length !== 1) return TypeParser.TypeParserIssue.issue
+      if (callSignatures.length !== 1) return
 
       // Get the return type of the function
       const signature = callSignatures[0]
@@ -339,14 +349,9 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
       // Try to get a name identifier and trace name
       const nameIdentifier = getNameIdentifier(node)
-      const traceName = nameIdentifier
-        ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
-        : undefined
+      if (!nameIdentifier) return
 
-      // Only if we have a traceName, that means basically either declaration name or parent
-      if (!traceName) return TypeParser.TypeParserIssue.issue
-
-      return parseEffectFnOpportunityTargetGen(node, returnType, traceName, nameIdentifier!)
+      return parseEffectFnOpportunityTargetGen(node, returnType, nameIdentifier)
     }
 
     // ==================== Fix creation helpers ====================
@@ -469,22 +474,24 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       const node = nodeToVisit.shift()!
       ts.forEachChild(node, appendNodeToVisit)
 
-      const target = yield* pipe(parseEffectFnOpportunityTarget(node), Nano.option)
-      if (Option.isNone(target)) continue
+      const test = parseEffectFnOpportunityTarget(node)
+      if (!test) continue
+      const target = yield* Nano.orUndefined(test)
+      if (!target) continue
 
       // Skip if function parameters are referenced in pipe arguments
       // (unsafe to convert - parameters wouldn't be in scope after transformation)
-      if (target.value.hasParamsInPipeArgs) continue
+      if (target.hasParamsInPipeArgs) continue
 
       const {
         effectModuleName,
         explicitTraceExpression,
-        inferredTraceName,
         nameIdentifier,
         node: targetNode,
-        pipeArguments
-      } = target.value
-      const innerFunction = target.value.generatorFunction ?? targetNode
+        pipeArguments,
+        suggestedTraceName: inferredTraceName
+      } = target
+      const innerFunction = target.generatorFunction ?? targetNode
 
       const fixes: Array<LSP.ApplicableDiagnosticDefinitionFix> = []
 
@@ -511,7 +518,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
       // toEffectFnUntraced: available when we have a generator function
       // Keeps ALL pipe arguments including withSpan since fnUntraced doesn't add tracing
-      if (pluginOptions.effectFn.includes("untraced") && target.value.generatorFunction) {
+      if (pluginOptions.effectFn.includes("untraced") && target.generatorFunction) {
         fixes.push({
           fixName: "effectFnOpportunity_toEffectFnUntraced",
           description: "Convert to Effect.fnUntraced",
