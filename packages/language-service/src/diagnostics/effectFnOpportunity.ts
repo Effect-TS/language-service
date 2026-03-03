@@ -112,34 +112,184 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       return modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ?? false
     }
 
-    /**
-     * Gets an inferred trace name only for exported declarations:
-     * - exported function declarations
-     * - exported const assignments whose initializer is the current function expression/arrow
-     */
-    const getInferredTraceName = (node: SupportedFunctionNode): string | undefined => {
-      if (ts.isFunctionDeclaration(node) && node.name && hasExportModifier(node)) {
-        return ts.idText(node.name)
-      }
-
-      if (
-        node.parent && ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name) &&
-        node.parent.initializer === node
-      ) {
-        const variableDeclarationList = node.parent.parent
-        const variableStatement = variableDeclarationList?.parent
-        if (
-          variableDeclarationList && ts.isVariableDeclarationList(variableDeclarationList) &&
-          variableStatement && ts.isVariableStatement(variableStatement) &&
-          hasExportModifier(variableStatement) &&
-          (variableDeclarationList.flags & ts.NodeFlags.Const) !== 0
-        ) {
-          return ts.idText(node.parent.name)
-        }
-      }
-
-      return undefined
+    const textOfExpression = (expression: ts.Expression): string => {
+      if (ts.isIdentifier(expression)) return ts.idText(expression)
+      return sourceFile.text.slice(expression.pos, expression.end).trim()
     }
+
+    const tryGetLayerApiMethod = (
+      node: ts.Node
+    ): Nano.Nano<"effect" | "succeed" | "sync" | undefined, never, never> =>
+      pipe(
+        typeParser.isNodeReferenceToEffectLayerModuleApi("effect")(node),
+        Nano.map(() => "effect" as const),
+        Nano.orElse(() =>
+          pipe(
+            typeParser.isNodeReferenceToEffectLayerModuleApi("succeed")(node),
+            Nano.map(() => "succeed" as const),
+            Nano.orElse(() =>
+              pipe(
+                typeParser.isNodeReferenceToEffectLayerModuleApi("sync")(node),
+                Nano.map(() => "sync" as const),
+                Nano.orElse(() => Nano.succeed(undefined))
+              )
+            )
+          )
+        )
+      )
+
+    const verifyLayerMethodAtCall: (
+      callExpression: ts.CallExpression,
+      method: "effect" | "succeed" | "sync",
+      implementationExpression: ts.Expression
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.verifyLayerMethodAtCall")(
+      function*(
+        callExpression: ts.CallExpression,
+        method: "effect" | "succeed" | "sync",
+        implementationExpression: ts.Expression
+      ) {
+        const directMethod = yield* tryGetLayerApiMethod(callExpression.expression)
+        if (
+          directMethod === method && callExpression.arguments.length >= 2 &&
+          callExpression.arguments[1] === implementationExpression
+        ) {
+          return textOfExpression(callExpression.arguments[0])
+        }
+        if (ts.isCallExpression(callExpression.expression)) {
+          const innerCall = callExpression.expression
+          const innerMethod = yield* tryGetLayerApiMethod(innerCall.expression)
+          if (
+            innerMethod === method && innerCall.arguments.length >= 1 && callExpression.arguments.length >= 1 &&
+            callExpression.arguments[0] === implementationExpression
+          ) {
+            return textOfExpression(innerCall.arguments[0])
+          }
+        }
+        return undefined
+      }
+    )
+
+    const tryMatchLayerSucceedInference: (
+      objectLiteral: ts.ObjectLiteralExpression
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchLayerSucceedInference")(
+      function*(objectLiteral: ts.ObjectLiteralExpression) {
+        const callExpression = objectLiteral.parent
+        if (!callExpression || !ts.isCallExpression(callExpression)) return undefined
+        return yield* verifyLayerMethodAtCall(callExpression, "succeed", objectLiteral)
+      }
+    )
+
+    const tryMatchLayerSyncInference: (
+      objectLiteral: ts.ObjectLiteralExpression
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchLayerSyncInference")(
+      function*(objectLiteral: ts.ObjectLiteralExpression) {
+        const returnStatement = objectLiteral.parent
+        if (!returnStatement || !ts.isReturnStatement(returnStatement)) return undefined
+        const functionBody = returnStatement.parent
+        if (!functionBody || !ts.isBlock(functionBody)) return undefined
+        const lazyFunction = functionBody.parent
+        if (!lazyFunction || (!ts.isArrowFunction(lazyFunction) && !ts.isFunctionExpression(lazyFunction))) {
+          return undefined
+        }
+        const callExpression = lazyFunction.parent
+        if (!callExpression || !ts.isCallExpression(callExpression)) return undefined
+        return yield* verifyLayerMethodAtCall(callExpression, "sync", lazyFunction)
+      }
+    )
+
+    const tryMatchLayerEffectInference: (
+      objectLiteral: ts.ObjectLiteralExpression
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchLayerEffectInference")(
+      function*(objectLiteral: ts.ObjectLiteralExpression) {
+        const returnStatement = objectLiteral.parent
+        if (!returnStatement || !ts.isReturnStatement(returnStatement)) return undefined
+        const generatorBody = returnStatement.parent
+        if (!generatorBody || !ts.isBlock(generatorBody)) return undefined
+        const generatorFunction = generatorBody.parent
+        if (!generatorFunction || !ts.isFunctionExpression(generatorFunction) || !generatorFunction.asteriskToken) {
+          return undefined
+        }
+        const genCall = generatorFunction.parent
+        if (!genCall || !ts.isCallExpression(genCall)) return undefined
+        const parsedEffectGen = yield* Nano.option(typeParser.effectGen(genCall))
+        if (parsedEffectGen._tag === "None" || parsedEffectGen.value.generatorFunction !== generatorFunction) {
+          return undefined
+        }
+        const layerCall = genCall.parent
+        if (!layerCall || !ts.isCallExpression(layerCall)) return undefined
+        return yield* verifyLayerMethodAtCall(layerCall, "effect", genCall)
+      }
+    )
+
+    /**
+     * Gets a strict inferred trace name from layer pattern suspects.
+     */
+    const tryGetLayerInferredTraceName: (
+      node: SupportedFunctionNode,
+      suggestedTraceName: string | undefined
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryGetLayerInferredTraceName")(
+      function*(node: SupportedFunctionNode, suggestedTraceName: string | undefined) {
+        if (!suggestedTraceName) return undefined
+        if (
+          !(
+            node.parent &&
+            ts.isPropertyAssignment(node.parent) &&
+            node.parent.initializer === node &&
+            node.parent.parent &&
+            ts.isObjectLiteralExpression(node.parent.parent)
+          )
+        ) {
+          return undefined
+        }
+
+        const objectLiteral = node.parent.parent
+        const succeedServiceName = yield* tryMatchLayerSucceedInference(objectLiteral)
+        if (succeedServiceName) return `${succeedServiceName}.${suggestedTraceName}`
+
+        const syncServiceName = yield* tryMatchLayerSyncInference(objectLiteral)
+        if (syncServiceName) return `${syncServiceName}.${suggestedTraceName}`
+
+        const effectServiceName = yield* tryMatchLayerEffectInference(objectLiteral)
+        return effectServiceName ? `${effectServiceName}.${suggestedTraceName}` : undefined
+      }
+    )
+
+    /**
+     * Gets an inferred trace name from strict contexts:
+     * - Layer service implementation members (ServiceTag.memberName)
+     * - exported declarations (function declarations or exported const initializers)
+     */
+    const getInferredTraceName: (
+      node: SupportedFunctionNode,
+      suggestedTraceName: string | undefined
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.getInferredTraceName")(
+      function*(node: SupportedFunctionNode, suggestedTraceName: string | undefined) {
+        const inferredFromLayer = yield* tryGetLayerInferredTraceName(node, suggestedTraceName)
+        if (inferredFromLayer) return inferredFromLayer
+
+        if (ts.isFunctionDeclaration(node) && node.name && hasExportModifier(node)) {
+          return ts.idText(node.name)
+        }
+
+        if (
+          node.parent && ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name) &&
+          node.parent.initializer === node
+        ) {
+          const variableDeclarationList = node.parent.parent
+          const variableStatement = variableDeclarationList?.parent
+          if (
+            variableDeclarationList && ts.isVariableDeclarationList(variableDeclarationList) &&
+            variableStatement && ts.isVariableStatement(variableStatement) &&
+            hasExportModifier(variableStatement) &&
+            (variableDeclarationList.flags & ts.NodeFlags.Const) !== 0
+          ) {
+            return ts.idText(node.parent.name)
+          }
+        }
+
+        return undefined
+      }
+    )
 
     interface ParsedOpportunity {
       readonly effectModuleName: string
@@ -292,6 +442,12 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         returnType: ts.Type,
         nameIdentifier: ts.Identifier | ts.StringLiteral | undefined
       ) {
+        const suggestedTraceName = nameIdentifier
+          ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
+          : undefined
+        const inferredTraceName = yield* getInferredTraceName(node, suggestedTraceName)
+        const hasStrictLayerInferredName = inferredTraceName !== undefined && inferredTraceName !== suggestedTraceName
+
         // Check if this function is already inside an Effect.fn call
         if (yield* isInsideEffectFn(node)) {
           return yield* TypeParser.TypeParserIssue.issue
@@ -309,12 +465,15 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           tryParseGenOpportunity(node),
           Nano.orElse(() => {
             // Skip arrow functions with concise body (expression body, no braces)
-            if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
+            if (ts.isArrowFunction(node) && !ts.isBlock(node.body) && !hasStrictLayerInferredName) {
               return TypeParser.TypeParserIssue.issue
             }
             // For functions with a block body, only suggest if there are more than 5 statements
             const body = ts.isArrowFunction(node) ? node.body as ts.Block : node.body
-            if (!body || !ts.isBlock(body) || body.statements.length <= 5) {
+            if (
+              (!body || !ts.isBlock(body) || body.statements.length <= 5) &&
+              !hasStrictLayerInferredName
+            ) {
               return TypeParser.TypeParserIssue.issue
             }
             return Nano.succeed({
@@ -325,11 +484,6 @@ export const effectFnOpportunity = LSP.createDiagnostic({
             })
           })
         )
-
-        const suggestedTraceName = nameIdentifier
-          ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
-          : undefined
-        const inferredTraceName = getInferredTraceName(node)
 
         return {
           node,
@@ -646,7 +800,11 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           return "_"
         }).join(", ")
 
-        const fnSignature = `function*${typeParamNames}(${paramNames}) { ... }`
+        const fnSignature = ts.isArrowFunction(innerFunction)
+          ? `${typeParamNames}(${paramNames}) => { ... }`
+          : isGeneratorFunction(innerFunction)
+          ? `function*${typeParamNames}(${paramNames}) { ... }`
+          : `function${typeParamNames}(${paramNames}) { ... }`
         const pipeArgsForWithSpan = pipeArguments.slice(0, -1)
         const pipeArgsSuffix = (args: ReadonlyArray<ts.Expression>) => args.length > 0 ? ", ...pipeTransformations" : ""
 
