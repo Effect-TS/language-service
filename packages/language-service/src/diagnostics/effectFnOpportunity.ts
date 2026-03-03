@@ -106,6 +106,41 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       return undefined
     }
 
+    const hasExportModifier = (node: ts.Node): boolean => {
+      if (!ts.canHaveModifiers(node)) return false
+      const modifiers = ts.getModifiers(node)
+      return modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ?? false
+    }
+
+    /**
+     * Gets an inferred trace name only for exported declarations:
+     * - exported function declarations
+     * - exported const assignments whose initializer is the current function expression/arrow
+     */
+    const getInferredTraceName = (node: SupportedFunctionNode): string | undefined => {
+      if (ts.isFunctionDeclaration(node) && node.name && hasExportModifier(node)) {
+        return ts.idText(node.name)
+      }
+
+      if (
+        node.parent && ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name) &&
+        node.parent.initializer === node
+      ) {
+        const variableDeclarationList = node.parent.parent
+        const variableStatement = variableDeclarationList?.parent
+        if (
+          variableDeclarationList && ts.isVariableDeclarationList(variableDeclarationList) &&
+          variableStatement && ts.isVariableStatement(variableStatement) &&
+          hasExportModifier(variableStatement) &&
+          (variableDeclarationList.flags & ts.NodeFlags.Const) !== 0
+        ) {
+          return ts.idText(node.parent.name)
+        }
+      }
+
+      return undefined
+    }
+
     interface ParsedOpportunity {
       readonly effectModuleName: string
       readonly pipeArguments: ReadonlyArray<ts.Expression>
@@ -294,12 +329,13 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         const suggestedTraceName = nameIdentifier
           ? ts.isIdentifier(nameIdentifier) ? ts.idText(nameIdentifier) : nameIdentifier.text
           : undefined
+        const inferredTraceName = getInferredTraceName(node)
 
         return {
           node,
           nameIdentifier,
           effectModuleName: opportunity.effectModuleName,
-          inferredTraceName: suggestedTraceName,
+          inferredTraceName,
           suggestedTraceName,
           explicitTraceExpression: opportunity.explicitTraceExpression,
           pipeArguments: opportunity.pipeArguments,
@@ -486,10 +522,11 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       const {
         effectModuleName,
         explicitTraceExpression,
+        inferredTraceName,
         nameIdentifier,
         node: targetNode,
         pipeArguments,
-        suggestedTraceName: inferredTraceName
+        suggestedTraceName
       } = target
       const innerFunction = target.generatorFunction ?? targetNode
 
@@ -543,23 +580,48 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         })
       }
 
-      // toEffectFnSpanInferred: available if we have inferred span name AND no explicit one
-      if (pluginOptions.effectFn.includes("inferred-span") && inferredTraceName && !explicitTraceExpression) {
-        fixes.push({
-          fixName: "effectFnOpportunity_toEffectFnSpanInferred",
-          description: `Convert to Effect.fn("${inferredTraceName}")`,
-          apply: Nano.gen(function*() {
-            const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-            const newNode = createEffectFnNode(
-              targetNode,
-              innerFunction,
-              effectModuleName,
-              inferredTraceName,
-              pipeArguments
-            )
-            changeTracker.replaceNode(sourceFile, targetNode, newNode)
+      // toEffectFnSpanInferred: available if we have strict inferred span name AND no explicit one
+      if (!explicitTraceExpression) {
+        if (pluginOptions.effectFn.includes("inferred-span") && inferredTraceName) {
+          fixes.push({
+            fixName: "effectFnOpportunity_toEffectFnSpanInferred",
+            description: `Convert to Effect.fn("${inferredTraceName}")`,
+            apply: Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+              const newNode = createEffectFnNode(
+                targetNode,
+                innerFunction,
+                effectModuleName,
+                inferredTraceName,
+                pipeArguments
+              )
+              changeTracker.replaceNode(sourceFile, targetNode, newNode)
+            })
           })
-        })
+        }
+
+        // toEffectFnSpanSuggested: broad suggestion based on local naming context
+        if (
+          pluginOptions.effectFn.includes("suggested-span") &&
+          suggestedTraceName &&
+          (!pluginOptions.effectFn.includes("inferred-span") || suggestedTraceName !== inferredTraceName)
+        ) {
+          fixes.push({
+            fixName: "effectFnOpportunity_toEffectFnSpanSuggested",
+            description: `Convert to Effect.fn("${suggestedTraceName}")`,
+            apply: Nano.gen(function*() {
+              const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+              const newNode = createEffectFnNode(
+                targetNode,
+                innerFunction,
+                effectModuleName,
+                suggestedTraceName,
+                pipeArguments
+              )
+              changeTracker.replaceNode(sourceFile, targetNode, newNode)
+            })
+          })
+        }
       }
 
       // no fix, continue
@@ -601,6 +663,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
             return `${effectModuleName}.fn(${fnSignature}${pipeArgsSuffix(pipeArguments)})`
           case "effectFnOpportunity_toEffectFnSpanInferred":
             return `${effectModuleName}.fn("${inferredTraceName}")(${fnSignature}${pipeArgsSuffix(pipeArguments)})`
+          case "effectFnOpportunity_toEffectFnSpanSuggested":
+            return `${effectModuleName}.fn("${suggestedTraceName}")(${fnSignature}${pipeArgsSuffix(pipeArguments)})`
           default:
             return `${effectModuleName}.fn(${fnSignature})`
         }

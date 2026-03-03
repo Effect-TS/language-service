@@ -40,7 +40,7 @@ export interface LanguageServicePluginOptions {
   renames: boolean
   noExternal: boolean
   pipeableMinArgCount: number
-  effectFn: Array<"untraced" | "span" | "inferred-span" | "no-span">
+  effectFn: Array<"untraced" | "span" | "suggested-span" | "inferred-span" | "no-span">
   layerGraphFollowDepth: number
   mermaidProvider: "mermaid.com" | "mermaid.live" | ({} & string)
 }
@@ -215,7 +215,9 @@ export function parse(config: any): LanguageServicePluginOptions {
         : defaults.pipeableMinArgCount,
     effectFn:
       isObject(config) && hasProperty(config, "effectFn") && isArray(config.effectFn) && config.effectFn.every(isString)
-        ? config.effectFn.map((_) => _.toLowerCase() as "untraced" | "span" | "inferred-span" | "no-span")
+        ? config.effectFn.map((_) =>
+          _.toLowerCase() as "untraced" | "span" | "inferred-span" | "suggested-span" | "no-span"
+        )
         : defaults.effectFn,
     layerGraphFollowDepth:
       isObject(config) && hasProperty(config, "layerGraphFollowDepth") && isNumber(config.layerGraphFollowDepth)

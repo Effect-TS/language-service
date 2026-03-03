@@ -1,4 +1,4 @@
-// @test-config { "effectFn": ["span", "inferred-span", "no-span", "untraced"] }
+// @test-config { "effectFn": ["span", "suggested-span", "inferred-span", "no-span", "untraced"] }
 import * as Effect from "effect/Effect"
 
 // The diagnostic should trigger for these cases. When assigning to a const
