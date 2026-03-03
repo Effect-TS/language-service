@@ -1,0 +1,22 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 229 - 249
+// @test-config { "effectFn": ["inferred-span"] }
+import * as Effect from "effect/Effect"
+
+const _notExporedNoSuggestion = () => {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(1)
+    return 42
+  })
+}
+
+export const shouldHaveSuggestion = Effect.fn("shouldHaveSuggestion")(function*() {
+    yield* Effect.succeed(1)
+    return 42
+})
+
+export function shouldHaveSuggestioFunction() {
+  return Effect.gen(function*() {
+    yield* Effect.succeed(1)
+    return 42
+  })
+}

@@ -1,0 +1,5 @@
+shouldHaveSuggestion
+12:13 - 12:33 | 2 | Can be rewritten as a reusable function: Effect.fn("shouldHaveSuggestion")(function*() { ... })    effect(effectFnOpportunity)
+
+shouldHaveSuggestioFunction
+20:16 - 20:43 | 2 | Can be rewritten as a reusable function: Effect.fn("shouldHaveSuggestioFunction")(function*() { ... })    effect(effectFnOpportunity)
