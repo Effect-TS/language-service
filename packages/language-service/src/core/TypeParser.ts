@@ -76,6 +76,10 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ A: ts.Type; E: ts.Type; R: ts.Type }, TypeParserIssue>
+  effectYieldableType: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<{ A: ts.Type; E: ts.Type; R: ts.Type }, TypeParserIssue>
   importedEffectModule: (
     node: ts.Node
   ) => Nano.Nano<ts.Node, TypeParserIssue>
@@ -937,6 +941,44 @@ export function make(
       return yield* effectType(type, atLocation)
     }),
     "TypeParser.effectSubtype",
+    (type) => type
+  )
+
+  const effectYieldableType = Nano.cachedBy(
+    Nano.fn("TypeParser.effectYieldableType")(function*(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      // v3 models this through Effect subtyping, so keep legacy behavior.
+      if (supportedEffect() === "v3") {
+        return yield* effectType(type, atLocation)
+      }
+
+      // v4 supports both plain Effect values and yieldable wrappers (Option/Either/...).
+      return yield* Nano.firstSuccessOf([
+        effectType(type, atLocation),
+        Nano.gen(function*() {
+          // Yieldable shape: asEffect()
+          const asEffectSymbol = typeChecker.getPropertyOfType(type, "asEffect")
+          if (!asEffectSymbol) {
+            return yield* typeParserIssue("Type has no 'asEffect' property", type, atLocation)
+          }
+
+          const asEffectType = typeChecker.getTypeOfSymbolAtLocation(asEffectSymbol, atLocation)
+          const asEffectSignatures = typeChecker.getSignaturesOfType(asEffectType, ts.SignatureKind.Call)
+          if (asEffectSignatures.length === 0) {
+            return yield* typeParserIssue("'asEffect' property is not callable", type, atLocation)
+          }
+
+          return yield* Nano.firstSuccessOf(
+            asEffectSignatures.map((signature) =>
+              effectType(typeChecker.getReturnTypeOfSignature(signature), atLocation)
+            )
+          )
+        })
+      ])
+    }),
+    "TypeParser.effectYieldableType",
     (type) => type
   )
 
@@ -3079,6 +3121,7 @@ export function make(
     layerType,
     fiberType,
     effectSubtype,
+    effectYieldableType,
     importedEffectModule,
     effectGen,
     effectFnUntracedGen,
