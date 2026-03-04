@@ -1,0 +1,12 @@
+// code fix missingReturnYieldStar_fix  output for range 178 - 198
+import * as Effect from "effect/Effect"
+import * as Option from "effect/Option"
+
+export const shouldComplain = (n: number) =>
+  Effect.gen(function*() {
+    if (n === 0) {
+      return yield* Option.none() // should trigger because Option<A> is yieldable
+             // should trigger because Option<A> is yieldable
+    }
+    return n / 1
+  })

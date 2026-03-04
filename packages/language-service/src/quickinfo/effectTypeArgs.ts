@@ -242,7 +242,7 @@ export function effectTypeArgs(
 
       // first try to get the effect type
       const effectTypeArgsDocumentation = yield* pipe(
-        typeParser.effectType(
+        typeParser.effectYieldableType(
           type,
           atLocation
         ),

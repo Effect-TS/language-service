@@ -37,7 +37,7 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
       const type = typeCheckerUtils.getTypeAtLocation(unwrapped.expression)
       if (!type) continue
 
-      const maybeEffect = yield* Nano.option(typeParser.effectType(type, unwrapped.expression))
+      const maybeEffect = yield* Nano.option(typeParser.effectYieldableType(type, unwrapped.expression))
       if (!(Option.isSome(maybeEffect) && maybeEffect.value.A.flags & ts.TypeFlags.Never)) continue
 
       // Ensure we're in the direct body scope of an Effect.gen-like function.
