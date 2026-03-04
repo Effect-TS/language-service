@@ -1,0 +1,2 @@
+getUser
+7:12 - 7:19 | 2 | Can be rewritten as a reusable function: Effect.fn("UserService.getUser")(function*(id) { ... })    effect(effectFnOpportunity)

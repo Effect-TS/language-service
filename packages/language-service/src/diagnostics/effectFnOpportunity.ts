@@ -255,6 +255,48 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       }
     )
 
+    const tryMatchServiceMapMakeInference: (
+      objectLiteral: ts.ObjectLiteralExpression
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchServiceMapMakeInference")(
+      function*(objectLiteral: ts.ObjectLiteralExpression) {
+        const returnStatement = objectLiteral.parent
+        if (!returnStatement || !ts.isReturnStatement(returnStatement)) return undefined
+        const generatorBody = returnStatement.parent
+        if (!generatorBody || !ts.isBlock(generatorBody)) return undefined
+        const generatorFunction = generatorBody.parent
+        if (!generatorFunction || !ts.isFunctionExpression(generatorFunction) || !generatorFunction.asteriskToken) {
+          return undefined
+        }
+        const genCall = generatorFunction.parent
+        if (!genCall || !ts.isCallExpression(genCall)) return undefined
+        const parsedEffectGen = yield* Nano.option(typeParser.effectGen(genCall))
+        if (parsedEffectGen._tag === "None" || parsedEffectGen.value.generatorFunction !== generatorFunction) {
+          return undefined
+        }
+
+        const makeProperty = genCall.parent
+        if (!makeProperty || !ts.isPropertyAssignment(makeProperty)) return undefined
+        if (makeProperty.initializer !== genCall) return undefined
+        if (!ts.isIdentifier(makeProperty.name) || ts.idText(makeProperty.name) !== "make") return undefined
+
+        let currentNode: ts.Node | undefined = makeProperty.parent
+        let classDeclaration: ts.ClassDeclaration | undefined = undefined
+        while (currentNode) {
+          if (ts.isClassDeclaration(currentNode)) {
+            classDeclaration = currentNode
+            break
+          }
+          currentNode = currentNode.parent
+        }
+        if (!classDeclaration || !classDeclaration.name) return undefined
+
+        const parsedServiceMapService = yield* Nano.option(typeParser.extendsServiceMapService(classDeclaration))
+        if (parsedServiceMapService._tag === "None") return undefined
+
+        return ts.idText(classDeclaration.name)
+      }
+    )
+
     /**
      * Gets a strict inferred trace name from layer pattern suspects.
      */
@@ -287,7 +329,10 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         if (effectServiceName) return `${effectServiceName}.${suggestedTraceName}`
 
         const ofServiceName = yield* tryMatchOfInference(objectLiteral)
-        return ofServiceName ? `${ofServiceName}.${suggestedTraceName}` : undefined
+        if (ofServiceName) return `${ofServiceName}.${suggestedTraceName}`
+
+        const serviceMapMakeServiceName = yield* tryMatchServiceMapMakeInference(objectLiteral)
+        return serviceMapMakeServiceName ? `${serviceMapMakeServiceName}.${suggestedTraceName}` : undefined
       }
     )
 

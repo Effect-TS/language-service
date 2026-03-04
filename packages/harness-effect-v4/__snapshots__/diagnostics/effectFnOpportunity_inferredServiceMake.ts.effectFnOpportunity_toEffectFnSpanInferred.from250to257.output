@@ -1,0 +1,14 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 250 - 257
+// @test-config { "effectFn": ["inferred-span"] }
+import { Effect, Layer, ServiceMap } from "effect"
+
+export class UserService extends ServiceMap.Service<UserService>()("UserService", {
+    make: Effect.gen(function*() {
+        return {
+            getUser: Effect.fn("UserService.getUser")(function*(id: string) {
+                yield* Effect.log(`Looking up user ${id}`)
+            })
+        }
+    })
+}) {}
+
