@@ -230,6 +230,31 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       }
     )
 
+    const tryMatchOfInference: (
+      objectLiteral: ts.ObjectLiteralExpression
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchOfInference")(
+      function*(objectLiteral: ts.ObjectLiteralExpression) {
+        const callExpression = objectLiteral.parent
+        if (!callExpression || !ts.isCallExpression(callExpression)) return undefined
+        if (callExpression.arguments.length < 1 || callExpression.arguments[0] !== objectLiteral) return undefined
+        if (!ts.isPropertyAccessExpression(callExpression.expression)) return undefined
+        if (ts.idText(callExpression.expression.name) !== "of") return undefined
+
+        const serviceTagExpression = callExpression.expression.expression
+        const serviceTagType = typeCheckerUtils.getTypeAtLocation(serviceTagExpression)
+        if (!serviceTagType) return undefined
+
+        const isTagLike = yield* pipe(
+          typeParser.contextTag(serviceTagType, serviceTagExpression),
+          Nano.orElse(() => typeParser.serviceType(serviceTagType, serviceTagExpression)),
+          Nano.option
+        )
+        if (isTagLike._tag === "None") return undefined
+
+        return layerServiceNameFromExpression(serviceTagExpression)
+      }
+    )
+
     /**
      * Gets a strict inferred trace name from layer pattern suspects.
      */
@@ -259,7 +284,10 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         if (syncServiceName) return `${syncServiceName}.${suggestedTraceName}`
 
         const effectServiceName = yield* tryMatchLayerEffectInference(objectLiteral)
-        return effectServiceName ? `${effectServiceName}.${suggestedTraceName}` : undefined
+        if (effectServiceName) return `${effectServiceName}.${suggestedTraceName}`
+
+        const ofServiceName = yield* tryMatchOfInference(objectLiteral)
+        return ofServiceName ? `${ofServiceName}.${suggestedTraceName}` : undefined
       }
     )
 
