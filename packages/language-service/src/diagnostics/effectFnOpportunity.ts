@@ -112,7 +112,16 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       return modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ?? false
     }
 
-    const textOfExpression = (expression: ts.Expression): string => {
+    const layerServiceNameFromExpression = (expression: ts.Expression): string | undefined => {
+      if (expression.kind === ts.SyntaxKind.ThisKeyword) {
+        const enclosingClass = ts.findAncestor(
+          expression,
+          (node): node is ts.ClassDeclaration => ts.isClassDeclaration(node)
+        )
+        if (enclosingClass?.name) {
+          return ts.idText(enclosingClass.name)
+        }
+      }
       if (ts.isIdentifier(expression)) return ts.idText(expression)
       return sourceFile.text.slice(expression.pos, expression.end).trim()
     }
@@ -153,7 +162,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
           directMethod === method && callExpression.arguments.length >= 2 &&
           callExpression.arguments[1] === implementationExpression
         ) {
-          return textOfExpression(callExpression.arguments[0])
+          return layerServiceNameFromExpression(callExpression.arguments[0])
         }
         if (ts.isCallExpression(callExpression.expression)) {
           const innerCall = callExpression.expression
@@ -162,7 +171,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
             innerMethod === method && innerCall.arguments.length >= 1 && callExpression.arguments.length >= 1 &&
             callExpression.arguments[0] === implementationExpression
           ) {
-            return textOfExpression(innerCall.arguments[0])
+            return layerServiceNameFromExpression(innerCall.arguments[0])
           }
         }
         return undefined
