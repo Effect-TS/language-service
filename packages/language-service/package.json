@@ -41,11 +41,11 @@
     "perf": "tsx test/perf.ts"
   },
   "devDependencies": {
-    "pako": "^2.1.0",
-    "@typescript-eslint/project-service": "^8.52.0",
-    "@effect/platform-node": "^4.0.0-beta.19",
+    "@effect/platform-node": "^4.0.0-beta.27",
     "@types/pako": "^2.0.4",
-    "effect": "^4.0.0-beta.19",
+    "@typescript-eslint/project-service": "^8.52.0",
+    "effect": "^4.0.0-beta.27",
+    "pako": "^2.1.0",
     "ts-patch": "^3.3.0"
   }
 }
