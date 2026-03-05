@@ -365,9 +365,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "finalizersMask": asRemoved(
     "Finalizer masking has been removed in Effect v4."
   ),
-  "findFirst": asRemoved(
-    "Use Effect.forEach with early return instead."
-  ),
+  "findFirst": asUnchanged,
   "firstSuccessOf": asRemoved(
     "Use Effect.raceAll instead."
   ),
