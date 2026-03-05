@@ -120,14 +120,14 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0
       effect:
-        specifier: ^4.0.0-beta.19
-        version: 4.0.0-beta.19
+        specifier: ^4.0.0-beta.27
+        version: 4.0.0-beta.27
 
   packages/language-service:
     devDependencies:
       '@effect/platform-node':
-        specifier: ^4.0.0-beta.19
-        version: 4.0.0-beta.19(effect@4.0.0-beta.19)(ioredis@5.9.3)
+        specifier: ^4.0.0-beta.27
+        version: 4.0.0-beta.27(effect@4.0.0-beta.27)(ioredis@5.10.0)
       '@types/pako':
         specifier: ^2.0.4
         version: 2.0.4
@@ -135,8 +135,8 @@ importers:
         specifier: ^8.52.0
         version: 8.52.0(typescript@5.9.3)
       effect:
-        specifier: ^4.0.0-beta.19
-        version: 4.0.0-beta.19
+        specifier: ^4.0.0-beta.27
+        version: 4.0.0-beta.27
       pako:
         specifier: ^2.1.0
         version: 2.1.0
@@ -567,30 +567,30 @@ packages:
       uuid: 11.1.0
     dev: false
 
-  /@effect/platform-node-shared@4.0.0-beta.19(effect@4.0.0-beta.19):
-    resolution: {integrity: sha512-548wlbHgtLcsZicSnzU2IDHNDGPSR+Tv8Ovg9TkMLSClbyyUIw/NtL5krwWjwHzOytXpVNsh/odsDwqcotm+HA==}
+  /@effect/platform-node-shared@4.0.0-beta.27(effect@4.0.0-beta.27):
+    resolution: {integrity: sha512-prRa5MIWGAvq2g6FgVP5RFfPwI+DvcXCaEZetvPMK70wdkTR1+jKQqJ9QDKWNIP+2d4llE/cF21SvcpBJWq0gw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.19
+      effect: ^4.0.0-beta.27
     dependencies:
       '@types/ws': 8.18.1
-      effect: 4.0.0-beta.19
+      effect: 4.0.0-beta.27
       ws: 8.19.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     dev: true
 
-  /@effect/platform-node@4.0.0-beta.19(effect@4.0.0-beta.19)(ioredis@5.9.3):
-    resolution: {integrity: sha512-iXloZO3s+eq2Ik30SIxgy1jTDwhUMlC7qsNLxkjyv8127NRWx1+YBjT4osyRdL/tRBrFDAlZwPpFnhilZ7eaew==}
+  /@effect/platform-node@4.0.0-beta.27(effect@4.0.0-beta.27)(ioredis@5.10.0):
+    resolution: {integrity: sha512-UPZMtFVnDIM5nb6A2pEPo229VnfgMdvl/9sGiQaYRB9qEVHerk0elxcoWOb2szoivBYePYFOsPKIWpR6jCldtQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.19
+      effect: ^4.0.0-beta.27
       ioredis: ^5.7.0
     dependencies:
-      '@effect/platform-node-shared': 4.0.0-beta.19(effect@4.0.0-beta.19)
-      effect: 4.0.0-beta.19
-      ioredis: 5.9.3
+      '@effect/platform-node-shared': 4.0.0-beta.27(effect@4.0.0-beta.27)
+      effect: 4.0.0-beta.27
+      ioredis: 5.10.0
       mime: 4.1.0
       undici: 7.22.0
     transitivePeerDependencies:
@@ -1053,8 +1053,8 @@ packages:
       iconv-lite: 0.7.2
     dev: true
 
-  /@ioredis/commands@1.5.0:
-    resolution: {integrity: sha512-eUgLqrMf8nJkZxT24JvVRrQya1vZkQh8BBeYNwGDqa5I0VUi8ACx7uFvAaLxintokpTenkK6DASvo/bvNbBGow==}
+  /@ioredis/commands@1.5.1:
+    resolution: {integrity: sha512-JH8ZL/ywcJyR9MmJ5BNqZllXNZQqQbnVZOqpPQqE1vHiFgAw4NHbvE0FOduNU8IX9babitBT46571OnPTT0Zcw==}
     dev: true
 
   /@isaacs/balanced-match@4.0.1:
@@ -1619,6 +1619,12 @@ packages:
       undici-types: 7.16.0
     dev: true
 
+  /@types/node@25.3.3:
+    resolution: {integrity: sha512-DpzbrH7wIcBaJibpKo9nnSQL0MTRdnWttGyE5haGwK86xgMOkFLp7vEyfQPGLOJh5wNYiJ3V9PmUMDhV9u8kkQ==}
+    dependencies:
+      undici-types: 7.18.2
+    dev: true
+
   /@types/normalize-package-data@2.4.4:
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
     dev: true
@@ -1638,7 +1644,7 @@ packages:
   /@types/ws@8.18.1:
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
     dependencies:
-      '@types/node': 25.0.6
+      '@types/node': 25.3.3
     dev: true
 
   /@types/yargs-parser@21.0.3:
@@ -2821,8 +2827,8 @@ packages:
       fast-check: 3.23.2
     dev: false
 
-  /effect@4.0.0-beta.19:
-    resolution: {integrity: sha512-SzlmpRx2floIefRnxdyWYi1VRU3e2WD7Xp17FG6kJ6sfI4KbgTT7J7JqOnsGqlFvc+Yuz2xWnOXlevYjE7jLxg==}
+  /effect@4.0.0-beta.27:
+    resolution: {integrity: sha512-bNQEF3vaVGF8jAJ+HW1A4DaxVNmujgEu89sO+VNW1AvUYtPGMtKPTBU15K9inu1rG+hkxNFFRlVvLAJsdaE2mg==}
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 4.5.3
@@ -3892,11 +3898,11 @@ packages:
       fp-ts: 2.16.11
     dev: true
 
-  /ioredis@5.9.3:
-    resolution: {integrity: sha512-VI5tMCdeoxZWU5vjHWsiE/Su76JGhBvWF1MJnV9ZtGltHk9BmD48oDq8Tj8haZ85aceXZMxLNDQZRVo5QKNgXA==}
+  /ioredis@5.10.0:
+    resolution: {integrity: sha512-HVBe9OFuqs+Z6n64q09PQvP1/R4Bm+30PAyyD4wIEqssh3v9L21QjCVk4kRLucMBcDokJTcLjsGeVRlq/nH6DA==}
     engines: {node: '>=12.22.0'}
     dependencies:
-      '@ioredis/commands': 1.5.0
+      '@ioredis/commands': 1.5.1
       cluster-key-slot: 1.1.2
       debug: 4.4.3
       denque: 2.1.0
@@ -5990,6 +5996,10 @@ packages:
 
   /undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+    dev: true
+
+  /undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
     dev: true
 
   /undici@7.18.2:
