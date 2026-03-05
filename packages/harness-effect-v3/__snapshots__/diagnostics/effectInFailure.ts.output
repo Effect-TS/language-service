@@ -1,0 +1,17 @@
+shouldReport
+5:13 - 5:25 | 0 | The error channel contains an Effect (Effect<void, never, never>). Putting Effect computations in the failure channel is not intended; keep only failure types there.    effect(effectInFailure)
+
+Effect.try({
+  try: () => JSON.parse("{"),
+  catch: (e) => Effect.log(e)
+})
+5:28 - 8:2 | 0 | The error channel contains an Effect (Effect<void, never, never>). Putting Effect computations in the failure channel is not intended; keep only failure types there.    effect(effectInFailure)
+
+shouldReportOnlyInner
+15:13 - 15:34 | 0 | The error channel contains an Effect (Effect<any, Effect<void, never, never>, never>). Putting Effect computations in the failure channel is not intended; keep only failure types there.    effect(effectInFailure)
+
+Effect.try({
+      try: () => JSON.parse(String(e)),
+      catch: (innerError) => Effect.log(innerError)
+    })
+18:4 - 21:6 | 0 | The error channel contains an Effect (Effect<void, never, never>). Putting Effect computations in the failure channel is not intended; keep only failure types there.    effect(effectInFailure)
