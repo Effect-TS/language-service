@@ -7,6 +7,7 @@ import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { effectFnIife } from "./diagnostics/effectFnIife.js"
 import { effectFnOpportunity } from "./diagnostics/effectFnOpportunity.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
+import { effectInFailure } from "./diagnostics/effectInFailure.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
 import { effectSucceedWithVoid } from "./diagnostics/effectSucceedWithVoid.js"
@@ -62,6 +63,7 @@ export const diagnostics = [
   missingEffectServiceDependency,
   missingLayerContext,
   floatingEffect,
+  effectInFailure,
   missingStarInYieldEffectGen,
   unnecessaryEffectGen,
   unnecessaryFailYieldableError,
