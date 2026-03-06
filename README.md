@@ -72,6 +72,7 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 - Warn when using catch functions (`catchAll`, `catch`, `catchIf`, `catchSome`, `catchTag`, `catchTags`) on effects that never fail
 - Warn when catch callbacks in `Effect.tryPromise`, `Effect.tryMap`, or `Effect.tryMapPromise` return `unknown` or `any` types
 - Warn when catch callbacks in `Effect.tryPromise`, `Effect.try`, `Effect.tryMap`, or `Effect.tryMapPromise` return the global `Error` type instead of typed errors
+- Warn when classes directly extend the native `Error` class, including through local aliases, recommending tagged errors instead
 - Warn when using `Effect.runSync`, `Effect.runPromise`, `Effect.runFork`, or `Effect.runCallback` inside an Effect
 - Warn when using `Schema.decodeSync`, `Schema.decodeUnknownSync`, `Schema.encodeSync`, or `Schema.encodeUnknownSync` inside Effect generators, suggesting Effect-based alternatives
 - Suggest using Effect Schema for JSON operations instead of `JSON.parse`/`JSON.stringify` inside Effect contexts

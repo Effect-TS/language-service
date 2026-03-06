@@ -11,6 +11,7 @@ import { effectInFailure } from "./diagnostics/effectInFailure.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
 import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
 import { effectSucceedWithVoid } from "./diagnostics/effectSucceedWithVoid.js"
+import { extendsNativeError } from "./diagnostics/extendsNativeError.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
@@ -99,5 +100,6 @@ export const diagnostics = [
   effectFnOpportunity,
   redundantSchemaTagIdentifier,
   schemaSyncInEffect,
-  preferSchemaOverJson
+  preferSchemaOverJson,
+  extendsNativeError
 ]
