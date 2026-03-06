@@ -1,0 +1,5 @@
+ServiceMap.Service<ConfigService>("Config")
+7:15 - 7:58 | 0 | ServiceMap.Service should be used in a class declaration instead of as a variable. Use: class Config extends ServiceMap.Service<Config, ConfigService>()("Config") {}    effect(serviceNotAsClass)
+
+ServiceMap.Service<ArtifactStoreService>("@my-app/ArtifactStore")
+11:29 - 11:94 | 0 | ServiceMap.Service should be used in a class declaration instead of as a variable. Use: class ArtifactStore extends ServiceMap.Service<ArtifactStore, ArtifactStoreService>()("@my-app/ArtifactStore") {}    effect(serviceNotAsClass)
