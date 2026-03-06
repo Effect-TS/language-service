@@ -45,15 +45,17 @@ export const serviceNotAsClass = LSP.createDiagnostic({
       )
       if (!isServiceMapService) continue
 
-      const variableName = ts.isIdentifier(node.name) ? ts.idText(node.name) : node.name.getText(sourceFile)
+      const variableName = ts.isIdentifier(node.name)
+        ? ts.idText(node.name)
+        : sourceFile.text.substring(node.name.getStart(sourceFile), node.name.end)
       const variableStatement = declList.parent
 
       const argsText = callExpr.arguments.length > 0
-        ? callExpr.arguments.map((a) => sourceFile.text.substring(a.pos, a.end)).join(", ")
+        ? callExpr.arguments.map((a) => sourceFile.text.substring(a.getStart(sourceFile), a.end)).join(", ")
         : ""
 
       const shapeText = typeArgs.length > 0
-        ? typeArgs.map((t) => t.getText(sourceFile)).join(", ")
+        ? typeArgs.map((t) => sourceFile.text.substring(t.getStart(sourceFile), t.end)).join(", ")
         : "Shape"
 
       report({
