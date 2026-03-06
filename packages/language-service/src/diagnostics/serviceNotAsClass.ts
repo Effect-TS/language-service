@@ -51,7 +51,8 @@ export const serviceNotAsClass = LSP.createDiagnostic({
       const variableStatement = declList.parent
 
       const argsText = callExpr.arguments.length > 0
-        ? callExpr.arguments.map((a) => sourceFile.text.substring(ts.getTokenPosOfNode(a, sourceFile), a.end)).join(", ")
+        ? callExpr.arguments.map((a) => sourceFile.text.substring(ts.getTokenPosOfNode(a, sourceFile), a.end))
+          .join(", ")
         : ""
 
       const shapeText = typeArgs.length > 0

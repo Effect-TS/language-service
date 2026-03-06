@@ -183,6 +183,13 @@ declare module "typescript" {
     /** @deprecated Use typeChecker.getSignaturesOfType(type, ts.SignatureKind.Construct) instead */
     getConstructSignatures(): ReadonlyArray<ts.Signature>
   }
+
+  export interface Node {
+    /** @deprecated Use ts.getTokenPosOfNode(node, sourceFile) instead */
+    getStart(sourceFile?: ts.SourceFile, includeJsDocComment?: boolean): number
+    /** @deprecated Use sourceFile.text.substring(node.pos, node.end) instead */
+    getText(sourceFile?: ts.SourceFile): string
+  }
 }
 
 type _TypeScriptApi = typeof ts

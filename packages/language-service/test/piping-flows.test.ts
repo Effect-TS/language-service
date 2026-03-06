@@ -38,14 +38,24 @@ function formatPipingFlow(
 
   lines.push(`=== Piping Flow ===`)
   lines.push(`Location: ${start.line + 1}:${start.character + 1} - ${end.line + 1}:${end.character + 1}`)
-  lines.push(`Node: ${
-    sourceFile.text.substring(ts.getTokenPosOfNode(flow.node, sourceFile), flow.node.end).replace(/\n/g, "\\n")
-  }`)
+  lines.push(
+    `Node: ${
+      sourceFile.text.substring(ts.getTokenPosOfNode(flow.node, sourceFile), flow.node.end).replace(
+        /\n/g,
+        "\\n"
+      )
+    }`
+  )
   lines.push(`Node Kind: ${ts.SyntaxKind[flow.node.kind]}`)
   lines.push(``)
-  lines.push(`Subject: ${
-    sourceFile.text.substring(ts.getTokenPosOfNode(flow.subject.node, sourceFile), flow.subject.node.end).replace(/\n/g, "\\n")
-  }`)
+  lines.push(
+    `Subject: ${
+      sourceFile.text.substring(ts.getTokenPosOfNode(flow.subject.node, sourceFile), flow.subject.node.end).replace(
+        /\n/g,
+        "\\n"
+      )
+    }`
+  )
   lines.push(`Subject Type: ${flow.subject.outType ? typeChecker.typeToString(flow.subject.outType) : "unknown"}`)
   lines.push(``)
   lines.push(`Transformations (${flow.transformations.length}):`)
@@ -54,7 +64,14 @@ function formatPipingFlow(
     const t = flow.transformations[i]
     const calleeText = sourceFile.text.substring(ts.getTokenPosOfNode(t.callee, sourceFile), t.callee.end)
     const argsText = t.args
-      ? t.args.map((a) => sourceFile.text.substring(ts.getTokenPosOfNode(a, sourceFile), a.end).replace(/\n/g, "\\n")).join(", ")
+      ? t.args
+        .map((a) =>
+          sourceFile.text.substring(ts.getTokenPosOfNode(a, sourceFile), a.end).replace(
+            /\n/g,
+            "\\n"
+          )
+        )
+        .join(", ")
       : undefined
     const typeText = t.outType ? typeChecker.typeToString(t.outType) : "unknown"
 

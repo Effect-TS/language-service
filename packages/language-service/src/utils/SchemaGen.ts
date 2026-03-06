@@ -312,12 +312,13 @@ export const processNode: (
     ts.isTypeQueryNode(node.objectType.type) && ts.isTypeOperatorNode(node.indexType) &&
     node.indexType.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeQueryNode(node.indexType.type) &&
     sourceFile.text.substring(
-      ts.getTokenPosOfNode(node.indexType.type.exprName, sourceFile),
-      node.indexType.type.exprName.end
-    ).trim() === sourceFile.text.substring(
-      ts.getTokenPosOfNode(node.objectType.type.exprName, sourceFile),
-      node.objectType.type.exprName.end
-    ).trim()
+        ts.getTokenPosOfNode(node.indexType.type.exprName, sourceFile),
+        node.indexType.type.exprName.end
+      ).trim() ===
+      sourceFile.text.substring(
+        ts.getTokenPosOfNode(node.objectType.type.exprName, sourceFile),
+        node.objectType.type.exprName.end
+      ).trim()
   ) {
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
