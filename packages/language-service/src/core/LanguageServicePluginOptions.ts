@@ -44,7 +44,7 @@ export interface LanguageServicePluginOptions {
   effectFn: Array<"untraced" | "span" | "suggested-span" | "inferred-span" | "no-span">
   layerGraphFollowDepth: number
   mermaidProvider: "mermaid.com" | "mermaid.live" | ({} & string)
-  skipDisabledOptimiziation: boolean
+  skipDisabledOptimization: boolean
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -102,7 +102,7 @@ export const defaults: LanguageServicePluginOptions = {
   effectFn: ["span"],
   layerGraphFollowDepth: 0,
   mermaidProvider: "mermaid.live",
-  skipDisabledOptimiziation: false
+  skipDisabledOptimization: false
 }
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
@@ -235,9 +235,9 @@ export function parse(config: any): LanguageServicePluginOptions {
         isString(config.mermaidProvider)
       ? config.mermaidProvider
       : defaults.mermaidProvider,
-    skipDisabledOptimiziation: isObject(config) && hasProperty(config, "skipDisabledOptimiziation") &&
-        isBoolean(config.skipDisabledOptimiziation)
-      ? config.skipDisabledOptimiziation
-      : defaults.skipDisabledOptimiziation
+    skipDisabledOptimization: isObject(config) && hasProperty(config, "skipDisabledOptimization") &&
+        isBoolean(config.skipDisabledOptimization)
+      ? config.skipDisabledOptimization
+      : defaults.skipDisabledOptimization
   }
 }
