@@ -179,11 +179,6 @@ declare module "typescript" {
     getTypeParameterAtPosition(pos: number): ts.Type
   }
 
-  export interface Node {
-    /** @deprecated Use sourceFile.text.substring(node.pos, node.end) instead */
-    getText(sourceFile?: ts.SourceFile): string
-  }
-
   export interface Type {
     /** @deprecated Use typeChecker.getSignaturesOfType(type, ts.SignatureKind.Construct) instead */
     getConstructSignatures(): ReadonlyArray<ts.Signature>

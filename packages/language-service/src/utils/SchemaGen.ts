@@ -29,7 +29,10 @@ export class OnlyLiteralPropertiesSupportedError {
   }
 
   toString() {
-    return `Could not process ${this.node.getText()} as only literal properties are supported.`
+    const sourceFile = this.node.getSourceFile()
+    return `Could not process ${
+      sourceFile.text.substring(this.node.getStart(sourceFile), this.node.end)
+    } as only literal properties are supported.`
   }
 }
 
@@ -40,7 +43,10 @@ export class RequiredExplicitTypesError {
   ) {
   }
   toString() {
-    return `Could not process ${this.node.getText()} as only explicit types are supported.`
+    const sourceFile = this.node.getSourceFile()
+    return `Could not process ${
+      sourceFile.text.substring(this.node.getStart(sourceFile), this.node.end)
+    } as only explicit types are supported.`
   }
 }
 
@@ -51,7 +57,10 @@ export class IndexSignatureWithMoreThanOneParameterError {
   ) {
   }
   toString() {
-    return `Could not process ${this.node.getText()} as only index signatures with one parameter are supported.`
+    const sourceFile = this.node.getSourceFile()
+    return `Could not process ${
+      sourceFile.text.substring(this.node.getStart(sourceFile), this.node.end)
+    } as only index signatures with one parameter are supported.`
   }
 }
 
@@ -186,7 +195,7 @@ const createUnsupportedNodeComment = (
   ts.addSyntheticTrailingComment(
     ts.factory.createIdentifier(""),
     ts.SyntaxKind.MultiLineCommentTrivia,
-    " Not supported conversion: " + node.getText(sourceFile) + " "
+    " Not supported conversion: " + sourceFile.text.substring(node.getStart(sourceFile), node.end) + " "
   )
 
 export const processNode: (
@@ -302,7 +311,13 @@ export const processNode: (
     ts.isIndexedAccessTypeNode(node) && ts.isParenthesizedTypeNode(node.objectType) &&
     ts.isTypeQueryNode(node.objectType.type) && ts.isTypeOperatorNode(node.indexType) &&
     node.indexType.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeQueryNode(node.indexType.type) &&
-    node.indexType.type.exprName.getText().trim() === node.objectType.type.exprName.getText().trim()
+    sourceFile.text.substring(
+      node.indexType.type.exprName.getStart(sourceFile),
+      node.indexType.type.exprName.end
+    ).trim() === sourceFile.text.substring(
+      node.objectType.type.exprName.getStart(sourceFile),
+      node.objectType.type.exprName.end
+    ).trim()
   ) {
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)

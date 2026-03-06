@@ -38,18 +38,24 @@ function formatPipingFlow(
 
   lines.push(`=== Piping Flow ===`)
   lines.push(`Location: ${start.line + 1}:${start.character + 1} - ${end.line + 1}:${end.character + 1}`)
-  lines.push(`Node: ${flow.node.getText().replace(/\n/g, "\\n")}`)
+  lines.push(`Node: ${
+    sourceFile.text.substring(flow.node.getStart(sourceFile), flow.node.end).replace(/\n/g, "\\n")
+  }`)
   lines.push(`Node Kind: ${ts.SyntaxKind[flow.node.kind]}`)
   lines.push(``)
-  lines.push(`Subject: ${flow.subject.node.getText().replace(/\n/g, "\\n")}`)
+  lines.push(`Subject: ${
+    sourceFile.text.substring(flow.subject.node.getStart(sourceFile), flow.subject.node.end).replace(/\n/g, "\\n")
+  }`)
   lines.push(`Subject Type: ${flow.subject.outType ? typeChecker.typeToString(flow.subject.outType) : "unknown"}`)
   lines.push(``)
   lines.push(`Transformations (${flow.transformations.length}):`)
 
   for (let i = 0; i < flow.transformations.length; i++) {
     const t = flow.transformations[i]
-    const calleeText = t.callee.getText()
-    const argsText = t.args ? t.args.map((a) => a.getText().replace(/\n/g, "\\n")).join(", ") : undefined
+    const calleeText = sourceFile.text.substring(t.callee.getStart(sourceFile), t.callee.end)
+    const argsText = t.args
+      ? t.args.map((a) => sourceFile.text.substring(a.getStart(sourceFile), a.end).replace(/\n/g, "\\n")).join(", ")
+      : undefined
     const typeText = t.outType ? typeChecker.typeToString(t.outType) : "unknown"
 
     lines.push(`  [${i}] kind: ${t.kind}`)
