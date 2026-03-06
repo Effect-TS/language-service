@@ -47,15 +47,15 @@ export const serviceNotAsClass = LSP.createDiagnostic({
 
       const variableName = ts.isIdentifier(node.name)
         ? ts.idText(node.name)
-        : sourceFile.text.substring(node.name.getStart(sourceFile), node.name.end)
+        : sourceFile.text.substring(ts.getTokenPosOfNode(node.name, sourceFile), node.name.end)
       const variableStatement = declList.parent
 
       const argsText = callExpr.arguments.length > 0
-        ? callExpr.arguments.map((a) => sourceFile.text.substring(a.getStart(sourceFile), a.end)).join(", ")
+        ? callExpr.arguments.map((a) => sourceFile.text.substring(ts.getTokenPosOfNode(a, sourceFile), a.end)).join(", ")
         : ""
 
       const shapeText = typeArgs.length > 0
-        ? typeArgs.map((t) => sourceFile.text.substring(t.getStart(sourceFile), t.end)).join(", ")
+        ? typeArgs.map((t) => sourceFile.text.substring(ts.getTokenPosOfNode(t, sourceFile), t.end)).join(", ")
         : "Shape"
 
       report({

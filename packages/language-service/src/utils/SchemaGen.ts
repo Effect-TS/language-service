@@ -31,7 +31,7 @@ export class OnlyLiteralPropertiesSupportedError {
   toString() {
     const sourceFile = this.node.getSourceFile()
     return `Could not process ${
-      sourceFile.text.substring(this.node.getStart(sourceFile), this.node.end)
+      sourceFile.text.substring(ts.getTokenPosOfNode(this.node, sourceFile), this.node.end)
     } as only literal properties are supported.`
   }
 }
@@ -45,7 +45,7 @@ export class RequiredExplicitTypesError {
   toString() {
     const sourceFile = this.node.getSourceFile()
     return `Could not process ${
-      sourceFile.text.substring(this.node.getStart(sourceFile), this.node.end)
+      sourceFile.text.substring(ts.getTokenPosOfNode(this.node, sourceFile), this.node.end)
     } as only explicit types are supported.`
   }
 }
@@ -59,7 +59,7 @@ export class IndexSignatureWithMoreThanOneParameterError {
   toString() {
     const sourceFile = this.node.getSourceFile()
     return `Could not process ${
-      sourceFile.text.substring(this.node.getStart(sourceFile), this.node.end)
+      sourceFile.text.substring(ts.getTokenPosOfNode(this.node, sourceFile), this.node.end)
     } as only index signatures with one parameter are supported.`
   }
 }
@@ -195,7 +195,7 @@ const createUnsupportedNodeComment = (
   ts.addSyntheticTrailingComment(
     ts.factory.createIdentifier(""),
     ts.SyntaxKind.MultiLineCommentTrivia,
-    " Not supported conversion: " + sourceFile.text.substring(node.getStart(sourceFile), node.end) + " "
+    " Not supported conversion: " + sourceFile.text.substring(ts.getTokenPosOfNode(node, sourceFile), node.end) + " "
   )
 
 export const processNode: (
@@ -312,10 +312,10 @@ export const processNode: (
     ts.isTypeQueryNode(node.objectType.type) && ts.isTypeOperatorNode(node.indexType) &&
     node.indexType.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeQueryNode(node.indexType.type) &&
     sourceFile.text.substring(
-      node.indexType.type.exprName.getStart(sourceFile),
+      ts.getTokenPosOfNode(node.indexType.type.exprName, sourceFile),
       node.indexType.type.exprName.end
     ).trim() === sourceFile.text.substring(
-      node.objectType.type.exprName.getStart(sourceFile),
+      ts.getTokenPosOfNode(node.objectType.type.exprName, sourceFile),
       node.objectType.type.exprName.end
     ).trim()
   ) {
