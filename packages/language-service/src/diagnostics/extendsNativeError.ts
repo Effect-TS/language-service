@@ -39,10 +39,10 @@ export const extendsNativeError = LSP.createDiagnostic({
             const isNativeError = resolvedSymbol === errorSymbol || (() => {
               if (!resolvedSymbol || resolvedSymbol === errorSymbol) return false
               const exprType = typeChecker.getTypeAtLocation(typeExpression)
-              const constructSignatures = exprType.getConstructSignatures()
+              const constructSignatures = typeChecker.getSignaturesOfType(exprType, ts.SignatureKind.Construct)
               if (constructSignatures.length > 0) {
                 const instanceType = typeChecker.getReturnTypeOfSignature(constructSignatures[0])
-                return instanceType.getSymbol() === errorSymbol
+                return instanceType.symbol === errorSymbol
               }
               return false
             })()

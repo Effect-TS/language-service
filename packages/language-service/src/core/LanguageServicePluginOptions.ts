@@ -23,6 +23,7 @@ export interface LanguageServicePluginOptions {
   missingDiagnosticNextLine: DiagnosticSeverity | "off"
   includeSuggestionsInTsc: boolean
   ignoreEffectWarningsInTscExitCode: boolean
+  ignoreEffectErrorsInTscExitCode: boolean
   ignoreEffectSuggestionsInTscExitCode: boolean
   quickinfoEffectParameters: "always" | "never" | "whentruncated"
   quickinfo: boolean
@@ -43,6 +44,7 @@ export interface LanguageServicePluginOptions {
   effectFn: Array<"untraced" | "span" | "suggested-span" | "inferred-span" | "no-span">
   layerGraphFollowDepth: number
   mermaidProvider: "mermaid.com" | "mermaid.live" | ({} & string)
+  skipDisabledOptimiziation: boolean
 }
 
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
@@ -95,10 +97,12 @@ export const defaults: LanguageServicePluginOptions = {
   extendedKeyDetection: false,
   ignoreEffectWarningsInTscExitCode: false,
   ignoreEffectSuggestionsInTscExitCode: true,
+  ignoreEffectErrorsInTscExitCode: false,
   pipeableMinArgCount: 2,
   effectFn: ["span"],
   layerGraphFollowDepth: 0,
-  mermaidProvider: "mermaid.live"
+  mermaidProvider: "mermaid.live",
+  skipDisabledOptimiziation: false
 }
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
@@ -155,6 +159,10 @@ export function parse(config: any): LanguageServicePluginOptions {
         isBoolean(config.ignoreEffectSuggestionsInTscExitCode)
         ? config.ignoreEffectSuggestionsInTscExitCode
         : defaults.ignoreEffectSuggestionsInTscExitCode,
+    ignoreEffectErrorsInTscExitCode: isObject(config) && hasProperty(config, "ignoreEffectErrorsInTscExitCode") &&
+        isBoolean(config.ignoreEffectErrorsInTscExitCode)
+      ? config.ignoreEffectErrorsInTscExitCode
+      : defaults.ignoreEffectErrorsInTscExitCode,
     quickinfo: isObject(config) && hasProperty(config, "quickinfo") && isBoolean(config.quickinfo)
       ? config.quickinfo
       : defaults.quickinfo,
@@ -226,6 +234,10 @@ export function parse(config: any): LanguageServicePluginOptions {
     mermaidProvider: isObject(config) && hasProperty(config, "mermaidProvider") &&
         isString(config.mermaidProvider)
       ? config.mermaidProvider
-      : defaults.mermaidProvider
+      : defaults.mermaidProvider,
+    skipDisabledOptimiziation: isObject(config) && hasProperty(config, "skipDisabledOptimiziation") &&
+        isBoolean(config.skipDisabledOptimiziation)
+      ? config.skipDisabledOptimiziation
+      : defaults.skipDisabledOptimiziation
   }
 }

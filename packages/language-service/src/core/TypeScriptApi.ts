@@ -178,6 +178,11 @@ declare module "typescript" {
     /** @deprecated Use typeCheckerUtils.getTypeParameterAtPosition instead */
     getTypeParameterAtPosition(pos: number): ts.Type
   }
+
+  export interface Type {
+    /** @deprecated Use typeChecker.getSignaturesOfType(type, ts.SignatureKind.Construct) instead */
+    getConstructSignatures(): ReadonlyArray<ts.Signature>
+  }
 }
 
 type _TypeScriptApi = typeof ts
