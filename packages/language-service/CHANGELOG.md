@@ -1,5 +1,52 @@
 # @effect/language-service
 
+## 0.78.0
+
+### Minor Changes
+
+- [#663](https://github.com/Effect-TS/language-service/pull/663) [`0e82d43`](https://github.com/Effect-TS/language-service/commit/0e82d437e91fe0b98c51b4b53c8d06f29aa41b8e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve `effectFnOpportunity` inferred span naming for service-layer methods and align examples for Effect v4.
+
+  The inferred span can now include service + method names (for example `MyService.log`) when the convertible function is a method inside a layer service object for strict supported patterns like:
+
+  - `Layer.succeed(Service)(...)`
+  - `Layer.sync(Service)(...)`
+  - `Layer.effect(Service)(Effect.gen(...))`
+  - `Layer.effect(Service, Effect.gen(...))`
+
+  Also add Effect v4 diagnostics fixtures for:
+
+  - `effectFnOpportunity_inferred.ts`
+  - `effectFnOpportunity_inferredLayer.ts`
+
+- [#669](https://github.com/Effect-TS/language-service/pull/669) [`a010a29`](https://github.com/Effect-TS/language-service/commit/a010a29d219a22da2553d82da3bbabc3312106f5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add a new `effectInFailure` diagnostic that warns when an `Effect` computation appears in the failure channel (`E`) of another `Effect`.
+
+  The rule traverses Effect-typed expressions, unrolls union members of `E`, and reports when any member is itself a strict Effect type.
+
+  It prefers innermost matches for nested cases (for example nested `Effect.try` in `catch`) to avoid noisy parent reports.
+
+### Patch Changes
+
+- [#666](https://github.com/Effect-TS/language-service/pull/666) [`06b3a6c`](https://github.com/Effect-TS/language-service/commit/06b3a6ce41c24459120c6a396804dadaf420786a) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `effectFnOpportunity` inferred span naming for `Layer.*(this, ...)` patterns in class static members.
+
+  When the inferred layer target is `this`, the diagnostic now uses the nearest enclosing class name (for example `MyService`) instead of the literal `this` token.
+
+- [#665](https://github.com/Effect-TS/language-service/pull/665) [`a95a679`](https://github.com/Effect-TS/language-service/commit/a95a6792e313ac920f6621858439b18d52c9c0d9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve yield-based diagnostics and hover behavior by introducing `effectYieldableType` in `TypeParser` and using it in `missingReturnYieldStar`.
+
+  - In Effect v4, yieldable values are recognized through `asEffect()` and mapped to Effect `A/E/R`.
+  - In Effect v3, `effectYieldableType` falls back to standard `effectType` behavior.
+  - `missingReturnYieldStar` now correctly handles yieldable values such as `Option.none()`.
+  - Hover support for `yield*` was updated to use yieldable parsing paths.
+
+- [#664](https://github.com/Effect-TS/language-service/pull/664) [`934ef7e`](https://github.com/Effect-TS/language-service/commit/934ef7e0b58bc5260425b47a9efe1f4d0ccc26f0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve `missingReturnYieldStar` safety by targeting only expression statements with top-level `yield*` expressions and validating the enclosing `Effect.gen` scope via `findEnclosingScopes`.
+
+  This avoids edge cases where nested or wrapped `yield*` expressions could be matched incorrectly.
+
+- [#661](https://github.com/Effect-TS/language-service/pull/661) [`0f92686`](https://github.com/Effect-TS/language-service/commit/0f92686ac86b4f90eea436c542914ce59c39afb6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update effect dependency to v4.0.0-beta.19 and fix compatibility issues:
+
+  - Fix `layerMagic` refactor producing `any` types in Layer channels by replacing `Array.partition` (which now uses the v4 `Filter.Filter` API) with a native loop for boolean partition logic
+  - Add v4 Layer type detection shortcut using `"~effect/Layer"` TypeId property, matching the pattern already used for Effect type detection
+  - Mark `Effect.filterMap` as unchanged in the outdated API migration database since it was re-added in v4
+
 ## 0.77.0
 
 ### Minor Changes
