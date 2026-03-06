@@ -31,7 +31,7 @@ export class OnlyLiteralPropertiesSupportedError {
   toString() {
     const sourceFile = this.node.getSourceFile()
     return `Could not process ${
-      sourceFile.text.substring(ts.getTokenPosOfNode(this.node, sourceFile), this.node.end)
+      sourceFile.text.substring(this.node.pos, this.node.end)
     } as only literal properties are supported.`
   }
 }
@@ -45,7 +45,7 @@ export class RequiredExplicitTypesError {
   toString() {
     const sourceFile = this.node.getSourceFile()
     return `Could not process ${
-      sourceFile.text.substring(ts.getTokenPosOfNode(this.node, sourceFile), this.node.end)
+      sourceFile.text.substring(this.node.pos, this.node.end)
     } as only explicit types are supported.`
   }
 }
@@ -59,7 +59,7 @@ export class IndexSignatureWithMoreThanOneParameterError {
   toString() {
     const sourceFile = this.node.getSourceFile()
     return `Could not process ${
-      sourceFile.text.substring(ts.getTokenPosOfNode(this.node, sourceFile), this.node.end)
+      sourceFile.text.substring(this.node.pos, this.node.end)
     } as only index signatures with one parameter are supported.`
   }
 }
