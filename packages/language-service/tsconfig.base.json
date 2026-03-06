@@ -13,11 +13,7 @@
     "emitDecoratorMetadata": false,
     "experimentalDecorators": true,
     "moduleResolution": "NodeNext",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "isolatedModules": true,
     "sourceMap": true,
     "declarationMap": true,
@@ -38,17 +34,13 @@
     "module": "NodeNext",
     "incremental": true,
     "removeComments": false,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "allowSyntheticDefaultImports": true,
     "plugins": [
       {
         "name": "@effect/language-service",
-        "namespaceImportPackages": [
-          "effect",
-          "@effect/*"
-        ]
+        "ignoreEffectWarningsInTscExitCode": true,
+        "namespaceImportPackages": ["effect", "@effect/*"]
       }
     ]
   }

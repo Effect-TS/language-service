@@ -385,6 +385,7 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       }
       // if the default level is off, and there are no overrides, do not process the rule
       if (
+        !pluginOptions.skipDisabledOptimiziation &&
         defaultLevel === "off" &&
         ((lineOverrides[ruleNameLowered] || sectionOverrides[ruleNameLowered] || lineOverrides["*"] ||
           sectionOverrides["*"] || []).length === 0)

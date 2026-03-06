@@ -132,6 +132,13 @@ export function extractDiagnosticsForExitStatus(
       (_) => !(_.source === "effect" && _.category === tsInstance.DiagnosticCategory.Warning)
     )
   }
+  // if the option is enabled, exclude errors
+  if (parsedOptions.ignoreEffectErrorsInTscExitCode) {
+    newDiagnostics = Array.filter(
+      newDiagnostics,
+      (_) => !(_.source === "effect" && _.category === tsInstance.DiagnosticCategory.Error)
+    )
+  }
 
   return newDiagnostics
 }

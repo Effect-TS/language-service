@@ -12,11 +12,13 @@
     "plugins": [
       {
         "name": "@effect/language-service",
-        "namespaceImportPackages": [
-          "effect"
-        ]
+        "ignoreEffectSuggestionsInTscExitCode": true,
+        "ignoreEffectWarningsInTscExitCode": true,
+        "ignoreEffectErrorsInTscExitCode": true,
+        "skipDisabledOptimiziation": true,
+        "namespaceImportPackages": ["effect"]
       }
     ]
   },
-  "exclude": ["examples/completions"]  
+  "exclude": ["examples/completions"]
 }
