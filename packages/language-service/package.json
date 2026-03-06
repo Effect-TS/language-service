@@ -36,7 +36,7 @@
     "circular": "madge --extensions ts --circular --no-color --no-spinner --warning src",
     "test": "vitest",
     "test-update": "vitest --update",
-    "test-patch": "pnpm clean && pnpm build && pnpm effect-language-service unpatch && pnpm effect-language-service patch && pnpm check",
+    "test-patch": "pnpm clean && pnpm build && pnpm exec effect-language-service unpatch && pnpm exec effect-language-service patch && pnpm check",
     "coverage": "vitest run --coverage",
     "perf": "tsx test/perf.ts"
   },
