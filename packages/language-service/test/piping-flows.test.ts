@@ -31,25 +31,48 @@ function formatPipingFlow(
   const lines: Array<string> = []
 
   // Get position info for the outer node
-  const startPos = flow.node.getStart()
+  const startPos = ts.getTokenPosOfNode(flow.node, sourceFile)
   const endPos = flow.node.getEnd()
   const start = ts.getLineAndCharacterOfPosition(sourceFile, startPos)
   const end = ts.getLineAndCharacterOfPosition(sourceFile, endPos)
 
   lines.push(`=== Piping Flow ===`)
   lines.push(`Location: ${start.line + 1}:${start.character + 1} - ${end.line + 1}:${end.character + 1}`)
-  lines.push(`Node: ${flow.node.getText().replace(/\n/g, "\\n")}`)
+  lines.push(
+    `Node: ${
+      sourceFile.text.substring(ts.getTokenPosOfNode(flow.node, sourceFile), flow.node.end).replace(
+        /\n/g,
+        "\\n"
+      )
+    }`
+  )
   lines.push(`Node Kind: ${ts.SyntaxKind[flow.node.kind]}`)
   lines.push(``)
-  lines.push(`Subject: ${flow.subject.node.getText().replace(/\n/g, "\\n")}`)
+  lines.push(
+    `Subject: ${
+      sourceFile.text.substring(ts.getTokenPosOfNode(flow.subject.node, sourceFile), flow.subject.node.end).replace(
+        /\n/g,
+        "\\n"
+      )
+    }`
+  )
   lines.push(`Subject Type: ${flow.subject.outType ? typeChecker.typeToString(flow.subject.outType) : "unknown"}`)
   lines.push(``)
   lines.push(`Transformations (${flow.transformations.length}):`)
 
   for (let i = 0; i < flow.transformations.length; i++) {
     const t = flow.transformations[i]
-    const calleeText = t.callee.getText()
-    const argsText = t.args ? t.args.map((a) => a.getText().replace(/\n/g, "\\n")).join(", ") : undefined
+    const calleeText = sourceFile.text.substring(ts.getTokenPosOfNode(t.callee, sourceFile), t.callee.end)
+    const argsText = t.args
+      ? t.args
+        .map((a) =>
+          sourceFile.text.substring(ts.getTokenPosOfNode(a, sourceFile), a.end).replace(
+            /\n/g,
+            "\\n"
+          )
+        )
+        .join(", ")
+      : undefined
     const typeText = t.outType ? typeChecker.typeToString(t.outType) : "unknown"
 
     lines.push(`  [${i}] kind: ${t.kind}`)
@@ -114,7 +137,7 @@ function testPipingFlowsOnExample(
       ),
       Nano.map(({ flows, reconstructPipingFlow }) => {
         // Sort flows by position
-        flows.sort((a, b) => a.node.getStart() - b.node.getStart())
+        flows.sort((a, b) => ts.getTokenPosOfNode(a.node, sourceFile) - ts.getTokenPosOfNode(b.node, sourceFile))
         // Format flows
         return flows.length === 0
           ? "// no piping flows found"

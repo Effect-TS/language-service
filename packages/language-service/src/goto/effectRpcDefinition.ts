@@ -140,7 +140,10 @@ export function effectRpcDefinition(
     // create the result entry for the definitions
     const effectRpcResult = result.map(([node]) => ({
       fileName: node.getSourceFile().fileName,
-      textSpan: ts.createTextSpan(node.getStart(), node.end - node.getStart()),
+      textSpan: ts.createTextSpan(
+        ts.getTokenPosOfNode(node, node.getSourceFile()),
+        node.end - ts.getTokenPosOfNode(node, node.getSourceFile())
+      ),
       kind: ts.ScriptElementKind.constElement,
       name: rpcName,
       containerKind: ts.ScriptElementKind.constElement,
@@ -155,7 +158,10 @@ export function effectRpcDefinition(
     }
 
     return ({
-      textSpan: ts.createTextSpan(callNode.getStart(), callNode.end - callNode.getStart()),
+      textSpan: ts.createTextSpan(
+        ts.getTokenPosOfNode(callNode, callNode.getSourceFile()),
+        callNode.end - ts.getTokenPosOfNode(callNode, callNode.getSourceFile())
+      ),
       definitions: effectRpcResult
     })
   })

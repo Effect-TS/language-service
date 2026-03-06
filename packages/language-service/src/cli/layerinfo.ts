@@ -319,7 +319,8 @@ function getExpressionName(tsApi: TypeScriptApi.TypeScriptApi, expr: ts.Expressi
     return getExpressionName(tsApi, expr.expression)
   }
   // Fallback: truncate the text representation
-  const text = expr.getText().replace(/\s+/g, " ")
+  const sourceFile = expr.getSourceFile()
+  const text = sourceFile.text.substring(tsApi.getTokenPosOfNode(expr, sourceFile), expr.end).replace(/\s+/g, " ")
   return text.length > 30 ? text.slice(0, 27) + "..." : text
 }
 

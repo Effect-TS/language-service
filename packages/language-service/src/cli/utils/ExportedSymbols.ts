@@ -29,7 +29,10 @@ const getLocationFromDeclaration = (
 ): SymbolLocation | undefined => {
   const sourceFile = declaration.getSourceFile()
   if (!sourceFile) return undefined
-  const { character, line } = tsInstance.getLineAndCharacterOfPosition(sourceFile, declaration.getStart())
+  const { character, line } = tsInstance.getLineAndCharacterOfPosition(
+    sourceFile,
+    tsInstance.getTokenPosOfNode(declaration, sourceFile)
+  )
   return {
     filePath: sourceFile.fileName,
     line: line + 1,
