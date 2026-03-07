@@ -1,0 +1,32 @@
+"fs"
+5:15 - 5:19 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+
+"node:fs"
+6:21 - 6:30 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+
+"fs/promises"
+7:25 - 7:38 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+
+"node:fs/promises"
+8:38 - 8:56 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+
+"path"
+9:21 - 9:27 | 0 | Prefer using Path from effect instead of the Node.js 'path' module.    effect(nodeBuiltinImport)
+
+"node:path"
+10:17 - 10:28 | 0 | Prefer using Path from effect instead of the Node.js 'path' module.    effect(nodeBuiltinImport)
+
+"path/posix"
+11:30 - 11:42 | 0 | Prefer using Path from effect instead of the Node.js 'path' module.    effect(nodeBuiltinImport)
+
+"child_process"
+12:21 - 12:36 | 0 | Prefer using ChildProcess from effect instead of the Node.js 'child_process' module.    effect(nodeBuiltinImport)
+
+"node:child_process"
+13:22 - 13:42 | 0 | Prefer using ChildProcess from effect instead of the Node.js 'child_process' module.    effect(nodeBuiltinImport)
+
+"node:fs"
+16:7 - 16:16 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+
+"node:fs"
+19:20 - 19:29 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
