@@ -28,11 +28,13 @@
   ],
   "scripts": {
     "build": "tsup",
+    "codegen": "node --import tsx ./scripts/generate-diagnostics-readme-table.ts",
     "dev": "tsup --watch",
     "clean": "rimraf dist build .tsbuildinfo",
     "lint": "eslint src test",
     "lint-fix": "eslint src test --fix",
     "check": "tsc -b tsconfig.json",
+    "check:codegen": "node --import tsx ./scripts/generate-diagnostics-readme-table.ts --check",
     "circular": "madge --extensions ts --circular --no-color --no-spinner --warning src",
     "test": "vitest",
     "test-update": "vitest --update",

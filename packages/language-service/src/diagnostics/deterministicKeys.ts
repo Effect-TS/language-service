@@ -14,6 +14,8 @@ export const deterministicKeys = LSP.createDiagnostic({
   code: 25,
   description: "Enforces deterministic naming for service/tag/error identifiers based on class names",
   severity: "off",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("deterministicKeys.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

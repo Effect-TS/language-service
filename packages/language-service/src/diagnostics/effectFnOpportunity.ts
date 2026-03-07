@@ -33,6 +33,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
   code: 41,
   description: "Suggests using Effect.fn for functions that returns an Effect",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("effectFnOpportunity.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

@@ -10,6 +10,8 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
   code: 5,
   description: "Suggests removing Effect.gen when it contains only a single return statement",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("unnecessaryEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

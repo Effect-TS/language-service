@@ -15,6 +15,8 @@ export const missingEffectError = LSP.createDiagnostic({
   code: 1,
   description: "Reports missing error types in Effect error channel",
   severity: "error",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("missingEffectError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)

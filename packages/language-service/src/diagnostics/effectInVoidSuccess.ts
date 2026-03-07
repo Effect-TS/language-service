@@ -12,6 +12,8 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
   code: 14,
   description: "Detects nested Effects in void success channels that may cause unexecuted effects",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("effectInVoidSuccess.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

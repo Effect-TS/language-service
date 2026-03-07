@@ -13,6 +13,8 @@ export const outdatedApi = LSP.createDiagnostic({
   code: 48,
   description: "Detects usage of APIs that have been removed or renamed in Effect v4",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v4"],
   apply: Nano.fn("outdatedApi.apply")(function*(sourceFile, report) {
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)

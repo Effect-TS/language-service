@@ -12,6 +12,8 @@ export const returnEffectInGen = LSP.createDiagnostic({
   code: 11,
   description: "Warns when returning an Effect in a generator causes nested Effect<Effect<...>>",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("returnEffectInGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)

@@ -11,6 +11,8 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
   code: 44,
   description: "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw",
   severity: "suggestion",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("preferSchemaOverJson.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

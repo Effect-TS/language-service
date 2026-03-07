@@ -11,6 +11,8 @@ export const schemaStructWithTag = LSP.createDiagnostic({
   code: 34,
   description: "Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("schemaStructWithTag.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

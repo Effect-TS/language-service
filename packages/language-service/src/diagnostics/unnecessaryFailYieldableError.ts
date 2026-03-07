@@ -11,6 +11,8 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
   code: 29,
   description: "Suggests yielding yieldable errors directly instead of wrapping with Effect.fail",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("unnecessaryFailYieldableError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

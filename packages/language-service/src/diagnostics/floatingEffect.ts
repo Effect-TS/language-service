@@ -13,6 +13,8 @@ export const floatingEffect = LSP.createDiagnostic({
   code: 3,
   description: "Ensures Effects are yielded or assigned to variables, not left floating",
   severity: "error",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("floatingEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

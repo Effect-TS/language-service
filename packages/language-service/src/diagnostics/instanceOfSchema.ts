@@ -11,6 +11,8 @@ export const instanceOfSchema = LSP.createDiagnostic({
   code: 45,
   description: "Suggests using Schema.is instead of instanceof for Effect Schema types",
   severity: "off",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("instanceOfSchema.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

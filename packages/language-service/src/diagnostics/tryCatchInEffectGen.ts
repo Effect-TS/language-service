@@ -10,6 +10,8 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
   code: 15,
   description: "Discourages try/catch in Effect generators in favor of Effect error handling",
   severity: "suggestion",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("tryCatchInEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

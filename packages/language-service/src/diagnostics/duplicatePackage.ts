@@ -8,6 +8,8 @@ export const duplicatePackage = LSP.createDiagnostic({
   code: 6,
   description: "Detects when multiple versions of the same Effect package are loaded",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("duplicatePackage.apply")(function*(sourceFile, report) {
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const options = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)

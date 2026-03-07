@@ -46,6 +46,8 @@ export interface DiagnosticDefinition {
   code: number
   description: string
   severity: LanguageServicePluginOptions.DiagnosticSeverity | "off"
+  fixable: boolean
+  supportedEffect: ReadonlyArray<SupportedEffectVersion>
   apply: (
     sourceFile: ts.SourceFile,
     report: (data: {
@@ -65,6 +67,8 @@ export interface DiagnosticDefinition {
     | TypeScriptApi.TypeScriptProgram
   >
 }
+
+export type SupportedEffectVersion = "v3" | "v4"
 
 export interface ApplicableDiagnosticDefinition {
   range: ts.TextRange

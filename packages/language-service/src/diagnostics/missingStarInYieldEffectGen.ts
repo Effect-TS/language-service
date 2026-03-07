@@ -11,6 +11,8 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   code: 4,
   description: "Enforces using 'yield*' instead of 'yield' when yielding Effects in generators",
   severity: "error",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("missingStarInYieldEffectGen.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

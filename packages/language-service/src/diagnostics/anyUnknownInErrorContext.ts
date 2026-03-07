@@ -12,6 +12,8 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
   code: 28,
   description: "Detects 'any' or 'unknown' types in Effect error or requirements channels",
   severity: "off",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("anyUnknownInErrorContext.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

@@ -10,6 +10,8 @@ export const serviceNotAsClass = LSP.createDiagnostic({
   code: 51,
   description: "Warns when ServiceMap.Service is used as a variable instead of a class declaration",
   severity: "off",
+  fixable: true,
+  supportedEffect: ["v4"],
   apply: Nano.fn("serviceNotAsClass.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

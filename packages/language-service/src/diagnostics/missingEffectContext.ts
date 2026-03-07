@@ -12,6 +12,8 @@ export const missingEffectContext = LSP.createDiagnostic({
   code: 1,
   description: "Reports missing service requirements in Effect context channel",
   severity: "error",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("missingEffectContext.apply")(function*(sourceFile, report) {
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

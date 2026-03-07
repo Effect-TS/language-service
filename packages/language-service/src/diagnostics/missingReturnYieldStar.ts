@@ -12,6 +12,8 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
   code: 7,
   description: "Suggests using 'return yield*' for Effects with never success for better type narrowing",
   severity: "error",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("missingReturnYieldStar.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)

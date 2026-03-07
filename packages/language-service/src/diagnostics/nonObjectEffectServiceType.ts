@@ -12,6 +12,8 @@ export const nonObjectEffectServiceType = LSP.createDiagnostic({
   code: 24,
   description: "Ensures Effect.Service types are objects, not primitives",
   severity: "error",
+  fixable: false,
+  supportedEffect: ["v3"],
   apply: Nano.fn("nonObjectEffectServiceType.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

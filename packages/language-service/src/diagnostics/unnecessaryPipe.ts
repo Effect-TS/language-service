@@ -10,6 +10,8 @@ export const unnecessaryPipe = LSP.createDiagnostic({
   code: 9,
   description: "Removes pipe calls with no arguments",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("unnecessaryPipe.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
