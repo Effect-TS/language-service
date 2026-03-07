@@ -216,11 +216,12 @@ function testDiagnosticQuickfixesOnExample(
           }
         }
 
-        const nonSuppressionFixes = codeFixes.filter((_) =>
-          !_.fixName.endsWith("_skipFile") && !_.fixName.endsWith("_skipNextLine")
-        )
-
-        expect(nonSuppressionFixes.length > 0, "inconsistent fixable metadata").toEqual(diagnostic.fixable)
+        if (diagnostics.length > 0) {
+          const nonSuppressionFixes = codeFixes.filter((_) =>
+            !_.fixName.endsWith("_skipFile") && !_.fixName.endsWith("_skipNextLine")
+          )
+          expect(nonSuppressionFixes.length > 0, "inconsistent fixable metadata").toEqual(diagnostic.fixable)
+        }
 
         return codeFixes.length === 0
           ? "no codefixes"
