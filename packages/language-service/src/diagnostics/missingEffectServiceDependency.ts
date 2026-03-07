@@ -12,6 +12,8 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
   code: 22,
   description: "Checks that Effect.Service dependencies satisfy all required layer inputs",
   severity: "off",
+  fixable: false,
+  supportedEffect: ["v3"],
   apply: Nano.fn("missingEffectServiceDependency.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

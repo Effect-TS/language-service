@@ -24,4 +24,6 @@ jobs:
         with:
           cachixAuthToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - run: pnpm check
+      - run: pnpm codegen
+      - run: git diff --exit-code
       - run: pnpm lint

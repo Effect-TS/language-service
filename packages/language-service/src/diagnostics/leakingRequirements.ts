@@ -14,6 +14,8 @@ export const leakingRequirements = LSP.createDiagnostic({
   code: 8,
   description: "Detects implementation services leaked in service methods",
   severity: "suggestion",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("leakingRequirements.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

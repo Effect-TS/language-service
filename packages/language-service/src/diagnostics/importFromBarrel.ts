@@ -12,6 +12,8 @@ export const importFromBarrel = LSP.createDiagnostic({
   code: 12,
   description: "Suggests importing from specific module paths instead of barrel exports",
   severity: "off",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("importFromBarrel.apply")(function*(sourceFile, report) {
     // requires namespaceImportPackages to be set
     const languageServicePluginOptions = yield* Nano.service(LanguageServicePluginOptions.LanguageServicePluginOptions)

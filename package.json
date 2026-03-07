@@ -4,6 +4,7 @@
   "packageManager": "pnpm@8.11.0",
   "scripts": {
     "build": "pnpm --filter @effect/language-service build",
+    "codegen": "pnpm --filter @effect/language-service codegen",
     "dev": "pnpm --filter @effect/language-service dev",
     "test": "pnpm test:v3",
     "test:v3": "EFFECT_HARNESS_VERSION=v3 pnpm --filter @effect/language-service test",
@@ -13,7 +14,8 @@
     "test-update:v4": "EFFECT_HARNESS_VERSION=v4 pnpm --filter @effect/language-service test-update",
     "lint": "pnpm -r lint",
     "lint-fix": "pnpm -r lint-fix",
-    "check": "pnpm -r check",
+    "check": "pnpm -r check && pnpm check:codegen",
+    "check:codegen": "pnpm --filter @effect/language-service check:codegen",
     "circular": "pnpm --filter @effect/language-service circular",
     "clean": "pnpm -r clean",
     "perf": "pnpm -r perf",

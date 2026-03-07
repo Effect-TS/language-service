@@ -13,6 +13,8 @@ export const multipleEffectProvide = LSP.createDiagnostic({
   code: 18,
   description: "Warns against chaining Effect.provide calls which can cause service lifecycle issues",
   severity: "warning",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("multipleEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)

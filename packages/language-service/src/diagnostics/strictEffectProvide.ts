@@ -12,6 +12,8 @@ export const strictEffectProvide = LSP.createDiagnostic({
   code: 27,
   description: "Warns when using Effect.provide with layers outside of application entry points",
   severity: "off",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("strictEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)

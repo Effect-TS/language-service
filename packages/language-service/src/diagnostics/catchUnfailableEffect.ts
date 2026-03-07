@@ -11,6 +11,8 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
   code: 2,
   description: "Warns when using error handling on Effects that never fail (error type is 'never')",
   severity: "suggestion",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("catchUnfailableEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

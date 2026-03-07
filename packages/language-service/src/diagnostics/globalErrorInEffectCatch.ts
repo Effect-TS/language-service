@@ -12,6 +12,8 @@ export const globalErrorInEffectCatch = LSP.createDiagnostic({
   code: 36,
   description: "Warns when catch callbacks return global Error type instead of typed errors",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("globalErrorInEffectCatch.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

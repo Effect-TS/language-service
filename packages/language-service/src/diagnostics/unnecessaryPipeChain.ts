@@ -10,6 +10,8 @@ export const unnecessaryPipeChain = LSP.createDiagnostic({
   code: 16,
   description: "Simplifies chained pipe calls into a single pipe call",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("unnecessaryPipeChain.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

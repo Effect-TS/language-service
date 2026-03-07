@@ -11,6 +11,8 @@ export const catchAllToMapError = LSP.createDiagnostic({
   description:
     "Suggests using Effect.mapError instead of Effect.catchAll when the callback only wraps the error with Effect.fail",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("catchAllToMapError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

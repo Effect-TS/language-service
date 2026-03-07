@@ -12,6 +12,8 @@ export const unknownInEffectCatch = LSP.createDiagnostic({
   code: 31,
   description: "Warns when catch callbacks return unknown instead of typed errors",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("unknownInEffectCatch.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

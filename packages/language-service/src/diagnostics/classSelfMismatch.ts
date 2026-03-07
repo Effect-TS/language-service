@@ -10,6 +10,8 @@ export const classSelfMismatch = LSP.createDiagnostic({
   code: 20,
   description: "Ensures Self type parameter matches the class name in Service/Tag/Schema classes",
   severity: "error",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("classSelfMismatch.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

@@ -12,6 +12,8 @@ export const effectSucceedWithVoid = LSP.createDiagnostic({
   code: 47,
   description: "Suggests using Effect.void instead of Effect.succeed(undefined) or Effect.succeed(void 0)",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("effectSucceedWithVoid.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

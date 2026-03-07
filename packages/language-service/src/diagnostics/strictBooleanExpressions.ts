@@ -10,6 +10,8 @@ export const strictBooleanExpressions = LSP.createDiagnostic({
   code: 17,
   description: "Enforces boolean types in conditional expressions for type safety",
   severity: "off",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("strictBooleanExpressions.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

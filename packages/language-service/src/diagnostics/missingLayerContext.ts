@@ -12,6 +12,8 @@ export const missingLayerContext = LSP.createDiagnostic({
   code: 38,
   description: "Reports missing service requirements in Layer context channel",
   severity: "error",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("missingLayerContext.apply")(function*(sourceFile, report) {
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

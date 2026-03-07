@@ -11,6 +11,8 @@ export const genericEffectServices = LSP.createDiagnostic({
   code: 10,
   description: "Prevents services with type parameters that cannot be discriminated at runtime",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("genericEffectServices.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

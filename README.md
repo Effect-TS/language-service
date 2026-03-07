@@ -39,57 +39,74 @@ And you're done! You'll now be able to use a set of refactors and diagnostics th
 
 ## Provided functionalities
 
+### Diagnostics
+
+<!-- diagnostics-table:start -->
+| Diagnostic | Sev | Fix | Description | v3 | v4 |
+| --- | --- | --- | --- | --- | --- |
+| `outdatedApi` | ⚠️ |  | Detects usage of APIs that have been removed or renamed in Effect v4 |  | ✓ |
+| `anyUnknownInErrorContext` | ➖ |  | Detects 'any' or 'unknown' types in Effect error or requirements channels | ✓ | ✓ |
+| `instanceOfSchema` | ➖ | 🔧 | Suggests using Schema.is instead of instanceof for Effect Schema types | ✓ | ✓ |
+| `catchAllToMapError` | 💡 | 🔧 | Suggests using Effect.mapError instead of Effect.catchAll when the callback only wraps the error with Effect.fail | ✓ | ✓ |
+| `catchUnfailableEffect` | 💡 |  | Warns when using error handling on Effects that never fail (error type is 'never') | ✓ | ✓ |
+| `classSelfMismatch` | ❌ | 🔧 | Ensures Self type parameter matches the class name in Service/Tag/Schema classes | ✓ | ✓ |
+| `duplicatePackage` | ⚠️ |  | Detects when multiple versions of the same Effect package are loaded | ✓ | ✓ |
+| `effectGenUsesAdapter` | ⚠️ |  | Warns when using the deprecated adapter parameter in Effect.gen | ✓ | ✓ |
+| `missingEffectContext` | ❌ |  | Reports missing service requirements in Effect context channel | ✓ | ✓ |
+| `missingEffectError` | ❌ | 🔧 | Reports missing error types in Effect error channel | ✓ | ✓ |
+| `missingEffectServiceDependency` | ➖ |  | Checks that Effect.Service dependencies satisfy all required layer inputs | ✓ |  |
+| `missingLayerContext` | ❌ |  | Reports missing service requirements in Layer context channel | ✓ | ✓ |
+| `floatingEffect` | ❌ |  | Ensures Effects are yielded or assigned to variables, not left floating | ✓ | ✓ |
+| `effectInFailure` | ⚠️ |  | Warns when an Effect is used inside an Effect failure channel | ✓ | ✓ |
+| `missingStarInYieldEffectGen` | ❌ | 🔧 | Enforces using 'yield*' instead of 'yield' when yielding Effects in generators | ✓ | ✓ |
+| `unnecessaryEffectGen` | 💡 | 🔧 | Suggests removing Effect.gen when it contains only a single return statement | ✓ | ✓ |
+| `unnecessaryFailYieldableError` | 💡 | 🔧 | Suggests yielding yieldable errors directly instead of wrapping with Effect.fail | ✓ | ✓ |
+| `missingReturnYieldStar` | ❌ | 🔧 | Suggests using 'return yield*' for Effects with never success for better type narrowing | ✓ | ✓ |
+| `leakingRequirements` | 💡 |  | Detects implementation services leaked in service methods | ✓ | ✓ |
+| `unnecessaryPipe` | 💡 | 🔧 | Removes pipe calls with no arguments | ✓ | ✓ |
+| `genericEffectServices` | ⚠️ |  | Prevents services with type parameters that cannot be discriminated at runtime | ✓ | ✓ |
+| `returnEffectInGen` | 💡 | 🔧 | Warns when returning an Effect in a generator causes nested Effect<Effect<...>> | ✓ | ✓ |
+| `tryCatchInEffectGen` | 💡 |  | Discourages try/catch in Effect generators in favor of Effect error handling | ✓ | ✓ |
+| `importFromBarrel` | ➖ | 🔧 | Suggests importing from specific module paths instead of barrel exports | ✓ | ✓ |
+| `scopeInLayerEffect` | ⚠️ | 🔧 | Suggests using Layer.scoped instead of Layer.effect when Scope is in requirements | ✓ |  |
+| `effectInVoidSuccess` | ⚠️ |  | Detects nested Effects in void success channels that may cause unexecuted effects | ✓ | ✓ |
+| `unnecessaryPipeChain` | 💡 | 🔧 | Simplifies chained pipe calls into a single pipe call | ✓ | ✓ |
+| `strictBooleanExpressions` | ➖ |  | Enforces boolean types in conditional expressions for type safety | ✓ | ✓ |
+| `multipleEffectProvide` | ⚠️ | 🔧 | Warns against chaining Effect.provide calls which can cause service lifecycle issues | ✓ | ✓ |
+| `outdatedEffectCodegen` | ⚠️ | 🔧 | Detects when generated code is outdated and needs to be regenerated | ✓ | ✓ |
+| `overriddenSchemaConstructor` | ❌ | 🔧 | Prevents overriding constructors in Schema classes which breaks decoding behavior | ✓ | ✓ |
+| `unsupportedServiceAccessors` | ⚠️ | 🔧 | Warns about service accessors that need codegen due to generic/complex signatures | ✓ | ✓ |
+| `nonObjectEffectServiceType` | ❌ |  | Ensures Effect.Service types are objects, not primitives | ✓ |  |
+| `deterministicKeys` | ➖ | 🔧 | Enforces deterministic naming for service/tag/error identifiers based on class names | ✓ | ✓ |
+| `missedPipeableOpportunity` | ➖ | 🔧 | Enforces the use of pipeable style for nested function calls | ✓ | ✓ |
+| `strictEffectProvide` | ➖ |  | Warns when using Effect.provide with layers outside of application entry points | ✓ | ✓ |
+| `unknownInEffectCatch` | ⚠️ |  | Warns when catch callbacks return unknown instead of typed errors | ✓ | ✓ |
+| `runEffectInsideEffect` | 💡 | 🔧 | Suggests using Runtime methods instead of Effect.run* inside Effect contexts | ✓ |  |
+| `schemaUnionOfLiterals` | ➖ | 🔧 | Simplifies Schema.Union of multiple Schema.Literal calls into single Schema.Literal | ✓ |  |
+| `schemaStructWithTag` | 💡 | 🔧 | Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field | ✓ | ✓ |
+| `globalErrorInEffectCatch` | ⚠️ |  | Warns when catch callbacks return global Error type instead of typed errors | ✓ | ✓ |
+| `globalErrorInEffectFailure` | ⚠️ |  | Warns when the global Error type is used in an Effect failure channel | ✓ | ✓ |
+| `layerMergeAllWithDependencies` | ⚠️ | 🔧 | Detects interdependencies in Layer.mergeAll calls where one layer provides a service that another layer requires | ✓ | ✓ |
+| `effectMapVoid` | 💡 | 🔧 | Suggests using Effect.asVoid instead of Effect.map(() => void 0), Effect.map(() => undefined), or Effect.map(() => {}) | ✓ | ✓ |
+| `effectSucceedWithVoid` | 💡 | 🔧 | Suggests using Effect.void instead of Effect.succeed(undefined) or Effect.succeed(void 0) | ✓ | ✓ |
+| `effectFnIife` | ⚠️ | 🔧 | Effect.fn or Effect.fnUntraced is called as an IIFE (Immediately Invoked Function Expression). Use Effect.gen instead. | ✓ | ✓ |
+| `effectFnOpportunity` | 💡 | 🔧 | Suggests using Effect.fn for functions that returns an Effect | ✓ | ✓ |
+| `redundantSchemaTagIdentifier` | 💡 | 🔧 | Suggests removing redundant identifier argument when it equals the tag value in Schema.TaggedClass/TaggedError/TaggedRequest | ✓ | ✓ |
+| `schemaSyncInEffect` | 💡 |  | Suggests using Effect-based Schema methods instead of sync methods inside Effect generators | ✓ | ✓ |
+| `preferSchemaOverJson` | 💡 |  | Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw | ✓ | ✓ |
+| `extendsNativeError` | ➖ |  | Warns when a class directly extends the native Error class | ✓ | ✓ |
+| `serviceNotAsClass` | ➖ | 🔧 | Warns when ServiceMap.Service is used as a variable instead of a class declaration |  | ✓ |
+| `nodeBuiltinImport` | ➖ |  | Warns when importing Node.js built-in modules that have Effect-native counterparts | ✓ | ✓ |
+
+`➖` off by default, `❌` error, `⚠️` warning, `💬` message, `💡` suggestion, `🔧` quick fix available
+<!-- diagnostics-table:end -->
+
 ### Quickinfo
 
 - Show the extended type of the current Effect
 - Hovering `yield*` of `Effect.gen` will show the Effect type parameters
 - Hovering a variable assignment of a type Layer, will show info on how each service got involved
 - Hovering a layer, will attempt to produce a graph
-
-### Diagnostics
-
-- Better error readability when you're missing errors or service types in your Effect definitions
-- Better error readability when you're missing service requirements in your Layer definitions
-- Floating Effects that are not yielded or run
-- Wrong usage of yield inside `Effect.gen`
-- Multiple versions of Effect in your project
-- Warn on leaking requirements in Effect services
-- Warn on Scope as requirement of a Layer
-- Warn on subsequent `Effect.provide` anti-pattern
-- Warn when using `Effect.provide` with Layer outside of application entry points
-- Detect wrong `Self` type parameter for APIs like `Effect.Service` or `Schema.TaggedError` and similar 
-- Unnecessary usages of `Effect.gen` or `pipe()`
-- Warn when using `Effect.gen` with the old generator adapter pattern
-- Warn when importing from a barrel file instead of from the module directly
-- Warn on usage of try/catch inside `Effect.gen` and family
-- Detect unnecessary pipe chains like `X.pipe(Y).pipe(Z)`
-- Warn when using `Effect.Service` with `accessors: true` but methods have generics or multiple signatures
-- Warn on missing service dependencies in `Effect.Service` declarations
-- Warn when `Effect.Service` is used with a primitive type instead of an object type
-- Warn when schema classes override the default constructor behavior
-- Warn when `@effect-diagnostics-next-line` comments have no effect (i.e., they don't suppress any diagnostic)
-- Detect nested function calls that can be converted to pipeable style for better readability
-- Warn when using catch functions (`catchAll`, `catch`, `catchIf`, `catchSome`, `catchTag`, `catchTags`) on effects that never fail
-- Warn when catch callbacks in `Effect.tryPromise`, `Effect.tryMap`, or `Effect.tryMapPromise` return `unknown` or `any` types
-- Warn when catch callbacks in `Effect.tryPromise`, `Effect.try`, `Effect.tryMap`, or `Effect.tryMapPromise` return the global `Error` type instead of typed errors
-- Warn when classes directly extend the native `Error` class, including through local aliases, recommending tagged errors instead
-- Warn when using `Effect.runSync`, `Effect.runPromise`, `Effect.runFork`, or `Effect.runCallback` inside an Effect
-- Warn when using `Schema.decodeSync`, `Schema.decodeUnknownSync`, `Schema.encodeSync`, or `Schema.encodeUnknownSync` inside Effect generators, suggesting Effect-based alternatives
-- Suggest using Effect Schema for JSON operations instead of `JSON.parse`/`JSON.stringify` inside Effect contexts
-- Warn when using `Schema.Union` with multiple `Schema.Literal` calls that can be simplified to a single `Schema.Literal` call
-- Suggest using `Schema.TaggedStruct` instead of `Schema.Struct` when a `_tag` field with `Schema.Literal` is present to make the tag optional in the constructor
-- Warn when using `yield* Effect.fail()` with yieldable error types that can be yielded directly
-- Warn when the global `Error` type is used in an Effect failure channel, recommending tagged errors
-- Warn when an `Effect` computation is placed in an Effect failure channel, since failure channels should contain only failure types
-- Warn when `Layer.mergeAll` contains layers with interdependencies (where one layer provides a service that another layer in the same call requires)
-- Suggest using `Effect.fn` for functions that return `Effect.gen` for better tracing and concise syntax
-- Warn when `Effect.fn` or `Effect.fnUntraced` is used as an IIFE (Immediately Invoked Function Expression), suggesting `Effect.gen` instead
-- Suggest removing redundant identifier argument when it equals the tag value in `Schema.TaggedClass`, `Schema.TaggedError`, or `Schema.TaggedRequest`
-- Suggest using `Schema.is` instead of `instanceof` for Effect Schema types
-- Suggest using `Effect.void` instead of `Effect.succeed(undefined)` or `Effect.succeed(void 0)`
-- Warn when using outdated Effect v3 APIs in an Effect v4 project, with guidance on the correct v4 replacement (renamed, changed, or removed APIs)
-- Warn when `ServiceMap.Service` is used as a variable instead of a class declaration
-- Warn when importing Node.js built-in modules (fs, path, child_process) that have Effect-native counterparts in @effect/platform
 
 ### Completions
 

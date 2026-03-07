@@ -11,6 +11,8 @@ export const schemaUnionOfLiterals = LSP.createDiagnostic({
   code: 33,
   description: "Simplifies Schema.Union of multiple Schema.Literal calls into single Schema.Literal",
   severity: "off",
+  fixable: true,
+  supportedEffect: ["v3"],
   apply: Nano.fn("schemaUnionOfLiterals.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

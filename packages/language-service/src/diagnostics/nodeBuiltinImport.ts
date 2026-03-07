@@ -38,6 +38,8 @@ export const nodeBuiltinImport = LSP.createDiagnostic({
   code: 52,
   description: "Warns when importing Node.js built-in modules that have Effect-native counterparts",
   severity: "off",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("nodeBuiltinImport.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

@@ -10,6 +10,8 @@ export const unsupportedServiceAccessors = LSP.createDiagnostic({
   code: 21,
   description: "Warns about service accessors that need codegen due to generic/complex signatures",
   severity: "warning",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("unsupportedServiceAccessors.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
 

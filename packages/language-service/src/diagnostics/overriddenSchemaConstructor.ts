@@ -11,6 +11,8 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
   code: 30,
   description: "Prevents overriding constructors in Schema classes which breaks decoding behavior",
   severity: "error",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("overriddenSchemaConstructor.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

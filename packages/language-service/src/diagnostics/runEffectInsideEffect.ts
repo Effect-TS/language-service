@@ -12,6 +12,8 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
   code: 32,
   description: "Suggests using Runtime methods instead of Effect.run* inside Effect contexts",
   severity: "suggestion",
+  fixable: true,
+  supportedEffect: ["v3"],
   apply: Nano.fn("runEffectInsideEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

@@ -21,6 +21,8 @@ export const effectFnIife = LSP.createDiagnostic({
   description:
     "Effect.fn or Effect.fnUntraced is called as an IIFE (Immediately Invoked Function Expression). Use Effect.gen instead.",
   severity: "warning",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("effectFnIife.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

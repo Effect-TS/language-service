@@ -9,6 +9,8 @@ export const extendsNativeError = LSP.createDiagnostic({
   code: 50,
   description: "Warns when a class directly extends the native Error class",
   severity: "off",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("extendsNativeError.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

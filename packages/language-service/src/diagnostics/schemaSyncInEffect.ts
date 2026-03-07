@@ -24,6 +24,8 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
   code: 43,
   description: "Suggests using Effect-based Schema methods instead of sync methods inside Effect generators",
   severity: "suggestion",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("schemaSyncInEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

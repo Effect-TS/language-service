@@ -11,6 +11,8 @@ export const effectInFailure = LSP.createDiagnostic({
   code: 49,
   description: "Warns when an Effect is used inside an Effect failure channel",
   severity: "warning",
+  fixable: false,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("effectInFailure.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)

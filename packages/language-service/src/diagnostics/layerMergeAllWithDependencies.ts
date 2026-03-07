@@ -15,6 +15,8 @@ export const layerMergeAllWithDependencies = LSP.createDiagnostic({
   description:
     "Detects interdependencies in Layer.mergeAll calls where one layer provides a service that another layer requires",
   severity: "warning",
+  fixable: true,
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("layerMergeAllWithDependencies.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
