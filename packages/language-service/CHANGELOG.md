@@ -1,5 +1,53 @@
 # @effect/language-service
 
+## 0.79.0
+
+### Minor Changes
+
+- [#671](https://github.com/Effect-TS/language-service/pull/671) [`6b9c378`](https://github.com/Effect-TS/language-service/commit/6b9c378c4e1d0c83e4afe322cf44ccacd75d1cb4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `extendsNativeError` diagnostic to warn when classes directly extend the native `Error` constructor, including common local aliases such as `const E = Error`.
+
+  This helps steer users toward tagged errors that preserve stronger typing in the Effect failure channel.
+
+- [#678](https://github.com/Effect-TS/language-service/pull/678) [`0e9c11b`](https://github.com/Effect-TS/language-service/commit/0e9c11b4b3c076adef62e31722855ebc0071aaf6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Generate the README diagnostics table from the diagnostic registry.
+
+  Each diagnostic now declares:
+
+  - whether it is fixable
+  - which Effect versions it supports
+
+  The generated table is checked in CI, and diagnostics tests verify that `fixable` matches the presence of non-suppression quick fixes.
+
+- [#676](https://github.com/Effect-TS/language-service/pull/676) [`2f982d6`](https://github.com/Effect-TS/language-service/commit/2f982d69541633aca2cd3bcdc89bdae7d17cb97b) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `nodeBuiltinImport` diagnostic to warn when importing Node.js built-in modules (`fs`, `path`, `child_process`) that have Effect-native counterparts in `@effect/platform`.
+
+  This diagnostic covers ES module imports and top-level `require()` calls, matching both bare and `node:`-prefixed specifiers as well as subpath variants like `fs/promises`, `path/posix`, and `path/win32`. It defaults to severity `off` and provides no code fixes.
+
+- [#673](https://github.com/Effect-TS/language-service/pull/673) [`f9e24df`](https://github.com/Effect-TS/language-service/commit/f9e24df5db70110d5e84da45810bd82cf12fadc7) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add plugin options to better control patched `tsc` behavior.
+
+  `ignoreEffectErrorsInTscExitCode` allows Effect diagnostics reported as errors to be ignored for exit-code purposes, and `skipDisabledOptimiziation` keeps disabled diagnostics eligible for comment-based overrides when patch mode is active.
+
+- [#674](https://github.com/Effect-TS/language-service/pull/674) [`54e8c16`](https://github.com/Effect-TS/language-service/commit/54e8c16865e99be9b6faec3e50c17d1e501242f9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `serviceNotAsClass` diagnostic to warn when `ServiceMap.Service` is used as a variable assignment instead of in a class declaration.
+
+  Includes an auto-fix that converts `const Config = ServiceMap.Service<Shape>("Config")` to `class Config extends ServiceMap.Service<Config, Shape>()("Config") {}`.
+
+### Patch Changes
+
+- [#675](https://github.com/Effect-TS/language-service/pull/675) [`d1f09c3`](https://github.com/Effect-TS/language-service/commit/d1f09c364bde5a14905b4a9d030830309b6aab43) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Rename the `skipDisabledOptimiziation` plugin option to `skipDisabledOptimization`.
+
+  Example:
+
+  ```json
+  {
+    "compilerOptions": {
+      "plugins": [
+        {
+          "name": "@effect/language-service",
+          "skipDisabledOptimization": true
+        }
+      ]
+    }
+  }
+  ```
+
 ## 0.78.0
 
 ### Minor Changes
