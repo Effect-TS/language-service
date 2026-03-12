@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.80.0
+
+### Minor Changes
+
+- [#681](https://github.com/Effect-TS/language-service/pull/681) [`1017a54`](https://github.com/Effect-TS/language-service/commit/1017a5443b2e6919f18e57afb86373ba825037c9) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Generate a root `schema.json` for `tsconfig.json` plugin configuration, add typed Effect Language Service plugin options to that schema, and have `effect-language-service setup` add or remove the matching `$schema` entry automatically.
+
+- [#679](https://github.com/Effect-TS/language-service/pull/679) [`3664197`](https://github.com/Effect-TS/language-service/commit/3664197f271012d001f6074d40c5303826d632ce) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add inline `--lspconfig` support to the `effect-language-service diagnostics` CLI command so diagnostics runs can override the project plugin configuration without editing `tsconfig.json`.
+
 ## 0.79.0
 
 ### Minor Changes
