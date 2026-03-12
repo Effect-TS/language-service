@@ -24,7 +24,7 @@ exports[`Setup CLI > should add Effect Language Service section to existing AGEN
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
   {
@@ -51,7 +51,8 @@ exports[`Setup CLI > should add Effect Language Service section to existing AGEN
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -62,7 +63,7 @@ exports[`Setup CLI > should add LSP plugin alongside existing plugins > change s
     "file": "package.json",
   },
   {
-    "description": "Add @effect/language-service plugin to existing plugins array",
+    "description": "Add $schema to tsconfig; Add @effect/language-service plugin to existing plugins array",
     "file": "tsconfig.json",
   },
 ]
@@ -88,7 +89,8 @@ exports[`Setup CLI > should add LSP plugin alongside existing plugins > tsconfig
       },
 { "name": "@effect/language-service" }
     ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -106,7 +108,7 @@ exports[`Setup CLI > should add LSP with VS Code editor selected and configure V
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
   {
@@ -133,7 +135,8 @@ exports[`Setup CLI > should add LSP with VS Code editor selected and configure V
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -144,7 +147,7 @@ exports[`Setup CLI > should generate changes for adding LSP with custom diagnost
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
 ]
@@ -173,7 +176,8 @@ exports[`Setup CLI > should generate changes for adding LSP with custom diagnost
 		}
 	}
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -184,7 +188,7 @@ exports[`Setup CLI > should generate changes for adding LSP with defaults > chan
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
 ]
@@ -207,7 +211,8 @@ exports[`Setup CLI > should generate changes for adding LSP with defaults > tsco
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -218,7 +223,7 @@ exports[`Setup CLI > should generate changes for adding LSP with prepare script 
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
 ]
@@ -242,7 +247,8 @@ exports[`Setup CLI > should generate changes for adding LSP with prepare script 
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -289,7 +295,7 @@ exports[`Setup CLI > should generate changes for removing LSP when already insta
     "file": "package.json",
   },
   {
-    "description": "Remove @effect/language-service plugin from tsconfig",
+    "description": "Remove $schema from tsconfig; Remove @effect/language-service plugin from tsconfig",
     "file": "tsconfig.json",
   },
 ]
@@ -320,7 +326,7 @@ exports[`Setup CLI > should generate changes for removing LSP when already insta
 exports[`Setup CLI > should generate changes for updating existing LSP with new diagnostic severities > change summary 1`] = `
 [
   {
-    "description": "Update @effect/language-service plugin diagnostic severities",
+    "description": "Add $schema to tsconfig; Update @effect/language-service plugin diagnostic severities",
     "file": "tsconfig.json",
   },
 ]
@@ -340,14 +346,15 @@ exports[`Setup CLI > should generate changes for updating existing LSP with new 
 }
       }
     ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
 exports[`Setup CLI > should handle tsconfig with existing plugin having custom options and diagnosticSeverity > change summary 1`] = `
 [
   {
-    "description": "Update @effect/language-service plugin diagnostic severities",
+    "description": "Add $schema to tsconfig; Update @effect/language-service plugin diagnostic severities",
     "file": "tsconfig.json",
   },
 ]
@@ -397,7 +404,8 @@ exports[`Setup CLI > should handle tsconfig with existing plugin having custom o
   "exclude": [
     "node_modules",
     "dist"
-  ]
+  ],
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -408,7 +416,7 @@ exports[`Setup CLI > should not override existing plugins when adding LSP plugin
     "file": "package.json",
   },
   {
-    "description": "Add @effect/language-service plugin to existing plugins array",
+    "description": "Add $schema to tsconfig; Add @effect/language-service plugin to existing plugins array",
     "file": "tsconfig.json",
   },
 ]
@@ -445,7 +453,8 @@ exports[`Setup CLI > should not override existing plugins when adding LSP plugin
 	}
 }
     ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -456,7 +465,7 @@ exports[`Setup CLI > should preserve all existing VSCode settings from real repo
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
 ]
@@ -479,14 +488,15 @@ exports[`Setup CLI > should preserve all existing VSCode settings from real repo
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
 exports[`Setup CLI > should preserve existing LSP plugin options when updating diagnostic severities > change summary 1`] = `
 [
   {
-    "description": "Update @effect/language-service plugin diagnostic severities",
+    "description": "Add $schema to tsconfig; Update @effect/language-service plugin diagnostic severities",
     "file": "tsconfig.json",
   },
 ]
@@ -510,7 +520,8 @@ exports[`Setup CLI > should preserve existing LSP plugin options when updating d
 }
       }
     ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -531,7 +542,7 @@ exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-sp
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
   {
@@ -558,7 +569,8 @@ exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-sp
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -685,11 +697,50 @@ exports[`Setup CLI > should remove only LSP plugin while preserving other plugin
 }"
 `;
 
+exports[`Setup CLI > should replace existing tsconfig schema when adding LSP > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Update $schema in tsconfig; Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should replace existing tsconfig schema when adding LSP > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should replace existing tsconfig schema when adding LSP > tsconfig.json 1`] = `
+"{
+  "$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json",
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  }
+}"
+`;
+
 exports[`Setup CLI > should update LSP version when already installed with older version > change summary 1`] = `
 [
   {
     "description": "Update @effect/language-service from ^0.1.0 to ^0.2.0",
     "file": "package.json",
+  },
+  {
+    "description": "Add $schema to tsconfig",
+    "file": "tsconfig.json",
   },
 ]
 `;
@@ -703,6 +754,21 @@ exports[`Setup CLI > should update LSP version when already installed with older
     "@effect/language-service": "^0.2.0",
     "typescript": "^5.0.0"
   }
+}"
+`;
+
+exports[`Setup CLI > should update LSP version when already installed with older version > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;
 
@@ -730,7 +796,7 @@ exports[`Setup CLI > should update outdated Effect Language Service section in A
     "file": "package.json",
   },
   {
-    "description": "Add plugins array with @effect/language-service plugin",
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
     "file": "tsconfig.json",
   },
   {
@@ -757,6 +823,7 @@ exports[`Setup CLI > should update outdated Effect Language Service section in A
 "plugins": [
 	{ "name": "@effect/language-service" }
 ]
-  }
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
 }"
 `;

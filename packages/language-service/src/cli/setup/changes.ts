@@ -13,6 +13,8 @@ interface ComputeFileChangesResult {
   readonly messages: ReadonlyArray<string>
 }
 
+const TSCONFIG_SCHEMA_URL = "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
+
 /**
  * Create an empty ComputeFileChangesResult
  */
@@ -536,11 +538,22 @@ const computeTsConfigChanges = (
     const fileChanges = textChanges.ChangeTracker.with(
       { host, formatContext, preferences },
       (tracker: any) => {
+        const schemaProperty = findPropertyInObject(ts, rootObj, "$schema")
         const pluginsProperty = findPropertyInObject(ts, compilerOptions, "plugins")
+
+        const schemaPropertyAssignment = ts.factory.createPropertyAssignment(
+          ts.factory.createStringLiteral("$schema"),
+          ts.factory.createStringLiteral(TSCONFIG_SCHEMA_URL)
+        )
 
         // Check if we should remove the plugin (user doesn't want LSP installed)
         if (Option.isNone(lspVersion)) {
           // User wants to remove LSP
+          if (schemaProperty) {
+            descriptions.push("Remove $schema from tsconfig")
+            deleteNodeFromList(tracker, current.sourceFile, rootObj.properties, schemaProperty)
+          }
+
           if (pluginsProperty && ts.isArrayLiteralExpression(pluginsProperty.initializer)) {
             const pluginsArray = pluginsProperty.initializer
 
@@ -562,6 +575,16 @@ const computeTsConfigChanges = (
           }
         } else {
           // User wants to add/keep LSP
+          if (!schemaProperty) {
+            descriptions.push("Add $schema to tsconfig")
+            insertNodeAtEndOfList(tracker, current.sourceFile, rootObj.properties, schemaPropertyAssignment)
+          } else if (
+            !ts.isStringLiteral(schemaProperty.initializer) || schemaProperty.initializer.text !== TSCONFIG_SCHEMA_URL
+          ) {
+            descriptions.push("Update $schema in tsconfig")
+            tracker.replaceNode(current.sourceFile, schemaProperty.initializer, schemaPropertyAssignment.initializer)
+          }
+
           const buildPluginObject = (severities: Option.Option<Record<string, string>>) => {
             const nameProperty = ts.factory.createPropertyAssignment(
               ts.factory.createStringLiteral("name"),
