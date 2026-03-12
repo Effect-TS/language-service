@@ -237,7 +237,7 @@ Runs through a wizard to setup/update some basic functionalities of the LSP in a
 Automatically updates Effect codegens in your TypeScript files. This command scans files for `@effect-codegens` directives and applies the necessary code transformations. Use `--file` to update a specific file, or `--project` with a tsconfig file to update an entire project. The `--verbose` flag provides detailed output about which files are being processed and updated.
 
 ### `effect-language-service diagnostics`
-Provides a way to get through a CLI the list of Effect specific diagnostics; without patching your typescript installation. A --file option may be used to get diagnostics for a specific file, or --project with a tsconfig file to get an entire project.
+Provides a way to get through a CLI the list of Effect specific diagnostics; without patching your typescript installation. A `--file` option may be used to get diagnostics for a specific file, or `--project` with a tsconfig file to get an entire project. You can also pass `--lspconfig '{ "effectFn": ["untraced"] }'` to override the project plugin configuration inline for that diagnostics run.
 
 ### `effect-language-service quickfixes`
 Shows diagnostics that have available quick fixes along with their proposed code changes. This is useful for previewing what fixes the language service can apply to your code. Use `--file` to check a specific file, or `--project` with a tsconfig file to check an entire project. The output displays each diagnostic with its location and the diff of proposed changes.

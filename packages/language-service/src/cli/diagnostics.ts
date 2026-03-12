@@ -73,6 +73,14 @@ export class DiagnosticsFoundError extends Data.TaggedError("DiagnosticsFoundErr
   }
 }
 
+export class InvalidLspConfigError extends Data.TaggedError("InvalidLspConfigError")<{
+  lspconfig: string
+}> {
+  get message(): string {
+    return `Invalid JSON lsp config: ${this.lspconfig}`
+  }
+}
+
 const categoryToSeverity = (category: ts.DiagnosticCategory, tsInstance: typeof ts): SeverityLevel => {
   switch (category) {
     case tsInstance.DiagnosticCategory.Error:
@@ -304,9 +312,15 @@ export const diagnostics = Command.make(
     progress: Flag.boolean("progress").pipe(
       Flag.withDefault(false),
       Flag.withDescription("Show progress as files are checked (outputs to stderr)")
+    ),
+    lspconfig: Flag.string("lspconfig").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "An optional inline JSON lsp config that replaces the current project lsp config. e.g. '{ \"effectFn\": [\"untraced\"] }'"
+      )
     )
   },
-  Effect.fn("diagnostics")(function*({ file, format, progress, project, severity, strict }) {
+  Effect.fn("diagnostics")(function*({ file, format, lspconfig, progress, project, severity, strict }) {
     const path = yield* Path.Path
     const severityFilter = parseSeverityFilter(severity)
     const state: DiagnosticReporterState = {
@@ -383,7 +397,14 @@ export const diagnostics = Command.make(
           if (!program) continue
           const sourceFile = program.getSourceFile(filePath)
           if (!sourceFile) continue
-          const pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
+          let pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
+          if (Option.isSome(lspconfig)) {
+            try {
+              pluginConfig = { name: "@effect/language-service", ...JSON.parse(lspconfig.value) }
+            } catch {
+              return yield* new InvalidLspConfigError({ lspconfig: lspconfig.value })
+            }
+          }
           if (!pluginConfig) continue
 
           const rawResults = pipe(
