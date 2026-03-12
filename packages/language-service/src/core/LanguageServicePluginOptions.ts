@@ -47,6 +47,23 @@ export interface LanguageServicePluginOptions {
   skipDisabledOptimization: boolean
 }
 
+export interface JsonSchema {
+  $ref?: string
+  description?: string
+  markdownDescription?: string
+  type?: string | Array<string>
+  default?: unknown
+  enum?: ReadonlyArray<string | number | boolean>
+  required?: Array<string>
+  uniqueItems?: boolean
+  items?: JsonSchema
+  properties?: Record<string, JsonSchema>
+  additionalProperties?: boolean | JsonSchema
+  anyOf?: ReadonlyArray<JsonSchema>
+  oneOf?: ReadonlyArray<JsonSchema>
+  not?: JsonSchema
+}
+
 export const LanguageServicePluginOptions = Nano.Tag<LanguageServicePluginOptions>("PluginOptions")
 
 function isValidSeverityLevel(value: string): value is DiagnosticSeverity | "off" {
@@ -104,6 +121,155 @@ export const defaults: LanguageServicePluginOptions = {
   mermaidProvider: "mermaid.live",
   skipDisabledOptimization: false
 }
+
+const booleanSchema = (description: string, defaultValue: boolean): JsonSchema => ({
+  type: "boolean",
+  description,
+  default: defaultValue
+})
+
+const stringArraySchema = (description: string, defaultValue: Array<string>): JsonSchema => ({
+  type: "array",
+  description,
+  default: defaultValue,
+  items: { type: "string" }
+})
+
+const stringEnumSchema = <A extends ReadonlyArray<string>>(
+  description: string,
+  values: A,
+  defaultValue: A[number]
+): JsonSchema => ({
+  type: "string",
+  description,
+  enum: values,
+  default: defaultValue
+})
+
+type LanguageServicePluginAdditionalProperty = Exclude<keyof LanguageServicePluginOptions, "diagnosticSeverity">
+
+export const languageServicePluginAdditionalPropertiesJsonSchema = {
+  refactors: booleanSchema("Controls Effect refactors.", defaults.refactors),
+  diagnostics: booleanSchema("Controls Effect diagnostics.", defaults.diagnostics),
+  diagnosticsName: booleanSchema(
+    "Controls whether to include the rule name in diagnostic messages.",
+    defaults.diagnosticsName
+  ),
+  missingDiagnosticNextLine: stringEnumSchema(
+    "Controls the severity of warnings for unused @effect-diagnostics-next-line comments.",
+    ["off", "error", "warning", "message", "suggestion"],
+    defaults.missingDiagnosticNextLine
+  ),
+  includeSuggestionsInTsc: booleanSchema(
+    "When patch mode is enabled, reports suggestion diagnostics as messages in TSC with a [suggestion] prefix.",
+    defaults.includeSuggestionsInTsc
+  ),
+  ignoreEffectWarningsInTscExitCode: booleanSchema(
+    "When enabled, Effect warnings do not affect the patched tsc exit code.",
+    defaults.ignoreEffectWarningsInTscExitCode
+  ),
+  ignoreEffectErrorsInTscExitCode: booleanSchema(
+    "When enabled, Effect errors do not affect the patched tsc exit code.",
+    defaults.ignoreEffectErrorsInTscExitCode
+  ),
+  ignoreEffectSuggestionsInTscExitCode: booleanSchema(
+    "When enabled, Effect suggestions do not affect the patched tsc exit code.",
+    defaults.ignoreEffectSuggestionsInTscExitCode
+  ),
+  quickinfoEffectParameters: stringEnumSchema(
+    "Controls when Effect quickinfo should include full type parameters.",
+    ["always", "never", "whentruncated"],
+    defaults.quickinfoEffectParameters
+  ),
+  quickinfo: booleanSchema("Controls Effect quickinfo.", defaults.quickinfo),
+  quickinfoMaximumLength: {
+    type: "number",
+    description: "Controls the maximum quickinfo length. Use -1 to disable truncation.",
+    default: defaults.quickinfoMaximumLength
+  },
+  keyPatterns: {
+    type: "array",
+    description: "Configures key patterns used for generated Effect service and error keys.",
+    default: defaults.keyPatterns,
+    items: {
+      type: "object",
+      properties: {
+        target: stringEnumSchema("The key builder target.", ["service", "error", "custom"], "service"),
+        pattern: stringEnumSchema(
+          "The key generation pattern.",
+          ["package-identifier", "default", "default-hashed"],
+          "default"
+        ),
+        skipLeadingPath: stringArraySchema("Path prefixes to strip before generating keys.", ["src/"])
+      }
+    }
+  },
+  extendedKeyDetection: booleanSchema(
+    "Enables extended heuristics when detecting key sources.",
+    defaults.extendedKeyDetection
+  ),
+  completions: booleanSchema("Controls Effect completions.", defaults.completions),
+  goto: booleanSchema("Controls Effect goto references support.", defaults.goto),
+  inlays: booleanSchema("Controls Effect inlay hints.", defaults.inlays),
+  allowedDuplicatedPackages: stringArraySchema(
+    "Package names that are allowed to duplicate Effect as a peer dependency.",
+    defaults.allowedDuplicatedPackages
+  ),
+  namespaceImportPackages: stringArraySchema(
+    "Package names that should prefer namespace imports.",
+    defaults.namespaceImportPackages
+  ),
+  topLevelNamedReexports: stringEnumSchema(
+    "For namespaceImportPackages, controls how top-level named re-exports are handled.",
+    ["ignore", "follow"],
+    defaults.topLevelNamedReexports
+  ),
+  barrelImportPackages: stringArraySchema(
+    "Package names that should prefer imports from their top-level barrel file.",
+    defaults.barrelImportPackages
+  ),
+  importAliases: {
+    type: "object",
+    description: "Custom aliases to use for imported identifiers.",
+    default: defaults.importAliases,
+    additionalProperties: {
+      type: "string"
+    }
+  },
+  renames: booleanSchema("Controls Effect rename helpers.", defaults.renames),
+  noExternal: booleanSchema(
+    "Disables features that link to external websites.",
+    defaults.noExternal
+  ),
+  pipeableMinArgCount: {
+    type: "number",
+    description: "Minimum argument count required before pipeable suggestions are emitted.",
+    default: defaults.pipeableMinArgCount
+  },
+  effectFn: {
+    type: "array",
+    description: "Configures which Effect.fn variants should be suggested.",
+    default: defaults.effectFn,
+    items: {
+      type: "string",
+      enum: ["untraced", "span", "suggested-span", "inferred-span", "no-span"]
+    }
+  },
+  layerGraphFollowDepth: {
+    type: "number",
+    description: "Controls how deeply layer graph analysis follows dependencies.",
+    default: defaults.layerGraphFollowDepth
+  },
+  mermaidProvider: {
+    type: "string",
+    description: "Controls which Mermaid renderer is used for layer graphs.",
+    default: defaults.mermaidProvider
+  },
+  skipDisabledOptimization: booleanSchema(
+    "When enabled, disabled diagnostics are still processed so comment-based overrides can be honored.",
+    defaults.skipDisabledOptimization
+  )
+} satisfies Record<LanguageServicePluginAdditionalProperty, JsonSchema>
 
 function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePluginOptionsKeyPattern> {
   const result: Array<LanguageServicePluginOptionsKeyPattern> = []

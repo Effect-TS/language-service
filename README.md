@@ -10,6 +10,7 @@ This package implements a TypeScript language service plugin that allows additio
 2. Inside your tsconfig.json, you should add the plugin configuration as follows:
 ```jsonc
 {
+  "$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json",
   "compilerOptions": {
     "plugins": [
       // ... other LSPs (if any) and as last
@@ -231,7 +232,7 @@ so that across updates the patch will be re-applied again.
 The effect language service plugin comes with a builtin CLI tool that can be used to perform various utilities, checks and setups. Since it relies on typescript, we recommend to install it locally and run it locally to ensure it loads the same typescript version of your project rather than a global installation that may resolve to use a different TS version from the one of your project.
 
 ### `effect-language-service setup`
-Runs through a wizard to setup/update some basic functionalities of the LSP in an interactive way.
+Runs through a wizard to setup/update some basic functionalities of the LSP in an interactive way. This also keeps the `tsconfig.json` `$schema` aligned with the published Effect Language Service schema.
 
 ### `effect-language-service codegen`
 Automatically updates Effect codegens in your TypeScript files. This command scans files for `@effect-codegens` directives and applies the necessary code transformations. Use `--file` to update a specific file, or `--project` with a tsconfig file to update an entire project. The `--verbose` flag provides detailed output about which files are being processed and updated.

@@ -203,6 +203,7 @@ describe("Setup CLI", () => {
         }
       },
       {
+        $schema: "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json",
         compilerOptions: {
           strict: true,
           target: "ES2022",
@@ -218,6 +219,37 @@ describe("Setup CLI", () => {
     const targetState: Target.State = {
       packageJson: {
         lspVersion: Option.none(),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should replace existing tsconfig schema when adding LSP", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        $schema: "https://json.schemastore.org/tsconfig",
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
         prepareScript: false
       },
       tsconfig: {
