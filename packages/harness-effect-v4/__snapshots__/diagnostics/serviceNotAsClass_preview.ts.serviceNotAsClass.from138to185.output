@@ -1,0 +1,6 @@
+// code fix serviceNotAsClass  output for range 138 - 185
+// @effect-diagnostics *:off
+// @effect-diagnostics serviceNotAsClass:warning
+import { ServiceMap } from "effect"
+
+export class Preview extends ServiceMap.Service<Preview, { port: number} >()("Preview") { }

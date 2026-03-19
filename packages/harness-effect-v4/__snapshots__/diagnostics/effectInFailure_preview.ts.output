@@ -1,0 +1,8 @@
+preview
+5:13 - 5:20 | 0 | The error channel contains an Effect (Effect<void, never, never>). Putting Effect computations in the failure channel is not intended; keep only failure types there.    effect(effectInFailure)
+
+Effect.try({
+  try: () => JSON.parse("{"),
+  catch: (error) => Effect.logError(error)
+})
+5:23 - 8:2 | 0 | The error channel contains an Effect (Effect<void, never, never>). Putting Effect computations in the failure channel is not intended; keep only failure types there.    effect(effectInFailure)

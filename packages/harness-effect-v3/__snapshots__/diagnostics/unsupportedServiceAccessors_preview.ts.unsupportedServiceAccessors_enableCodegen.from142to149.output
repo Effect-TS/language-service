@@ -1,0 +1,10 @@
+// code fix unsupportedServiceAccessors_enableCodegen  output for range 142 - 149
+// @effect-diagnostics *:off
+// @effect-diagnostics unsupportedServiceAccessors:warning
+import * as Effect from "effect/Effect"
+
+// @effect-codegens accessors
+export class Preview extends Effect.Service<Preview>()("Preview", {
+  accessors: true,
+  effect: Effect.succeed({ get: <A>(value: A) => Effect.succeed(value) })
+}) {}

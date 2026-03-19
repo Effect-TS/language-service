@@ -1,0 +1,2 @@
+value instanceof User
+7:23 - 7:44 | 0 | Consider using Schema.is instead of instanceof for Effect Schema types.    effect(instanceOfSchema)

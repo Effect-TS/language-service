@@ -1,0 +1,9 @@
+// code fix redundantSchemaTagIdentifier_removeIdentifier  output for range 189 - 198
+// @effect-diagnostics *:off
+// @effect-diagnostics redundantSchemaTagIdentifier:warning
+import * as Schema from "effect/Schema"
+
+export class Preview
+  extends Schema.TaggedClass<Preview>()("Preview", {
+    value: Schema.String
+  }) {}

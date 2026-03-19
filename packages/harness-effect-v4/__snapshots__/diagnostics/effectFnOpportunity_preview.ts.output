@@ -1,0 +1,2 @@
+preview
+6:13 - 6:20 | 0 | Can be rewritten as a reusable function: Effect.fn(function*() { ... })    effect(effectFnOpportunity)

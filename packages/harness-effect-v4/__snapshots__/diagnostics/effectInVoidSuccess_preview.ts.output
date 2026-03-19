@@ -1,0 +1,2 @@
+preview
+5:13 - 5:20 | 0 | There is a nested 'Effect<void, never, never>' in the 'void' success channel, beware that this could lead to nested Effect<Effect<...>> that won't be executed.    effect(effectInVoidSuccess)

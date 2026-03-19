@@ -516,10 +516,117 @@ const computeTsConfigChanges = (
       return emptyFileChangesResult()
     }
 
+    const buildPluginObject = (severities: Option.Option<Record<string, string>>) => {
+      const nameProperty = ts.factory.createPropertyAssignment(
+        ts.factory.createStringLiteral("name"),
+        ts.factory.createStringLiteral("@effect/language-service")
+      )
+
+      return Option.match(severities, {
+        onNone: () => {
+          return ts.factory.createObjectLiteralExpression([nameProperty], false)
+        },
+        onSome: (sevs) => {
+          const severityProperties = Object.entries(sevs).map(([name, severity]) =>
+            ts.factory.createPropertyAssignment(
+              ts.factory.createStringLiteral(name),
+              ts.factory.createStringLiteral(severity)
+            )
+          )
+
+          const diagnosticSeverityProperty = ts.factory.createPropertyAssignment(
+            ts.factory.createStringLiteral("diagnosticSeverity"),
+            ts.factory.createObjectLiteralExpression(severityProperties, true)
+          )
+
+          return ts.factory.createObjectLiteralExpression(
+            [nameProperty, diagnosticSeverityProperty],
+            true
+          )
+        }
+      })
+    }
+
+    const schemaPropertyAssignment = ts.factory.createPropertyAssignment(
+      ts.factory.createStringLiteral("$schema"),
+      ts.factory.createStringLiteral(TSCONFIG_SCHEMA_URL)
+    )
+
     // Find or create compilerOptions
     const compilerOptionsProperty = findPropertyInObject(ts, rootObj, "compilerOptions")
     if (!compilerOptionsProperty) {
-      return emptyFileChangesResult()
+      if (Option.isNone(lspVersion)) {
+        return emptyFileChangesResult()
+      }
+
+      const textChanges = ts.textChanges
+      const host = createMinimalHost(ts)
+      const formatOptions = { indentSize: 2, tabSize: 2 } as ts.EditorSettings
+      const formatContext = ts.formatting.getFormatContext(formatOptions, host)
+      const preferences = {} as ts.UserPreferences
+
+      const fileChanges = textChanges.ChangeTracker.with(
+        { host, formatContext, preferences },
+        (tracker: any) => {
+          const schemaProperty = findPropertyInObject(ts, rootObj, "$schema")
+          const shouldAddSchema = !schemaProperty
+          const shouldUpdateSchema = !!schemaProperty && (
+            !ts.isStringLiteral(schemaProperty.initializer) || schemaProperty.initializer.text !== TSCONFIG_SCHEMA_URL
+          )
+
+          if (shouldAddSchema) {
+            descriptions.push("Add $schema to tsconfig")
+          } else if (shouldUpdateSchema) {
+            descriptions.push("Update $schema in tsconfig")
+          }
+
+          descriptions.push("Add compilerOptions with @effect/language-service plugin")
+          const compilerOptionsAssignment = ts.factory.createPropertyAssignment(
+            ts.factory.createStringLiteral("compilerOptions"),
+            ts.factory.createObjectLiteralExpression([
+              ts.factory.createPropertyAssignment(
+                ts.factory.createStringLiteral("plugins"),
+                ts.factory.createArrayLiteralExpression([buildPluginObject(target.diagnosticSeverities)], true)
+              )
+            ], true)
+          )
+
+          const nextProperties = rootObj.properties.flatMap((property) => {
+            if (schemaProperty && property === schemaProperty) {
+              return [schemaPropertyAssignment]
+            }
+            return [property]
+          })
+
+          if (shouldAddSchema) {
+            nextProperties.push(schemaPropertyAssignment)
+          }
+          nextProperties.push(compilerOptionsAssignment)
+
+          tracker.replaceNode(
+            current.sourceFile,
+            rootObj,
+            ts.factory.createObjectLiteralExpression(nextProperties, true)
+          )
+        }
+      )
+
+      const fileChange = fileChanges.find((fc: ts.FileTextChanges) => fc.fileName === current.path)
+      const changes = fileChange ? fileChange.textChanges : []
+      if (changes.length === 0) {
+        return { codeActions: [], messages }
+      }
+
+      return {
+        codeActions: [{
+          description: descriptions.join("; "),
+          changes: [{
+            fileName: current.path,
+            textChanges: changes
+          }]
+        }],
+        messages
+      }
     }
 
     if (!ts.isObjectLiteralExpression(compilerOptionsProperty.initializer)) {
@@ -540,11 +647,6 @@ const computeTsConfigChanges = (
       (tracker: any) => {
         const schemaProperty = findPropertyInObject(ts, rootObj, "$schema")
         const pluginsProperty = findPropertyInObject(ts, compilerOptions, "plugins")
-
-        const schemaPropertyAssignment = ts.factory.createPropertyAssignment(
-          ts.factory.createStringLiteral("$schema"),
-          ts.factory.createStringLiteral(TSCONFIG_SCHEMA_URL)
-        )
 
         // Check if we should remove the plugin (user doesn't want LSP installed)
         if (Option.isNone(lspVersion)) {
@@ -583,39 +685,6 @@ const computeTsConfigChanges = (
           ) {
             descriptions.push("Update $schema in tsconfig")
             tracker.replaceNode(current.sourceFile, schemaProperty.initializer, schemaPropertyAssignment.initializer)
-          }
-
-          const buildPluginObject = (severities: Option.Option<Record<string, string>>) => {
-            const nameProperty = ts.factory.createPropertyAssignment(
-              ts.factory.createStringLiteral("name"),
-              ts.factory.createStringLiteral("@effect/language-service")
-            )
-
-            return Option.match(severities, {
-              onNone: () => {
-                // Just the name property
-                return ts.factory.createObjectLiteralExpression([nameProperty], false)
-              },
-              onSome: (sevs) => {
-                // Name + diagnosticSeverity
-                const severityProperties = Object.entries(sevs).map(([name, severity]) =>
-                  ts.factory.createPropertyAssignment(
-                    ts.factory.createStringLiteral(name),
-                    ts.factory.createStringLiteral(severity)
-                  )
-                )
-
-                const diagnosticSeverityProperty = ts.factory.createPropertyAssignment(
-                  ts.factory.createStringLiteral("diagnosticSeverity"),
-                  ts.factory.createObjectLiteralExpression(severityProperties, true)
-                )
-
-                return ts.factory.createObjectLiteralExpression(
-                  [nameProperty, diagnosticSeverityProperty],
-                  true
-                )
-              }
-            })
           }
 
           const pluginObject = buildPluginObject(target.diagnosticSeverities)

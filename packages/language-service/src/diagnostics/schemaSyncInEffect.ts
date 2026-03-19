@@ -26,7 +26,7 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
   group: "antipattern",
   severity: "suggestion",
   fixable: false,
-  supportedEffect: ["v3", "v4"],
+  supportedEffect: ["v3"],
   apply: Nano.fn("schemaSyncInEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)

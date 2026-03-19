@@ -24,3 +24,14 @@ export const CURSOR_HIDE = "\x1b[?25l"
 export const CURSOR_SHOW = "\x1b[?25h"
 export const CURSOR_TO_0 = "\x1b[G"
 export const BEEP = "\x07"
+
+export const ITALIC = "\x1b[0;3m"
+export const UNDERLINE = "\x1b[0;4m"
+
+export const ANSI_ESCAPE_REGEX = new RegExp(String.raw`\u001b\[[0-?]*[ -/]*[@-~]`, "g")
+export const stripAnsi = (text: string): string => text.replace(ANSI_ESCAPE_REGEX, "")
+export const visibleLength = (text: string): number => stripAnsi(text).length
+
+export const CLEAR_SCREEN = "\x1b[2J"
+export const CLEAR_SCROLLBACK = "\x1b[3J"
+export const CURSOR_HOME = "\x1b[H"

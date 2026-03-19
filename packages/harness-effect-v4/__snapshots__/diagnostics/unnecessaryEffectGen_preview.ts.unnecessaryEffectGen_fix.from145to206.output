@@ -1,0 +1,6 @@
+// code fix unnecessaryEffectGen_fix  output for range 145 - 206
+// @effect-diagnostics *:off
+// @effect-diagnostics unnecessaryEffectGen:warning
+import * as Effect from "effect/Effect"
+
+export const preview = Effect.succeed(1)

@@ -1,0 +1,2 @@
+Effect.log("forgotten")
+5:0 - 5:23 | 0 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)

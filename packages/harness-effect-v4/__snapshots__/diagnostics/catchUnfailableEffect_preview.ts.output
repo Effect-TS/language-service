@@ -1,0 +1,2 @@
+Effect.catch
+6:2 - 6:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)

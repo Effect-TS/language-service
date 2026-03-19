@@ -1,0 +1,11 @@
+// code fix missingEffectError_catch  output for range 335 - 341
+// @effect-diagnostics *:off
+// @effect-diagnostics missingEffectError:warning
+import type * as Effect from "effect/Effect"
+import { Data } from "effect"
+
+class Boom extends Data.TaggedError("Boom")<{}> {}
+declare const effect: Effect.Effect<number, Boom>
+
+// @ts-expect-error
+export const preview: () => Effect.Effect<number> = () => Effect.catch(effect, () => Effect.dieMessage("TODO: catch not implemented"))

@@ -1,0 +1,3 @@
+Effect.tryPromise
+5:23 - 5:40 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
+Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)

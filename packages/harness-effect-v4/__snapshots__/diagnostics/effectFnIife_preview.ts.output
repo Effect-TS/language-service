@@ -1,0 +1,4 @@
+Effect.fn("preview")(function*() {
+  return yield* Effect.succeed(1)
+})()
+5:23 - 7:4 | 0 | Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan("preview") piped in the end to mantain tracing spans.    effect(effectFnIife)

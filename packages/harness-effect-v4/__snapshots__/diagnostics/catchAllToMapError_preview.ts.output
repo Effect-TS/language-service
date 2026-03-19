@@ -1,0 +1,2 @@
+Effect.catch
+10:2 - 10:14 | 0 | You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)

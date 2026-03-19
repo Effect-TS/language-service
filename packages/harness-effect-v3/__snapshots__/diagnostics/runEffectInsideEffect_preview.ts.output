@@ -1,0 +1,3 @@
+Effect.runSync
+6:20 - 6:34 | 0 | Using Effect.runSync inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.
+Consider extracting the Runtime by using for example Effect.runtime and then use Runtime.runSync with the extracted runtime instead.    effect(runEffectInsideEffect)

@@ -1,0 +1,12 @@
+// code fix catchAllToMapError_fix  output for range 229 - 241
+// @effect-diagnostics *:off
+// @effect-diagnostics catchAllToMapError:warning
+import { Effect } from "effect"
+
+class WrappedError {
+  constructor(readonly cause: unknown) {}
+}
+
+export const preview = Effect.fail("boom").pipe(
+  Effect.mapError((cause) => new WrappedError(cause))
+)

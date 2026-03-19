@@ -5,7 +5,7 @@ import {
   type JsonSchema,
   languageServicePluginAdditionalPropertiesJsonSchema
 } from "../src/core/LanguageServicePluginOptions.js"
-import { diagnosticGroups } from "../src/core/DiagnosticGroup.js"
+import { getDiagnosticGroups, getDiagnosticMetadataRules } from "../src/cli/setup/diagnostic-info.js"
 import { diagnostics } from "../src/diagnostics.js"
 
 class ReadmeMarkersNotFoundError extends Error {
@@ -49,6 +49,9 @@ const severityIcon = {
   suggestion: "💡"
 } as const
 
+const diagnosticGroups = getDiagnosticGroups()
+const diagnosticMetadataRules = getDiagnosticMetadataRules()
+
 const escapeTableCell = (value: string) => value.replace(/\|/g, "\\|").replace(/\n/g, " ")
 const escapeHtml = (value: string) => value
   .replace(/&/g, "&amp;")
@@ -64,10 +67,7 @@ const renderTable = () =>
     "  </thead>",
     "  <tbody>",
     ...diagnosticGroups.flatMap((group) => {
-      const groupedDiagnostics = diagnostics
-        .filter((diagnostic) => diagnostic.group === group.id)
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name))
+      const groupedDiagnostics = diagnosticMetadataRules.filter((diagnostic) => diagnostic.group === group.id)
 
       if (groupedDiagnostics.length === 0) {
         return []
@@ -76,7 +76,7 @@ const renderTable = () =>
       return [
         `    <tr><td colspan="6"><strong>${escapeHtml(group.name)}</strong> <em>${escapeHtml(group.description)}</em></td></tr>`,
         ...groupedDiagnostics.map((diagnostic) =>
-          `    <tr><td><code>${escapeHtml(diagnostic.name)}</code></td><td>${severityIcon[diagnostic.severity]}</td><td>${
+          `    <tr><td><code>${escapeHtml(diagnostic.name)}</code></td><td>${severityIcon[diagnostic.defaultSeverity]}</td><td>${
             diagnostic.fixable ? "🔧" : ""
           }</td><td>${escapeHtml(diagnostic.description)}</td><td>${
             diagnostic.supportedEffect.includes("v3") ? "✓" : ""
@@ -102,7 +102,7 @@ const createDiagnosticSeveritySchema = (): JsonSchema => ({
     enum: severityLevels
   },
   properties: Object.fromEntries(
-    diagnostics
+    diagnosticMetadataRules
       .slice()
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((diagnostic) => [
@@ -110,8 +110,8 @@ const createDiagnosticSeveritySchema = (): JsonSchema => ({
         {
           type: "string",
           enum: severityLevels,
-          default: diagnostic.severity,
-          description: `${diagnostic.description} Default severity: ${diagnostic.severity}.`
+          default: diagnostic.defaultSeverity,
+          description: `${diagnostic.description} Default severity: ${diagnostic.defaultSeverity}.`
         } satisfies JsonSchema
       ])
   )

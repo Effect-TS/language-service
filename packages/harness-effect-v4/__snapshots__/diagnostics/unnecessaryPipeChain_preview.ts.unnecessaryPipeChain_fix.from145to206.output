@@ -1,0 +1,6 @@
+// code fix unnecessaryPipeChain_fix  output for range 145 - 206
+// @effect-diagnostics *:off
+// @effect-diagnostics unnecessaryPipeChain:warning
+import * as Effect from "effect/Effect"
+
+export const preview = Effect.succeed(1).pipe(Effect.asVoid, Effect.as("done"))

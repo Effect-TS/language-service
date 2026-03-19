@@ -1,0 +1,2 @@
+pipe(1)
+5:23 - 5:30 | 0 | This pipe call contains no arguments.    effect(unnecessaryPipe)
