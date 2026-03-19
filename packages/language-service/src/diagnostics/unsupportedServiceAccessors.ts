@@ -9,6 +9,7 @@ export const unsupportedServiceAccessors = LSP.createDiagnostic({
   name: "unsupportedServiceAccessors",
   code: 21,
   description: "Warns about service accessors that need codegen due to generic/complex signatures",
+  group: "correctness",
   severity: "warning",
   fixable: true,
   supportedEffect: ["v3", "v4"],

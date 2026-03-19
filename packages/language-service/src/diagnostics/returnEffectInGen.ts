@@ -11,6 +11,7 @@ export const returnEffectInGen = LSP.createDiagnostic({
   name: "returnEffectInGen",
   code: 11,
   description: "Warns when returning an Effect in a generator causes nested Effect<Effect<...>>",
+  group: "antipattern",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

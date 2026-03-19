@@ -20,6 +20,7 @@ export const effectFnIife = LSP.createDiagnostic({
   code: 46,
   description:
     "Effect.fn or Effect.fnUntraced is called as an IIFE (Immediately Invoked Function Expression). Use Effect.gen instead.",
+  group: "antipattern",
   severity: "warning",
   fixable: true,
   supportedEffect: ["v3", "v4"],

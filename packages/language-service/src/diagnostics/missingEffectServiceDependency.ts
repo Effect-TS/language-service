@@ -11,6 +11,7 @@ export const missingEffectServiceDependency = LSP.createDiagnostic({
   name: "missingEffectServiceDependency",
   code: 22,
   description: "Checks that Effect.Service dependencies satisfy all required layer inputs",
+  group: "style",
   severity: "off",
   fixable: false,
   supportedEffect: ["v3"],

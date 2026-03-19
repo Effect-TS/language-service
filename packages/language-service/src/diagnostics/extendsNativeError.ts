@@ -8,6 +8,7 @@ export const extendsNativeError = LSP.createDiagnostic({
   name: "extendsNativeError",
   code: 50,
   description: "Warns when a class directly extends the native Error class",
+  group: "effectNative",
   severity: "off",
   fixable: false,
   supportedEffect: ["v3", "v4"],

@@ -10,6 +10,7 @@ export const globalErrorInEffectFailure = LSP.createDiagnostic({
   name: "globalErrorInEffectFailure",
   code: 35,
   description: "Warns when the global Error type is used in an Effect failure channel",
+  group: "antipattern",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

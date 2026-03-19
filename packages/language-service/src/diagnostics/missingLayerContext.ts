@@ -11,6 +11,7 @@ export const missingLayerContext = LSP.createDiagnostic({
   name: "missingLayerContext",
   code: 38,
   description: "Reports missing service requirements in Layer context channel",
+  group: "correctness",
   severity: "error",
   fixable: false,
   supportedEffect: ["v3", "v4"],

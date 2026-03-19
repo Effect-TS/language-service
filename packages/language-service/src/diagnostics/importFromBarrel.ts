@@ -11,6 +11,7 @@ export const importFromBarrel = LSP.createDiagnostic({
   name: "importFromBarrel",
   code: 12,
   description: "Suggests importing from specific module paths instead of barrel exports",
+  group: "style",
   severity: "off",
   fixable: true,
   supportedEffect: ["v3", "v4"],

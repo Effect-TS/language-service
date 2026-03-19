@@ -11,6 +11,7 @@ export const nonObjectEffectServiceType = LSP.createDiagnostic({
   name: "nonObjectEffectServiceType",
   code: 24,
   description: "Ensures Effect.Service types are objects, not primitives",
+  group: "correctness",
   severity: "error",
   fixable: false,
   supportedEffect: ["v3"],

@@ -11,6 +11,7 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
   name: "runEffectInsideEffect",
   code: 32,
   description: "Suggests using Runtime methods instead of Effect.run* inside Effect contexts",
+  group: "antipattern",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3"],

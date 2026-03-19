@@ -9,6 +9,7 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
   name: "tryCatchInEffectGen",
   code: 15,
   description: "Discourages try/catch in Effect generators in favor of Effect error handling",
+  group: "antipattern",
   severity: "suggestion",
   fixable: false,
   supportedEffect: ["v3", "v4"],

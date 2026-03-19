@@ -9,6 +9,7 @@ export const unnecessaryPipeChain = LSP.createDiagnostic({
   name: "unnecessaryPipeChain",
   code: 16,
   description: "Simplifies chained pipe calls into a single pipe call",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

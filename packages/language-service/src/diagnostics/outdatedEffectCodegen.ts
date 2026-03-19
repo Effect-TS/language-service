@@ -7,6 +7,7 @@ export const outdatedEffectCodegen = LSP.createDiagnostic({
   name: "outdatedEffectCodegen",
   code: 19,
   description: "Detects when generated code is outdated and needs to be regenerated",
+  group: "correctness",
   severity: "warning",
   fixable: true,
   supportedEffect: ["v3", "v4"],

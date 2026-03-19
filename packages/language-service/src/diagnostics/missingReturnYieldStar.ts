@@ -11,6 +11,7 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
   name: "missingReturnYieldStar",
   code: 7,
   description: "Suggests using 'return yield*' for Effects with never success for better type narrowing",
+  group: "correctness",
   severity: "error",
   fixable: true,
   supportedEffect: ["v3", "v4"],

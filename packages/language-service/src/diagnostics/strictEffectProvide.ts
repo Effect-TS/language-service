@@ -11,6 +11,7 @@ export const strictEffectProvide = LSP.createDiagnostic({
   name: "strictEffectProvide",
   code: 27,
   description: "Warns when using Effect.provide with layers outside of application entry points",
+  group: "antipattern",
   severity: "off",
   fixable: false,
   supportedEffect: ["v3", "v4"],

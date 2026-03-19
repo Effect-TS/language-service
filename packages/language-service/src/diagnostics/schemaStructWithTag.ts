@@ -10,6 +10,7 @@ export const schemaStructWithTag = LSP.createDiagnostic({
   name: "schemaStructWithTag",
   code: 34,
   description: "Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

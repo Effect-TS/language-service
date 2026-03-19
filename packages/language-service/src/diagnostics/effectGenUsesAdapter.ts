@@ -9,6 +9,7 @@ export const effectGenUsesAdapter = LSP.createDiagnostic({
   name: "effectGenUsesAdapter",
   code: 23,
   description: "Warns when using the deprecated adapter parameter in Effect.gen",
+  group: "antipattern",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

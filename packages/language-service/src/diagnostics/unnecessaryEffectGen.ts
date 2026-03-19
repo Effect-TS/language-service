@@ -9,6 +9,7 @@ export const unnecessaryEffectGen = LSP.createDiagnostic({
   name: "unnecessaryEffectGen",
   code: 5,
   description: "Suggests removing Effect.gen when it contains only a single return statement",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

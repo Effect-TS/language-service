@@ -10,6 +10,7 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
   name: "preferSchemaOverJson",
   code: 44,
   description: "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw",
+  group: "effectNative",
   severity: "suggestion",
   fixable: false,
   supportedEffect: ["v3", "v4"],

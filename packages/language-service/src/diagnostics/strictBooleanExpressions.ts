@@ -9,6 +9,7 @@ export const strictBooleanExpressions = LSP.createDiagnostic({
   name: "strictBooleanExpressions",
   code: 17,
   description: "Enforces boolean types in conditional expressions for type safety",
+  group: "style",
   severity: "off",
   fixable: false,
   supportedEffect: ["v3", "v4"],

@@ -9,6 +9,7 @@ export const unnecessaryPipe = LSP.createDiagnostic({
   name: "unnecessaryPipe",
   code: 9,
   description: "Removes pipe calls with no arguments",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

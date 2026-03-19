@@ -11,6 +11,7 @@ export const globalErrorInEffectCatch = LSP.createDiagnostic({
   name: "globalErrorInEffectCatch",
   code: 36,
   description: "Warns when catch callbacks return global Error type instead of typed errors",
+  group: "antipattern",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

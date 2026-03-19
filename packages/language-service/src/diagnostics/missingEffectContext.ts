@@ -11,6 +11,7 @@ export const missingEffectContext = LSP.createDiagnostic({
   name: "missingEffectContext",
   code: 1,
   description: "Reports missing service requirements in Effect context channel",
+  group: "correctness",
   severity: "error",
   fixable: false,
   supportedEffect: ["v3", "v4"],

@@ -12,6 +12,7 @@ export const floatingEffect = LSP.createDiagnostic({
   name: "floatingEffect",
   code: 3,
   description: "Ensures Effects are yielded or assigned to variables, not left floating",
+  group: "correctness",
   severity: "error",
   fixable: false,
   supportedEffect: ["v3", "v4"],

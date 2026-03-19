@@ -10,6 +10,7 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
   name: "catchUnfailableEffect",
   code: 2,
   description: "Warns when using error handling on Effects that never fail (error type is 'never')",
+  group: "antipattern",
   severity: "suggestion",
   fixable: false,
   supportedEffect: ["v3", "v4"],

@@ -32,6 +32,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
   name: "effectFnOpportunity",
   code: 41,
   description: "Suggests using Effect.fn for functions that returns an Effect",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

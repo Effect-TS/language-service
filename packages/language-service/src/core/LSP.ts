@@ -5,6 +5,7 @@ import type * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import type * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
+import type { DiagnosticGroup } from "./DiagnosticGroup.js"
 import * as LanguageServicePluginOptions from "./LanguageServicePluginOptions.js"
 import * as Nano from "./Nano.js"
 
@@ -45,6 +46,7 @@ export interface DiagnosticDefinition {
   name: string
   code: number
   description: string
+  group: DiagnosticGroup
   severity: LanguageServicePluginOptions.DiagnosticSeverity | "off"
   fixable: boolean
   supportedEffect: ReadonlyArray<SupportedEffectVersion>

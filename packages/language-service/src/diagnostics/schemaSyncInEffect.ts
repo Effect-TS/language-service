@@ -23,6 +23,7 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
   name: "schemaSyncInEffect",
   code: 43,
   description: "Suggests using Effect-based Schema methods instead of sync methods inside Effect generators",
+  group: "antipattern",
   severity: "suggestion",
   fixable: false,
   supportedEffect: ["v3", "v4"],

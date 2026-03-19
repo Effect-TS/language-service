@@ -5,6 +5,7 @@ import {
   type JsonSchema,
   languageServicePluginAdditionalPropertiesJsonSchema
 } from "../src/core/LanguageServicePluginOptions.js"
+import { diagnosticGroups } from "../src/core/DiagnosticGroup.js"
 import { diagnostics } from "../src/diagnostics.js"
 
 class ReadmeMarkersNotFoundError extends Error {
@@ -49,21 +50,42 @@ const severityIcon = {
 } as const
 
 const escapeTableCell = (value: string) => value.replace(/\|/g, "\\|").replace(/\n/g, " ")
+const escapeHtml = (value: string) => value
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
 
 const renderTable = () =>
   [
-    "| Diagnostic | Sev | Fix | Description | v3 | v4 |",
-    "| --- | --- | --- | --- | --- | --- |",
-    ...diagnostics
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((diagnostic) =>
-        `| \`${diagnostic.name}\` | ${severityIcon[diagnostic.severity]} | ${diagnostic.fixable ? "🔧" : ""} | ${
-          escapeTableCell(diagnostic.description)
-        } | ${diagnostic.supportedEffect.includes("v3") ? "✓" : ""} | ${
-          diagnostic.supportedEffect.includes("v4") ? "✓" : ""
-        } |`
-      ),
+    "<table>",
+    "  <thead>",
+    "    <tr><th>Diagnostic</th><th>Sev</th><th>Fix</th><th>Description</th><th>v3</th><th>v4</th></tr>",
+    "  </thead>",
+    "  <tbody>",
+    ...diagnosticGroups.flatMap((group) => {
+      const groupedDiagnostics = diagnostics
+        .filter((diagnostic) => diagnostic.group === group.id)
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      if (groupedDiagnostics.length === 0) {
+        return []
+      }
+
+      return [
+        `    <tr><td colspan="6"><strong>${escapeHtml(group.name)}</strong> <em>${escapeHtml(group.description)}</em></td></tr>`,
+        ...groupedDiagnostics.map((diagnostic) =>
+          `    <tr><td><code>${escapeHtml(diagnostic.name)}</code></td><td>${severityIcon[diagnostic.severity]}</td><td>${
+            diagnostic.fixable ? "🔧" : ""
+          }</td><td>${escapeHtml(diagnostic.description)}</td><td>${
+            diagnostic.supportedEffect.includes("v3") ? "✓" : ""
+          }</td><td>${diagnostic.supportedEffect.includes("v4") ? "✓" : ""}</td></tr>`
+        )
+      ]
+    }),
+    "  </tbody>",
+    "</table>",
     "",
     "`➖` off by default, `❌` error, `⚠️` warning, `💬` message, `💡` suggestion, `🔧` quick fix available"
   ].join("\n")

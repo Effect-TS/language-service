@@ -37,6 +37,7 @@ export const nodeBuiltinImport = LSP.createDiagnostic({
   name: "nodeBuiltinImport",
   code: 52,
   description: "Warns when importing Node.js built-in modules that have Effect-native counterparts",
+  group: "effectNative",
   severity: "off",
   fixable: false,
   supportedEffect: ["v3", "v4"],

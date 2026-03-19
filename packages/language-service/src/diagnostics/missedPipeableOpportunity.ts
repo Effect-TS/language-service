@@ -11,6 +11,7 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
   name: "missedPipeableOpportunity",
   code: 26,
   description: "Enforces the use of pipeable style for nested function calls",
+  group: "style",
   severity: "off",
   fixable: true,
   supportedEffect: ["v3", "v4"],

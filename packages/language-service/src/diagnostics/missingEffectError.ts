@@ -14,6 +14,7 @@ export const missingEffectError = LSP.createDiagnostic({
   name: "missingEffectError",
   code: 1,
   description: "Reports missing error types in Effect error channel",
+  group: "correctness",
   severity: "error",
   fixable: true,
   supportedEffect: ["v3", "v4"],

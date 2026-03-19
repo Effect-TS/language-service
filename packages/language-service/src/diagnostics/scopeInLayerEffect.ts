@@ -12,6 +12,7 @@ export const scopeInLayerEffect = LSP.createDiagnostic({
   name: "scopeInLayerEffect",
   code: 13,
   description: "Suggests using Layer.scoped instead of Layer.effect when Scope is in requirements",
+  group: "antipattern",
   severity: "warning",
   fixable: true,
   supportedEffect: ["v3"],

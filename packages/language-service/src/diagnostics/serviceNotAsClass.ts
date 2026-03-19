@@ -9,6 +9,7 @@ export const serviceNotAsClass = LSP.createDiagnostic({
   name: "serviceNotAsClass",
   code: 51,
   description: "Warns when ServiceMap.Service is used as a variable instead of a class declaration",
+  group: "style",
   severity: "off",
   fixable: true,
   supportedEffect: ["v4"],

@@ -1,3 +1,4 @@
+import type { DiagnosticGroup } from "../../core/DiagnosticGroup"
 import type { DiagnosticSeverity } from "../../core/LanguageServicePluginOptions"
 import { diagnostics } from "../../diagnostics"
 
@@ -7,6 +8,7 @@ import { diagnostics } from "../../diagnostics"
 export interface DiagnosticInfo {
   readonly name: string
   readonly code: number
+  readonly group: DiagnosticGroup
   readonly defaultSeverity: DiagnosticSeverity | "off"
   readonly description: string
 }
@@ -18,6 +20,7 @@ export function getAllDiagnostics(): ReadonlyArray<DiagnosticInfo> {
   return diagnostics.map((diagnostic) => ({
     name: diagnostic.name,
     code: diagnostic.code,
+    group: diagnostic.group,
     defaultSeverity: diagnostic.severity,
     description: diagnostic.description
   }))

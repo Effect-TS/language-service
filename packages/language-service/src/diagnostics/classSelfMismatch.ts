@@ -9,6 +9,7 @@ export const classSelfMismatch = LSP.createDiagnostic({
   name: "classSelfMismatch",
   code: 20,
   description: "Ensures Self type parameter matches the class name in Service/Tag/Schema classes",
+  group: "correctness",
   severity: "error",
   fixable: true,
   supportedEffect: ["v3", "v4"],
