@@ -10,6 +10,7 @@ export const genericEffectServices = LSP.createDiagnostic({
   name: "genericEffectServices",
   code: 10,
   description: "Prevents services with type parameters that cannot be discriminated at runtime",
+  group: "correctness",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

@@ -10,6 +10,7 @@ export const schemaUnionOfLiterals = LSP.createDiagnostic({
   name: "schemaUnionOfLiterals",
   code: 33,
   description: "Simplifies Schema.Union of multiple Schema.Literal calls into single Schema.Literal",
+  group: "style",
   severity: "off",
   fixable: true,
   supportedEffect: ["v3"],

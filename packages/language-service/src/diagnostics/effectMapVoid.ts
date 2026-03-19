@@ -12,6 +12,7 @@ export const effectMapVoid = LSP.createDiagnostic({
   code: 40,
   description:
     "Suggests using Effect.asVoid instead of Effect.map(() => void 0), Effect.map(() => undefined), or Effect.map(() => {})",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

@@ -10,6 +10,7 @@ export const redundantSchemaTagIdentifier = LSP.createDiagnostic({
   code: 42,
   description:
     "Suggests removing redundant identifier argument when it equals the tag value in Schema.TaggedClass/TaggedError/TaggedRequest",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

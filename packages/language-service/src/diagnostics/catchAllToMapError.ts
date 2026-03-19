@@ -10,6 +10,7 @@ export const catchAllToMapError = LSP.createDiagnostic({
   code: 39,
   description:
     "Suggests using Effect.mapError instead of Effect.catchAll when the callback only wraps the error with Effect.fail",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

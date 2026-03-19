@@ -10,6 +10,7 @@ export const instanceOfSchema = LSP.createDiagnostic({
   name: "instanceOfSchema",
   code: 45,
   description: "Suggests using Schema.is instead of instanceof for Effect Schema types",
+  group: "effectNative",
   severity: "off",
   fixable: true,
   supportedEffect: ["v3", "v4"],

@@ -7,6 +7,7 @@ export const duplicatePackage = LSP.createDiagnostic({
   name: "duplicatePackage",
   code: 6,
   description: "Detects when multiple versions of the same Effect package are loaded",
+  group: "correctness",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

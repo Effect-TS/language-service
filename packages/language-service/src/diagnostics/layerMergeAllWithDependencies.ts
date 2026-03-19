@@ -14,6 +14,7 @@ export const layerMergeAllWithDependencies = LSP.createDiagnostic({
   code: 37,
   description:
     "Detects interdependencies in Layer.mergeAll calls where one layer provides a service that another layer requires",
+  group: "antipattern",
   severity: "warning",
   fixable: true,
   supportedEffect: ["v3", "v4"],

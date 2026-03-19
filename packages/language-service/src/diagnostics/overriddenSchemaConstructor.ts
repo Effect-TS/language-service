@@ -10,6 +10,7 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
   name: "overriddenSchemaConstructor",
   code: 30,
   description: "Prevents overriding constructors in Schema classes which breaks decoding behavior",
+  group: "correctness",
   severity: "error",
   fixable: true,
   supportedEffect: ["v3", "v4"],

@@ -11,6 +11,7 @@ export const effectSucceedWithVoid = LSP.createDiagnostic({
   name: "effectSucceedWithVoid",
   code: 47,
   description: "Suggests using Effect.void instead of Effect.succeed(undefined) or Effect.succeed(void 0)",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

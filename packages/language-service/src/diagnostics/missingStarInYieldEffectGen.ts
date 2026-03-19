@@ -10,6 +10,7 @@ export const missingStarInYieldEffectGen = LSP.createDiagnostic({
   name: "missingStarInYieldEffectGen",
   code: 4,
   description: "Enforces using 'yield*' instead of 'yield' when yielding Effects in generators",
+  group: "correctness",
   severity: "error",
   fixable: true,
   supportedEffect: ["v3", "v4"],

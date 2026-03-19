@@ -11,6 +11,7 @@ export const anyUnknownInErrorContext = LSP.createDiagnostic({
   name: "anyUnknownInErrorContext",
   code: 28,
   description: "Detects 'any' or 'unknown' types in Effect error or requirements channels",
+  group: "correctness",
   severity: "off",
   fixable: false,
   supportedEffect: ["v3", "v4"],

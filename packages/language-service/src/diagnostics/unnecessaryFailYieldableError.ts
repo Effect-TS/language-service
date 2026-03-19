@@ -10,6 +10,7 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
   name: "unnecessaryFailYieldableError",
   code: 29,
   description: "Suggests yielding yieldable errors directly instead of wrapping with Effect.fail",
+  group: "style",
   severity: "suggestion",
   fixable: true,
   supportedEffect: ["v3", "v4"],

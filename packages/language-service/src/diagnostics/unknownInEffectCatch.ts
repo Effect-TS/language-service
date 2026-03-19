@@ -11,6 +11,7 @@ export const unknownInEffectCatch = LSP.createDiagnostic({
   name: "unknownInEffectCatch",
   code: 31,
   description: "Warns when catch callbacks return unknown instead of typed errors",
+  group: "antipattern",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

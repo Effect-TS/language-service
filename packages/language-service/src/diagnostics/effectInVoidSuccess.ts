@@ -11,6 +11,7 @@ export const effectInVoidSuccess = LSP.createDiagnostic({
   name: "effectInVoidSuccess",
   code: 14,
   description: "Detects nested Effects in void success channels that may cause unexecuted effects",
+  group: "antipattern",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],

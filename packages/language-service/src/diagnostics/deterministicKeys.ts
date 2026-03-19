@@ -13,6 +13,7 @@ export const deterministicKeys = LSP.createDiagnostic({
   name: "deterministicKeys",
   code: 25,
   description: "Enforces deterministic naming for service/tag/error identifiers based on class names",
+  group: "style",
   severity: "off",
   fixable: true,
   supportedEffect: ["v3", "v4"],

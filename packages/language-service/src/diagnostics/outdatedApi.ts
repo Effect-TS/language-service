@@ -12,6 +12,7 @@ export const outdatedApi = LSP.createDiagnostic({
   name: "outdatedApi",
   code: 48,
   description: "Detects usage of APIs that have been removed or renamed in Effect v4",
+  group: "correctness",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v4"],

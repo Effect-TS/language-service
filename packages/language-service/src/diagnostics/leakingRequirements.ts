@@ -13,6 +13,7 @@ export const leakingRequirements = LSP.createDiagnostic({
   name: "leakingRequirements",
   code: 8,
   description: "Detects implementation services leaked in service methods",
+  group: "antipattern",
   severity: "suggestion",
   fixable: false,
   supportedEffect: ["v3", "v4"],

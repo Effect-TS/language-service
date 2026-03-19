@@ -10,6 +10,7 @@ export const effectInFailure = LSP.createDiagnostic({
   name: "effectInFailure",
   code: 49,
   description: "Warns when an Effect is used inside an Effect failure channel",
+  group: "antipattern",
   severity: "warning",
   fixable: false,
   supportedEffect: ["v3", "v4"],
