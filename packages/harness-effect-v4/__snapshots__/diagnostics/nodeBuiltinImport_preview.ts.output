@@ -1,0 +1,2 @@
+"node:fs"
+3:15 - 3:24 | 0 | Prefer using FileSystem from @effect/platform instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)

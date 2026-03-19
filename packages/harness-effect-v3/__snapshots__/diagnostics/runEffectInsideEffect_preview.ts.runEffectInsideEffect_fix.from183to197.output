@@ -1,0 +1,11 @@
+// code fix runEffectInsideEffect_fix  output for range 183 - 197
+// @effect-diagnostics *:off
+// @effect-diagnostics runEffectInsideEffect:warning
+import { Effect } from "effect"
+
+export const preview = Effect.gen(function*() {
+const effectRuntime = yield* Effect.runtime<never>()
+
+  const run = () => Runtime.runSync(effectRuntime, Effect.succeed(1))
+  return run()
+})

@@ -1,0 +1,9 @@
+// code fix effectFnOpportunity_toEffectFnNoSpan  output for range 178 - 185
+// @effect-diagnostics *:off
+// @effect-diagnostics effectFnOpportunity:warning
+// @test-config { "effectFn": ["no-span"] }
+import * as Effect from "effect/Effect"
+
+export const preview = Effect.fn(function*() {
+    return yield* Effect.succeed(1)
+})

@@ -1,0 +1,6 @@
+// code fix schemaUnionOfLiterals_fix  output for range 146 - 200
+// @effect-diagnostics *:off
+// @effect-diagnostics schemaUnionOfLiterals:warning
+import * as Schema from "effect/Schema"
+
+export const preview = Schema.Literal("a", "b")

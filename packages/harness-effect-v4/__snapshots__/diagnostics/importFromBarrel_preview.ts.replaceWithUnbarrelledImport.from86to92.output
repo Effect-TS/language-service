@@ -1,0 +1,6 @@
+// code fix replaceWithUnbarrelledImport  output for range 86 - 92
+// @effect-diagnostics *:off
+// @effect-diagnostics importFromBarrel:warning
+import * as Effect from "./node_modules/effect/dist/Effect"
+
+export const preview = Effect.void

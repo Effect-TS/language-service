@@ -1,0 +1,2 @@
+Effect.succeed(1).pipe(Effect.asVoid).pipe(Effect.as("done"))
+5:23 - 5:84 | 0 | Chained pipe calls can be simplified to a single pipe call    effect(unnecessaryPipeChain)

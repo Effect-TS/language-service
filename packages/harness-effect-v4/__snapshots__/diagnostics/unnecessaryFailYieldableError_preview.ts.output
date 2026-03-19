@@ -1,0 +1,2 @@
+yield* Effect.fail(new Boom())
+8:2 - 8:32 | 0 | This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.    effect(unnecessaryFailYieldableError)

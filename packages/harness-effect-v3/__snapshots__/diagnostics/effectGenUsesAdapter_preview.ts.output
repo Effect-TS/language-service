@@ -1,0 +1,2 @@
+_
+5:44 - 5:45 | 0 | The adapter of Effect.gen is not required anymore, it is now just an alias of pipe.    effect(effectGenUsesAdapter)

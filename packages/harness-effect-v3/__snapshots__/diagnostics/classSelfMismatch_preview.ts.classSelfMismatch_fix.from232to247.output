@@ -1,0 +1,11 @@
+// code fix classSelfMismatch_fix  output for range 232 - 247
+// @effect-diagnostics *:off
+// @effect-diagnostics classSelfMismatch:warning
+import * as Effect from "effect/Effect"
+
+interface ServiceShape { value: number }
+
+export class InvalidContextTag
+  extends Effect.Tag("ValidContextTag")<InvalidContextTag, ServiceShape>() {}
+
+declare class ValidContextTag {}

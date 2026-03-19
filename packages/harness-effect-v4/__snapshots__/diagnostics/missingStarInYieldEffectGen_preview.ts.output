@@ -1,0 +1,5 @@
+function
+5:34 - 5:42 | 0 | Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)
+
+yield Effect.succeed(1)
+6:16 - 6:39 | 0 | When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)

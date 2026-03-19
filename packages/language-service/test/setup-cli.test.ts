@@ -191,6 +191,31 @@ describe("Setup CLI", () => {
     await expectSetupChanges(assessmentInput, targetState)
   })
 
+  it("should generate changes when tsconfig has no compilerOptions", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {}
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.some({ floatingEffect: "warning" })
+      },
+      vscodeSettings: Option.none(),
+      editors: []
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
   it("should generate changes for removing LSP when already installed", async () => {
     const assessmentInput = createTestAssessmentInput(
       {

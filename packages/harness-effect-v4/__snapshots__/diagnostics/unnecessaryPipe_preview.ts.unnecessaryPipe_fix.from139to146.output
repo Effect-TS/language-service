@@ -1,0 +1,6 @@
+// code fix unnecessaryPipe_fix  output for range 139 - 146
+// @effect-diagnostics *:off
+// @effect-diagnostics unnecessaryPipe:warning
+import { pipe } from "effect/Function"
+
+export const preview = 1

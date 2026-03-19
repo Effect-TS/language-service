@@ -1,0 +1,8 @@
+// code fix overriddenSchemaConstructor_static  output for range 211 - 273
+// @effect-diagnostics *:off
+// @effect-diagnostics overriddenSchemaConstructor:warning
+import * as Schema from "effect/Schema"
+
+export class User extends Schema.Class<User>("User")({ name: Schema.String }) {
+  public static new(readonly input: { name: string} ) { const _this = new this(input); return _this }
+}

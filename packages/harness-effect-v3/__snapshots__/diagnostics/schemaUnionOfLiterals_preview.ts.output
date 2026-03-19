@@ -1,0 +1,2 @@
+Schema.Union(Schema.Literal("a"), Schema.Literal("b"))
+5:23 - 5:77 | 0 | A Schema.Union of multiple Schema.Literal calls can be simplified to a single Schema.Literal call.    effect(schemaUnionOfLiterals)

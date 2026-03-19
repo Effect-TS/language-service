@@ -1,0 +1,2 @@
+Effect
+3:9 - 3:15 | 0 | Importing from barrel module effect is not allowed.    effect(importFromBarrel)

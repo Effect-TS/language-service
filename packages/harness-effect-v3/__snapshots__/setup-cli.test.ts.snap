@@ -351,6 +351,44 @@ exports[`Setup CLI > should generate changes for updating existing LSP with new 
 }"
 `;
 
+exports[`Setup CLI > should generate changes when tsconfig has no compilerOptions > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add $schema to tsconfig; Add compilerOptions with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should generate changes when tsconfig has no compilerOptions > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should generate changes when tsconfig has no compilerOptions > tsconfig.json 1`] = `
+"{
+	"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json",
+	"compilerOptions": {
+		"plugins": [
+			{
+				"name": "@effect/language-service",
+				"diagnosticSeverity": {
+					"floatingEffect": "warning"
+				}
+			}
+		]
+	}
+}"
+`;
+
 exports[`Setup CLI > should handle tsconfig with existing plugin having custom options and diagnosticSeverity > change summary 1`] = `
 [
   {

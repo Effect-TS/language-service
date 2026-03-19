@@ -1,0 +1,2 @@
+JSON.parse(text)
+7:9 - 7:25 | 0 | Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)

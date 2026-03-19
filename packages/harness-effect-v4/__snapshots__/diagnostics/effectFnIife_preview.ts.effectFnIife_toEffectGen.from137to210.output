@@ -1,0 +1,8 @@
+// code fix effectFnIife_toEffectGen  output for range 137 - 210
+// @effect-diagnostics *:off
+// @effect-diagnostics effectFnIife:warning
+import * as Effect from "effect/Effect"
+
+export const preview = Effect.gen(function*() {
+    return yield* Effect.succeed(1)
+})

@@ -1,0 +1,5 @@
+Schema.Struct({
+  _tag: Schema.Literal("User"),
+  name: Schema.String
+})
+5:23 - 8:2 | 0 | Schema.Struct with a _tag field can be simplified to Schema.TaggedStruct to make the tag optional in the constructor.    effect(schemaStructWithTag)

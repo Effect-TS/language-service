@@ -1,0 +1,5 @@
+value
+5:23 - 5:28 | 0 | Unexpected `string` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)
+
+value
+5:23 - 5:28 | 0 | Unexpected `undefined` type in condition, expected strictly a boolean instead.    effect(strictBooleanExpressions)

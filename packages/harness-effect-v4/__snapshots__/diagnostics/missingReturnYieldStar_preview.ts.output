@@ -1,0 +1,2 @@
+yield* Effect.fail("boom")
+7:2 - 7:28 | 0 | It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)

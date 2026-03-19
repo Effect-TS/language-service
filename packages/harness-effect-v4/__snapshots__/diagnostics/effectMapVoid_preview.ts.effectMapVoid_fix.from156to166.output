@@ -1,0 +1,8 @@
+// code fix effectMapVoid_fix  output for range 156 - 166
+// @effect-diagnostics *:off
+// @effect-diagnostics effectMapVoid:warning
+import { Effect } from "effect"
+
+export const preview = Effect.succeed(1).pipe(
+  Effect.asVoid
+)

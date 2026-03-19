@@ -1,0 +1,8 @@
+// code fix schemaStructWithTag_fix  output for range 144 - 216
+// @effect-diagnostics *:off
+// @effect-diagnostics schemaStructWithTag:warning
+import * as Schema from "effect/Schema"
+
+export const preview = Schema.TaggedStruct("User", {
+    name: Schema.String
+})

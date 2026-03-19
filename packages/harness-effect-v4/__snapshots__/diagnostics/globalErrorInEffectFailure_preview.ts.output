@@ -1,0 +1,2 @@
+new Error("boom")
+5:35 - 5:52 | 0 | Global 'Error' loses type safety as untagged errors merge together in the Effect failure channel. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectFailure)

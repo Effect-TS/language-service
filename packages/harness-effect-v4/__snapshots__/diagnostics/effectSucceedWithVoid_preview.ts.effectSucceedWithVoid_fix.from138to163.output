@@ -1,0 +1,6 @@
+// code fix effectSucceedWithVoid_fix  output for range 138 - 163
+// @effect-diagnostics *:off
+// @effect-diagnostics effectSucceedWithVoid:warning
+import { Effect } from "effect"
+
+export const preview = Effect.void
