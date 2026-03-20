@@ -11,6 +11,8 @@ import path from "node:path"
 import { join as join2 } from "path/posix"
 import { exec } from "child_process"
 import { spawn } from "node:child_process"
+import http from "http"
+import https from "node:https"
 
 // Flagged: side-effect import
 import "node:fs"
@@ -21,9 +23,6 @@ const fs3 = require("node:fs")
 // Not flagged: Effect-native imports
 // @ts-expect-error - @effect/platform not installed in harness
 import { FileSystem } from "@effect/platform"
-
-// Not flagged: unrelated Node built-ins
-import http from "http"
 
 // Not flagged: third-party modules with similar names
 // @ts-expect-error - fs-extra not installed in harness

@@ -15,7 +15,11 @@ const moduleAlternativesV3 = new Map<string, { alternative: string; module: stri
   ["path/win32", { alternative: "Path", module: "path", package: "@effect/platform" }],
   ["node:path/win32", { alternative: "Path", module: "path", package: "@effect/platform" }],
   ["child_process", { alternative: "CommandExecutor", module: "child_process", package: "@effect/platform" }],
-  ["node:child_process", { alternative: "CommandExecutor", module: "child_process", package: "@effect/platform" }]
+  ["node:child_process", { alternative: "CommandExecutor", module: "child_process", package: "@effect/platform" }],
+  ["http", { alternative: "HttpClient", module: "http", package: "@effect/platform" }],
+  ["node:http", { alternative: "HttpClient", module: "http", package: "@effect/platform" }],
+  ["https", { alternative: "HttpClient", module: "https", package: "@effect/platform" }],
+  ["node:https", { alternative: "HttpClient", module: "https", package: "@effect/platform" }]
 ])
 
 const moduleAlternativesV4 = new Map<string, { alternative: string; module: string; package: string }>([
@@ -30,7 +34,11 @@ const moduleAlternativesV4 = new Map<string, { alternative: string; module: stri
   ["path/win32", { alternative: "Path", module: "path", package: "effect" }],
   ["node:path/win32", { alternative: "Path", module: "path", package: "effect" }],
   ["child_process", { alternative: "ChildProcess", module: "child_process", package: "effect" }],
-  ["node:child_process", { alternative: "ChildProcess", module: "child_process", package: "effect" }]
+  ["node:child_process", { alternative: "ChildProcess", module: "child_process", package: "effect" }],
+  ["http", { alternative: "HttpClient", module: "http", package: "effect/unstable/http" }],
+  ["node:http", { alternative: "HttpClient", module: "http", package: "effect/unstable/http" }],
+  ["https", { alternative: "HttpClient", module: "https", package: "effect/unstable/http" }],
+  ["node:https", { alternative: "HttpClient", module: "https", package: "effect/unstable/http" }]
 ])
 
 export const nodeBuiltinImport = LSP.createDiagnostic({
