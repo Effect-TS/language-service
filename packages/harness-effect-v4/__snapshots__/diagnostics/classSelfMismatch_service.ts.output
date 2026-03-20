@@ -1,0 +1,2 @@
+CorrectName
+8:50 - 8:61 | 1 | Self type parameter should be 'WrongName'    effect(classSelfMismatch)

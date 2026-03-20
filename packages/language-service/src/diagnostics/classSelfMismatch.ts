@@ -32,6 +32,7 @@ export const classSelfMismatch = LSP.createDiagnostic({
         // Check if this class extends a class that has a Self type parameter
         const result = yield* pipe(
           typeParser.extendsEffectService(node),
+          Nano.orElse(() => typeParser.extendsServiceMapService(node)),
           Nano.orElse(() => typeParser.extendsContextTag(node)),
           Nano.orElse(() => typeParser.extendsEffectTag(node)),
           Nano.orElse(() => typeParser.extendsSchemaClass(node)),
