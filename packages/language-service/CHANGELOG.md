@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.81.0
+
+### Minor Changes
+
+- [#684](https://github.com/Effect-TS/language-service/pull/684) [`d8d472e`](https://github.com/Effect-TS/language-service/commit/d8d472e640bf737bd7bc2e8b698771dbe6daf940) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Improve setup diagnostic configuration with grouped preview-driven metadata, richer interactive prompt rendering, and support for tsconfig files without compilerOptions.
+
+- [#685](https://github.com/Effect-TS/language-service/pull/685) [`d94f4ad`](https://github.com/Effect-TS/language-service/commit/d94f4ad6dbe8282726b523e086308cc9957b3667) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add a diagnostic for global `fetch` usage that recommends the Effect HTTP client and include preview fixtures covering both direct and shadowed fetch calls.
+
+### Patch Changes
+
+- [#686](https://github.com/Effect-TS/language-service/pull/686) [`5f76175`](https://github.com/Effect-TS/language-service/commit/5f7617515cc412236318e6cf7c4a57ca06e553cf) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Extend the node built-in import diagnostic to also recommend the Effect HTTP client for `http` and `https` imports.
+
+- [#682](https://github.com/Effect-TS/language-service/pull/682) [`75e1cbe`](https://github.com/Effect-TS/language-service/commit/75e1cbef8e56e66667edd7f2ce0a3f20208e26bd) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add diagnostic groups to rule metadata and render the README diagnostics table grouped by those sections.
+
 ## 0.80.0
 
 ### Minor Changes
