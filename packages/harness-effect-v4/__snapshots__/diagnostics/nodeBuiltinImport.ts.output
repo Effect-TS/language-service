@@ -25,8 +25,14 @@
 "node:child_process"
 13:22 - 13:42 | 0 | Prefer using ChildProcess from effect instead of the Node.js 'child_process' module.    effect(nodeBuiltinImport)
 
-"node:fs"
-16:7 - 16:16 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+"http"
+14:17 - 14:23 | 0 | Prefer using HttpClient from effect/unstable/http instead of the Node.js 'http' module.    effect(nodeBuiltinImport)
+
+"node:https"
+15:18 - 15:30 | 0 | Prefer using HttpClient from effect/unstable/http instead of the Node.js 'https' module.    effect(nodeBuiltinImport)
 
 "node:fs"
-19:20 - 19:29 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+18:7 - 18:16 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+
+"node:fs"
+21:20 - 21:29 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
