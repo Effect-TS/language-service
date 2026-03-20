@@ -1,0 +1,12 @@
+// code fix classSelfMismatch_fix  output for range 317 - 328
+import { ServiceMap, Effect } from "effect"
+
+export class CorrectName extends ServiceMap.Service<CorrectName, {
+    writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
+    readCache: Effect.Effect<void, never, FileSystem | Cache>
+}>()("CorrectName") {}
+
+export class WrongName extends ServiceMap.Service<WrongName, {
+    writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
+    readCache: Effect.Effect<void, never, FileSystem | Cache>
+}>()("WrongName") {}
