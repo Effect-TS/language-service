@@ -16,6 +16,7 @@ import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
 import { globalErrorInEffectFailure } from "./diagnostics/globalErrorInEffectFailure.js"
+import { globalFetch } from "./diagnostics/globalFetch.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
 import { instanceOfSchema } from "./diagnostics/instanceOfSchema.js"
 import { layerMergeAllWithDependencies } from "./diagnostics/layerMergeAllWithDependencies.js"
@@ -74,6 +75,7 @@ export const diagnostics = [
   leakingRequirements,
   unnecessaryPipe,
   genericEffectServices,
+  globalFetch,
   returnEffectInGen,
   tryCatchInEffectGen,
   importFromBarrel,

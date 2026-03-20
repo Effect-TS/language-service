@@ -86,6 +86,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>unknownInEffectCatch</code></td><td>⚠️</td><td></td><td>Warns when catch callbacks return unknown instead of typed errors</td><td>✓</td><td>✓</td></tr>
     <tr><td colspan="6"><strong>Effect-native</strong> <em>Prefer Effect-native APIs and abstractions when available.</em></td></tr>
     <tr><td><code>extendsNativeError</code></td><td>➖</td><td></td><td>Warns when a class directly extends the native Error class</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>globalFetch</code></td><td>➖</td><td></td><td>Warns when using the global fetch function instead of the Effect HTTP client</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>instanceOfSchema</code></td><td>➖</td><td>🔧</td><td>Suggests using Schema.is instead of instanceof for Effect Schema types</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>nodeBuiltinImport</code></td><td>➖</td><td></td><td>Warns when importing Node.js built-in modules that have Effect-native counterparts</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>preferSchemaOverJson</code></td><td>💡</td><td></td><td>Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw</td><td>✓</td><td>✓</td></tr>

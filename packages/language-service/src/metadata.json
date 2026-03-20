@@ -730,6 +730,27 @@
       }
     },
     {
+      "name": "globalFetch",
+      "group": "effectNative",
+      "description": "Warns when using the global fetch function instead of the Effect HTTP client",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nexport const preview = fetch(\"https://example.com\")\n",
+        "diagnostics": [
+          {
+            "start": 24,
+            "end": 29,
+            "text": "Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)"
+          }
+        ]
+      }
+    },
+    {
       "name": "instanceOfSchema",
       "group": "effectNative",
       "description": "Suggests using Schema.is instead of instanceof for Effect Schema types",
