@@ -25,6 +25,11 @@ export default defineConfig({
       const license = yield* (fs.readFileString("../../LICENSE"))
       yield* (fs.writeFileString(path.join("dist", "LICENSE"), license))
 
+      // copy over schema.json (from repo root)
+      const schema = yield* (fs.readFileString("../../schema.json"))
+      // distribute schema.json to be able to reference it locally
+      yield* (fs.writeFileString(path.join("dist", "schema.json"), schema))
+
       // generate package.json
       const json = yield* (fs.readFileString("package.json").pipe(Effect.map(JSON.parse)))
       const pkg = {

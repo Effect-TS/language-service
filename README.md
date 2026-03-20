@@ -10,7 +10,9 @@ This package implements a TypeScript language service plugin that allows additio
 2. Inside your tsconfig.json, you should add the plugin configuration as follows:
 ```jsonc
 {
-  "$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json",
+  "$schema": "./node_modules/@effect/language-service/schema.json",
+  // or from Github (may drift from your local installation)
+  // "$schema": ""https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json",
   "compilerOptions": {
     "plugins": [
       // ... other LSPs (if any) and as last
