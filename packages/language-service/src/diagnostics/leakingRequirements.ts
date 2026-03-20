@@ -29,7 +29,7 @@ export const leakingRequirements = LSP.createDiagnostic({
       if (!sourceFile) return false
 
       return !!ts.findAncestor(startNode, (current) => {
-        const ranges = ts.getLeadingCommentRanges(sourceFile.text, current.getFullStart()) ?? []
+        const ranges = ts.getLeadingCommentRanges(sourceFile.text, current.pos) ?? []
         const isSuppressed = ranges.some((range) => {
           const commentText = sourceFile.text.slice(range.pos, range.end)
           return commentText
