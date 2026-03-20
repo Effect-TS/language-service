@@ -538,7 +538,7 @@
           {
             "start": 212,
             "end": 217,
-            "text": "Methods of this Service require `FileSystem` from every caller.\n\nThis leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.\n\nResolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\nTo suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), not to this service.\n\nMore info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)"
+            "text": "Methods of this Service require `FileSystem` from every caller.\n\nThis leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.\n\nResolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\nTo suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), or to this service by adding a `@effect-expect-leaking FileSystem` JSDoc.\n\nMore info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)"
           }
         ]
       }

@@ -24,6 +24,39 @@ export const leakingRequirements = LSP.createDiagnostic({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
+    const isExpectedLeakingServiceSuppressed = (leakedServiceName: string, startNode: ts.Node): boolean => {
+      const sourceFile = tsUtils.getSourceFileOfNode(startNode)
+      if (!sourceFile) return false
+
+      return !!ts.findAncestor(startNode, (current) => {
+        const ranges = ts.getLeadingCommentRanges(sourceFile.text, current.pos) ?? []
+        const isSuppressed = ranges.some((range) => {
+          const commentText = sourceFile.text.slice(range.pos, range.end)
+          return commentText
+            .split("\n")
+            .filter((line) => line.includes("@effect-expect-leaking"))
+            .some((line) => {
+              const markerIndex = line.indexOf("@effect-expect-leaking")
+              return markerIndex !== -1 &&
+                line.slice(markerIndex + "@effect-expect-leaking".length).includes(leakedServiceName)
+            })
+        })
+
+        if (isSuppressed) {
+          return true
+        }
+
+        return (
+            ts.isClassDeclaration(current) ||
+            ts.isVariableStatement(current) ||
+            ts.isExpressionStatement(current) ||
+            ts.isStatement(current)
+          )
+          ? "quit"
+          : false
+      })
+    }
+
     const parseLeakedRequirements = Nano.cachedBy(
       Nano.fn("leakingServices.checkServiceLeaking")(
         function*(service: ts.Type, atLocation: ts.Node) {
@@ -113,16 +146,19 @@ export const leakingRequirements = LSP.createDiagnostic({
     )
 
     function reportLeakingRequirements(node: ts.Node, requirements: Array<ts.Type>) {
-      if (requirements.length === 0) return
-      const requirementsStr = requirements.map((_) => typeChecker.typeToString(_)).join(" | ")
+      const filteredRequirements = requirements.filter((requirement) =>
+        !isExpectedLeakingServiceSuppressed(typeChecker.typeToString(requirement), node)
+      )
+      if (filteredRequirements.length === 0) return
+
+      const requirementsStr = filteredRequirements.map((_) => typeChecker.typeToString(_)).join(" | ")
+      const firstStr = typeChecker.typeToString(filteredRequirements[0])
       report({
         location: node,
         messageText: `Methods of this Service require \`${requirementsStr}\` from every caller.\n\n` +
           `This leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.\n\n` +
           `Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\n` +
-          `To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add \`@effect-leakable-service\` JSDoc to their interface declarations (e.g., the \`${
-            typeChecker.typeToString(requirements[0])
-          }\` interface), not to this service.\n\n` +
+          `To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add \`@effect-leakable-service\` JSDoc to their interface declarations (e.g., the \`${firstStr}\` interface), or to this service by adding a \`@effect-expect-leaking ${firstStr}\` JSDoc.\n\n` +
           `More info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,
         fixes: []
       })

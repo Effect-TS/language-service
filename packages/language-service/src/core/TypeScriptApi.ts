@@ -187,6 +187,8 @@ declare module "typescript" {
   export interface Node {
     /** @deprecated Use ts.getTokenPosOfNode(node, sourceFile) instead */
     getStart(sourceFile?: ts.SourceFile, includeJsDocComment?: boolean): number
+    /** @deprecated Use node.pos instead */
+    getFullStart(): number
     /** @deprecated Use sourceFile.text.substring(node.pos, node.end) instead */
     getText(sourceFile?: ts.SourceFile): string
   }
