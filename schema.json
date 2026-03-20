@@ -2375,6 +2375,18 @@
           "default": "warning",
           "description": "Warns when the global Error type is used in an Effect failure channel Default severity: warning."
         },
+        "globalFetch": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using the global fetch function instead of the Effect HTTP client Default severity: off."
+        },
         "importFromBarrel": {
           "type": "string",
           "enum": [
