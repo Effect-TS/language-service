@@ -5,7 +5,7 @@ This leaks implementation details into the service's public type — callers sho
 
 Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.
 
-To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), not to this service.
+To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), or to this service by adding a `@effect-expect-leaking FileSystem` JSDoc.
 
 More info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)
 
@@ -16,6 +16,6 @@ This leaks implementation details into the service's public type — callers sho
 
 Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.
 
-To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), not to this service.
+To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), or to this service by adding a `@effect-expect-leaking FileSystem` JSDoc.
 
 More info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)
