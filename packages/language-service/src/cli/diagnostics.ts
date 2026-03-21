@@ -51,6 +51,8 @@ interface JsonFormattedDiagnostic {
   column: number
   endLine: number
   endColumn: number
+  start: number
+  length: number
   severity: SeverityLevel
   code: number
   name: string
@@ -107,6 +109,8 @@ const formatDiagnosticForJson = (
 
   return {
     file: diagnostic.file.fileName,
+    start: diagnostic.start,
+    length: diagnostic.length ?? 0,
     line: line + 1,
     column: character + 1,
     endLine: endLine + 1,
