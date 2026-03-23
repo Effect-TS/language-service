@@ -680,6 +680,27 @@
       }
     },
     {
+      "name": "serviceAsParameter",
+      "group": "antipattern",
+      "description": "Warns when a yielded service is passed as an argument instead of letting the callee yield it from context",
+      "defaultSeverity": "suggestion",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect, ServiceMap } from \"effect\"\n\nclass Database extends ServiceMap.Service<Database, {\n  readonly query: (sql: string) => Effect.Effect<string>\n}>()(\"Database\") {}\n\ndeclare const processOrder: (order: string, db: {\n  readonly query: (sql: string) => Effect.Effect<string>\n}) => Effect.Effect<void>\n\nexport const preview = Effect.gen(function*() {\n  const db = yield* Database\n  yield* processOrder(\"order-1\", db)\n})\n",
+        "diagnostics": [
+          {
+            "start": 421,
+            "end": 423,
+            "text": "Service 'db' was yielded from context and passed as an argument. Consider having the callee yield the service directly from context instead of receiving it as a parameter.    effect(serviceAsParameter)"
+          }
+        ]
+      }
+    },
+    {
       "name": "strictEffectProvide",
       "group": "antipattern",
       "description": "Warns when using Effect.provide with layers outside of application entry points",

@@ -2699,6 +2699,18 @@
           "default": "warning",
           "description": "Suggests using Layer.scoped instead of Layer.effect when Scope is in requirements Default severity: warning."
         },
+        "serviceAsParameter": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "suggestion",
+          "description": "Warns when a yielded service is passed as an argument instead of letting the callee yield it from context Default severity: suggestion."
+        },
         "serviceNotAsClass": {
           "type": "string",
           "enum": [
