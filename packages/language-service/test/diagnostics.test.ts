@@ -25,6 +25,12 @@ import { applyEdits, configFromSourceComment, createServicesWithMockedVFS } from
 
 const getExamplesDiagnosticsDir = () => getExamplesSubdir("diagnostics")
 
+function compilerOptionsFromSourceComment(sourceText: string): ts.CompilerOptions {
+  return {
+    ...(sourceText.includes("// @strict") ? { strict: true } : {})
+  }
+}
+
 function diagnosticToLogFormat(
   sourceFile: ts.SourceFile,
   sourceText: string,
@@ -56,7 +62,8 @@ function testDiagnosticOnExample(
     getHarnessDir(),
     getExamplesDir(),
     fileName,
-    sourceText
+    sourceText,
+    compilerOptionsFromSourceComment(sourceText)
   )
 
   try {
@@ -133,7 +140,8 @@ function testDiagnosticQuickfixesOnExample(
     getHarnessDir(),
     getExamplesDir(),
     fileName,
-    sourceText
+    sourceText,
+    compilerOptionsFromSourceComment(sourceText)
   )
   languageServicesToDispose.push(languageService)
 
@@ -191,7 +199,8 @@ function testDiagnosticQuickfixesOnExample(
               getHarnessDir(),
               getExamplesDir(),
               fileName,
-              finalSource
+              finalSource,
+              compilerOptionsFromSourceComment(finalSource)
             )
             languageServicesToDispose.push(result.languageService)
             const typeDiags = result.program.getSemanticDiagnostics().filter((_) =>

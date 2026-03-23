@@ -56,6 +56,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>anyUnknownInErrorContext</code></td><td>➖</td><td></td><td>Detects 'any' or 'unknown' types in Effect error or requirements channels</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>classSelfMismatch</code></td><td>❌</td><td>🔧</td><td>Ensures Self type parameter matches the class name in Service/Tag/Schema classes</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>duplicatePackage</code></td><td>⚠️</td><td></td><td>Detects when multiple versions of the same Effect package are loaded</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>effectFnImplicitAny</code></td><td>❌</td><td></td><td>Mirrors noImplicitAny for unannotated Effect.fn and Effect.fnUntraced callback parameters when no outer contextual function type exists</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>floatingEffect</code></td><td>❌</td><td></td><td>Ensures Effects are yielded or assigned to variables, not left floating</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>genericEffectServices</code></td><td>⚠️</td><td></td><td>Prevents services with type parameters that cannot be discriminated at runtime</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>missingEffectContext</code></td><td>❌</td><td></td><td>Reports missing service requirements in Effect context channel</td><td>✓</td><td>✓</td></tr>
