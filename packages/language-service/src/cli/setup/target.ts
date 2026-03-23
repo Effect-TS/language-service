@@ -1,5 +1,6 @@
-import type * as Option from "effect/Option"
+import * as Option from "effect/Option"
 import type { DiagnosticSeverity } from "../../core/LanguageServicePluginOptions"
+import type * as Assesment from "./assessment"
 
 /**
  * Supported editor types
@@ -45,3 +46,30 @@ export namespace Target {
     readonly editors: ReadonlyArray<Editor>
   }
 }
+
+export const fromAssessment = (inputState: Assesment.Assessment.State): Target.State => ({
+  packageJson: {
+    lspVersion: inputState.packageJson.lspVersion,
+    prepareScript: Option.map(inputState.packageJson.prepareScript, (_) => _.hasPatch).pipe(
+      Option.getOrElse(() => false)
+    )
+  },
+  tsconfig: {
+    diagnosticSeverities: Option.map(inputState.tsconfig.currentOptions, (_) => _.diagnosticSeverity)
+  },
+  vscodeSettings: Option.map(inputState.vscodeSettings, (settings) => ({
+    settings: settings.settings
+  })),
+  editors: []
+})
+
+export const withDiagnosticSeverities = (
+  state: Target.State,
+  diagnosticSeverities: Record<string, DiagnosticSeverity | "off">
+): Target.State => ({
+  ...state,
+  tsconfig: {
+    ...state.tsconfig,
+    diagnosticSeverities: Option.some(diagnosticSeverities)
+  }
+})

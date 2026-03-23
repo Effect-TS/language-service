@@ -249,6 +249,9 @@ The effect language service plugin comes with a builtin CLI tool that can be use
 ### `effect-language-service setup`
 Runs through a wizard to setup/update some basic functionalities of the LSP in an interactive way. This also keeps the `tsconfig.json` `$schema` aligned with the published Effect Language Service schema.
 
+### `effect-language-service config`
+After selecting a tsconfig.json file, jumps to the interactive configuration of rules severities.
+
 ### `effect-language-service codegen`
 Automatically updates Effect codegens in your TypeScript files. This command scans files for `@effect-codegens` directives and applies the necessary code transformations. Use `--file` to update a specific file, or `--project` with a tsconfig file to update an entire project. The `--verbose` flag provides detailed output about which files are being processed and updated.
 
