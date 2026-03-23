@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.83.0
+
+### Minor Changes
+
+- [#695](https://github.com/Effect-TS/language-service/pull/695) [`f057090`](https://github.com/Effect-TS/language-service/commit/f057090da99b083fbda8f0507c09b6e198917d0d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add a `config` CLI command for updating diagnostic rule severities without rerunning the full setup flow.
+
+- [#693](https://github.com/Effect-TS/language-service/pull/693) [`b5054e3`](https://github.com/Effect-TS/language-service/commit/b5054e3e220b5a062f565ce1843db8150be2f07d) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add setup CLI preset management for diagnostic severities, including preset metadata, preset-aware customization, and a dedicated `config` command for adjusting rule severities without rerunning full setup.
+
 ## 0.82.0
 
 ### Minor Changes
