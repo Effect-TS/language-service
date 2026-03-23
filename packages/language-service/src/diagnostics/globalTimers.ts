@@ -21,6 +21,7 @@ export const globalTimers = LSP.createDiagnostic({
   apply: Nano.fn("globalTimers.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const globalSymbols = new Map<string, ts.Symbol>()
     for (const name of Object.keys(timerAlternatives)) {
@@ -29,41 +30,43 @@ export const globalTimers = LSP.createDiagnostic({
     }
     if (globalSymbols.size === 0) return
 
-    const collected: Array<{ node: ts.Node; identifier: ts.Identifier; name: string }> = []
+    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      const symbol = typeChecker.getSymbolAtLocation(node)
+      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
+        ? typeChecker.getAliasedSymbol(symbol)
+        : symbol
+    }
 
-    const collectNodes = (node: ts.Node): void => {
-      if (
-        ts.isCallExpression(node) &&
-        ts.isIdentifier(node.expression)
-      ) {
-        const name = ts.idText(node.expression)
-        if (timerAlternatives[name]) {
-          collected.push({ node, identifier: node.expression, name })
+    const nodeToVisit: Array<ts.Node> = []
+    const appendNodeToVisit = (node: ts.Node) => {
+      nodeToVisit.push(node)
+      return undefined
+    }
+    ts.forEachChild(sourceFile, appendNodeToVisit)
+
+    while (nodeToVisit.length > 0) {
+      const node = nodeToVisit.shift()!
+      ts.forEachChild(node, appendNodeToVisit)
+
+      if (!ts.isCallExpression(node)) continue
+
+      const resolvedSymbol = resolveSymbol(node.expression)
+      if (!resolvedSymbol) continue
+
+      let messageText: string | undefined
+      for (const [name, symbol] of globalSymbols) {
+        if (resolvedSymbol === symbol) {
+          messageText = timerAlternatives[name]
+          break
         }
       }
-      ts.forEachChild(node, collectNodes)
-    }
-    ts.forEachChild(sourceFile, collectNodes)
-
-    if (collected.length === 0) return
-
-    const typeParser = yield* Nano.service(TypeParser.TypeParser)
-
-    for (const { identifier, name, node } of collected) {
-      const expectedSymbol = globalSymbols.get(name)
-      if (expectedSymbol) {
-        const localSymbol = typeChecker.getSymbolAtLocation(identifier)
-        const resolvedSymbol = localSymbol && (localSymbol.flags & ts.SymbolFlags.Alias)
-          ? typeChecker.getAliasedSymbol(localSymbol)
-          : localSymbol
-        if (resolvedSymbol !== expectedSymbol) continue
-      }
+      if (!messageText) continue
 
       const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
       if (!effectGen || effectGen.body.statements.length === 0) continue
       if (scopeNode && scopeNode !== effectGen.generatorFunction) continue
 
-      report({ location: node, messageText: timerAlternatives[name], fixes: [] })
+      report({ location: node, messageText, fixes: [] })
     }
   })
 })

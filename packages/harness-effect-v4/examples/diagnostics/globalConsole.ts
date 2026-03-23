@@ -16,6 +16,12 @@ export const consoleErrorInGen = Effect.gen(function*() {
   console.error("error")
 })
 
+// Should trigger - aliased console
+export const aliasedConsole = Effect.gen(function*() {
+  const myConsole = console
+  myConsole.log("hello")
+})
+
 // Should NOT trigger - console.log at module level
 console.log("module level")
 

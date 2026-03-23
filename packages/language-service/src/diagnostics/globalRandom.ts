@@ -16,36 +16,36 @@ export const globalRandom = LSP.createDiagnostic({
   apply: Nano.fn("globalRandom.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const mathSymbol = typeChecker.resolveName("Math", undefined, ts.SymbolFlags.Value, false)
     if (!mathSymbol) return
 
-    const collected: Array<{ node: ts.Node; identifier: ts.Identifier }> = []
-
-    const collectNodes = (node: ts.Node): void => {
-      if (
-        ts.isCallExpression(node) &&
-        ts.isPropertyAccessExpression(node.expression) &&
-        ts.isIdentifier(node.expression.expression) &&
-        ts.idText(node.expression.expression) === "Math" &&
-        ts.idText(node.expression.name) === "random"
-      ) {
-        collected.push({ node, identifier: node.expression.expression })
-      }
-      ts.forEachChild(node, collectNodes)
+    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      const symbol = typeChecker.getSymbolAtLocation(node)
+      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
+        ? typeChecker.getAliasedSymbol(symbol)
+        : symbol
     }
-    ts.forEachChild(sourceFile, collectNodes)
 
-    if (collected.length === 0) return
+    const nodeToVisit: Array<ts.Node> = []
+    const appendNodeToVisit = (node: ts.Node) => {
+      nodeToVisit.push(node)
+      return undefined
+    }
+    ts.forEachChild(sourceFile, appendNodeToVisit)
 
-    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    while (nodeToVisit.length > 0) {
+      const node = nodeToVisit.shift()!
+      ts.forEachChild(node, appendNodeToVisit)
 
-    for (const { identifier, node } of collected) {
-      const localSymbol = typeChecker.getSymbolAtLocation(identifier)
-      const resolvedSymbol = localSymbol && (localSymbol.flags & ts.SymbolFlags.Alias)
-        ? typeChecker.getAliasedSymbol(localSymbol)
-        : localSymbol
-      if (resolvedSymbol !== mathSymbol) continue
+      if (
+        !ts.isCallExpression(node) ||
+        !ts.isPropertyAccessExpression(node.expression) ||
+        ts.idText(node.expression.name) !== "random"
+      ) continue
+
+      if (resolveSymbol(node.expression.expression) !== mathSymbol) continue
 
       const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
       if (!effectGen || effectGen.body.statements.length === 0) continue

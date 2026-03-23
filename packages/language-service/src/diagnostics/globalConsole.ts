@@ -25,49 +25,49 @@ export const globalConsole = LSP.createDiagnostic({
   apply: Nano.fn("globalConsole.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const consoleSymbol = typeChecker.resolveName("console", undefined, ts.SymbolFlags.Value, false)
     if (!consoleSymbol) return
 
-    const collected: Array<{ node: ts.Node; identifier: ts.Identifier; messageText: string }> = []
-
-    const collectNodes = (node: ts.Node): void => {
-      if (
-        ts.isCallExpression(node) &&
-        ts.isPropertyAccessExpression(node.expression) &&
-        ts.isIdentifier(node.expression.expression) &&
-        ts.idText(node.expression.expression) === "console"
-      ) {
-        const method = ts.idText(node.expression.name)
-        const alternative = consoleMethodAlternatives[method]
-        if (alternative) {
-          collected.push({
-            node,
-            identifier: node.expression.expression,
-            messageText: `Prefer using ${alternative} instead of console.${method} inside Effect generators.`
-          })
-        }
-      }
-      ts.forEachChild(node, collectNodes)
+    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      const symbol = typeChecker.getSymbolAtLocation(node)
+      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
+        ? typeChecker.getAliasedSymbol(symbol)
+        : symbol
     }
-    ts.forEachChild(sourceFile, collectNodes)
 
-    if (collected.length === 0) return
+    const nodeToVisit: Array<ts.Node> = []
+    const appendNodeToVisit = (node: ts.Node) => {
+      nodeToVisit.push(node)
+      return undefined
+    }
+    ts.forEachChild(sourceFile, appendNodeToVisit)
 
-    const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    while (nodeToVisit.length > 0) {
+      const node = nodeToVisit.shift()!
+      ts.forEachChild(node, appendNodeToVisit)
 
-    for (const { identifier, messageText, node } of collected) {
-      const localSymbol = typeChecker.getSymbolAtLocation(identifier)
-      const resolvedSymbol = localSymbol && (localSymbol.flags & ts.SymbolFlags.Alias)
-        ? typeChecker.getAliasedSymbol(localSymbol)
-        : localSymbol
-      if (resolvedSymbol !== consoleSymbol) continue
+      if (
+        !ts.isCallExpression(node) ||
+        !ts.isPropertyAccessExpression(node.expression)
+      ) continue
+
+      const method = ts.idText(node.expression.name)
+      const alternative = consoleMethodAlternatives[method]
+      if (!alternative) continue
+
+      if (resolveSymbol(node.expression.expression) !== consoleSymbol) continue
 
       const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
       if (!effectGen || effectGen.body.statements.length === 0) continue
       if (scopeNode && scopeNode !== effectGen.generatorFunction) continue
 
-      report({ location: node, messageText, fixes: [] })
+      report({
+        location: node,
+        messageText: `Prefer using ${alternative} instead of console.${method} inside Effect generators.`,
+        fixes: []
+      })
     }
   })
 })
