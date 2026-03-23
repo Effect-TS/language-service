@@ -30,7 +30,8 @@
         "globalFetch": "warning",
         "preferSchemaOverJson": "warning",
         "extendsNativeError": "warning",
-        "nodeBuiltinImport": "warning"
+        "nodeBuiltinImport": "warning",
+        "globalInEffect": "warning"
       }
     }
   ],
@@ -780,6 +781,32 @@
             "start": 24,
             "end": 29,
             "text": "Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalInEffect",
+      "group": "effectNative",
+      "description": "Warns when using global APIs inside Effect generators that have Effect-native replacements",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  const now = Date.now()\n  console.log(\"hello\")\n  return now\n})\n",
+        "diagnostics": [
+          {
+            "start": 95,
+            "end": 105,
+            "text": "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalInEffect)"
+          },
+          {
+            "start": 108,
+            "end": 128,
+            "text": "Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalInEffect)"
           }
         ]
       }

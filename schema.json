@@ -2399,6 +2399,18 @@
           "default": "off",
           "description": "Warns when using the global fetch function instead of the Effect HTTP client Default severity: off."
         },
+        "globalInEffect": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using global APIs inside Effect generators that have Effect-native replacements Default severity: off."
+        },
         "importFromBarrel": {
           "type": "string",
           "enum": [
