@@ -1,0 +1,8 @@
+db
+27:33 - 27:35 | 2 | Service 'db' was yielded from context and passed as an argument. Consider having the callee yield the service directly from context instead of receiving it as a parameter.    effect(serviceAsParameter)
+
+db
+34:33 - 34:35 | 2 | Service 'db' was yielded from context and passed as an argument. Consider having the callee yield the service directly from context instead of receiving it as a parameter.    effect(serviceAsParameter)
+
+db
+70:34 - 70:36 | 2 | Service 'db' was yielded from context and passed as an argument. Consider having the callee yield the service directly from context instead of receiving it as a parameter.    effect(serviceAsParameter)

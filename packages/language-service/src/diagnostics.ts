@@ -43,6 +43,7 @@ import { schemaStructWithTag } from "./diagnostics/schemaStructWithTag.js"
 import { schemaSyncInEffect } from "./diagnostics/schemaSyncInEffect.js"
 import { schemaUnionOfLiterals } from "./diagnostics/schemaUnionOfLiterals.js"
 import { scopeInLayerEffect } from "./diagnostics/scopeInLayerEffect.js"
+import { serviceAsParameter } from "./diagnostics/serviceAsParameter.js"
 import { serviceNotAsClass } from "./diagnostics/serviceNotAsClass.js"
 import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions.js"
 import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
@@ -109,5 +110,6 @@ export const diagnostics = [
   preferSchemaOverJson,
   extendsNativeError,
   serviceNotAsClass,
-  nodeBuiltinImport
+  nodeBuiltinImport,
+  serviceAsParameter
 ]

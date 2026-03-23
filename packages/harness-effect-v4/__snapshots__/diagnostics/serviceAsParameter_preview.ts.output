@@ -1,0 +1,2 @@
+db
+15:33 - 15:35 | 0 | Service 'db' was yielded from context and passed as an argument. Consider having the callee yield the service directly from context instead of receiving it as a parameter.    effect(serviceAsParameter)
