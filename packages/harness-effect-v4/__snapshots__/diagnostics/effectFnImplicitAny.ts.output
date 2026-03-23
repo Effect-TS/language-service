@@ -1,0 +1,14 @@
+input
+6:60 - 6:65 | 1 | Parameter 'input' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)
+
+input
+11:65 - 11:70 | 1 | Parameter 'input' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)
+
+input
+14:62 - 14:67 | 1 | Parameter 'input' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)
+
+a
+19:44 - 19:45 | 1 | Parameter 'a' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)
+
+b
+19:47 - 19:48 | 1 | Parameter 'b' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)

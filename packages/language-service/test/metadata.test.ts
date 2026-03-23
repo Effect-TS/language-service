@@ -31,6 +31,12 @@ interface TrimmedPreview {
 const metadataPath = path.join(__dirname, "..", "src", "metadata.json")
 const diagnosticGroupOrder = new Map(diagnosticGroups.map((group, index) => [group.id, index]))
 
+function compilerOptionsFromSourceComment(sourceText: string): ts.CompilerOptions {
+  return {
+    ...(sourceText.includes("// @strict") ? { strict: true } : {})
+  }
+}
+
 function getPreviewFileForDiagnostic(diagnostic: LSP.DiagnosticDefinition): PreviewFile {
   for (const harnessVersion of ["v4", "v3"] as const) {
     const fileName = path.join("examples", "diagnostics", `${diagnostic.name}_preview.ts`)
@@ -54,7 +60,8 @@ function getDiagnosticOutput(
     getHarnessDirForVersion(previewFile.harnessVersion),
     getExamplesDirForVersion(previewFile.harnessVersion),
     previewFile.fileName,
-    previewFile.sourceText
+    previewFile.sourceText,
+    compilerOptionsFromSourceComment(previewFile.sourceText)
   )
 
   try {

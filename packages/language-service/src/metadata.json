@@ -90,6 +90,27 @@
       }
     },
     {
+      "name": "effectFnImplicitAny",
+      "group": "correctness",
+      "description": "Mirrors noImplicitAny for unannotated Effect.fn and Effect.fnUntraced callback parameters when no outer contextual function type exists",
+      "defaultSeverity": "error",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import * as Effect from \"effect/Effect\"\n\nexport const preview = Effect.fn(\"preview\")((input) => Effect.succeed(input))\n",
+        "diagnostics": [
+          {
+            "start": 86,
+            "end": 91,
+            "text": "Parameter 'input' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)"
+          }
+        ]
+      }
+    },
+    {
       "name": "floatingEffect",
       "group": "correctness",
       "description": "Ensures Effects are yielded or assigned to variables, not left floating",

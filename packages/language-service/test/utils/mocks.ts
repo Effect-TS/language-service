@@ -6,7 +6,8 @@ export function createMockLanguageServiceHost(
   harnessDir: string,
   examplesDir: string,
   fileName: string,
-  sourceText: string
+  sourceText: string,
+  compilerOptionsOverrides: ts.CompilerOptions = {}
 ): ts.LanguageServiceHost {
   const realPath = (fileName: string) => path.resolve(harnessDir, fileName)
 
@@ -21,7 +22,8 @@ export function createMockLanguageServiceHost(
         moduleResolution: ts.ModuleResolutionKind.NodeNext,
         paths: {
           "@/*": [path.join(examplesDir, "*")]
-        }
+        },
+        ...compilerOptionsOverrides
       }
     },
     getScriptFileNames() {
@@ -55,9 +57,16 @@ export function createServicesWithMockedVFS(
   harnessDir: string,
   examplesDir: string,
   fileName: string,
-  sourceText: string
+  sourceText: string,
+  compilerOptionsOverrides: ts.CompilerOptions = {}
 ) {
-  const languageServiceHost = createMockLanguageServiceHost(harnessDir, examplesDir, fileName, sourceText)
+  const languageServiceHost = createMockLanguageServiceHost(
+    harnessDir,
+    examplesDir,
+    fileName,
+    sourceText,
+    compilerOptionsOverrides
+  )
   const languageService = ts.createLanguageService(
     languageServiceHost,
     undefined,

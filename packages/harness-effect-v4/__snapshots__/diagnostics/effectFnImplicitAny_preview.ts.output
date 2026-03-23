@@ -1,0 +1,2 @@
+input
+6:45 - 6:50 | 1 | Parameter 'input' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)
