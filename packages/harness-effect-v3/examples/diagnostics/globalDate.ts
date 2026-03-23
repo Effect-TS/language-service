@@ -19,6 +19,13 @@ export const newDateWithArgsInFn = Effect.fn("newDateWithArgsInFn")(function*() 
   return date
 })
 
+// Should trigger - aliased Date
+export const aliasedDate = Effect.gen(function*() {
+  const MyDate = Date
+  const now = MyDate.now()
+  return now
+})
+
 // Should NOT trigger - Date.now() at module level
 const _moduleLevel = Date.now()
 

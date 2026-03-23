@@ -30,11 +30,28 @@ export const globalConsole = LSP.createDiagnostic({
     const consoleSymbol = typeChecker.resolveName("console", undefined, ts.SymbolFlags.Value, false)
     if (!consoleSymbol) return
 
-    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
-      const symbol = typeChecker.getSymbolAtLocation(node)
-      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
-        ? typeChecker.getAliasedSymbol(symbol)
-        : symbol
+    const resolveToGlobalSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      let symbol = typeChecker.getSymbolAtLocation(node)
+      if (!symbol) return undefined
+      // Follow import aliases
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = typeChecker.getAliasedSymbol(symbol)
+      }
+      // Follow variable initializer chains: const x = console; x.log(...)
+      let depth = 0
+      while (depth < 5 && symbol.valueDeclaration && ts.isVariableDeclaration(symbol.valueDeclaration)) {
+        const initializer = symbol.valueDeclaration.initializer
+        if (!initializer) break
+        let nextSymbol = typeChecker.getSymbolAtLocation(initializer)
+        if (!nextSymbol) break
+        if (nextSymbol.flags & ts.SymbolFlags.Alias) {
+          nextSymbol = typeChecker.getAliasedSymbol(nextSymbol)
+        }
+        if (nextSymbol === symbol) break
+        symbol = nextSymbol
+        depth++
+      }
+      return symbol
     }
 
     const nodeToVisit: Array<ts.Node> = []
@@ -57,7 +74,7 @@ export const globalConsole = LSP.createDiagnostic({
       const alternative = consoleMethodAlternatives[method]
       if (!alternative) continue
 
-      if (resolveSymbol(node.expression.expression) !== consoleSymbol) continue
+      if (resolveToGlobalSymbol(node.expression.expression) !== consoleSymbol) continue
 
       const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
       if (!effectGen || effectGen.body.statements.length === 0) continue

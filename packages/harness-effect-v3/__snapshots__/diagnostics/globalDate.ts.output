@@ -6,3 +6,6 @@ new Date()
 
 new Date("2024-01-01")
 18:15 - 18:37 | 0 | Prefer using DateTime from Effect instead of new Date() inside Effect generators.    effect(globalDate)
+
+MyDate.now()
+25:14 - 25:26 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDate)

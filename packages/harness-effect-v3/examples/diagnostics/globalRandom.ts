@@ -7,6 +7,13 @@ export const mathRandomInGen = Effect.gen(function*() {
   return r
 })
 
+// Should trigger - aliased Math
+export const aliasedMath = Effect.gen(function*() {
+  const MyMath = Math
+  const r = MyMath.random()
+  return r
+})
+
 // Should NOT trigger - Math.random() at module level
 const _moduleLevel = Math.random()
 

@@ -30,11 +30,26 @@ export const globalTimers = LSP.createDiagnostic({
     }
     if (globalSymbols.size === 0) return
 
-    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
-      const symbol = typeChecker.getSymbolAtLocation(node)
-      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
-        ? typeChecker.getAliasedSymbol(symbol)
-        : symbol
+    const resolveToGlobalSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      let symbol = typeChecker.getSymbolAtLocation(node)
+      if (!symbol) return undefined
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = typeChecker.getAliasedSymbol(symbol)
+      }
+      let depth = 0
+      while (depth < 5 && symbol.valueDeclaration && ts.isVariableDeclaration(symbol.valueDeclaration)) {
+        const initializer = symbol.valueDeclaration.initializer
+        if (!initializer) break
+        let nextSymbol = typeChecker.getSymbolAtLocation(initializer)
+        if (!nextSymbol) break
+        if (nextSymbol.flags & ts.SymbolFlags.Alias) {
+          nextSymbol = typeChecker.getAliasedSymbol(nextSymbol)
+        }
+        if (nextSymbol === symbol) break
+        symbol = nextSymbol
+        depth++
+      }
+      return symbol
     }
 
     const nodeToVisit: Array<ts.Node> = []
@@ -50,7 +65,7 @@ export const globalTimers = LSP.createDiagnostic({
 
       if (!ts.isCallExpression(node)) continue
 
-      const resolvedSymbol = resolveSymbol(node.expression)
+      const resolvedSymbol = resolveToGlobalSymbol(node.expression)
       if (!resolvedSymbol) continue
 
       let messageText: string | undefined

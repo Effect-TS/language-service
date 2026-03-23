@@ -21,11 +21,26 @@ export const globalRandom = LSP.createDiagnostic({
     const mathSymbol = typeChecker.resolveName("Math", undefined, ts.SymbolFlags.Value, false)
     if (!mathSymbol) return
 
-    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
-      const symbol = typeChecker.getSymbolAtLocation(node)
-      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
-        ? typeChecker.getAliasedSymbol(symbol)
-        : symbol
+    const resolveToGlobalSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      let symbol = typeChecker.getSymbolAtLocation(node)
+      if (!symbol) return undefined
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = typeChecker.getAliasedSymbol(symbol)
+      }
+      let depth = 0
+      while (depth < 5 && symbol.valueDeclaration && ts.isVariableDeclaration(symbol.valueDeclaration)) {
+        const initializer = symbol.valueDeclaration.initializer
+        if (!initializer) break
+        let nextSymbol = typeChecker.getSymbolAtLocation(initializer)
+        if (!nextSymbol) break
+        if (nextSymbol.flags & ts.SymbolFlags.Alias) {
+          nextSymbol = typeChecker.getAliasedSymbol(nextSymbol)
+        }
+        if (nextSymbol === symbol) break
+        symbol = nextSymbol
+        depth++
+      }
+      return symbol
     }
 
     const nodeToVisit: Array<ts.Node> = []
@@ -45,7 +60,7 @@ export const globalRandom = LSP.createDiagnostic({
         ts.idText(node.expression.name) !== "random"
       ) continue
 
-      if (resolveSymbol(node.expression.expression) !== mathSymbol) continue
+      if (resolveToGlobalSymbol(node.expression.expression) !== mathSymbol) continue
 
       const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
       if (!effectGen || effectGen.body.statements.length === 0) continue

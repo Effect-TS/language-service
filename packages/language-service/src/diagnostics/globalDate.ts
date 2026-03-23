@@ -21,11 +21,26 @@ export const globalDate = LSP.createDiagnostic({
     const dateSymbol = typeChecker.resolveName("Date", undefined, ts.SymbolFlags.Value, false)
     if (!dateSymbol) return
 
-    const resolveSymbol = (node: ts.Node): ts.Symbol | undefined => {
-      const symbol = typeChecker.getSymbolAtLocation(node)
-      return symbol && (symbol.flags & ts.SymbolFlags.Alias)
-        ? typeChecker.getAliasedSymbol(symbol)
-        : symbol
+    const resolveToGlobalSymbol = (node: ts.Node): ts.Symbol | undefined => {
+      let symbol = typeChecker.getSymbolAtLocation(node)
+      if (!symbol) return undefined
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = typeChecker.getAliasedSymbol(symbol)
+      }
+      let depth = 0
+      while (depth < 5 && symbol.valueDeclaration && ts.isVariableDeclaration(symbol.valueDeclaration)) {
+        const initializer = symbol.valueDeclaration.initializer
+        if (!initializer) break
+        let nextSymbol = typeChecker.getSymbolAtLocation(initializer)
+        if (!nextSymbol) break
+        if (nextSymbol.flags & ts.SymbolFlags.Alias) {
+          nextSymbol = typeChecker.getAliasedSymbol(nextSymbol)
+        }
+        if (nextSymbol === symbol) break
+        symbol = nextSymbol
+        depth++
+      }
+      return symbol
     }
 
     const nodeToVisit: Array<ts.Node> = []
@@ -42,7 +57,6 @@ export const globalDate = LSP.createDiagnostic({
       let messageText: string | undefined
       let objectNode: ts.Node | undefined
 
-      // Date.now()
       if (
         ts.isCallExpression(node) &&
         ts.isPropertyAccessExpression(node.expression) &&
@@ -50,14 +64,13 @@ export const globalDate = LSP.createDiagnostic({
       ) {
         objectNode = node.expression.expression
         messageText = "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators."
-      } // new Date() / new Date(...)
-      else if (ts.isNewExpression(node)) {
+      } else if (ts.isNewExpression(node)) {
         objectNode = node.expression
         messageText = "Prefer using DateTime from Effect instead of new Date() inside Effect generators."
       }
 
       if (!messageText || !objectNode) continue
-      if (resolveSymbol(objectNode) !== dateSymbol) continue
+      if (resolveToGlobalSymbol(objectNode) !== dateSymbol) continue
 
       const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
       if (!effectGen || effectGen.body.statements.length === 0) continue

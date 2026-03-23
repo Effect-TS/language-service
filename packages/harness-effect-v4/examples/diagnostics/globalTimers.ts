@@ -11,6 +11,12 @@ export const setIntervalInGen = Effect.gen(function*() {
   setInterval(() => {}, 1000)
 })
 
+// Should trigger - aliased setTimeout
+export const aliasedTimeout = Effect.gen(function*() {
+  const myTimeout = setTimeout
+  myTimeout(() => {}, 100)
+})
+
 // Should NOT trigger - setTimeout at module level
 setTimeout(() => {}, 0)
 

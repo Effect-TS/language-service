@@ -22,6 +22,12 @@ export const aliasedConsole = Effect.gen(function*() {
   myConsole.log("hello")
 })
 
+// Should trigger - aliased console
+export const aliasedConsole = Effect.gen(function*() {
+  const myConsole = console
+  myConsole.log("hello")
+})
+
 // Should NOT trigger - console.log at module level
 console.log("module level")
 
