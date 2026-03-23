@@ -1,8 +1,13 @@
+import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
+import * as FileSystem from "effect/FileSystem"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import * as Prompt from "effect/unstable/cli/Prompt"
 import type * as ts from "typescript"
 import { type TypeScriptApi, TypeScriptContext } from "../utils"
 import { type Assessment, MARKDOWN_DEFAULT_CONTENT, MARKDOWN_END_MARKER, MARKDOWN_START_MARKER } from "./assessment"
+import { renderCodeActions } from "./diff-renderer"
 import type { Target } from "./target"
 
 /**
@@ -975,3 +980,75 @@ const computeVSCodeSettingsChanges = (
     }
   })
 }
+
+export const reviewAndApplyChanges = (
+  result: ComputeChangesResult,
+  assessmentState: Assessment.State,
+  options?: {
+    readonly confirmMessage?: string
+    readonly cancelMessage?: string
+    readonly applyMessage?: string
+    readonly successMessage?: string
+  }
+) =>
+  Effect.gen(function*() {
+    yield* renderCodeActions(result, assessmentState)
+
+    if (result.codeActions.length === 0) {
+      return
+    }
+
+    const shouldProceed = yield* Prompt.confirm({
+      message: options?.confirmMessage ?? "Apply all changes?",
+      initial: true
+    })
+
+    if (!shouldProceed) {
+      yield* Console.log(options?.cancelMessage ?? "No changes were made.")
+      return
+    }
+
+    yield* Console.log("")
+    yield* Console.log(options?.applyMessage ?? "Applying changes...")
+
+    const fs = yield* FileSystem.FileSystem
+    const path = yield* Path.Path
+
+    for (const codeAction of result.codeActions) {
+      for (const fileChange of codeAction.changes) {
+        const fileName = fileChange.fileName
+        const fileExists = yield* fs.exists(fileName)
+
+        if (!fileExists && fileChange.isNewFile) {
+          const dirName = path.dirname(fileName)
+          yield* fs.makeDirectory(dirName, { recursive: true }).pipe(Effect.ignore)
+
+          const newContent = fileChange.textChanges.length > 0
+            ? fileChange.textChanges[0].newText
+            : ""
+
+          yield* fs.writeFileString(fileName, newContent)
+        } else if (fileExists) {
+          const existingContent = yield* fs.readFileString(fileName)
+          const sortedChanges = [...fileChange.textChanges].sort((a, b) => b.span.start - a.span.start)
+
+          let newContent = existingContent
+          for (const textChange of sortedChanges) {
+            const start = textChange.span.start
+            const end = start + textChange.span.length
+
+            newContent = newContent.slice(0, start) + textChange.newText + newContent.slice(end)
+          }
+
+          yield* fs.writeFileString(fileName, newContent)
+        }
+      }
+    }
+
+    yield* Console.log(options?.successMessage ?? "Changes applied successfully!")
+    yield* Console.log("")
+
+    for (const message of result.messages) {
+      yield* Console.log(message)
+    }
+  })
