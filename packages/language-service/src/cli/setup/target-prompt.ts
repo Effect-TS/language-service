@@ -1,8 +1,9 @@
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import * as Prompt from "effect/unstable/cli/Prompt"
+import { applyPresetDiagnosticSeverities, type DiagnosticPresetName, isPresetEnabled } from "../../presets"
 import type { Assessment } from "./assessment"
-import { getAllDiagnostics } from "./diagnostic-info"
+import { getAllDiagnostics, getDiagnosticPresets } from "./diagnostic-info"
 import { createDiagnosticPrompt } from "./diagnostic-prompt"
 import type { Editor } from "./target"
 
@@ -66,38 +67,44 @@ export const gatherTargetState = (
       }
     }
 
-    // Diagnostic Configuration
-    const shouldCustomizeDiagnostics = yield* Prompt.select({
-      message: "Would you like to customize the diagnostics that the language service will provide?",
-      choices: [
-        {
-          title: "Yes",
-          description: "Manually review and select which diagnostics to enable",
-          value: true,
-          selected: true
-        },
-        {
-          title: "No",
-          description: "Keep the defaults provided by the language service",
-          value: false,
-          selected: false
-        }
-      ]
-    })
-
     const allDiagnostics = getAllDiagnostics()
-    const initialSeverities = Option.match(assessment.tsconfig.currentOptions, {
+    const currentDiagnosticSeverities = Option.match(assessment.tsconfig.currentOptions, {
       onNone: () => ({}),
       onSome: (options) => options.diagnosticSeverity
     })
 
-    const diagnosticSeverities = shouldCustomizeDiagnostics
-      ? Option.some(
-        yield* createDiagnosticPrompt(
-          allDiagnostics,
-          initialSeverities
-        )
+    const selectedDiagnosticModes = yield* Prompt.multiSelect({
+      message: "Which diagnostic presets would you like to use?",
+      choices: [
+        {
+          title: "Custom",
+          description: "Review and adjust individual diagnostic severities after presets are applied",
+          value: "custom" as const
+        },
+        ...getDiagnosticPresets().map((preset) => ({
+          title: preset.name,
+          description: preset.description,
+          value: preset.name as DiagnosticPresetName,
+          selected: isPresetEnabled(preset.name as DiagnosticPresetName, currentDiagnosticSeverities)
+        }))
+      ]
+    })
+
+    const shouldCustomizeDiagnostics = selectedDiagnosticModes.includes("custom")
+    const selectedPresetNames = selectedDiagnosticModes.filter((value): value is DiagnosticPresetName =>
+      value !== "custom"
+    )
+    const initialSeverities = applyPresetDiagnosticSeverities(currentDiagnosticSeverities, selectedPresetNames)
+
+    const diagnosticSeveritiesRecord = shouldCustomizeDiagnostics
+      ? yield* createDiagnosticPrompt(
+        allDiagnostics,
+        initialSeverities
       )
+      : initialSeverities
+
+    const diagnosticSeverities = Object.keys(diagnosticSeveritiesRecord).length > 0
+      ? Option.some(diagnosticSeveritiesRecord)
       : Option.none()
 
     // Prepare Script Configuration

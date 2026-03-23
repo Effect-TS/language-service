@@ -32,7 +32,14 @@ export interface DiagnosticMetadataRule {
 
 interface DiagnosticMetadata {
   readonly groups: ReadonlyArray<DiagnosticGroupInfo>
+  readonly presets: ReadonlyArray<DiagnosticPresetMetadata>
   readonly rules: ReadonlyArray<DiagnosticMetadataRule>
+}
+
+export interface DiagnosticPresetMetadata {
+  readonly name: string
+  readonly description: string
+  readonly diagnosticSeverity: Readonly<Record<string, DiagnosticSeverity | "off">>
 }
 
 const diagnosticMetadata = metadataJson as unknown as DiagnosticMetadata
@@ -55,6 +62,10 @@ export function getDiagnosticGroups(): ReadonlyArray<DiagnosticGroupInfo> {
 
 export function getDiagnosticMetadataRules(): ReadonlyArray<DiagnosticMetadataRule> {
   return diagnosticMetadata.rules
+}
+
+export function getDiagnosticPresets(): ReadonlyArray<DiagnosticPresetMetadata> {
+  return diagnosticMetadata.presets
 }
 
 /**
