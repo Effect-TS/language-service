@@ -1,10 +1,14 @@
 import * as Array from "effect/Array"
 import * as Effect from "effect/Effect"
+import * as FileSystem from "effect/FileSystem"
 import * as Option from "effect/Option"
+import * as Path from "effect/Path"
+import type * as PlatformError from "effect/PlatformError"
 import type * as ts from "typescript"
 import type { LanguageServicePluginOptions } from "../../core/LanguageServicePluginOptions"
 import { parse as parseOptions } from "../../core/LanguageServicePluginOptions"
 import { type FileInput, TypeScriptContext } from "../utils"
+import { FileReadError, PackageJsonNotFoundError } from "./errors"
 
 /**
  * Markers used to identify the effect-language-service section in markdown files
@@ -232,6 +236,104 @@ const assessMarkdownFromInput = (
     markerContent
   }
 }
+
+export const createAssessmentInput = (
+  currentDir: string,
+  tsconfigInput: FileInput
+): Effect.Effect<
+  Assessment.Input,
+  PackageJsonNotFoundError | FileReadError | PlatformError.PlatformError,
+  FileSystem.FileSystem | Path.Path
+> =>
+  Effect.gen(function*() {
+    const fs = yield* FileSystem.FileSystem
+    const path = yield* Path.Path
+
+    const packageJsonPath = path.join(currentDir, "package.json")
+    const packageJsonExists = yield* fs.exists(packageJsonPath)
+
+    if (!packageJsonExists) {
+      return yield* new PackageJsonNotFoundError({ path: packageJsonPath })
+    }
+
+    const packageJsonText = yield* fs.readFileString(packageJsonPath).pipe(
+      Effect.mapError((cause) => new FileReadError({ path: packageJsonPath, cause }))
+    )
+    const packageJsonInput: FileInput = {
+      fileName: packageJsonPath,
+      text: packageJsonText
+    }
+
+    const vscodeSettingsPath = path.join(currentDir, ".vscode", "settings.json")
+    const vscodeSettingsExists = yield* fs.exists(vscodeSettingsPath)
+
+    let vscodeSettingsInput = Option.none<FileInput>()
+    if (vscodeSettingsExists) {
+      const vscodeSettingsText = yield* fs.readFileString(vscodeSettingsPath).pipe(
+        Effect.mapError((cause) => new FileReadError({ path: vscodeSettingsPath, cause }))
+      )
+      vscodeSettingsInput = Option.some({
+        fileName: vscodeSettingsPath,
+        text: vscodeSettingsText
+      })
+    }
+
+    const agentsMdLowerPath = path.join(currentDir, "agents.md")
+    const agentsMdUpperPath = path.join(currentDir, "AGENTS.md")
+    const agentsMdLowerExists = yield* fs.exists(agentsMdLowerPath)
+    const agentsMdUpperExists = yield* fs.exists(agentsMdUpperPath)
+    const agentsMdPath = agentsMdUpperExists ? agentsMdUpperPath : agentsMdLowerPath
+    const agentsMdExists = agentsMdUpperExists || agentsMdLowerExists
+
+    let agentsMdInput = Option.none<FileInput>()
+    if (agentsMdExists) {
+      const agentsMdStat = yield* fs.stat(agentsMdPath).pipe(Effect.option)
+      const isAgentsMdSymlink = Option.isSome(agentsMdStat) &&
+        agentsMdStat.value.type === "SymbolicLink"
+
+      if (!isAgentsMdSymlink) {
+        const agentsMdText = yield* fs.readFileString(agentsMdPath).pipe(
+          Effect.mapError((cause) => new FileReadError({ path: agentsMdPath, cause }))
+        )
+        agentsMdInput = Option.some({
+          fileName: agentsMdPath,
+          text: agentsMdText
+        })
+      }
+    }
+
+    const claudeMdLowerPath = path.join(currentDir, "claude.md")
+    const claudeMdUpperPath = path.join(currentDir, "CLAUDE.md")
+    const claudeMdLowerExists = yield* fs.exists(claudeMdLowerPath)
+    const claudeMdUpperExists = yield* fs.exists(claudeMdUpperPath)
+    const claudeMdPath = claudeMdUpperExists ? claudeMdUpperPath : claudeMdLowerPath
+    const claudeMdExists = claudeMdUpperExists || claudeMdLowerExists
+
+    let claudeMdInput = Option.none<FileInput>()
+    if (claudeMdExists) {
+      const claudeMdStat = yield* fs.stat(claudeMdPath).pipe(Effect.option)
+      const isClaudeMdSymlink = Option.isSome(claudeMdStat) &&
+        claudeMdStat.value.type === "SymbolicLink"
+
+      if (!isClaudeMdSymlink) {
+        const claudeMdText = yield* fs.readFileString(claudeMdPath).pipe(
+          Effect.mapError((cause) => new FileReadError({ path: claudeMdPath, cause }))
+        )
+        claudeMdInput = Option.some({
+          fileName: claudeMdPath,
+          text: claudeMdText
+        })
+      }
+    }
+
+    return {
+      packageJson: packageJsonInput,
+      tsconfig: tsconfigInput,
+      vscodeSettings: vscodeSettingsInput,
+      agentsMd: agentsMdInput,
+      claudeMd: claudeMdInput
+    }
+  })
 
 /**
  * Perform assessment from input data

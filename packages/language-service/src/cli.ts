@@ -9,6 +9,7 @@ import { Command } from "effect/unstable/cli"
 import packageJson from "../package.json"
 import { check } from "./cli/check"
 import { codegen } from "./cli/codegen"
+import { config } from "./cli/config"
 import { diagnostics } from "./cli/diagnostics"
 import { layerInfo } from "./cli/layerinfo"
 import { overview } from "./cli/overview"
@@ -25,7 +26,7 @@ const cliCommand = Command.make(
 ).pipe(Command.withSubcommands([
   {
     group: "Getting started",
-    commands: [setup]
+    commands: [setup, config]
   },
   {
     group: "Diagnostics at compile-time",
