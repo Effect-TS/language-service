@@ -372,9 +372,8 @@ function isPrintableInput(input: Terminal.UserInput): boolean {
   return (
     !input.key.ctrl &&
     !input.key.meta &&
-    input.input !== undefined &&
-    input.input.length > 0 &&
-    printablePattern.test(input.input)
+    input.input.valueOrUndefined !== undefined &&
+    printablePattern.test(input.input.valueOrUndefined)
   )
 }
 

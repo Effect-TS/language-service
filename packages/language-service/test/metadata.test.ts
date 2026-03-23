@@ -14,6 +14,7 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { presets } from "../src/presets"
 import { getExamplesDirForVersion, getHarnessDirForVersion, getHarnessVersion } from "./utils/harness"
 import { configFromSourceComment, createServicesWithMockedVFS } from "./utils/mocks"
 
@@ -165,6 +166,7 @@ describe.skipIf(getHarnessVersion() !== "v4")("Metadata", () => {
 
     const metadata = {
       groups: diagnosticGroups,
+      presets,
       rules
     }
 
