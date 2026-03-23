@@ -1,5 +1,0 @@
-Date.now()
-6:14 - 6:24 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalInEffect)
-
-console.log("hello")
-7:2 - 7:22 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalInEffect)
