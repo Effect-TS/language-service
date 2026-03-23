@@ -1,5 +1,21 @@
 # @effect/language-service
 
+## 0.82.0
+
+### Minor Changes
+
+- [#689](https://github.com/Effect-TS/language-service/pull/689) [`aed2074`](https://github.com/Effect-TS/language-service/commit/aed2074e250aa74a40f85219a3b9af08f61936df) Thanks [@f15u](https://github.com/f15u)! - Adds ability to reference `$schema` from local installation
+
+- [#692](https://github.com/Effect-TS/language-service/pull/692) [`57fcf35`](https://github.com/Effect-TS/language-service/commit/57fcf35cb93c045943f8b7b5431fdce4fa0ba6e1) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `effectFnImplicitAny` diagnostic to mirror `noImplicitAny` for unannotated `Effect.fn` and `Effect.fnUntraced` callback parameters, and support `// @strict` in diagnostic example files so test fixtures can enable strict compiler options.
+
+### Patch Changes
+
+- [#687](https://github.com/Effect-TS/language-service/pull/687) [`72827c0`](https://github.com/Effect-TS/language-service/commit/72827c0dcacf0fbeb24a066e4f98c08585a39341) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Allow the leaking requirements diagnostic to suppress specific leaked services with `@effect-expect-leaking` comments on the enclosing declaration.
+
+- [#690](https://github.com/Effect-TS/language-service/pull/690) [`77906a9`](https://github.com/Effect-TS/language-service/commit/77906a97d9b51f10923e1efba2132227bcdcc660) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix the class self mismatch diagnostic so it also reports invalid `ServiceMap.Service` self type parameters.
+
+- [#691](https://github.com/Effect-TS/language-service/pull/691) [`0e16db0`](https://github.com/Effect-TS/language-service/commit/0e16db0d0e233d58495cce3647c919ba45fb4d56) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Include start and end in json diagnostics command
+
 ## 0.81.0
 
 ### Minor Changes
