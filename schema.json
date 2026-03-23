@@ -2243,6 +2243,18 @@
           "default": "warning",
           "description": "Effect.fn or Effect.fnUntraced is called as an IIFE (Immediately Invoked Function Expression). Use Effect.gen instead. Default severity: warning."
         },
+        "effectFnImplicitAny": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "error",
+          "description": "Mirrors noImplicitAny for unannotated Effect.fn and Effect.fnUntraced callback parameters when no outer contextual function type exists Default severity: error."
+        },
         "effectFnOpportunity": {
           "type": "string",
           "enum": [

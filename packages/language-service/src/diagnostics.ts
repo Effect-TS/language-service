@@ -5,6 +5,7 @@ import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
 import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { effectFnIife } from "./diagnostics/effectFnIife.js"
+import { effectFnImplicitAny } from "./diagnostics/effectFnImplicitAny.js"
 import { effectFnOpportunity } from "./diagnostics/effectFnOpportunity.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInFailure } from "./diagnostics/effectInFailure.js"
@@ -61,6 +62,7 @@ export const diagnostics = [
   catchUnfailableEffect,
   classSelfMismatch,
   duplicatePackage,
+  effectFnImplicitAny,
   effectGenUsesAdapter,
   missingEffectContext,
   missingEffectError,
