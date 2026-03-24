@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.83.1
+
+### Patch Changes
+
+- [#698](https://github.com/Effect-TS/language-service/pull/698) [`b11c184`](https://github.com/Effect-TS/language-service/commit/b11c18417b170fb448c9a444178b0325b16c67b8) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the Effect v4 workspace dependencies to `4.0.0-beta.38`.
+
 ## 0.83.0
 
 ### Minor Changes
