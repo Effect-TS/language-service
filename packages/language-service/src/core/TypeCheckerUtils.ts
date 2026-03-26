@@ -12,6 +12,7 @@ export interface TypeCheckerUtils {
   isReadonlyArrayType: (type: ts.Type) => boolean
   isMissingIntrinsicType: (type: ts.Type) => boolean
   getTypeAtLocation: (node: ts.Node) => ts.Type | undefined
+  resolveToGlobalSymbol: (symbol: ts.Symbol) => ts.Symbol
   getTypeParameterAtPosition: (signature: ts.Signature, pos: number) => ts.Type
   getMissingTypeEntriesInTargetType: (realType: ts.Type, expectedType: ts.Type) => Array<ts.Type>
   unrollUnionMembers: (type: ts.Type) => Array<ts.Type>
@@ -494,6 +495,26 @@ export function makeTypeCheckerUtils(
     }
   }
 
+  function resolveToGlobalSymbol(symbol: ts.Symbol): ts.Symbol {
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = typeChecker.getAliasedSymbol(symbol)
+    }
+    let depth = 0
+    while (depth < 2 && symbol.valueDeclaration && ts.isVariableDeclaration(symbol.valueDeclaration)) {
+      const initializer = symbol.valueDeclaration.initializer
+      if (!initializer) break
+      let nextSymbol = typeChecker.getSymbolAtLocation(initializer)
+      if (!nextSymbol) break
+      if (nextSymbol.flags & ts.SymbolFlags.Alias) {
+        nextSymbol = typeChecker.getAliasedSymbol(nextSymbol)
+      }
+      if (nextSymbol === symbol) break
+      symbol = nextSymbol
+      depth++
+    }
+    return symbol
+  }
+
   return {
     isUnion,
     isReadonlyArrayType,
@@ -507,6 +528,7 @@ export function makeTypeCheckerUtils(
     expectedAndRealType,
     typeToSimplifiedTypeNode,
     isGlobalErrorType,
-    getTypeAtLocation
+    getTypeAtLocation,
+    resolveToGlobalSymbol
   }
 }

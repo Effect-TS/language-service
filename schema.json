@@ -2373,9 +2373,33 @@
             "suggestion"
           ],
           "default": "off",
+          "description": "Warns when using console methods outside Effect generators instead of Effect.log/Logger Default severity: off."
+        },
+        "globalConsoleInEffect": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
           "description": "Warns when using console methods inside Effect generators instead of Effect.log/Logger Default severity: off."
         },
         "globalDate": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using Date.now() or new Date() outside Effect generators instead of Clock/DateTime Default severity: off."
+        },
+        "globalDateInEffect": {
           "type": "string",
           "enum": [
             "off",
@@ -2421,9 +2445,33 @@
             "suggestion"
           ],
           "default": "off",
-          "description": "Warns when using the global fetch function instead of the Effect HTTP client Default severity: off."
+          "description": "Warns when using the global fetch function outside Effect generators instead of the Effect HTTP client Default severity: off."
+        },
+        "globalFetchInEffect": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using the global fetch function inside Effect generators instead of the Effect HTTP client Default severity: off."
         },
         "globalRandom": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using Math.random() outside Effect generators instead of the Random service Default severity: off."
+        },
+        "globalRandomInEffect": {
           "type": "string",
           "enum": [
             "off",
@@ -2436,6 +2484,18 @@
           "description": "Warns when using Math.random() inside Effect generators instead of the Random service Default severity: off."
         },
         "globalTimers": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using setTimeout/setInterval outside Effect generators instead of Effect.sleep/Schedule Default severity: off."
+        },
+        "globalTimersInEffect": {
           "type": "string",
           "enum": [
             "off",

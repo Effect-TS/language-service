@@ -154,6 +154,7 @@ export interface TypeParser {
     node: ts.Node
   ) => Nano.Nano<
     {
+      inEffect: boolean
       scopeNode: ts.FunctionLikeDeclaration | undefined
       effectGen: {
         node: ts.Node
@@ -1293,7 +1294,13 @@ export function make(
       currentParent = nodeToCheck.parent
     }
 
-    return { scopeNode, effectGen: effectGenResult }
+    return {
+      inEffect: effectGenResult !== undefined &&
+        effectGenResult.body.statements.length > 0 &&
+        scopeNode === effectGenResult.generatorFunction,
+      scopeNode,
+      effectGen: effectGenResult
+    }
   })
 
   const effectFn = Nano.cachedBy(

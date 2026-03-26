@@ -1,0 +1,11 @@
+console.log("hello")
+6:2 - 6:22 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)
+
+console.warn("warning")
+11:2 - 11:25 | 0 | Prefer using Effect.logWarning or Logger instead of console.warn inside Effect generators.    effect(globalConsoleInEffect)
+
+console.error("error")
+16:2 - 16:24 | 0 | Prefer using Effect.logError or Logger instead of console.error inside Effect generators.    effect(globalConsoleInEffect)
+
+myConsole.log("hello")
+22:2 - 22:24 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)
