@@ -15,9 +15,13 @@ import { effectSucceedWithVoid } from "./diagnostics/effectSucceedWithVoid.js"
 import { extendsNativeError } from "./diagnostics/extendsNativeError.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
+import { globalConsole } from "./diagnostics/globalConsole.js"
+import { globalDate } from "./diagnostics/globalDate.js"
 import { globalErrorInEffectCatch } from "./diagnostics/globalErrorInEffectCatch.js"
 import { globalErrorInEffectFailure } from "./diagnostics/globalErrorInEffectFailure.js"
 import { globalFetch } from "./diagnostics/globalFetch.js"
+import { globalRandom } from "./diagnostics/globalRandom.js"
+import { globalTimers } from "./diagnostics/globalTimers.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
 import { instanceOfSchema } from "./diagnostics/instanceOfSchema.js"
 import { layerMergeAllWithDependencies } from "./diagnostics/layerMergeAllWithDependencies.js"
@@ -109,5 +113,9 @@ export const diagnostics = [
   preferSchemaOverJson,
   extendsNativeError,
   serviceNotAsClass,
-  nodeBuiltinImport
+  nodeBuiltinImport,
+  globalDate,
+  globalConsole,
+  globalRandom,
+  globalTimers
 ]

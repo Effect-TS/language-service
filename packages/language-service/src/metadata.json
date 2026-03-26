@@ -30,7 +30,11 @@
         "globalFetch": "warning",
         "preferSchemaOverJson": "warning",
         "extendsNativeError": "warning",
-        "nodeBuiltinImport": "warning"
+        "nodeBuiltinImport": "warning",
+        "globalDate": "warning",
+        "globalConsole": "warning",
+        "globalRandom": "warning",
+        "globalTimers": "warning"
       }
     }
   ],
@@ -764,6 +768,48 @@
       }
     },
     {
+      "name": "globalConsole",
+      "group": "effectNative",
+      "description": "Warns when using console methods inside Effect generators instead of Effect.log/Logger",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  console.log(\"hello\")\n})\n",
+        "diagnostics": [
+          {
+            "start": 83,
+            "end": 103,
+            "text": "Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsole)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalDate",
+      "group": "effectNative",
+      "description": "Warns when using Date.now() or new Date() inside Effect generators instead of Clock/DateTime",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  const now = Date.now()\n  return now\n})\n",
+        "diagnostics": [
+          {
+            "start": 95,
+            "end": 105,
+            "text": "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDate)"
+          }
+        ]
+      }
+    },
+    {
       "name": "globalFetch",
       "group": "effectNative",
       "description": "Warns when using the global fetch function instead of the Effect HTTP client",
@@ -780,6 +826,48 @@
             "start": 24,
             "end": 29,
             "text": "Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalRandom",
+      "group": "effectNative",
+      "description": "Warns when using Math.random() inside Effect generators instead of the Random service",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  const r = Math.random()\n  return r\n})\n",
+        "diagnostics": [
+          {
+            "start": 93,
+            "end": 106,
+            "text": "Prefer using the Random service from Effect instead of Math.random() inside Effect generators.    effect(globalRandom)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalTimers",
+      "group": "effectNative",
+      "description": "Warns when using setTimeout/setInterval inside Effect generators instead of Effect.sleep/Schedule",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  setTimeout(() => {}, 100)\n})\n",
+        "diagnostics": [
+          {
+            "start": 83,
+            "end": 108,
+            "text": "Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimers)"
           }
         ]
       }

@@ -2363,6 +2363,30 @@
           "default": "warning",
           "description": "Prevents services with type parameters that cannot be discriminated at runtime Default severity: warning."
         },
+        "globalConsole": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using console methods inside Effect generators instead of Effect.log/Logger Default severity: off."
+        },
+        "globalDate": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using Date.now() or new Date() inside Effect generators instead of Clock/DateTime Default severity: off."
+        },
         "globalErrorInEffectCatch": {
           "type": "string",
           "enum": [
@@ -2398,6 +2422,30 @@
           ],
           "default": "off",
           "description": "Warns when using the global fetch function instead of the Effect HTTP client Default severity: off."
+        },
+        "globalRandom": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using Math.random() inside Effect generators instead of the Random service Default severity: off."
+        },
+        "globalTimers": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using setTimeout/setInterval inside Effect generators instead of Effect.sleep/Schedule Default severity: off."
         },
         "importFromBarrel": {
           "type": "string",

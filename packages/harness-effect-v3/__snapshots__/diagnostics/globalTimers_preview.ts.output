@@ -1,0 +1,2 @@
+setTimeout(() => {}, 100)
+6:2 - 6:27 | 0 | Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimers)
