@@ -44,8 +44,8 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
       if (!(Option.isSome(maybeEffect) && maybeEffect.value.A.flags & ts.TypeFlags.Never)) continue
 
       // Ensure we're in the direct body scope of an Effect.gen-like function.
-      const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
-      if (!effectGen || (scopeNode && scopeNode !== effectGen.generatorFunction)) continue
+      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+      if (!inEffect) continue
 
       const fix = [{
         fixName: "missingReturnYieldStar_fix",

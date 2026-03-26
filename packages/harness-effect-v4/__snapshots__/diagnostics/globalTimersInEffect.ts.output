@@ -1,0 +1,8 @@
+setTimeout(() => {}, 100)
+6:2 - 6:27 | 0 | Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimersInEffect)
+
+setInterval(() => {}, 1000)
+11:2 - 11:29 | 0 | Prefer using Schedule or Effect.repeat from Effect instead of setInterval inside Effect generators.    effect(globalTimersInEffect)
+
+myTimeout(() => {}, 100)
+17:2 - 17:26 | 0 | Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimersInEffect)

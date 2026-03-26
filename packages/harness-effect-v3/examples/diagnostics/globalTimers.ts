@@ -1,32 +1,29 @@
 // @effect-diagnostics globalTimers:warning
 import { Effect } from "effect"
 
-// Should trigger - setTimeout inside Effect.gen
+// Should trigger - setTimeout at module level
+const _timeout = setTimeout(() => {}, 100)
+
+// Should trigger - setInterval in regular function
+const _interval = () => setInterval(() => {}, 100)
+
+// Should trigger - aliased setTimeout at module level
+const later = setTimeout
+const _aliasedTimeout = later(() => {}, 100)
+
+// Should NOT trigger - setTimeout inside Effect.gen
 export const setTimeoutInGen = Effect.gen(function*() {
-  setTimeout(() => {}, 100)
+  return setTimeout(() => {}, 100)
 })
 
-// Should trigger - setInterval inside Effect.gen
-export const setIntervalInGen = Effect.gen(function*() {
-  setInterval(() => {}, 1000)
-})
-
-// Should trigger - aliased setTimeout
-export const aliasedTimeout = Effect.gen(function*() {
-  const myTimeout = setTimeout
-  myTimeout(() => {}, 100)
-})
-
-// Should NOT trigger - setTimeout at module level
-setTimeout(() => {}, 0)
-
-// Should NOT trigger - setTimeout in regular function
-const _regularFn = () => {
-  setTimeout(() => {}, 100)
-}
-
-// Should NOT trigger - setTimeout inside nested arrow in generator
+// Should trigger - setInterval inside nested arrow in generator
 export const nestedArrowInGen = Effect.gen(function*() {
-  const fn = () => setTimeout(() => {}, 100)
+  const fn = () => setInterval(() => {}, 100)
   return fn
 })
+
+// Should NOT trigger - shadowed setTimeout
+const _shadowedTimeout = () => {
+  const setTimeout = () => 0
+  return setTimeout()
+}

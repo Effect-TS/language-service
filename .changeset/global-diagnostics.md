@@ -2,13 +2,14 @@
 "@effect/language-service": minor
 ---
 
-Add globalDate, globalConsole, globalRandom, and globalTimers diagnostics
+Add paired globalDate/globalDateInEffect, globalConsole/globalConsoleInEffect, globalFetch/globalFetchInEffect, globalRandom/globalRandomInEffect, and globalTimers/globalTimersInEffect diagnostics
 
-Four new opt-in diagnostics that flag global/DOM APIs inside Effect generators:
+Ten new opt-in diagnostics that flag global/DOM APIs both outside and inside Effect generators:
 
-- `globalDate` — `Date.now()`, `new Date()` → Clock/DateTime
-- `globalConsole` — `console.log/warn/error/info/debug/trace` → Effect.log/Logger
-- `globalRandom` — `Math.random()` → Random service
-- `globalTimers` — `setTimeout/setInterval` → Effect.sleep/Schedule
+- `globalFetch` / `globalFetchInEffect` — `fetch()` → HttpClient
+- `globalDate` / `globalDateInEffect` — `Date.now()`, `new Date()` → Clock/DateTime
+- `globalConsole` / `globalConsoleInEffect` — `console.log/warn/error/info/debug/trace` → Effect.log/Logger
+- `globalRandom` / `globalRandomInEffect` — `Math.random()` → Random service
+- `globalTimers` / `globalTimersInEffect` — `setTimeout/setInterval` → Effect.sleep/Schedule
 
-All default to `off`. Shadow-safe (e.g. `const console = yield* Console` won't false-positive).
+All default to `off`. Enable both variants for full coverage inside and outside Effect generators. Shadow-safe (e.g. `const console = yield* Console` won't false-positive).

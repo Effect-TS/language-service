@@ -1,2 +1,2 @@
 Date.now()
-6:14 - 6:24 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDate)
+4:23 - 4:33 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now().    effect(globalDate)

@@ -28,13 +28,18 @@
       "diagnosticSeverity": {
         "instanceOfSchema": "warning",
         "globalFetch": "warning",
+        "globalFetchInEffect": "warning",
         "preferSchemaOverJson": "warning",
         "extendsNativeError": "warning",
         "nodeBuiltinImport": "warning",
         "globalDate": "warning",
+        "globalDateInEffect": "warning",
         "globalConsole": "warning",
+        "globalConsoleInEffect": "warning",
         "globalRandom": "warning",
-        "globalTimers": "warning"
+        "globalRandomInEffect": "warning",
+        "globalTimers": "warning",
+        "globalTimersInEffect": "warning"
       }
     }
   ],
@@ -770,6 +775,27 @@
     {
       "name": "globalConsole",
       "group": "effectNative",
+      "description": "Warns when using console methods outside Effect generators instead of Effect.log/Logger",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nconsole.log(\"preview\")\n",
+        "diagnostics": [
+          {
+            "start": 1,
+            "end": 23,
+            "text": "Prefer using Effect.log or Logger instead of console.log.    effect(globalConsole)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalConsoleInEffect",
+      "group": "effectNative",
       "description": "Warns when using console methods inside Effect generators instead of Effect.log/Logger",
       "defaultSeverity": "off",
       "fixable": false,
@@ -783,13 +809,34 @@
           {
             "start": 83,
             "end": 103,
-            "text": "Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsole)"
+            "text": "Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)"
           }
         ]
       }
     },
     {
       "name": "globalDate",
+      "group": "effectNative",
+      "description": "Warns when using Date.now() or new Date() outside Effect generators instead of Clock/DateTime",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nexport const preview = Date.now()\n",
+        "diagnostics": [
+          {
+            "start": 24,
+            "end": 34,
+            "text": "Prefer using Clock or DateTime from Effect instead of Date.now().    effect(globalDate)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalDateInEffect",
       "group": "effectNative",
       "description": "Warns when using Date.now() or new Date() inside Effect generators instead of Clock/DateTime",
       "defaultSeverity": "off",
@@ -804,7 +851,7 @@
           {
             "start": 95,
             "end": 105,
-            "text": "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDate)"
+            "text": "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDateInEffect)"
           }
         ]
       }
@@ -812,7 +859,7 @@
     {
       "name": "globalFetch",
       "group": "effectNative",
-      "description": "Warns when using the global fetch function instead of the Effect HTTP client",
+      "description": "Warns when using the global fetch function outside Effect generators instead of the Effect HTTP client",
       "defaultSeverity": "off",
       "fixable": false,
       "supportedEffect": [
@@ -831,7 +878,43 @@
       }
     },
     {
+      "name": "globalFetchInEffect",
+      "group": "effectNative",
+      "description": "Warns when using the global fetch function inside Effect generators instead of the Effect HTTP client",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  return yield* Effect.promise(() => fetch(\"https://example.com\"))\n})\n",
+        "diagnostics": []
+      }
+    },
+    {
       "name": "globalRandom",
+      "group": "effectNative",
+      "description": "Warns when using Math.random() outside Effect generators instead of the Random service",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nexport const preview = Math.random()\n",
+        "diagnostics": [
+          {
+            "start": 24,
+            "end": 37,
+            "text": "Prefer using the Random service from Effect instead of Math.random().    effect(globalRandom)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalRandomInEffect",
       "group": "effectNative",
       "description": "Warns when using Math.random() inside Effect generators instead of the Random service",
       "defaultSeverity": "off",
@@ -846,13 +929,34 @@
           {
             "start": 93,
             "end": 106,
-            "text": "Prefer using the Random service from Effect instead of Math.random() inside Effect generators.    effect(globalRandom)"
+            "text": "Prefer using the Random service from Effect instead of Math.random() inside Effect generators.    effect(globalRandomInEffect)"
           }
         ]
       }
     },
     {
       "name": "globalTimers",
+      "group": "effectNative",
+      "description": "Warns when using setTimeout/setInterval outside Effect generators instead of Effect.sleep/Schedule",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nsetTimeout(() => {}, 100)\n",
+        "diagnostics": [
+          {
+            "start": 1,
+            "end": 26,
+            "text": "Prefer using Effect.sleep or Schedule from Effect instead of setTimeout.    effect(globalTimers)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "globalTimersInEffect",
       "group": "effectNative",
       "description": "Warns when using setTimeout/setInterval inside Effect generators instead of Effect.sleep/Schedule",
       "defaultSeverity": "off",
@@ -867,7 +971,7 @@
           {
             "start": 83,
             "end": 108,
-            "text": "Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimers)"
+            "text": "Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimersInEffect)"
           }
         ]
       }

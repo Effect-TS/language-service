@@ -1,2 +1,2 @@
-console.log("hello")
-6:2 - 6:22 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsole)
+console.log("preview")
+4:0 - 4:22 | 0 | Prefer using Effect.log or Logger instead of console.log.    effect(globalConsole)

@@ -64,11 +64,9 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
       if (Option.isNone(isSchemaSyncCall)) continue
 
       // Find enclosing scope and Effect generator using TypeParser helper
-      const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
+      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
 
-      // Skip if not inside an Effect generator or if the sync call is inside a nested function scope
-      if (!effectGen || effectGen.body.statements.length === 0) continue
-      if (scopeNode && scopeNode !== effectGen.generatorFunction) continue
+      if (!inEffect) continue
 
       const nodeText = sourceFile.text.substring(
         ts.getTokenPosOfNode(node.expression, sourceFile),
