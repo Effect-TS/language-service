@@ -1,5 +1,17 @@
 # @effect/language-service
 
+## 0.84.1
+
+### Patch Changes
+
+- [#703](https://github.com/Effect-TS/language-service/pull/703) [`dea43b8`](https://github.com/Effect-TS/language-service/commit/dea43b88d4817daa51b9af1d87c33a37e34d01e4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `effectFnImplicitAny` so it does not report false positives when an `Effect.fn` or `Effect.fnUntraced` callback gets its contextual function type from a union member.
+
+  For example, nested `HttpRouter.add(...)` handlers now correctly recognize the inferred `request` type and produce no diagnostics when the parameter is not actually implicit `any`.
+
+- [#702](https://github.com/Effect-TS/language-service/pull/702) [`0af9b98`](https://github.com/Effect-TS/language-service/commit/0af9b98369516dfa5bd654236bd73a218f32232c) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add Effect v4 support for the `runEffectInsideEffect` diagnostic so it suggests and fixes `Effect.run*With` usage based on `Effect.services`.
+
+  Update the generated metadata, schema, README entry, and v4 harness examples/snapshots to document and verify the new behavior.
+
 ## 0.84.0
 
 ### Minor Changes
