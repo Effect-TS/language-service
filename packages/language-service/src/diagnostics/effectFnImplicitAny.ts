@@ -3,6 +3,7 @@ import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
@@ -23,13 +24,16 @@ const getParameterName = (typescript: TypeScriptApi.TypeScriptApi, name: ts.Bind
 const hasOuterContextualFunctionType = (
   typescript: TypeScriptApi.TypeScriptApi,
   typeChecker: ts.TypeChecker,
+  typeCheckerUtils: TypeCheckerUtils.TypeCheckerUtils,
   node: ts.CallExpression
 ): boolean => {
   const contextualType = typeChecker.getContextualType(node)
   if (!contextualType) {
     return false
   }
-  return typeChecker.getSignaturesOfType(contextualType, typescript.SignatureKind.Call).length > 0
+  return typeCheckerUtils.unrollUnionMembers(contextualType).some((type) =>
+    typeChecker.getSignaturesOfType(type, typescript.SignatureKind.Call).length > 0
+  )
 }
 
 export const effectFnImplicitAny = LSP.createDiagnostic({
@@ -45,6 +49,7 @@ export const effectFnImplicitAny = LSP.createDiagnostic({
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const program = yield* Nano.service(TypeScriptApi.TypeScriptProgram)
     const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const noImplicitAny = program.getCompilerOptions().noImplicitAny ?? program.getCompilerOptions().strict ?? false
@@ -89,7 +94,7 @@ export const effectFnImplicitAny = LSP.createDiagnostic({
         Nano.orUndefined
       )
 
-      if (!parsed || hasOuterContextualFunctionType(ts, typeChecker, parsed.call)) {
+      if (!parsed || hasOuterContextualFunctionType(ts, typeChecker, typeCheckerUtils, parsed.call)) {
         continue
       }
 
