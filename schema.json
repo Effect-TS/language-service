@@ -2757,7 +2757,7 @@
             "suggestion"
           ],
           "default": "suggestion",
-          "description": "Suggests using Runtime methods instead of Effect.run* inside Effect contexts Default severity: suggestion."
+          "description": "Suggests using Runtime or Effect.run*With methods instead of Effect.run* inside Effect contexts Default severity: suggestion."
         },
         "schemaStructWithTag": {
           "type": "string",

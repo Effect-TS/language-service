@@ -10,16 +10,16 @@ import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
 export const runEffectInsideEffect = LSP.createDiagnostic({
   name: "runEffectInsideEffect",
   code: 32,
-  description: "Suggests using Runtime methods instead of Effect.run* inside Effect contexts",
+  description: "Suggests using Runtime or Effect.run*With methods instead of Effect.run* inside Effect contexts",
   group: "antipattern",
   severity: "suggestion",
   fixable: true,
-  supportedEffect: ["v3"],
+  supportedEffect: ["v3", "v4"],
   apply: Nano.fn("runEffectInsideEffect.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    if (typeParser.supportedEffect() === "v4") return
+    const supportedEffect = typeParser.supportedEffect()
 
     const parseEffectMethod = (node: ts.Node, methodName: string) =>
       pipe(
@@ -65,12 +65,13 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
         if (scopeNode && scopeNode !== effectGen.generatorFunction) {
           const fixAddRuntime = Nano.gen(function*() {
             const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
+            const effectModuleIdentifier =
+              tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Effect") || "Effect"
             const runtimeModuleIdentifier =
               tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Runtime") ||
               "Runtime"
-            const effectModuleIdentifier =
-              tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Effect") || "Effect"
             let runtimeIdentifier: string | undefined = undefined
+            let servicesIdentifier: string | undefined = undefined
             for (const statement of effectGen.generatorFunction.body.statements) {
               if (ts.isVariableStatement(statement) && statement.declarationList.declarations.length === 1) {
                 const declaration = statement.declarationList.declarations[0]
@@ -87,11 +88,46 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
                     if (Option.isSome(maybeEffectRuntime) && ts.isIdentifier(declaration.name)) {
                       runtimeIdentifier = ts.idText(declaration.name)
                     }
+                    const maybeEffectServices = yield* pipe(
+                      typeParser.isNodeReferenceToEffectModuleApi("services")(yieldedExpression.expression),
+                      Nano.option
+                    )
+                    if (Option.isSome(maybeEffectServices) && ts.isIdentifier(declaration.name)) {
+                      servicesIdentifier = ts.idText(declaration.name)
+                    }
                   }
                 }
               }
             }
-            if (!runtimeIdentifier) {
+            if (supportedEffect === "v4" && !servicesIdentifier) {
+              changeTracker.insertNodeAt(
+                sourceFile,
+                effectGen.body.statements[0].pos,
+                ts.factory.createVariableStatement(
+                  undefined,
+                  ts.factory.createVariableDeclarationList([ts.factory.createVariableDeclaration(
+                    "effectServices",
+                    undefined,
+                    undefined,
+                    ts.factory.createYieldExpression(
+                      ts.factory.createToken(ts.SyntaxKind.AsteriskToken),
+                      ts.factory.createCallExpression(
+                        ts.factory.createPropertyAccessExpression(
+                          ts.factory.createIdentifier(effectModuleIdentifier),
+                          "services"
+                        ),
+                        [ts.factory.createKeywordTypeNode(ts.SyntaxKind.NeverKeyword)],
+                        []
+                      )
+                    )
+                  )], ts.NodeFlags.Const)
+                ),
+                {
+                  prefix: "\n",
+                  suffix: "\n"
+                }
+              )
+            } else if (supportedEffect === "v3" && !runtimeIdentifier) {
               changeTracker.insertNodeAt(
                 sourceFile,
                 effectGen.body.statements[0].pos,
@@ -127,17 +163,29 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
             changeTracker.insertText(
               sourceFile,
               node.arguments[0].pos,
-              `${runtimeModuleIdentifier}.${isEffectRunCall.value.methodName}(${runtimeIdentifier || "effectRuntime"}, `
+              supportedEffect === "v4"
+                ? `${effectModuleIdentifier}.${isEffectRunCall.value.methodName}With(${
+                  servicesIdentifier || "effectServices"
+                })(`
+                : `${runtimeModuleIdentifier}.${isEffectRunCall.value.methodName}(${
+                  runtimeIdentifier || "effectRuntime"
+                }, `
             )
           })
 
+          const v4MethodName = `${isEffectRunCall.value.methodName}With`
+          const messageText = supportedEffect === "v4"
+            ? `Using ${nodeText} inside an Effect is not recommended. The same services should generally be used instead to run child effects.\nConsider extracting the current services by using for example Effect.services and then use Effect.${v4MethodName} with the extracted services instead.`
+            : `Using ${nodeText} inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.\nConsider extracting the Runtime by using for example Effect.runtime and then use Runtime.${isEffectRunCall.value.methodName} with the extracted runtime instead.`
+
           report({
             location: node.expression,
-            messageText:
-              `Using ${nodeText} inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.\nConsider extracting the Runtime by using for example Effect.runtime and then use Runtime.${isEffectRunCall.value.methodName} with the extracted runtime instead.`,
+            messageText,
             fixes: [{
               fixName: "runEffectInsideEffect_fix",
-              description: "Use a runtime to run the Effect",
+              description: supportedEffect === "v4"
+                ? "Use the current services to run the Effect"
+                : "Use a runtime to run the Effect",
               apply: fixAddRuntime
             }]
           })

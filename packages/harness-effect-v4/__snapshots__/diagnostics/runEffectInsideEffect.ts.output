@@ -1,0 +1,6 @@
+Effect.runSync
+14:20 - 14:34 | 2 | Using Effect.runSync inside an Effect is not recommended. Effects inside generators can usually just be yielded.    effect(runEffectInsideEffect)
+
+Effect.runPromise
+22:4 - 22:21 | 2 | Using Effect.runPromise inside an Effect is not recommended. The same services should generally be used instead to run child effects.
+Consider extracting the current services by using for example Effect.services and then use Effect.runPromiseWith with the extracted services instead.    effect(runEffectInsideEffect)
