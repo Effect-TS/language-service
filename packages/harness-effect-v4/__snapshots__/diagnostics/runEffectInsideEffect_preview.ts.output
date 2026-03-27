@@ -1,0 +1,3 @@
+Effect.runSync
+6:20 - 6:34 | 0 | Using Effect.runSync inside an Effect is not recommended. The same services should generally be used instead to run child effects.
+Consider extracting the current services by using for example Effect.services and then use Effect.runSyncWith with the extracted services instead.    effect(runEffectInsideEffect)

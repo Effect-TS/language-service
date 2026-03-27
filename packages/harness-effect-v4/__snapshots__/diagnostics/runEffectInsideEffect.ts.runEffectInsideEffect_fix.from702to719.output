@@ -1,0 +1,28 @@
+// code fix runEffectInsideEffect_fix  output for range 702 - 719
+import { Data, Effect } from "effect"
+
+class DebuggerError extends Data.TaggedError("DebuggerError")<{
+  cause: unknown
+}> {}
+
+export const program = Effect.gen(function*() {
+const effectServices = yield* Effect.services<never>()
+
+  const response = yield* Effect.tryPromise({
+    try: () => fetch("http://localhost:9229"),
+    catch: (e) => new DebuggerError({ cause: e })
+  })
+  const data = yield* Effect.promise(() => response.json())
+
+  const websocket = Effect.runSync(Effect.sync(() => new WebSocket(data.url)))
+  //                        ^- do not runSync in here
+
+  websocket.onmessage = (event) => {
+    const check = Effect.tryPromise({
+      try: () => fetch(event.data as string),
+      catch: (e) => new DebuggerError({ cause: e })
+    })
+    Effect.runPromiseWith(effectServices)(check)
+    //        ^- no runPromise, use the current services instead
+  }
+})
