@@ -490,9 +490,52 @@ export function makeTypeCheckerUtils(
     if (node.parent && ts.isJsxClosingElement(node.parent) && node.parent.tagName === node) return
     if (node.parent && ts.isJsxAttribute(node.parent) && node.parent.name === node) return
 
+    if (isInsideTypeOnlyHeritageExpression(node)) return
+
     if (ts.isExpression(node) || ts.isTypeNode(node)) {
       return typeChecker.getTypeAtLocation(node)
     }
+  }
+
+  function isInsideTypeOnlyHeritageExpression(node: ts.Node): boolean {
+    if (ts.isExpressionWithTypeArguments(node)) {
+      return isTypeOnlyHeritageClause(node.parent)
+    }
+
+    if (!ts.isIdentifier(node) && !ts.isPropertyAccessExpression(node)) {
+      return false
+    }
+
+    for (let current = node.parent; current; current = current.parent) {
+      if (ts.isPropertyAccessExpression(current)) {
+        continue
+      }
+
+      if (ts.isExpressionWithTypeArguments(current)) {
+        return isTypeOnlyHeritageClause(current.parent)
+      }
+
+      return false
+    }
+
+    return false
+  }
+
+  function isTypeOnlyHeritageClause(node: ts.Node | undefined): boolean {
+    if (!node || !ts.isHeritageClause(node)) {
+      return false
+    }
+
+    const container = node.parent
+    if (!container) {
+      return false
+    }
+
+    if (ts.isInterfaceDeclaration(container)) {
+      return true
+    }
+
+    return ts.isClassLike(container) && node.token === ts.SyntaxKind.ImplementsKeyword
   }
 
   function resolveToGlobalSymbol(symbol: ts.Symbol): ts.Symbol {
