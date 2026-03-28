@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.84.2
+
+### Patch Changes
+
+- [#706](https://github.com/Effect-TS/language-service/pull/706) [`3c0bea6`](https://github.com/Effect-TS/language-service/commit/3c0bea6fbde0938bbe2ef745dfb6794373f7f8ef) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `getTypeAtLocation` to ignore type-only heritage expressions like `interface X extends Effect.Effect<...>` so the language service no longer triggers bogus TS2689 diagnostics.
+
 ## 0.84.1
 
 ### Patch Changes
