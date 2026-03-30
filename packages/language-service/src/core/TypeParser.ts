@@ -60,6 +60,10 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ A: ts.Type; E: ts.Type; R: ts.Type }, TypeParserIssue>
+  streamType: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<{ A: ts.Type; E: ts.Type; R: ts.Type }, TypeParserIssue>
   strictEffectType: (
     type: ts.Type,
     atLocation: ts.Node
@@ -764,6 +768,19 @@ export function make(
       ([A, E, R]) => ({ A, E, R })
     )
 
+  const streamVarianceStruct = (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) =>
+    Nano.map(
+      Nano.all(
+        varianceStructCovariantType(type, atLocation, "_A"),
+        varianceStructCovariantType(type, atLocation, "_E"),
+        varianceStructCovariantType(type, atLocation, "_R")
+      ),
+      ([A, E, R]) => ({ A, E, R })
+    )
+
   const layerVarianceStruct = (
     type: ts.Type,
     atLocation: ts.Node
@@ -827,6 +844,27 @@ export function make(
       return yield* effectType(type, atLocation)
     }),
     "TypeParser.strictEffectType",
+    (type) => type
+  )
+
+  const streamType = Nano.cachedBy(
+    Nano.fn("TypeParser.streamType")(function*(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      if (supportedEffect() === "v3") {
+        return yield* effectType(type, atLocation)
+      }
+
+      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Stream")
+      if (!typeIdSymbol) {
+        return yield* typeParserIssue("Type is not a stream", type, atLocation)
+      }
+
+      const typeIdType = typeChecker.getTypeOfSymbolAtLocation(typeIdSymbol, atLocation)
+      return yield* streamVarianceStruct(typeIdType, atLocation)
+    }),
+    "TypeParser.streamType",
     (type) => type
   )
 
@@ -3124,6 +3162,7 @@ export function make(
     isServiceMapTypeSourceFile,
     isNodeReferenceToServiceMapModuleApi,
     effectType,
+    streamType,
     strictEffectType,
     layerType,
     fiberType,

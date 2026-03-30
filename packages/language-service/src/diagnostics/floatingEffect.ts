@@ -55,7 +55,12 @@ export const floatingEffect = LSP.createDiagnostic({
       const type = typeCheckerUtils.getTypeAtLocation(node.expression)
       if (!type) continue
       // if type is an effect
-      const effect = yield* Nano.option(typeParser.effectType(type, node.expression))
+      const effect = yield* Nano.option(
+        pipe(
+          typeParser.effectType(type, node.expression),
+          Nano.orElse(() => typeParser.streamType(type, node.expression))
+        )
+      )
       if (Option.isSome(effect)) {
         // and not a fiber (we consider that a valid operation)
         const allowedFloatingEffects = yield* pipe(
