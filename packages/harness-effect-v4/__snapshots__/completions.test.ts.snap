@@ -1,39 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Completion contextSelfInClasses > contextSelfInClasses.ts at 4:40 1`] = `
-[
-  {
-    "insertText": "Context.Tag("@effect/harness-effect-v4/MyService")<MyService, \${0}>(){}",
-    "isSnippet": true,
-    "kind": "const",
-    "name": "Tag("MyService")",
-    "replacementSpan": {
-      "length": 8,
-      "start": 144,
-    },
-    "sortText": "11",
-  },
-]
-`;
-
-exports[`Completion contextSelfInClasses > contextSelfInClasses_directImportTag.ts at 4:35 1`] = `[]`;
-
-exports[`Completion contextSelfInClasses > contextSelfInClasses_identifierKey.ts at 5:40 1`] = `
-[
-  {
-    "insertText": "Context.Tag("@effect/harness-effect-v4/MyService")<MyService, \${0}>(){}",
-    "isSnippet": true,
-    "kind": "const",
-    "name": "Tag("MyService")",
-    "replacementSpan": {
-      "length": 8,
-      "start": 240,
-    },
-    "sortText": "11",
-  },
-]
-`;
-
 exports[`Completion durationInput > durationInput.ts at 4:38 1`] = `
 [
   {
@@ -368,3 +334,111 @@ exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
 `;
 
 exports[`Completion genFunctionStar > genFunctionStar_imports.ts at 2:16 1`] = `[]`;
+
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses.ts at 4:43 1`] = `
+[
+  {
+    "insertText": "ServiceMap.Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService, {}>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 153,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "ServiceMap.Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>({ make })",
+    "replacementSpan": {
+      "length": 11,
+      "start": 153,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_directImportService.ts at 4:39 1`] = `
+[
+  {
+    "insertText": "Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService, {}>",
+    "replacementSpan": {
+      "length": 7,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>({ make })",
+    "replacementSpan": {
+      "length": 7,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_identifierKey.ts at 5:43 1`] = `
+[
+  {
+    "insertText": "ServiceMap.Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService, {}>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 249,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "ServiceMap.Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<MyService>({ make })",
+    "replacementSpan": {
+      "length": 11,
+      "start": 249,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_middle.ts at 4:31 1`] = `
+[
+  {
+    "insertText": "ServiceMap.Service<Foo, {\${0}}>()("@effect/harness-effect-v4/Foo"){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<Foo, {}>",
+    "replacementSpan": {
+      "length": 12,
+      "start": 144,
+    },
+    "sortText": "11",
+  },
+  {
+    "insertText": "ServiceMap.Service<Foo>()("@effect/harness-effect-v4/Foo", { make: \${0} }){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Service<Foo>({ make })",
+    "replacementSpan": {
+      "length": 12,
+      "start": 144,
+    },
+    "sortText": "11",
+  },
+]
+`;
