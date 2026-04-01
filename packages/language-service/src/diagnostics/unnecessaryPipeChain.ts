@@ -37,7 +37,8 @@ export const unnecessaryPipeChain = LSP.createDiagnostic({
           Nano.map(({ innerCall, pipeCall }) => {
             report({
               location: node,
-              messageText: "This expression contains chained `pipe` calls that can be simplified to a single `pipe` call.",
+              messageText:
+                "This expression contains chained `pipe` calls that can be simplified to a single `pipe` call.",
               fixes: [{
                 fixName: "unnecessaryPipeChain_fix",
                 description: "Rewrite as single pipe call",

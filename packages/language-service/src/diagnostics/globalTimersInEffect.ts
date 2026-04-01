@@ -8,12 +8,16 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 
 const timerAlternatives: Record<string, { inEffect: string; outsideEffect: string }> = {
   "setTimeout": {
-    inEffect: "This Effect code uses `setTimeout`, the corresponding timer API in this context is `Effect.sleep or Schedule` from Effect.",
-    outsideEffect: "This code uses `setTimeout`, the corresponding Effect timer API is `Effect.sleep or Schedule` from Effect."
+    inEffect:
+      "This Effect code uses `setTimeout`, the corresponding timer API in this context is `Effect.sleep or Schedule` from Effect.",
+    outsideEffect:
+      "This code uses `setTimeout`, the corresponding Effect timer API is `Effect.sleep or Schedule` from Effect."
   },
   "setInterval": {
-    inEffect: "This Effect code uses `setInterval`, the corresponding timer API in this context is `Schedule or Effect.repeat` from Effect.",
-    outsideEffect: "This code uses `setInterval`, the corresponding Effect timer API is `Schedule or Effect.repeat` from Effect."
+    inEffect:
+      "This Effect code uses `setInterval`, the corresponding timer API in this context is `Schedule or Effect.repeat` from Effect.",
+    outsideEffect:
+      "This code uses `setInterval`, the corresponding Effect timer API is `Schedule or Effect.repeat` from Effect."
   }
 }
 

@@ -128,7 +128,8 @@ export const deterministicKeys = LSP.createDiagnostic({
           if (actualIdentifier !== expectedKey) {
             report({
               location: keyStringLiteral,
-              messageText: `This key does not match the deterministic key for this declaration. The expected key is \`${expectedKey}\`.`,
+              messageText:
+                `This key does not match the deterministic key for this declaration. The expected key is \`${expectedKey}\`.`,
               fixes: [{
                 fixName: "deterministicKeys_fix",
                 description: `Replace '${actualIdentifier}' with '${expectedKey}'`,

@@ -71,11 +71,13 @@ export const floatingEffect = LSP.createDiagnostic({
         if (Option.isNone(allowedFloatingEffects)) {
           // check if strictly an effect or a subtype to change the error message
           const isStrictEffect = yield* Nano.option(typeParser.strictEffectType(type, node.expression))
-            report({
-              location: node,
-              messageText: Option.isSome(isStrictEffect)
-                ? "This Effect value is neither yielded nor used in an assignment."
-              : `This Effect-able \`${typeChecker.typeToString(type)}\` value is neither yielded nor assigned to a variable.`,
+          report({
+            location: node,
+            messageText: Option.isSome(isStrictEffect)
+              ? "This Effect value is neither yielded nor used in an assignment."
+              : `This Effect-able \`${
+                typeChecker.typeToString(type)
+              }\` value is neither yielded nor assigned to a variable.`,
             fixes: []
           })
         }

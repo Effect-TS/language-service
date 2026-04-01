@@ -33,7 +33,8 @@ export const outdatedApi = LSP.createDiagnostic({
       hasReported = true
       report({
         location: propertyAccess.name,
-        messageText: `This project targets Effect v4, but this code uses the Effect v3 API \`${propertyName}\`. The referenced API belongs to the v3 surface rather than the configured v4 surface.`,
+        messageText:
+          `This project targets Effect v4, but this code uses the Effect v3 API \`${propertyName}\`. The referenced API belongs to the v3 surface rather than the configured v4 surface.`,
         fixes: []
       })
     }

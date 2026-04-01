@@ -61,8 +61,8 @@ export const nodeBuiltinImport = LSP.createDiagnostic({
         if (match) {
           report({
             location: statement.moduleSpecifier,
-              messageText:
-                `This module reference uses the \`${match.module}\` module, the corresponding Effect API is \`${match.alternative}\` from \`${match.package}\`.`,
+            messageText:
+              `This module reference uses the \`${match.module}\` module, the corresponding Effect API is \`${match.alternative}\` from \`${match.package}\`.`,
             fixes: []
           })
         }
