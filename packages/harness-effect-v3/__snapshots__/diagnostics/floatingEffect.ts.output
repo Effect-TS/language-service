@@ -1,8 +1,8 @@
 Effect.succeed("floating")
-5:0 - 5:26 | 1 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
+5:0 - 5:26 | 1 | This Effect value is neither yielded nor used in an assignment.    effect(floatingEffect)
 
 Effect.never
-7:0 - 7:12 | 1 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
+7:0 - 7:12 | 1 | This Effect value is neither yielded nor used in an assignment.    effect(floatingEffect)
 
 Effect.never
-11:2 - 11:14 | 1 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
+11:2 - 11:14 | 1 | This Effect value is neither yielded nor used in an assignment.    effect(floatingEffect)

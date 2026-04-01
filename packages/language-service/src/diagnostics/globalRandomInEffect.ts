@@ -43,8 +43,8 @@ export const makeGlobalRandomApply = (checkInEffect: boolean) =>
       report({
         location: node,
         messageText: checkInEffect
-          ? "Prefer using the Random service from Effect instead of Math.random() inside Effect generators."
-          : "Prefer using the Random service from Effect instead of Math.random().",
+          ? "This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service."
+          : "This code uses `Math.random()`, randomness is represented through the Effect `Random` service.",
         fixes: []
       })
     }

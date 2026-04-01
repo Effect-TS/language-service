@@ -917,7 +917,7 @@ export const effectFnOpportunity = LSP.createDiagnostic({
 
       report({
         location: nameIdentifier ?? targetNode,
-        messageText: `Can be rewritten as a reusable function: ${expectedSignature}`,
+        messageText: `This expression can be rewritten in the reusable function form \`${expectedSignature}\`.`,
         fixes
       })
     }

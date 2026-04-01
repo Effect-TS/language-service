@@ -1,2 +1,2 @@
 constructor(readonly input: { name: string }) { super(input) }
-6:2 - 6:64 | 0 | Classes extending Schema must not override the constructor; this is because it silently breaks the schema decoding behaviour. If that's needed, we recommend instead to use a static 'new' method that constructs the instance.    effect(overriddenSchemaConstructor)
+6:2 - 6:64 | 0 | This Schema subclass defines its own constructor. For Schema classes, constructor overrides break decoding behavior for the class shape. Custom construction can be expressed through a static `new` method instead.    effect(overriddenSchemaConstructor)

@@ -116,7 +116,7 @@ export const catchAllToMapError = LSP.createDiagnostic({
         report({
           location: transformation.callee,
           messageText:
-            `You can use Effect.mapError instead of Effect.${catchAllName} + Effect.fail to transform the error type.`,
+            `\`Effect.mapError\` expresses the same error-type transformation more directly than \`Effect.${catchAllName}\` followed by \`Effect.fail\`.`,
           fixes: [{
             fixName: "catchAllToMapError_fix",
             description: "Replace with Effect.mapError",

@@ -19,8 +19,8 @@ export const makeGlobalFetchApply = (checkInEffect: boolean) =>
     const effectVersion = typeParser.supportedEffect()
     const packageName = effectVersion === "v3" ? "@effect/platform" : "effect/unstable/http"
     const messageText = checkInEffect
-      ? `Prefer using HttpClient from ${packageName} instead of the global 'fetch' function inside Effect generators.`
-      : `Prefer using HttpClient from ${packageName} instead of the global 'fetch' function.`
+      ? `This Effect code calls the global \`fetch\` function, HTTP requests in Effect code are represented through \`HttpClient\` from \`${packageName}\`.`
+      : `This code uses the global \`fetch\` function, HTTP requests are represented through \`HttpClient\` from \`${packageName}\`.`
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {

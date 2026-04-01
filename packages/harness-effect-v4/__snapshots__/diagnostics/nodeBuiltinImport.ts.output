@@ -1,38 +1,38 @@
 "fs"
-5:15 - 5:19 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+5:15 - 5:19 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)
 
 "node:fs"
-6:21 - 6:30 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+6:21 - 6:30 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)
 
 "fs/promises"
-7:25 - 7:38 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+7:25 - 7:38 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)
 
 "node:fs/promises"
-8:38 - 8:56 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+8:38 - 8:56 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)
 
 "path"
-9:21 - 9:27 | 0 | Prefer using Path from effect instead of the Node.js 'path' module.    effect(nodeBuiltinImport)
+9:21 - 9:27 | 0 | This module reference uses the `path` module, the corresponding Effect API is `Path` from `effect`.    effect(nodeBuiltinImport)
 
 "node:path"
-10:17 - 10:28 | 0 | Prefer using Path from effect instead of the Node.js 'path' module.    effect(nodeBuiltinImport)
+10:17 - 10:28 | 0 | This module reference uses the `path` module, the corresponding Effect API is `Path` from `effect`.    effect(nodeBuiltinImport)
 
 "path/posix"
-11:30 - 11:42 | 0 | Prefer using Path from effect instead of the Node.js 'path' module.    effect(nodeBuiltinImport)
+11:30 - 11:42 | 0 | This module reference uses the `path` module, the corresponding Effect API is `Path` from `effect`.    effect(nodeBuiltinImport)
 
 "child_process"
-12:21 - 12:36 | 0 | Prefer using ChildProcess from effect instead of the Node.js 'child_process' module.    effect(nodeBuiltinImport)
+12:21 - 12:36 | 0 | This module reference uses the `child_process` module, the corresponding Effect API is `ChildProcess` from `effect`.    effect(nodeBuiltinImport)
 
 "node:child_process"
-13:22 - 13:42 | 0 | Prefer using ChildProcess from effect instead of the Node.js 'child_process' module.    effect(nodeBuiltinImport)
+13:22 - 13:42 | 0 | This module reference uses the `child_process` module, the corresponding Effect API is `ChildProcess` from `effect`.    effect(nodeBuiltinImport)
 
 "http"
-14:17 - 14:23 | 0 | Prefer using HttpClient from effect/unstable/http instead of the Node.js 'http' module.    effect(nodeBuiltinImport)
+14:17 - 14:23 | 0 | This module reference uses the `http` module, the corresponding Effect API is `HttpClient` from `effect/unstable/http`.    effect(nodeBuiltinImport)
 
 "node:https"
-15:18 - 15:30 | 0 | Prefer using HttpClient from effect/unstable/http instead of the Node.js 'https' module.    effect(nodeBuiltinImport)
+15:18 - 15:30 | 0 | This module reference uses the `https` module, the corresponding Effect API is `HttpClient` from `effect/unstable/http`.    effect(nodeBuiltinImport)
 
 "node:fs"
-18:7 - 18:16 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+18:7 - 18:16 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)
 
 "node:fs"
-21:20 - 21:29 | 0 | Prefer using FileSystem from effect instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)
+21:20 - 21:29 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)

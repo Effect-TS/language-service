@@ -1,11 +1,11 @@
 console.log("module level")
-5:0 - 5:27 | 0 | Prefer using Effect.log or Logger instead of console.log.    effect(globalConsole)
+5:0 - 5:27 | 0 | This code uses `console.log`, the corresponding Effect logging API is `Effect.log or Logger`.    effect(globalConsole)
 
 console.warn("warning")
-9:2 - 9:25 | 0 | Prefer using Effect.logWarning or Logger instead of console.warn.    effect(globalConsole)
+9:2 - 9:25 | 0 | This code uses `console.warn`, the corresponding Effect logging API is `Effect.logWarning or Logger`.    effect(globalConsole)
 
 myConsole.info("info")
-14:0 - 14:22 | 0 | Prefer using Effect.logInfo or Logger instead of console.info.    effect(globalConsole)
+14:0 - 14:22 | 0 | This code uses `console.info`, the corresponding Effect logging API is `Effect.logInfo or Logger`.    effect(globalConsole)
 
 console.error("nested")
-28:19 - 28:42 | 0 | Prefer using Effect.logError or Logger instead of console.error.    effect(globalConsole)
+28:19 - 28:42 | 0 | This code uses `console.error`, the corresponding Effect logging API is `Effect.logError or Logger`.    effect(globalConsole)

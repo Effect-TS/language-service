@@ -1,8 +1,8 @@
 MyError
-4:6 - 4:13 | 0 | Avoid extending the native 'Error' class directly. Consider using a tagged error (e.g. Data.TaggedError) to maintain type safety in the Effect failure channel.    effect(extendsNativeError)
+4:6 - 4:13 | 0 | This class extends the native `Error` type directly. Untagged native errors lose distinction in the Effect failure channel.    effect(extendsNativeError)
 
 MyError2
-8:6 - 8:14 | 0 | Avoid extending the native 'Error' class directly. Consider using a tagged error (e.g. Data.TaggedError) to maintain type safety in the Effect failure channel.    effect(extendsNativeError)
+8:6 - 8:14 | 0 | This class extends the native `Error` type directly. Untagged native errors lose distinction in the Effect failure channel.    effect(extendsNativeError)
 
 Base
-11:6 - 11:10 | 0 | Avoid extending the native 'Error' class directly. Consider using a tagged error (e.g. Data.TaggedError) to maintain type safety in the Effect failure channel.    effect(extendsNativeError)
+11:6 - 11:10 | 0 | This class extends the native `Error` type directly. Untagged native errors lose distinction in the Effect failure channel.    effect(extendsNativeError)

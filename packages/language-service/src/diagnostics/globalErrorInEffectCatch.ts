@@ -68,7 +68,7 @@ export const globalErrorInEffectCatch = LSP.createDiagnostic({
                     report({
                       location: node.expression,
                       messageText:
-                        `The 'catch' callback in ${nodeText} returns global 'Error', which loses type safety as untagged errors merge together. Consider using a tagged error and optionally wrapping the original in a 'cause' property.`,
+                        `The \`catch\` callback in \`${nodeText}\` returns the global \`Error\` type. Untagged errors merge together in the Effect error channel and lose type-level distinction; a tagged error preserves that distinction and can wrap the original error in a \`cause\` property.`,
                       fixes: []
                     })
                   }

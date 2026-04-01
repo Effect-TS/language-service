@@ -1,5 +1,5 @@
 Effect.catchAll
-11:2 - 11:17 | 2 | You can use Effect.mapError instead of Effect.catchAll + Effect.fail to transform the error type.    effect(catchAllToMapError)
+11:2 - 11:17 | 2 | `Effect.mapError` expresses the same error-type transformation more directly than `Effect.catchAll` followed by `Effect.fail`.    effect(catchAllToMapError)
 
 Effect.catchAll
-16:2 - 16:17 | 2 | You can use Effect.mapError instead of Effect.catchAll + Effect.fail to transform the error type.    effect(catchAllToMapError)
+16:2 - 16:17 | 2 | `Effect.mapError` expresses the same error-type transformation more directly than `Effect.catchAll` followed by `Effect.fail`.    effect(catchAllToMapError)

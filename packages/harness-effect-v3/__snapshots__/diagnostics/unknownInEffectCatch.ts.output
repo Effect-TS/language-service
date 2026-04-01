@@ -1,19 +1,14 @@
 Effect.tryPromise
-4:23 - 4:40 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
-Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+4:23 - 4:40 | 0 | The `catch` callback in `Effect.tryPromise` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)
 
 Effect.tryPromise
-18:35 - 18:52 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
-Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+18:35 - 18:52 | 0 | The `catch` callback in `Effect.tryPromise` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)
 
 Effect.tryMapPromise
-28:60 - 28:80 | 0 | The 'catch' callback in Effect.tryMapPromise returns 'unknown'. The catch callback should be used to provide typed errors.
-Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+28:60 - 28:80 | 0 | The `catch` callback in `Effect.tryMapPromise` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)
 
 Effect.tryMap
-33:60 - 33:73 | 0 | The 'catch' callback in Effect.tryMap returns 'unknown'. The catch callback should be used to provide typed errors.
-Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+33:60 - 33:73 | 0 | The `catch` callback in `Effect.tryMap` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)
 
 Effect.tryPromise
-38:41 - 38:58 | 0 | The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.
-Consider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)
+38:41 - 38:58 | 0 | The `catch` callback in `Effect.tryPromise` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)

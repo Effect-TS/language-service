@@ -1,2 +1,2 @@
 Effect.succeed(42)
-4:2 - 4:20 | 1 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
+4:2 - 4:20 | 1 | This Effect value is neither yielded nor used in an assignment.    effect(floatingEffect)

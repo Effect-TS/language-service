@@ -57,7 +57,7 @@ export const unnecessaryFailYieldableError = LSP.createDiagnostic({
                   report({
                     location: node,
                     messageText:
-                      `This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.`,
+                      "This `yield* Effect.fail(...)` passes a yieldable error value. `yield*` represents that value directly without wrapping it in `Effect.fail`.",
                     fixes: [{
                       fixName: "unnecessaryFailYieldableError_fix",
                       description: "Replace yield* Effect.fail with yield*",

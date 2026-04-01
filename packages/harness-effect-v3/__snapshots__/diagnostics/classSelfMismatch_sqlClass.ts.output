@@ -1,2 +1,2 @@
 ValidModelClass
-11:51 - 11:66 | 1 | Self type parameter should be 'InvalidModelClass'    effect(classSelfMismatch)
+11:51 - 11:66 | 1 | The `Self` type parameter for this class should be `InvalidModelClass`.    effect(classSelfMismatch)

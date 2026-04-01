@@ -74,7 +74,7 @@ export const tryCatchInEffectGen = LSP.createDiagnostic({
               report({
                 location: node,
                 messageText:
-                  `Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. ${
+                  `This Effect generator contains \`try/catch\`; in this context, error handling is expressed with Effect APIs such as ${
                     alternatives.join(", ")
                   }).`,
                 fixes: []

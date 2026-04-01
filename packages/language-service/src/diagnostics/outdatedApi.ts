@@ -33,7 +33,7 @@ export const outdatedApi = LSP.createDiagnostic({
       hasReported = true
       report({
         location: propertyAccess.name,
-        messageText: `${propertyName} is an Effect v3 API, but the project is using Effect v4.`,
+        messageText: `This project targets Effect v4, but this code uses the Effect v3 API \`${propertyName}\`. The referenced API belongs to the v3 surface rather than the configured v4 surface.`,
         fixes: []
       })
     }
@@ -89,7 +89,7 @@ export const outdatedApi = LSP.createDiagnostic({
       report({
         location: { pos: 0, end: 0 },
         messageText:
-          "This project targets Effect v4, but is using Effect v3 APIs. To find the correct API to use, clone and consult the github.com/effect-ts/effect-smol repository for the corresponding v4 replacement.",
+          "This project targets Effect v4, but this code uses Effect v3 APIs. The referenced API belongs to the v3 surface rather than the configured v4 surface.",
         fixes: []
       })
     }

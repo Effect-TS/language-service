@@ -4,8 +4,7 @@ export class MyService2 extends Effect.Service<MyService2>()("MyService2", {
     return { a: 1 }
   })
 }) {}
-13:0 - 18:5 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get rid of the scope in the requirements.    effect(scopeInLayerEffect)
+13:0 - 18:5 | 0 | This layer construction leaves `Scope` in the requirement set. The scoped API removes `Scope` from the resulting requirements.    effect(scopeInLayerEffect)
 
 export class MyService3 extends Effect.Service<MyService3>()("MyService2", {
   effect: Effect.gen(function*() {
@@ -14,8 +13,7 @@ export class MyService3 extends Effect.Service<MyService3>()("MyService2", {
     return { a: 1 }
   })
 }) {}
-20:0 - 26:5 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get rid of the scope in the requirements.    effect(scopeInLayerEffect)
+20:0 - 26:5 | 0 | This layer construction leaves `Scope` in the requirement set. The scoped API removes `Scope` from the resulting requirements.    effect(scopeInLayerEffect)
 
 Layer.effect(
   MyService,
@@ -24,8 +22,7 @@ Layer.effect(
     return { a: 1 }
   })
 )
-36:23 - 42:1 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get rid of the scope in the requirements.    effect(scopeInLayerEffect)
+36:23 - 42:1 | 0 | This layer construction leaves `Scope` in the requirement set. The scoped API removes `Scope` from the resulting requirements.    effect(scopeInLayerEffect)
 
 Layer.effect(
   MyService,
@@ -35,5 +32,4 @@ Layer.effect(
     return { a: 1 }
   })
 )
-44:24 - 51:1 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get rid of the scope in the requirements.    effect(scopeInLayerEffect)
+44:24 - 51:1 | 0 | This layer construction leaves `Scope` in the requirement set. The scoped API removes `Scope` from the resulting requirements.    effect(scopeInLayerEffect)

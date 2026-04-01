@@ -67,7 +67,7 @@ export const nonObjectEffectServiceType = LSP.createDiagnostic({
             const errorToReport = {
               location: property.name,
               messageText:
-                "Effect.Service requires the service type to be an object {} and not a primitive type. \nConsider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.",
+                "`Effect.Service` is declared with a primitive service type. `Effect.Service` models object-shaped services; primitive values use `Context.Tag` or `Effect.Tag` directly.",
               fixes: []
             }
 

@@ -166,7 +166,7 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
       if (Option.isSome(match)) {
         report({
           location: match.value,
-          messageText: "Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify",
+          messageText: "This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.",
           fixes: []
         })
       }

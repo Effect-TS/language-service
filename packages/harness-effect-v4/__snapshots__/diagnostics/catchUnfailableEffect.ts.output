@@ -1,8 +1,8 @@
 Effect.catch
-5:2 - 5:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+5:2 - 5:14 | 0 | The previous Effect does not fail, so this error-handling branch will never run.    effect(catchUnfailableEffect)
 
 Effect.catch
-14:2 - 14:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+14:2 - 14:14 | 0 | The previous Effect does not fail, so this error-handling branch will never run.    effect(catchUnfailableEffect)
 
 Effect.catch
-36:2 - 36:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+36:2 - 36:14 | 0 | The previous Effect does not fail, so this error-handling branch will never run.    effect(catchUnfailableEffect)

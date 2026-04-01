@@ -1,7 +1,7 @@
 LeakingDeps
 8:13 - 8:24 | 2 | Methods of this Service require `FileSystem` from every caller.
 
-This leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.
+The requirement becomes part of the public service surface instead of remaining internal to Layer implementation.
 
 Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.
 
@@ -12,7 +12,7 @@ More info and examples at https://effect.website/docs/requirements-management/la
 _LocalLeaking
 18:8 - 18:21 | 2 | Methods of this Service require `FileSystem` from every caller.
 
-This leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.
+The requirement becomes part of the public service surface instead of remaining internal to Layer implementation.
 
 Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.
 

@@ -1,2 +1,2 @@
 "CustomIdentifier"
-7:51 - 7:69 | 0 | Key should be '@effect/harness-effect-v4/RenamedService'    effect(deterministicKeys)
+7:51 - 7:69 | 0 | This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v4/RenamedService`.    effect(deterministicKeys)

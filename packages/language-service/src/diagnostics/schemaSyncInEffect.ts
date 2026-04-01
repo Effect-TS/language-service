@@ -77,7 +77,7 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
       report({
         location: node.expression,
         messageText:
-          `Using ${nodeText} inside an Effect generator is not recommended. Use Schema.${effectMethodName} instead to get properly typed error channel.`,
+          `\`${nodeText}\` is used inside an Effect generator. \`Schema.${effectMethodName}\` preserves the typed Effect error channel for this operation without throwing.`,
         fixes: []
       })
     }

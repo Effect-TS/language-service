@@ -1,2 +1,2 @@
 setTimeout(() => {}, 100)
-4:0 - 4:25 | 0 | Prefer using Effect.sleep or Schedule from Effect instead of setTimeout.    effect(globalTimers)
+4:0 - 4:25 | 0 | This code uses `setTimeout`, the corresponding Effect timer API is `Effect.sleep or Schedule` from Effect.    effect(globalTimers)

@@ -232,7 +232,7 @@ export const missedPipeableOpportunity = LSP.createDiagnostic({
           report({
             location: flow.node,
             messageText:
-              `Nested function calls can be converted to pipeable style for better readability; consider using ${subjectText}.pipe(...) instead.`,
+              `This nested call structure has a pipeable form. \`${subjectText}.pipe(...)\` represents the same call sequence in pipe style and may be easier to read.`,
             fixes: [{
               fixName: "missedPipeableOpportunity_fix",
               description: "Convert to pipe style",

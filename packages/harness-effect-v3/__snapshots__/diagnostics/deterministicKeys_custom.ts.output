@@ -1,5 +1,5 @@
 "Hello"
-11:43 - 11:50 | 1 | Key should be '@effect/harness-effect-v3/MyClass'    effect(deterministicKeys)
+11:43 - 11:50 | 1 | This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v3/MyClass`.    effect(deterministicKeys)
 
 "TTLRequest"
-17:5 - 17:17 | 1 | Key should be '@effect/harness-effect-v3/TTLRequest'    effect(deterministicKeys)
+17:5 - 17:17 | 1 | This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v3/TTLRequest`.    effect(deterministicKeys)

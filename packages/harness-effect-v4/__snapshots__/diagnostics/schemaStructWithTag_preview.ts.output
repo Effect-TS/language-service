@@ -2,4 +2,4 @@ Schema.Struct({
   _tag: Schema.Literal("User"),
   name: Schema.String
 })
-5:23 - 8:2 | 0 | Schema.Struct with a _tag field can be simplified to Schema.TaggedStruct to make the tag optional in the constructor.    effect(schemaStructWithTag)
+5:23 - 8:2 | 0 | This `Schema.Struct` includes a `_tag` field. `Schema.TaggedStruct` is the tagged-struct form for this pattern and makes the tag optional in the constructor.    effect(schemaStructWithTag)

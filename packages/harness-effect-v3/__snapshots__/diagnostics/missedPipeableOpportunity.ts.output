@@ -1,14 +1,14 @@
 toString(double(addOne(5)))
-12:29 - 12:56 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using addOne(5).pipe(...) instead.    effect(missedPipeableOpportunity)
+12:29 - 12:56 | 0 | This nested call structure has a pipeable form. `addOne(5).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
 
 toString(triple(double(addOne(10))))
-16:29 - 16:65 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using addOne(10).pipe(...) instead.    effect(missedPipeableOpportunity)
+16:29 - 16:65 | 0 | This nested call structure has a pipeable form. `addOne(10).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
 
 double(addOne(5))
-19:29 - 19:46 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using addOne(5).pipe(...) instead.    effect(missedPipeableOpportunity)
+19:29 - 19:46 | 0 | This nested call structure has a pipeable form. `addOne(5).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
 
 double(wrapInEffect(regularFunction(5)))
-24:32 - 24:72 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using wrapInEffect(regularFunction(5)).pipe(...) instead.    effect(missedPipeableOpportunity)
+24:32 - 24:72 | 0 | This nested call structure has a pipeable form. `wrapInEffect(regularFunction(5)).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
 
 triple(addHundred(double(addOne(7))))
-28:29 - 28:66 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using addOne(7).pipe(...) instead.    effect(missedPipeableOpportunity)
+28:29 - 28:66 | 0 | This nested call structure has a pipeable form. `addOne(7).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)

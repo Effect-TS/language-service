@@ -68,7 +68,7 @@ export const classSelfMismatch = LSP.createDiagnostic({
           if (actualName !== expectedName) {
             report({
               location: selfTypeNode,
-              messageText: `Self type parameter should be '${expectedName}'`,
+              messageText: `The \`Self\` type parameter for this class should be \`${expectedName}\`.`,
               fixes: [{
                 fixName: "classSelfMismatch_fix",
                 description: `Replace '${actualName}' with '${expectedName}'`,

@@ -1,2 +1,2 @@
 Effect.void.pipe(Effect.andThen(eff))
-19:2 - 19:39 | 1 | Missing 'R' in the expected Effect context.    effect(missingEffectContext)
+19:2 - 19:39 | 1 | This Effect requires a service that is missing from the expected Effect context: `R`.    effect(missingEffectContext)

@@ -55,8 +55,8 @@ export const makeGlobalConsoleApply = (checkInEffect: boolean) =>
       report({
         location: node,
         messageText: checkInEffect
-          ? `Prefer using ${alternative} instead of console.${method} inside Effect generators.`
-          : `Prefer using ${alternative} instead of console.${method}.`,
+          ? `This Effect code uses \`console.${method}\`, logging in Effect code is represented through \`${alternative}\`.`
+          : `This code uses \`console.${method}\`, the corresponding Effect logging API is \`${alternative}\`.`,
         fixes: []
       })
     }

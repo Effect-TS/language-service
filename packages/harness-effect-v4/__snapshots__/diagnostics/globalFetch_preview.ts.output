@@ -1,2 +1,2 @@
 fetch
-4:23 - 4:28 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)
+4:23 - 4:28 | 0 | This code uses the global `fetch` function, HTTP requests are represented through `HttpClient` from `@effect/platform`.    effect(globalFetch)

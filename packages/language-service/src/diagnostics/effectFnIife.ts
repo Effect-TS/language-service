@@ -142,9 +142,9 @@ export const effectFnIife = LSP.createDiagnostic({
       report({
         location: node,
         messageText:
-          `${effectModuleName}.${kind} returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead${
+          `\`${effectModuleName}.${kind}\` returns a reusable function that can take arguments, but it is invoked immediately here. \`Effect.gen\` represents the immediate-use form for this pattern${
             traceExpressionText
-              ? ` with Effect.withSpan(${traceExpressionText}) piped in the end to mantain tracing spans`
+              ? ` with \`Effect.withSpan(${traceExpressionText})\` piped at the end to maintain tracing spans`
               : ``
           }.`,
         fixes

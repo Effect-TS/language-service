@@ -1,5 +1,5 @@
 ValidSchemaClass
-9:53 - 9:69 | 1 | Self type parameter should be 'InvalidSchemaClass'    effect(classSelfMismatch)
+9:53 - 9:69 | 1 | The `Self` type parameter for this class should be `InvalidSchemaClass`.    effect(classSelfMismatch)
 
 ValidErrorSchemaClass
-19:58 - 19:79 | 1 | Self type parameter should be 'InvalidErrorSchemaClass'    effect(classSelfMismatch)
+19:58 - 19:79 | 1 | The `Self` type parameter for this class should be `InvalidErrorSchemaClass`.    effect(classSelfMismatch)

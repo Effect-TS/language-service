@@ -1,2 +1,2 @@
 Date.now()
-6:14 - 6:24 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDateInEffect)
+6:14 - 6:24 | 0 | This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` or `DateTime` from Effect.    effect(globalDateInEffect)

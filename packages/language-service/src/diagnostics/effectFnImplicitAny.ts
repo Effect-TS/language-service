@@ -108,7 +108,7 @@ export const effectFnImplicitAny = LSP.createDiagnostic({
         report({
           location: parameter.name,
           messageText:
-            `Parameter '${parameterName}' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.`,
+            `Parameter \`${parameterName}\` implicitly has type \`any\` in \`Effect.fn\`, \`Effect.fnUntraced\`, or \`Effect.fnUntracedEager\`. No parameter type is available from an explicit annotation or contextual function type.`,
           fixes: []
         })
       }

@@ -1,11 +1,11 @@
 Date.now()
-5:24 - 5:34 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now().    effect(globalDate)
+5:24 - 5:34 | 0 | This code uses `Date.now()`, time access is represented through `Clock` from Effect.    effect(globalDate)
 
 new Date()
-9:9 - 9:19 | 0 | Prefer using DateTime from Effect instead of new Date().    effect(globalDate)
+9:9 - 9:19 | 0 | This code constructs `new Date()`, date values are represented through `DateTime` from Effect.    effect(globalDate)
 
 MyDate.now()
-14:24 - 14:36 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now().    effect(globalDate)
+14:24 - 14:36 | 0 | This code uses `Date.now()`, time access is represented through `Clock` from Effect.    effect(globalDate)
 
 Date.now()
-29:19 - 29:29 | 0 | Prefer using Clock or DateTime from Effect instead of Date.now().    effect(globalDate)
+29:19 - 29:29 | 0 | This code uses `Date.now()`, time access is represented through `Clock` from Effect.    effect(globalDate)

@@ -53,7 +53,7 @@ export const extendsNativeError = LSP.createDiagnostic({
               report({
                 location: node.name ?? typeExpression,
                 messageText:
-                  "Avoid extending the native 'Error' class directly. Consider using a tagged error (e.g. Data.TaggedError) to maintain type safety in the Effect failure channel.",
+                  "This class extends the native `Error` type directly. Untagged native errors lose distinction in the Effect failure channel.",
                 fixes: []
               })
             }

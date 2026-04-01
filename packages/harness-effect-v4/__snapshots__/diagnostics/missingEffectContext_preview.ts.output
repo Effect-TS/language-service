@@ -1,2 +1,2 @@
 preview
-8:13 - 8:20 | 0 | Missing 'Db' in the expected Effect context.    effect(missingEffectContext)
+8:13 - 8:20 | 0 | This Effect requires a service that is missing from the expected Effect context: `Db`.    effect(missingEffectContext)
