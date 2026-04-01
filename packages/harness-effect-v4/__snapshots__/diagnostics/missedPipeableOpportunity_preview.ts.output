@@ -1,2 +1,2 @@
 identity(identity(Schema.decodeEffect(User)({ id: 1 })))
-7:23 - 7:79 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using Schema.decodeEffect(User)({ id: 1 }).pipe(...) instead.    effect(missedPipeableOpportunity)
+7:23 - 7:79 | 0 | This nested call structure has a pipeable form. `Schema.decodeEffect(User)({ id: 1 }).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)

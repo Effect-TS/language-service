@@ -1,2 +1,2 @@
 console.log("hello")
-6:2 - 6:22 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)
+6:2 - 6:22 | 0 | This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)

@@ -1,2 +1,2 @@
 Effect.log("forgotten")
-5:0 - 5:23 | 0 | Effect must be yielded or assigned to a variable.    effect(floatingEffect)
+5:0 - 5:23 | 0 | This Effect value is neither yielded nor used in an assignment.    effect(floatingEffect)

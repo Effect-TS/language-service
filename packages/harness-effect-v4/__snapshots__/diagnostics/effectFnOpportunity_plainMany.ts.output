@@ -1,8 +1,8 @@
 arrowPlainMany
-9:13 - 9:27 | 2 | Can be rewritten as a reusable function: Effect.fn(() => { ... })    effect(effectFnOpportunity)
+9:13 - 9:27 | 2 | This expression can be rewritten in the reusable function form `Effect.fn(() => { ... })`.    effect(effectFnOpportunity)
 
 functionExpressionPlainMany
-18:13 - 18:40 | 2 | Can be rewritten as a reusable function: Effect.fn(function<T>(value) { ... })    effect(effectFnOpportunity)
+18:13 - 18:40 | 2 | This expression can be rewritten in the reusable function form `Effect.fn(function<T>(value) { ... })`.    effect(effectFnOpportunity)
 
 functionDeclarationPlainMany
-28:16 - 28:44 | 2 | Can be rewritten as a reusable function: Effect.fn(function<T>(value) { ... })    effect(effectFnOpportunity)
+28:16 - 28:44 | 2 | This expression can be rewritten in the reusable function form `Effect.fn(function<T>(value) { ... })`.    effect(effectFnOpportunity)

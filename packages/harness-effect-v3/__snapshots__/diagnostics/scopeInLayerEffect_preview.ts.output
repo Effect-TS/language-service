@@ -2,5 +2,4 @@ Layer.effect(Cache, Effect.gen(function*() {
   yield* Effect.addFinalizer(() => Effect.void)
   return { ok: true as const }
 }))
-8:23 - 11:3 | 0 | Seems like you are constructing a layer with a scope in the requirements.
-Consider using "scoped" instead to get rid of the scope in the requirements.    effect(scopeInLayerEffect)
+8:23 - 11:3 | 0 | This layer construction leaves `Scope` in the requirement set. The scoped API removes `Scope` from the resulting requirements.    effect(scopeInLayerEffect)

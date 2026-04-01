@@ -1,2 +1,2 @@
 Effect.provide(A.Default)
-11:40 - 11:65 | 0 | Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.    effect(multipleEffectProvide)
+11:40 - 11:65 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)

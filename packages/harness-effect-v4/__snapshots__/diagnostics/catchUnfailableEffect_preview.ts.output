@@ -1,2 +1,2 @@
 Effect.catch
-6:2 - 6:14 | 0 | Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)
+6:2 - 6:14 | 0 | The previous Effect does not fail, so this error-handling branch will never run.    effect(catchUnfailableEffect)

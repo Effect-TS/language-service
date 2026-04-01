@@ -1,7 +1,7 @@
 Context.GenericTag<LeakingService>("LeakingService")
 13:26 - 13:78 | 2 | Methods of this Service require `FileSystem` from every caller.
 
-This leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.
+The requirement becomes part of the public service surface instead of remaining internal to Layer implementation.
 
 Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.
 

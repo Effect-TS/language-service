@@ -1,5 +1,5 @@
 identity(identity(Schema.decodeEffect(MyStruct)({ x: 42, y: 42 })))
-13:40 - 13:107 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using Schema.decodeEffect(MyStruct)({ x: 42, y: 42 }).pipe(...) instead.    effect(missedPipeableOpportunity)
+13:40 - 13:107 | 0 | This nested call structure has a pipeable form. `Schema.decodeEffect(MyStruct)({ x: 42, y: 42 }).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
 
 Effect.succeed(Duration.isLessThanOrEqualTo(Duration.seconds(10))(_.duration))
-17:22 - 17:100 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using _.duration.pipe(...) instead.    effect(missedPipeableOpportunity)
+17:22 - 17:100 | 0 | This nested call structure has a pipeable form. `_.duration.pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)

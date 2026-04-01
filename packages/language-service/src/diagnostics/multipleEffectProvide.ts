@@ -90,7 +90,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
         report({
           location: chunk[0].node,
           messageText:
-            "Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.",
+            "This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.",
           fixes: [{
             fixName: "multipleEffectProvide_fix",
             description: "Combine into a single provide",

@@ -62,7 +62,7 @@ export const nodeBuiltinImport = LSP.createDiagnostic({
           report({
             location: statement.moduleSpecifier,
             messageText:
-              `Prefer using ${match.alternative} from ${match.package} instead of the Node.js '${match.module}' module.`,
+              `This module reference uses the \`${match.module}\` module, the corresponding Effect API is \`${match.alternative}\` from \`${match.package}\`.`,
             fixes: []
           })
         }
@@ -80,7 +80,7 @@ export const nodeBuiltinImport = LSP.createDiagnostic({
               report({
                 location: arg,
                 messageText:
-                  `Prefer using ${match.alternative} from ${match.package} instead of the Node.js '${match.module}' module.`,
+                  `This module reference uses the \`${match.module}\` module, the corresponding Effect API is \`${match.alternative}\` from \`${match.package}\`.`,
                 fixes: []
               })
             }

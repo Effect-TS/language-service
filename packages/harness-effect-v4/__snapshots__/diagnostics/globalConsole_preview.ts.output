@@ -1,2 +1,2 @@
 console.log("preview")
-4:0 - 4:22 | 0 | Prefer using Effect.log or Logger instead of console.log.    effect(globalConsole)
+4:0 - 4:22 | 0 | This code uses `console.log`, the corresponding Effect logging API is `Effect.log or Logger`.    effect(globalConsole)

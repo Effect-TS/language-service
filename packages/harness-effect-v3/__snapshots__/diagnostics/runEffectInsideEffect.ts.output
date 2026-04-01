@@ -1,6 +1,5 @@
 Effect.runSync
-14:20 - 14:34 | 2 | Using Effect.runSync inside an Effect is not recommended. Effects inside generators can usually just be yielded.    effect(runEffectInsideEffect)
+14:20 - 14:34 | 2 | `Effect.runSync` is called inside an existing Effect context. Here, the inner Effect can be used directly.    effect(runEffectInsideEffect)
 
 Effect.runPromise
-22:4 - 22:21 | 2 | Using Effect.runPromise inside an Effect is not recommended. The same runtime should generally be used instead to run child effects.
-Consider extracting the Runtime by using for example Effect.runtime and then use Runtime.runPromise with the extracted runtime instead.    effect(runEffectInsideEffect)
+22:4 - 22:21 | 2 | `Effect.runPromise` is called inside an Effect with a separate runtime invocation. In this context, run child Effects with the surrounding runtime, which can be accessed through `Effect.runtime` and `Runtime.runPromise`.    effect(runEffectInsideEffect)

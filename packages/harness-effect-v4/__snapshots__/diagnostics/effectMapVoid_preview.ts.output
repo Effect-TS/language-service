@@ -1,2 +1,2 @@
 Effect.map
-6:2 - 6:12 | 0 | Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)
+6:2 - 6:12 | 0 | This expression discards the success value through mapping. `Effect.asVoid` represents that form directly.    effect(effectMapVoid)

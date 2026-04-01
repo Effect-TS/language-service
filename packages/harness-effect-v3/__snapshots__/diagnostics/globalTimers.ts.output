@@ -1,11 +1,11 @@
 setTimeout(() => {}, 100)
-5:17 - 5:42 | 0 | Prefer using Effect.sleep or Schedule from Effect instead of setTimeout.    effect(globalTimers)
+5:17 - 5:42 | 0 | This code uses `setTimeout`, the corresponding Effect timer API is `Effect.sleep or Schedule` from Effect.    effect(globalTimers)
 
 setInterval(() => {}, 100)
-8:24 - 8:50 | 0 | Prefer using Schedule or Effect.repeat from Effect instead of setInterval.    effect(globalTimers)
+8:24 - 8:50 | 0 | This code uses `setInterval`, the corresponding Effect timer API is `Schedule or Effect.repeat` from Effect.    effect(globalTimers)
 
 later(() => {}, 100)
-12:24 - 12:44 | 0 | Prefer using Effect.sleep or Schedule from Effect instead of setTimeout.    effect(globalTimers)
+12:24 - 12:44 | 0 | This code uses `setTimeout`, the corresponding Effect timer API is `Effect.sleep or Schedule` from Effect.    effect(globalTimers)
 
 setInterval(() => {}, 100)
-21:19 - 21:45 | 0 | Prefer using Schedule or Effect.repeat from Effect instead of setInterval.    effect(globalTimers)
+21:19 - 21:45 | 0 | This code uses `setInterval`, the corresponding Effect timer API is `Schedule or Effect.repeat` from Effect.    effect(globalTimers)

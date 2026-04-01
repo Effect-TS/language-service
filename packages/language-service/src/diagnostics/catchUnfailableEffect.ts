@@ -72,8 +72,7 @@ export const catchUnfailableEffect = LSP.createDiagnostic({
           if (E.flags & ts.TypeFlags.Never) {
             report({
               location: transformation.callee,
-              messageText:
-                `Looks like the previous effect never fails, so probably this error handling will never be triggered.`,
+              messageText: "The previous Effect does not fail, so this error-handling branch will never run.",
               fixes: []
             })
           }

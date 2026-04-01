@@ -1,5 +1,5 @@
 yield* Effect.fail(new DataTaggedError())
-22:2 - 22:43 | 2 | This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.    effect(unnecessaryFailYieldableError)
+22:2 - 22:43 | 2 | This `yield* Effect.fail(...)` passes a yieldable error value. `yield*` represents that value directly without wrapping it in `Effect.fail`.    effect(unnecessaryFailYieldableError)
 
 yield* Effect.fail(new SchemaError({}))
-23:2 - 23:41 | 2 | This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.    effect(unnecessaryFailYieldableError)
+23:2 - 23:41 | 2 | This `yield* Effect.fail(...)` passes a yieldable error value. `yield*` represents that value directly without wrapping it in `Effect.fail`.    effect(unnecessaryFailYieldableError)

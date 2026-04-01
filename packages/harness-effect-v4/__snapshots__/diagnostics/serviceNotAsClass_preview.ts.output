@@ -1,2 +1,2 @@
 ServiceMap.Service<{ port: number }>("Preview")
-5:23 - 5:70 | 0 | ServiceMap.Service should be used in a class declaration instead of as a variable. Use: class Preview extends ServiceMap.Service<Preview, { port: number }>()("Preview") {}    effect(serviceNotAsClass)
+5:23 - 5:70 | 0 | `ServiceMap.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Preview extends ServiceMap.Service<Preview, { port: number }>()("Preview") {}`.    effect(serviceNotAsClass)

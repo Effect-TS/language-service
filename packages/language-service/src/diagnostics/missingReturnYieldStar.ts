@@ -64,7 +64,7 @@ export const missingReturnYieldStar = LSP.createDiagnostic({
       report({
         location: unwrapped,
         messageText:
-          `It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.`,
+          "This Effect never succeeds; using `return yield*` preserves a definitive generator exit point for type narrowing and tooling support.",
         fixes: fix
       })
     }

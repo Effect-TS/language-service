@@ -79,7 +79,7 @@ export const schemaUnionOfLiterals = LSP.createDiagnostic({
                 report({
                   location: node,
                   messageText:
-                    "A Schema.Union of multiple Schema.Literal calls can be simplified to a single Schema.Literal call.",
+                    "This `Schema.Union` contains multiple `Schema.Literal` members and can be simplified to a single `Schema.Literal` call.",
                   fixes: [{
                     fixName: "schemaUnionOfLiterals_fix",
                     description: "Replace with a single Schema.Literal call",

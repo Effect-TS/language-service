@@ -1,5 +1,5 @@
 console.log(Effect.runPromise(Effect.ignore(Effect.log("Hello"))))
-12:0 - 12:66 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using Effect.log("Hello").pipe(...) instead.    effect(missedPipeableOpportunity)
+12:0 - 12:66 | 0 | This nested call structure has a pipeable form. `Effect.log("Hello").pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
 
 console.log(
   Effect.runPromise(
@@ -8,4 +8,4 @@ console.log(
     )
   )
 )
-17:0 - 23:1 | 0 | Nested function calls can be converted to pipeable style for better readability; consider using Effect.succeed(console.log(Effect.runPromise(Effect.log("Hello")))).pipe(...) instead.    effect(missedPipeableOpportunity)
+17:0 - 23:1 | 0 | This nested call structure has a pipeable form. `Effect.succeed(console.log(Effect.runPromise(Effect.log("Hello")))).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)

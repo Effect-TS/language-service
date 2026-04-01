@@ -1,5 +1,5 @@
 Math.random()
-6:12 - 6:25 | 0 | Prefer using the Random service from Effect instead of Math.random() inside Effect generators.    effect(globalRandomInEffect)
+6:12 - 6:25 | 0 | This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)
 
 MyMath.random()
-13:12 - 13:27 | 0 | Prefer using the Random service from Effect instead of Math.random() inside Effect generators.    effect(globalRandomInEffect)
+13:12 - 13:27 | 0 | This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)

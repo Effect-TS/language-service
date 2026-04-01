@@ -1,2 +1,2 @@
 Schema.decodeSync
-10:9 - 10:26 | 0 | Using Schema.decodeSync inside an Effect generator is not recommended. Use Schema.decode instead to get properly typed error channel.    effect(schemaSyncInEffect)
+10:9 - 10:26 | 0 | `Schema.decodeSync` is used inside an Effect generator. `Schema.decode` preserves the typed Effect error channel for this operation without throwing.    effect(schemaSyncInEffect)

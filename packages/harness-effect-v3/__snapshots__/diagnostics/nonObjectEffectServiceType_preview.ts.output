@@ -1,3 +1,2 @@
 succeed
-7:2 - 7:9 | 0 | Effect.Service requires the service type to be an object {} and not a primitive type. 
-Consider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.    effect(nonObjectEffectServiceType)
+7:2 - 7:9 | 0 | `Effect.Service` is declared with a primitive service type. `Effect.Service` models object-shaped services; primitive values use `Context.Tag` or `Effect.Tag` directly.    effect(nonObjectEffectServiceType)

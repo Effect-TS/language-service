@@ -1,11 +1,11 @@
 fetch
-5:21 - 5:26 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)
+5:21 - 5:26 | 0 | This code uses the global `fetch` function, HTTP requests are represented through `HttpClient` from `@effect/platform`.    effect(globalFetch)
 
 fetch
-8:28 - 8:33 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)
+8:28 - 8:33 | 0 | This code uses the global `fetch` function, HTTP requests are represented through `HttpClient` from `@effect/platform`.    effect(globalFetch)
 
 myFetch
-12:22 - 12:29 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)
+12:22 - 12:29 | 0 | This code uses the global `fetch` function, HTTP requests are represented through `HttpClient` from `@effect/platform`.    effect(globalFetch)
 
 fetch
-21:19 - 21:24 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)
+21:19 - 21:24 | 0 | This code uses the global `fetch` function, HTTP requests are represented through `HttpClient` from `@effect/platform`.    effect(globalFetch)

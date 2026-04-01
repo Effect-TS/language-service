@@ -156,7 +156,7 @@ export const leakingRequirements = LSP.createDiagnostic({
       report({
         location: node,
         messageText: `Methods of this Service require \`${requirementsStr}\` from every caller.\n\n` +
-          `This leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.\n\n` +
+          `The requirement becomes part of the public service surface instead of remaining internal to Layer implementation.\n\n` +
           `Resolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\n` +
           `To suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add \`@effect-leakable-service\` JSDoc to their interface declarations (e.g., the \`${firstStr}\` interface), or to this service by adding a \`@effect-expect-leaking ${firstStr}\` JSDoc.\n\n` +
           `More info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage`,

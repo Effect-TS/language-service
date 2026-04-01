@@ -1,11 +1,11 @@
 Math.random()
-5:22 - 5:35 | 0 | Prefer using the Random service from Effect instead of Math.random().    effect(globalRandom)
+5:22 - 5:35 | 0 | This code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandom)
 
 Math.random()
-8:29 - 8:42 | 0 | Prefer using the Random service from Effect instead of Math.random().    effect(globalRandom)
+8:29 - 8:42 | 0 | This code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandom)
 
 MyMath.random()
-12:23 - 12:38 | 0 | Prefer using the Random service from Effect instead of Math.random().    effect(globalRandom)
+12:23 - 12:38 | 0 | This code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandom)
 
 Math.random()
-21:19 - 21:32 | 0 | Prefer using the Random service from Effect instead of Math.random().    effect(globalRandom)
+21:19 - 21:32 | 0 | This code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandom)

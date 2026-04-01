@@ -67,7 +67,7 @@ export const unknownInEffectCatch = LSP.createDiagnostic({
                     report({
                       location: node.expression,
                       messageText:
-                        `The 'catch' callback in ${nodeText} returns 'unknown'. The catch callback should be used to provide typed errors.\nConsider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.`,
+                        `The \`catch\` callback in \`${nodeText}\` returns \`unknown\`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in \`Data.TaggedError\`.`,
                       fixes: []
                     })
                   }

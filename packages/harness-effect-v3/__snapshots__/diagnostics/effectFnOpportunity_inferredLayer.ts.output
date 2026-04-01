@@ -1,11 +1,11 @@
 log
-14:13 - 14:16 | 2 | Can be rewritten as a reusable function: Effect.fn("MyService.log")((what) => { ... })    effect(effectFnOpportunity)
+14:13 - 14:16 | 2 | This expression can be rewritten in the reusable function form `Effect.fn("MyService.log")((what) => { ... })`.    effect(effectFnOpportunity)
 
 log
-20:13 - 20:16 | 2 | Can be rewritten as a reusable function: Effect.fn("MyService.log")((what) => { ... })    effect(effectFnOpportunity)
+20:13 - 20:16 | 2 | This expression can be rewritten in the reusable function form `Effect.fn("MyService.log")((what) => { ... })`.    effect(effectFnOpportunity)
 
 log
-25:4 - 25:7 | 2 | Can be rewritten as a reusable function: Effect.fn("MyService.log")((what) => { ... })    effect(effectFnOpportunity)
+25:4 - 25:7 | 2 | This expression can be rewritten in the reusable function form `Effect.fn("MyService.log")((what) => { ... })`.    effect(effectFnOpportunity)
 
 log
-30:13 - 30:16 | 2 | Can be rewritten as a reusable function: Effect.fn("MyService.log")((what) => { ... })    effect(effectFnOpportunity)
+30:13 - 30:16 | 2 | This expression can be rewritten in the reusable function form `Effect.fn("MyService.log")((what) => { ... })`.    effect(effectFnOpportunity)

@@ -1,8 +1,8 @@
 arrowWithPipe
-8:13 - 8:26 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... }, ...pipeTransformations)    effect(effectFnOpportunity)
+8:13 - 8:26 | 2 | This expression can be rewritten in the reusable function form `Effect.fnUntraced(function*() { ... }, ...pipeTransformations)`.    effect(effectFnOpportunity)
 
 functionExpressionWithPipe
-13:13 - 13:39 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... }, ...pipeTransformations)    effect(effectFnOpportunity)
+13:13 - 13:39 | 2 | This expression can be rewritten in the reusable function form `Effect.fnUntraced(function*() { ... }, ...pipeTransformations)`.    effect(effectFnOpportunity)
 
 functionDeclarationWithPipe
-19:16 - 19:43 | 2 | Can be rewritten as a reusable function: Effect.fnUntraced(function*() { ... }, ...pipeTransformations)    effect(effectFnOpportunity)
+19:16 - 19:43 | 2 | This expression can be rewritten in the reusable function form `Effect.fnUntraced(function*() { ... }, ...pipeTransformations)`.    effect(effectFnOpportunity)

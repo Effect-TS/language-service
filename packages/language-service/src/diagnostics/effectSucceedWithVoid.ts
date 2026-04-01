@@ -49,7 +49,8 @@ export const effectSucceedWithVoid = LSP.createDiagnostic({
           // Create the diagnostic with quick fix
           report({
             location: node,
-            messageText: "Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)",
+            messageText:
+              "`Effect.void` represents the same outcome as `Effect.succeed(undefined)` or `Effect.succeed(void 0)`.",
             fixes: [{
               fixName: "effectSucceedWithVoid_fix",
               description: "Replace with Effect.void",

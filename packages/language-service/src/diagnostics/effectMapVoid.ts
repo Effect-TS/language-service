@@ -65,7 +65,8 @@ export const effectMapVoid = LSP.createDiagnostic({
           // Create the diagnostic with quick fix
           report({
             location: node.expression,
-            messageText: "Effect.asVoid can be used instead to discard the success value",
+            messageText:
+              "This expression discards the success value through mapping. `Effect.asVoid` represents that form directly.",
             fixes: [{
               fixName: "effectMapVoid_fix",
               description: "Replace with Effect.asVoid",

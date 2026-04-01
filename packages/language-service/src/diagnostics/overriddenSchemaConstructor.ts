@@ -151,7 +151,7 @@ export const overriddenSchemaConstructor = LSP.createDiagnostic({
               report({
                 location: member,
                 messageText:
-                  "Classes extending Schema must not override the constructor; this is because it silently breaks the schema decoding behaviour. If that's needed, we recommend instead to use a static 'new' method that constructs the instance.",
+                  "This Schema subclass defines its own constructor. For Schema classes, constructor overrides break decoding behavior for the class shape. Custom construction can be expressed through a static `new` method instead.",
                 fixes: (member.body ? [fixAsStaticNew] : []).concat([{
                   fixName: "overriddenSchemaConstructor_fix",
                   description: "Remove the constructor override",

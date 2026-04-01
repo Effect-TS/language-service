@@ -58,9 +58,9 @@ export const missingEffectContext = LSP.createDiagnostic({
               report(
                 {
                   location: node,
-                  messageText: `Missing '${
+                  messageText: `This Effect requires a service that is missing from the expected Effect context: \`${
                     sortTypes(missingTypes).map((_) => typeChecker.typeToString(_)).join(" | ")
-                  }' in the expected Effect context.`,
+                  }\`.`,
                   fixes: []
                 }
               )

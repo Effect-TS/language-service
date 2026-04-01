@@ -1,3 +1,3 @@
 try { return yield* Effect.succeed(1) }
   catch { return 0 }
-6:2 - 7:20 | 0 | Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)
+6:2 - 7:20 | 0 | This Effect generator contains `try/catch`; in this context, error handling is expressed with Effect APIs such as Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)

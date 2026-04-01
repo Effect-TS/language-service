@@ -1,14 +1,14 @@
 console.log("hello")
-6:2 - 6:22 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)
+6:2 - 6:22 | 0 | This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)
 
 console.warn("warning")
-11:2 - 11:25 | 0 | Prefer using Effect.logWarning or Logger instead of console.warn inside Effect generators.    effect(globalConsoleInEffect)
+11:2 - 11:25 | 0 | This Effect code uses `console.warn`, logging in Effect code is represented through `Effect.logWarning or Logger`.    effect(globalConsoleInEffect)
 
 console.error("error")
-16:2 - 16:24 | 0 | Prefer using Effect.logError or Logger instead of console.error inside Effect generators.    effect(globalConsoleInEffect)
+16:2 - 16:24 | 0 | This Effect code uses `console.error`, logging in Effect code is represented through `Effect.logError or Logger`.    effect(globalConsoleInEffect)
 
 myConsole.log("hello")
-22:2 - 22:24 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)
+22:2 - 22:24 | 0 | This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)
 
 myConsole.log("hello")
-28:2 - 28:24 | 0 | Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)
+28:2 - 28:24 | 0 | This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)

@@ -50,7 +50,8 @@ export const instanceOfSchema = LSP.createDiagnostic({
         if (isSchemaType._tag === "Some") {
           report({
             location: node,
-            messageText: "Consider using Schema.is instead of instanceof for Effect Schema types.",
+            messageText:
+              "This code uses `instanceof` with an Effect Schema type. `Schema.is` is the schema-aware runtime check for this case.",
             fixes: [{
               fixName: "instanceOfSchema_fix",
               description: "Replace with Schema.is",

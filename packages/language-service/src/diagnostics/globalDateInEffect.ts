@@ -37,13 +37,13 @@ export const makeGlobalDateApply = (checkInEffect: boolean) =>
       ) {
         objectNode = node.expression.expression
         messageText = checkInEffect
-          ? "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators."
-          : "Prefer using Clock or DateTime from Effect instead of Date.now()."
+          ? "This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` from Effect."
+          : "This code uses `Date.now()`, time access is represented through `Clock` from Effect."
       } else if (ts.isNewExpression(node)) {
         objectNode = node.expression
         messageText = checkInEffect
-          ? "Prefer using DateTime from Effect instead of new Date() inside Effect generators."
-          : "Prefer using DateTime from Effect instead of new Date()."
+          ? "This Effect code constructs `new Date()`, date values in Effect code are represented through `DateTime` from Effect."
+          : "This code constructs `new Date()`, date values are represented through `DateTime` from Effect."
       }
 
       if (!messageText || !objectNode) continue

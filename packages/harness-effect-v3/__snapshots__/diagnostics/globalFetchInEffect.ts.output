@@ -1,5 +1,5 @@
 fetch
-6:2 - 6:7 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function inside Effect generators.    effect(globalFetchInEffect)
+6:2 - 6:7 | 0 | This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `@effect/platform`.    effect(globalFetchInEffect)
 
 fetch
-11:2 - 11:7 | 0 | Prefer using HttpClient from @effect/platform instead of the global 'fetch' function inside Effect generators.    effect(globalFetchInEffect)
+11:2 - 11:7 | 0 | This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `@effect/platform`.    effect(globalFetchInEffect)

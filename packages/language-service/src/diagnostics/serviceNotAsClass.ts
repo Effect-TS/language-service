@@ -65,9 +65,9 @@ export const serviceNotAsClass = LSP.createDiagnostic({
       report({
         location: callExpr,
         messageText:
-          `ServiceMap.Service should be used in a class declaration instead of as a variable. Use: class ${variableName} extends ServiceMap.Service<${variableName}, ${shapeText}>()("${
+          `\`ServiceMap.Service\` is assigned to a variable here, but this API is intended for a class declaration shape such as \`class ${variableName} extends ServiceMap.Service<${variableName}, ${shapeText}>()("${
             argsText.replace(/['"]/g, "")
-          }") {}`,
+          }") {}\`.`,
         fixes: [{
           fixName: "serviceNotAsClass",
           description: `Convert to class declaration`,

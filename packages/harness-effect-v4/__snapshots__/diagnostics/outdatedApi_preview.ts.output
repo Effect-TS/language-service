@@ -1,5 +1,5 @@
 
-1:0 - 1:0 | 0 | This project targets Effect v4, but is using Effect v3 APIs. To find the correct API to use, clone and consult the github.com/effect-ts/effect-smol repository for the corresponding v4 replacement.    effect(outdatedApi)
+1:0 - 1:0 | 0 | This project targets Effect v4, but this code uses Effect v3 APIs. The referenced API belongs to the v3 surface rather than the configured v4 surface.    effect(outdatedApi)
 
 runtime
-7:23 - 7:30 | 0 | runtime is an Effect v3 API, but the project is using Effect v4.    effect(outdatedApi)
+7:23 - 7:30 | 0 | This project targets Effect v4, but this code uses the Effect v3 API `runtime`. The referenced API belongs to the v3 surface rather than the configured v4 surface.    effect(outdatedApi)

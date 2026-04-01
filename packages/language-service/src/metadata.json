@@ -91,7 +91,7 @@
           {
             "start": 154,
             "end": 169,
-            "text": "Self type parameter should be 'InvalidContextTag'    effect(classSelfMismatch)"
+            "text": "The `Self` type parameter for this class should be `InvalidContextTag`.    effect(classSelfMismatch)"
           }
         ]
       }
@@ -127,7 +127,7 @@
           {
             "start": 86,
             "end": 91,
-            "text": "Parameter 'input' implicitly has an 'any' type in Effect.fn/Effect.fnUntraced. Add an explicit type annotation or provide a contextual function type.    effect(effectFnImplicitAny)"
+            "text": "Parameter `input` implicitly has type `any` in `Effect.fn`, `Effect.fnUntraced`, or `Effect.fnUntracedEager`. No parameter type is available from an explicit annotation or contextual function type.    effect(effectFnImplicitAny)"
           }
         ]
       }
@@ -148,7 +148,7 @@
           {
             "start": 41,
             "end": 64,
-            "text": "Effect must be yielded or assigned to a variable.    effect(floatingEffect)"
+            "text": "This Effect value is neither yielded nor used in an assignment.    effect(floatingEffect)"
           }
         ]
       }
@@ -190,7 +190,7 @@
           {
             "start": 160,
             "end": 167,
-            "text": "Missing 'Db' in the expected Effect context.    effect(missingEffectContext)"
+            "text": "This Effect requires a service that is missing from the expected Effect context: `Db`.    effect(missingEffectContext)"
           }
         ]
       }
@@ -253,7 +253,7 @@
           {
             "start": 121,
             "end": 147,
-            "text": "It is recommended to use return yield* for Effects that never succeed to signal a definitive exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)"
+            "text": "This Effect never succeeds; using `return yield*` preserves a definitive generator exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)"
           }
         ]
       }
@@ -274,12 +274,12 @@
           {
             "start": 75,
             "end": 83,
-            "text": "Seems like you used yield instead of yield* inside this Effect.gen.    effect(missingStarInYieldEffectGen)"
+            "text": "This uses `yield` for an `Effect` value. `yield*` is the Effect-aware form in this context.    effect(missingStarInYieldEffectGen)"
           },
           {
             "start": 105,
             "end": 128,
-            "text": "When yielding Effects inside Effect.gen, you should use yield* instead of yield.    effect(missingStarInYieldEffectGen)"
+            "text": "This uses `yield` for an `Effect` value. `yield*` is the Effect-aware form in this context.    effect(missingStarInYieldEffectGen)"
           }
         ]
       }
@@ -299,7 +299,7 @@
           {
             "start": 142,
             "end": 149,
-            "text": "Effect.Service requires the service type to be an object {} and not a primitive type. \nConsider wrapping the value in an object, or manually using Context.Tag or Effect.Tag if you want to use a primitive instead.    effect(nonObjectEffectServiceType)"
+            "text": "`Effect.Service` is declared with a primitive service type. `Effect.Service` models object-shaped services; primitive values use `Context.Tag` or `Effect.Tag` directly.    effect(nonObjectEffectServiceType)"
           }
         ]
       }
@@ -319,12 +319,12 @@
           {
             "start": 0,
             "end": 0,
-            "text": "This project targets Effect v4, but is using Effect v3 APIs. To find the correct API to use, clone and consult the github.com/effect-ts/effect-smol repository for the corresponding v4 replacement.    effect(outdatedApi)"
+            "text": "This project targets Effect v4, but this code uses Effect v3 APIs. The referenced API belongs to the v3 surface rather than the configured v4 surface.    effect(outdatedApi)"
           },
           {
             "start": 126,
             "end": 133,
-            "text": "runtime is an Effect v3 API, but the project is using Effect v4.    effect(outdatedApi)"
+            "text": "This project targets Effect v4, but this code uses the Effect v3 API `runtime`. The referenced API belongs to the v3 surface rather than the configured v4 surface.    effect(outdatedApi)"
           }
         ]
       }
@@ -366,7 +366,7 @@
           {
             "start": 123,
             "end": 185,
-            "text": "Classes extending Schema must not override the constructor; this is because it silently breaks the schema decoding behaviour. If that's needed, we recommend instead to use a static 'new' method that constructs the instance.    effect(overriddenSchemaConstructor)"
+            "text": "This Schema subclass defines its own constructor. For Schema classes, constructor overrides break decoding behavior for the class shape. Custom construction can be expressed through a static `new` method instead.    effect(overriddenSchemaConstructor)"
           }
         ]
       }
@@ -408,7 +408,7 @@
           {
             "start": 82,
             "end": 94,
-            "text": "Looks like the previous effect never fails, so probably this error handling will never be triggered.    effect(catchUnfailableEffect)"
+            "text": "The previous Effect does not fail, so this error-handling branch will never run.    effect(catchUnfailableEffect)"
           }
         ]
       }
@@ -429,7 +429,7 @@
           {
             "start": 64,
             "end": 137,
-            "text": "Effect.fn returns a reusable function that can take arguments, but here it's called immediately. Use Effect.gen instead with Effect.withSpan(\"preview\") piped in the end to mantain tracing spans.    effect(effectFnIife)"
+            "text": "`Effect.fn` returns a reusable function that can take arguments, but it is invoked immediately here. `Effect.gen` represents the immediate-use form for this pattern with `Effect.withSpan(\"preview\")` piped at the end to maintain tracing spans.    effect(effectFnIife)"
           }
         ]
       }
@@ -518,7 +518,7 @@
           {
             "start": 56,
             "end": 73,
-            "text": "The 'catch' callback in Effect.tryPromise returns global 'Error', which loses type safety as untagged errors merge together. Consider using a tagged error and optionally wrapping the original in a 'cause' property.    effect(globalErrorInEffectCatch)"
+            "text": "The `catch` callback in `Effect.tryPromise` returns the global `Error` type. Untagged errors merge together in the Effect error channel and lose type-level distinction; a tagged error preserves that distinction and can wrap the original error in a `cause` property.    effect(globalErrorInEffectCatch)"
           }
         ]
       }
@@ -581,7 +581,7 @@
           {
             "start": 212,
             "end": 217,
-            "text": "Methods of this Service require `FileSystem` from every caller.\n\nThis leaks implementation details into the service's public type — callers shouldn't need to know *how* the service works internally, only *what* it provides.\n\nResolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\nTo suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), or to this service by adding a `@effect-expect-leaking FileSystem` JSDoc.\n\nMore info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)"
+            "text": "Methods of this Service require `FileSystem` from every caller.\n\nThe requirement becomes part of the public service surface instead of remaining internal to Layer implementation.\n\nResolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\nTo suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), or to this service by adding a `@effect-expect-leaking FileSystem` JSDoc.\n\nMore info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)"
           }
         ]
       }
@@ -602,7 +602,7 @@
           {
             "start": 348,
             "end": 373,
-            "text": "Avoid chaining Effect.provide calls, as this can lead to service lifecycle issues. Instead, merge layers and provide them in a single call.    effect(multipleEffectProvide)"
+            "text": "This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)"
           }
         ]
       }
@@ -623,7 +623,7 @@
           {
             "start": 91,
             "end": 115,
-            "text": "You are returning an Effect-able type inside a generator function, and will result in nested Effect<Effect<...>>.\nMaybe you wanted to return yield* instead?\nNested Effect-able types may be intended if you plan to later manually flatten or unwrap this Effect, if so you can safely disable this diagnostic for this line through quickfixes.    effect(returnEffectInGen)"
+            "text": "This generator returns an Effect-able value directly, which produces a nested `Effect<Effect<...>>`. If the intended result is the inner Effect value, `return yield*` represents that form.    effect(returnEffectInGen)"
           }
         ]
       }
@@ -644,7 +644,7 @@
           {
             "start": 101,
             "end": 115,
-            "text": "Using Effect.runSync inside an Effect is not recommended. The same services should generally be used instead to run child effects.\nConsider extracting the current services by using for example Effect.services and then use Effect.runSyncWith with the extracted services instead.    effect(runEffectInsideEffect)"
+            "text": "`Effect.runSync` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through `Effect.services` and `Effect.runSyncWith`.    effect(runEffectInsideEffect)"
           }
         ]
       }
@@ -664,7 +664,7 @@
           {
             "start": 276,
             "end": 293,
-            "text": "Using Schema.decodeSync inside an Effect generator is not recommended. Use Schema.decode instead to get properly typed error channel.    effect(schemaSyncInEffect)"
+            "text": "`Schema.decodeSync` is used inside an Effect generator. `Schema.decode` preserves the typed Effect error channel for this operation without throwing.    effect(schemaSyncInEffect)"
           }
         ]
       }
@@ -684,7 +684,7 @@
           {
             "start": 211,
             "end": 338,
-            "text": "Seems like you are constructing a layer with a scope in the requirements.\nConsider using \"scoped\" instead to get rid of the scope in the requirements.    effect(scopeInLayerEffect)"
+            "text": "This layer construction leaves `Scope` in the requirement set. The scoped API removes `Scope` from the resulting requirements.    effect(scopeInLayerEffect)"
           }
         ]
       }
@@ -726,7 +726,7 @@
           {
             "start": 91,
             "end": 151,
-            "text": "Avoid using try/catch inside Effect generators. Use Effect's error handling mechanisms instead (e.g. Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)"
+            "text": "This Effect generator contains `try/catch`; in this context, error handling is expressed with Effect APIs such as Effect.try, Effect.tryPromise, Effect.catch, Effect.catchTag).    effect(tryCatchInEffectGen)"
           }
         ]
       }
@@ -747,7 +747,7 @@
           {
             "start": 56,
             "end": 73,
-            "text": "The 'catch' callback in Effect.tryPromise returns 'unknown'. The catch callback should be used to provide typed errors.\nConsider wrapping unknown errors into Effect's Data.TaggedError for example, or narrow down the type to the specific error raised.    effect(unknownInEffectCatch)"
+            "text": "The `catch` callback in `Effect.tryPromise` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)"
           }
         ]
       }
@@ -768,7 +768,7 @@
           {
             "start": 14,
             "end": 26,
-            "text": "Avoid extending the native 'Error' class directly. Consider using a tagged error (e.g. Data.TaggedError) to maintain type safety in the Effect failure channel.    effect(extendsNativeError)"
+            "text": "This class extends the native `Error` type directly. Untagged native errors lose distinction in the Effect failure channel.    effect(extendsNativeError)"
           }
         ]
       }
@@ -789,7 +789,7 @@
           {
             "start": 1,
             "end": 23,
-            "text": "Prefer using Effect.log or Logger instead of console.log.    effect(globalConsole)"
+            "text": "This code uses `console.log`, the corresponding Effect logging API is `Effect.log or Logger`.    effect(globalConsole)"
           }
         ]
       }
@@ -810,7 +810,7 @@
           {
             "start": 83,
             "end": 103,
-            "text": "Prefer using Effect.log or Logger instead of console.log inside Effect generators.    effect(globalConsoleInEffect)"
+            "text": "This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)"
           }
         ]
       }
@@ -831,7 +831,7 @@
           {
             "start": 24,
             "end": 34,
-            "text": "Prefer using Clock or DateTime from Effect instead of Date.now().    effect(globalDate)"
+            "text": "This code uses `Date.now()`, time access is represented through `Clock` from Effect.    effect(globalDate)"
           }
         ]
       }
@@ -852,7 +852,7 @@
           {
             "start": 95,
             "end": 105,
-            "text": "Prefer using Clock or DateTime from Effect instead of Date.now() inside Effect generators.    effect(globalDateInEffect)"
+            "text": "This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` from Effect.    effect(globalDateInEffect)"
           }
         ]
       }
@@ -873,7 +873,7 @@
           {
             "start": 24,
             "end": 29,
-            "text": "Prefer using HttpClient from @effect/platform instead of the global 'fetch' function.    effect(globalFetch)"
+            "text": "This code uses the global `fetch` function, HTTP requests are represented through `HttpClient` from `@effect/platform`.    effect(globalFetch)"
           }
         ]
       }
@@ -909,7 +909,7 @@
           {
             "start": 24,
             "end": 37,
-            "text": "Prefer using the Random service from Effect instead of Math.random().    effect(globalRandom)"
+            "text": "This code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandom)"
           }
         ]
       }
@@ -930,7 +930,7 @@
           {
             "start": 93,
             "end": 106,
-            "text": "Prefer using the Random service from Effect instead of Math.random() inside Effect generators.    effect(globalRandomInEffect)"
+            "text": "This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)"
           }
         ]
       }
@@ -951,7 +951,7 @@
           {
             "start": 1,
             "end": 26,
-            "text": "Prefer using Effect.sleep or Schedule from Effect instead of setTimeout.    effect(globalTimers)"
+            "text": "This code uses `setTimeout`, the corresponding Effect timer API is `Effect.sleep or Schedule` from Effect.    effect(globalTimers)"
           }
         ]
       }
@@ -972,7 +972,7 @@
           {
             "start": 83,
             "end": 108,
-            "text": "Prefer using Effect.sleep or Schedule from Effect instead of setTimeout inside Effect generators.    effect(globalTimersInEffect)"
+            "text": "This Effect code uses `setTimeout`, the corresponding timer API in this context is `Effect.sleep or Schedule` from Effect.    effect(globalTimersInEffect)"
           }
         ]
       }
@@ -993,7 +993,7 @@
           {
             "start": 159,
             "end": 180,
-            "text": "Consider using Schema.is instead of instanceof for Effect Schema types.    effect(instanceOfSchema)"
+            "text": "This code uses `instanceof` with an Effect Schema type. `Schema.is` is the schema-aware runtime check for this case.    effect(instanceOfSchema)"
           }
         ]
       }
@@ -1014,7 +1014,7 @@
           {
             "start": 15,
             "end": 24,
-            "text": "Prefer using FileSystem from @effect/platform instead of the Node.js 'fs' module.    effect(nodeBuiltinImport)"
+            "text": "This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `@effect/platform`.    effect(nodeBuiltinImport)"
           }
         ]
       }
@@ -1035,7 +1035,7 @@
           {
             "start": 142,
             "end": 158,
-            "text": "Consider using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify    effect(preferSchemaOverJson)"
+            "text": "This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)"
           }
         ]
       }
@@ -1056,7 +1056,7 @@
           {
             "start": 150,
             "end": 162,
-            "text": "You can use Effect.mapError instead of Effect.catch + Effect.fail to transform the error type.    effect(catchAllToMapError)"
+            "text": "`Effect.mapError` expresses the same error-type transformation more directly than `Effect.catch` followed by `Effect.fail`.    effect(catchAllToMapError)"
           }
         ]
       }
@@ -1077,7 +1077,7 @@
           {
             "start": 116,
             "end": 134,
-            "text": "Key should be '@effect/harness-effect-v4/examples/diagnostics/deterministicKeys_preview/RenamedService'    effect(deterministicKeys)"
+            "text": "This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v4/examples/diagnostics/deterministicKeys_preview/RenamedService`.    effect(deterministicKeys)"
           }
         ]
       }
@@ -1098,7 +1098,7 @@
           {
             "start": 54,
             "end": 61,
-            "text": "Can be rewritten as a reusable function: Effect.fn(function*() { ... })    effect(effectFnOpportunity)"
+            "text": "This expression can be rewritten in the reusable function form `Effect.fn(function*() { ... })`.    effect(effectFnOpportunity)"
           }
         ]
       }
@@ -1119,7 +1119,7 @@
           {
             "start": 82,
             "end": 92,
-            "text": "Effect.asVoid can be used instead to discard the success value    effect(effectMapVoid)"
+            "text": "This expression discards the success value through mapping. `Effect.asVoid` represents that form directly.    effect(effectMapVoid)"
           }
         ]
       }
@@ -1140,7 +1140,7 @@
           {
             "start": 56,
             "end": 81,
-            "text": "Effect.void can be used instead of Effect.succeed(undefined) or Effect.succeed(void 0)    effect(effectSucceedWithVoid)"
+            "text": "`Effect.void` represents the same outcome as `Effect.succeed(undefined)` or `Effect.succeed(void 0)`.    effect(effectSucceedWithVoid)"
           }
         ]
       }
@@ -1182,7 +1182,7 @@
           {
             "start": 116,
             "end": 172,
-            "text": "Nested function calls can be converted to pipeable style for better readability; consider using Schema.decodeEffect(User)({ id: 1 }).pipe(...) instead.    effect(missedPipeableOpportunity)"
+            "text": "This nested call structure has a pipeable form. `Schema.decodeEffect(User)({ id: 1 }).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)"
           }
         ]
       }
@@ -1244,7 +1244,7 @@
           {
             "start": 64,
             "end": 136,
-            "text": "Schema.Struct with a _tag field can be simplified to Schema.TaggedStruct to make the tag optional in the constructor.    effect(schemaStructWithTag)"
+            "text": "This `Schema.Struct` includes a `_tag` field. `Schema.TaggedStruct` is the tagged-struct form for this pattern and makes the tag optional in the constructor.    effect(schemaStructWithTag)"
           }
         ]
       }
@@ -1264,7 +1264,7 @@
           {
             "start": 64,
             "end": 118,
-            "text": "A Schema.Union of multiple Schema.Literal calls can be simplified to a single Schema.Literal call.    effect(schemaUnionOfLiterals)"
+            "text": "This `Schema.Union` contains multiple `Schema.Literal` members and can be simplified to a single `Schema.Literal` call.    effect(schemaUnionOfLiterals)"
           }
         ]
       }
@@ -1284,7 +1284,7 @@
           {
             "start": 60,
             "end": 107,
-            "text": "ServiceMap.Service should be used in a class declaration instead of as a variable. Use: class Preview extends ServiceMap.Service<Preview, { port: number }>()(\"Preview\") {}    effect(serviceNotAsClass)"
+            "text": "`ServiceMap.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Preview extends ServiceMap.Service<Preview, { port: number }>()(\"Preview\") {}`.    effect(serviceNotAsClass)"
           }
         ]
       }
@@ -1352,7 +1352,7 @@
           {
             "start": 178,
             "end": 208,
-            "text": "This Effect.fail call uses a yieldable error type as argument. You can yield* the error directly instead.    effect(unnecessaryFailYieldableError)"
+            "text": "This `yield* Effect.fail(...)` passes a yieldable error value. `yield*` represents that value directly without wrapping it in `Effect.fail`.    effect(unnecessaryFailYieldableError)"
           }
         ]
       }
@@ -1394,7 +1394,7 @@
           {
             "start": 64,
             "end": 125,
-            "text": "Chained pipe calls can be simplified to a single pipe call    effect(unnecessaryPipeChain)"
+            "text": "This expression contains chained `pipe` calls that can be simplified to a single `pipe` call.    effect(unnecessaryPipeChain)"
           }
         ]
       }

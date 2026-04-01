@@ -75,7 +75,7 @@ export const schemaStructWithTag = LSP.createDiagnostic({
                   report({
                     location: node,
                     messageText:
-                      "Schema.Struct with a _tag field can be simplified to Schema.TaggedStruct to make the tag optional in the constructor.",
+                      "This `Schema.Struct` includes a `_tag` field. `Schema.TaggedStruct` is the tagged-struct form for this pattern and makes the tag optional in the constructor.",
                     fixes: [{
                       fixName: "schemaStructWithTag_fix",
                       description: "Replace with Schema.TaggedStruct",

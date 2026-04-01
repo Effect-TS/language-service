@@ -25,9 +25,9 @@ export const duplicatePackage = LSP.createDiagnostic({
         const versions = Object.keys(resolvedPackages[packageName])
         report({
           location: sourceFile.statements[0],
-          messageText: `Package ${packageName} is referenced multiple times with different versions (${
+          messageText: `Multiple versions of package \`${packageName}\` were detected: ${
             versions.join(", ")
-          }) and may cause unexpected type errors.\nCleanup your dependencies and your package lockfile to avoid multiple instances of this package and reload the project.\nIf this is intended set the LSP config "allowedDuplicatedPackages" to ${
+          }. Package duplication can change runtime identity and type equality across Effect modules.\nIf this is intentional, set the LSP config \`allowedDuplicatedPackages\` to ${
             JSON.stringify(options.allowedDuplicatedPackages.concat([packageName]))
           }.\n\n${
             versions.map((version) => `- found ${version} at ${resolvedPackages[packageName][version]}`).join("\n")

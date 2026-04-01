@@ -1,2 +1,2 @@
 effectWithServices
-10:62 - 10:80 | 1 | Missing 'ServiceA' in the expected Effect context.    effect(missingEffectContext)
+10:62 - 10:80 | 1 | This Effect requires a service that is missing from the expected Effect context: `ServiceA`.    effect(missingEffectContext)
