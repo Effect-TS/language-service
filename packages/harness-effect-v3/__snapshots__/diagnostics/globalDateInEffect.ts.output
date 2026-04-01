@@ -1,5 +1,5 @@
 Date.now()
-6:14 - 6:24 | 0 | This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` or `DateTime` from Effect.    effect(globalDateInEffect)
+6:14 - 6:24 | 0 | This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` from Effect.    effect(globalDateInEffect)
 
 new Date()
 12:14 - 12:24 | 0 | This Effect code constructs `new Date()`, date values in Effect code are represented through `DateTime` from Effect.    effect(globalDateInEffect)
@@ -8,4 +8,4 @@ new Date("2024-01-01")
 18:15 - 18:37 | 0 | This Effect code constructs `new Date()`, date values in Effect code are represented through `DateTime` from Effect.    effect(globalDateInEffect)
 
 MyDate.now()
-25:14 - 25:26 | 0 | This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` or `DateTime` from Effect.    effect(globalDateInEffect)
+25:14 - 25:26 | 0 | This Effect code uses `Date.now()`, time access in Effect code is represented through `Clock` from Effect.    effect(globalDateInEffect)
