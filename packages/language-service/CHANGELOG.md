@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.84.3
+
+### Patch Changes
+
+- [#711](https://github.com/Effect-TS/language-service/pull/711) [`892984f`](https://github.com/Effect-TS/language-service/commit/892984f7d73fbe2f1dc3e84ceea77416517ad2ec) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Report floating `Stream` values in Effect projects by parsing `Stream` types in the diagnostic type parser and checking them in `floatingEffect` for both v3 and v4 harnesses.
+
+- [#709](https://github.com/Effect-TS/language-service/pull/709) [`0372f58`](https://github.com/Effect-TS/language-service/commit/0372f588d403086b7e8c42603560d72c0f3c92fc) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix the Effect v4 completion harness to cover `ServiceMap` self-in-classes examples instead of the v3-only `Context.Tag` variants.
+
+- [#712](https://github.com/Effect-TS/language-service/pull/712) [`b7554df`](https://github.com/Effect-TS/language-service/commit/b7554dfdcc04e8273901a5be44cbc823274b65d0) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Align Effect diagnostic messages with the reviewed neutral wording, preserving the existing version-specific API references while updating both v3 and v4 snapshot fixtures.
+
 ## 0.84.2
 
 ### Patch Changes
