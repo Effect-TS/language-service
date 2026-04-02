@@ -27,6 +27,8 @@
       "description": "Enable all Effect-native diagnostics at warning level.",
       "diagnosticSeverity": {
         "instanceOfSchema": "warning",
+        "cryptoRandomUUID": "warning",
+        "cryptoRandomUUIDInEffect": "warning",
         "globalFetch": "warning",
         "globalFetchInEffect": "warning",
         "processEnv": "warning",
@@ -750,6 +752,46 @@
             "start": 56,
             "end": 73,
             "text": "The `catch` callback in `Effect.tryPromise` returns `unknown`, so the Effect error type stays untyped. A specific typed error preserves error-channel information, for example by narrowing the value or wrapping it in `Data.TaggedError`.    effect(unknownInEffectCatch)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cryptoRandomUUID",
+      "group": "effectNative",
+      "description": "Warns when using crypto.randomUUID() outside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nexport const preview = crypto.randomUUID()\n",
+        "diagnostics": [
+          {
+            "start": 24,
+            "end": 43,
+            "text": "This code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUID)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cryptoRandomUUIDInEffect",
+      "group": "effectNative",
+      "description": "Warns when using crypto.randomUUID() inside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  return crypto.randomUUID()\n})\n",
+        "diagnostics": [
+          {
+            "start": 90,
+            "end": 109,
+            "text": "This Effect code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUIDInEffect)"
           }
         ]
       }

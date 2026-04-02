@@ -1,0 +1,2 @@
+crypto.randomUUID()
+4:23 - 4:42 | 0 | This code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUID)
