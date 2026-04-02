@@ -88,6 +88,8 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>tryCatchInEffectGen</code></td><td>💡</td><td></td><td>Discourages try/catch in Effect generators in favor of Effect error handling</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>unknownInEffectCatch</code></td><td>⚠️</td><td></td><td>Warns when catch callbacks return unknown instead of typed errors</td><td>✓</td><td>✓</td></tr>
     <tr><td colspan="6"><strong>Effect-native</strong> <em>Prefer Effect-native APIs and abstractions when available.</em></td></tr>
+    <tr><td><code>cryptoRandomUUID</code></td><td>➖</td><td></td><td>Warns when using crypto.randomUUID() outside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes</td><td></td><td>✓</td></tr>
+    <tr><td><code>cryptoRandomUUIDInEffect</code></td><td>➖</td><td></td><td>Warns when using crypto.randomUUID() inside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes</td><td></td><td>✓</td></tr>
     <tr><td><code>extendsNativeError</code></td><td>➖</td><td></td><td>Warns when a class directly extends the native Error class</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>globalConsole</code></td><td>➖</td><td></td><td>Warns when using console methods outside Effect generators instead of Effect.log/Logger</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>globalConsoleInEffect</code></td><td>➖</td><td></td><td>Warns when using console methods inside Effect generators instead of Effect.log/Logger</td><td>✓</td><td>✓</td></tr>

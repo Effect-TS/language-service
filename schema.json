@@ -2207,6 +2207,30 @@
           "default": "error",
           "description": "Ensures Self type parameter matches the class name in Service/Tag/Schema classes Default severity: error."
         },
+        "cryptoRandomUUID": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using crypto.randomUUID() outside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes Default severity: off."
+        },
+        "cryptoRandomUUIDInEffect": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when using crypto.randomUUID() inside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes Default severity: off."
+        },
         "deterministicKeys": {
           "type": "string",
           "enum": [

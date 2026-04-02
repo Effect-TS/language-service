@@ -2,6 +2,8 @@ import { anyUnknownInErrorContext } from "./diagnostics/anyUnknownInErrorContext
 import { catchAllToMapError } from "./diagnostics/catchAllToMapError.js"
 import { catchUnfailableEffect } from "./diagnostics/catchUnfailableEffect.js"
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
+import { cryptoRandomUUID } from "./diagnostics/cryptoRandomUUID.js"
+import { cryptoRandomUUIDInEffect } from "./diagnostics/cryptoRandomUUIDInEffect.js"
 import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
 import { effectFnIife } from "./diagnostics/effectFnIife.js"
@@ -72,6 +74,8 @@ export const diagnostics = [
   catchAllToMapError,
   catchUnfailableEffect,
   classSelfMismatch,
+  cryptoRandomUUID,
+  cryptoRandomUUIDInEffect,
   duplicatePackage,
   effectFnImplicitAny,
   effectGenUsesAdapter,
