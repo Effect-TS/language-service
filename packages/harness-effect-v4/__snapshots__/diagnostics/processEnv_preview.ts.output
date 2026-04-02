@@ -1,0 +1,2 @@
+process.env.PORT
+5:23 - 5:39 | 0 | This code reads from `process.env`, environment configuration is represented through `Config` from Effect.    effect(processEnv)

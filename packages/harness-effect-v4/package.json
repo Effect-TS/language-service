@@ -7,5 +7,8 @@
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
     "effect": "^4.0.0-beta.38"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.6"
   }
 }

@@ -1,0 +1,5 @@
+process.env.SECRET
+7:9 - 7:27 | 0 | This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)
+
+process.env["API_KEY"]
+12:9 - 12:31 | 0 | This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)

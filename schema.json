@@ -2723,6 +2723,30 @@
           "default": "suggestion",
           "description": "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw Default severity: suggestion."
         },
+        "processEnv": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when reading process.env outside Effect generators instead of using Effect Config Default severity: off."
+        },
+        "processEnvInEffect": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when reading process.env inside Effect generators instead of using Effect Config Default severity: off."
+        },
         "redundantSchemaTagIdentifier": {
           "type": "string",
           "enum": [

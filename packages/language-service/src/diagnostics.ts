@@ -45,6 +45,8 @@ import { outdatedApi } from "./diagnostics/outdatedApi.js"
 import { outdatedEffectCodegen } from "./diagnostics/outdatedEffectCodegen.js"
 import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConstructor.js"
 import { preferSchemaOverJson } from "./diagnostics/preferSchemaOverJson.js"
+import { processEnv } from "./diagnostics/processEnv.js"
+import { processEnvInEffect } from "./diagnostics/processEnvInEffect.js"
 import { redundantSchemaTagIdentifier } from "./diagnostics/redundantSchemaTagIdentifier.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { runEffectInsideEffect } from "./diagnostics/runEffectInsideEffect.js"
@@ -88,6 +90,8 @@ export const diagnostics = [
   genericEffectServices,
   globalFetch,
   globalFetchInEffect,
+  processEnv,
+  processEnvInEffect,
   returnEffectInGen,
   tryCatchInEffectGen,
   importFromBarrel,
