@@ -2171,6 +2171,18 @@
           "default": "off",
           "description": "Detects 'any' or 'unknown' types in Effect error or requirements channels Default severity: off."
         },
+        "asyncFunction": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when declaring async functions and suggests using Effect values and Effect.gen for async control flow Default severity: off."
+        },
         "catchAllToMapError": {
           "type": "string",
           "enum": [
@@ -2674,6 +2686,18 @@
           ],
           "default": "warning",
           "description": "Warns against chaining Effect.provide calls which can cause service lifecycle issues Default severity: warning."
+        },
+        "newPromise": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when constructing promises with new Promise instead of using Effect APIs Default severity: off."
         },
         "nodeBuiltinImport": {
           "type": "string",

@@ -88,6 +88,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>tryCatchInEffectGen</code></td><td>💡</td><td></td><td>Discourages try/catch in Effect generators in favor of Effect error handling</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>unknownInEffectCatch</code></td><td>⚠️</td><td></td><td>Warns when catch callbacks return unknown instead of typed errors</td><td>✓</td><td>✓</td></tr>
     <tr><td colspan="6"><strong>Effect-native</strong> <em>Prefer Effect-native APIs and abstractions when available.</em></td></tr>
+    <tr><td><code>asyncFunction</code></td><td>➖</td><td></td><td>Warns when declaring async functions and suggests using Effect values and Effect.gen for async control flow</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>cryptoRandomUUID</code></td><td>➖</td><td></td><td>Warns when using crypto.randomUUID() outside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes</td><td></td><td>✓</td></tr>
     <tr><td><code>cryptoRandomUUIDInEffect</code></td><td>➖</td><td></td><td>Warns when using crypto.randomUUID() inside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes</td><td></td><td>✓</td></tr>
     <tr><td><code>extendsNativeError</code></td><td>➖</td><td></td><td>Warns when a class directly extends the native Error class</td><td>✓</td><td>✓</td></tr>
@@ -102,6 +103,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>globalTimers</code></td><td>➖</td><td></td><td>Warns when using setTimeout/setInterval outside Effect generators instead of Effect.sleep/Schedule</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>globalTimersInEffect</code></td><td>➖</td><td></td><td>Warns when using setTimeout/setInterval inside Effect generators instead of Effect.sleep/Schedule</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>instanceOfSchema</code></td><td>➖</td><td>🔧</td><td>Suggests using Schema.is instead of instanceof for Effect Schema types</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>newPromise</code></td><td>➖</td><td></td><td>Warns when constructing promises with new Promise instead of using Effect APIs</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>nodeBuiltinImport</code></td><td>➖</td><td></td><td>Warns when importing Node.js built-in modules that have Effect-native counterparts</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>preferSchemaOverJson</code></td><td>💡</td><td></td><td>Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>processEnv</code></td><td>➖</td><td></td><td>Warns when reading process.env outside Effect generators instead of using Effect Config</td><td>✓</td><td>✓</td></tr>

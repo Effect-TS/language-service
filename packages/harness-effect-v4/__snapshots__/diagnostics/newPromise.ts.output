@@ -1,0 +1,11 @@
+new Promise<number>((resolve) => resolve(1))
+5:29 - 5:73 | 0 | This code constructs `new Promise(...)`, prefer Effect APIs such as `Effect.async`, `Effect.promise`, or `Effect.tryPromise` instead of manual Promise construction.    effect(newPromise)
+
+new Promise<number>((resolve) => resolve(2))
+8:36 - 8:80 | 0 | This code constructs `new Promise(...)`, prefer Effect APIs such as `Effect.async`, `Effect.promise`, or `Effect.tryPromise` instead of manual Promise construction.    effect(newPromise)
+
+new MyPromise<number>((resolve) => resolve(3))
+12:30 - 12:76 | 0 | This code constructs `new Promise(...)`, prefer Effect APIs such as `Effect.async`, `Effect.promise`, or `Effect.tryPromise` instead of manual Promise construction.    effect(newPromise)
+
+new Promise<number>((resolve) => resolve(4))
+16:9 - 16:53 | 0 | This code constructs `new Promise(...)`, prefer Effect APIs such as `Effect.async`, `Effect.promise`, or `Effect.tryPromise` instead of manual Promise construction.    effect(newPromise)

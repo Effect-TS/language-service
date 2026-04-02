@@ -1,4 +1,5 @@
 import { anyUnknownInErrorContext } from "./diagnostics/anyUnknownInErrorContext.js"
+import { asyncFunction } from "./diagnostics/asyncFunction.js"
 import { catchAllToMapError } from "./diagnostics/catchAllToMapError.js"
 import { catchUnfailableEffect } from "./diagnostics/catchUnfailableEffect.js"
 import { classSelfMismatch } from "./diagnostics/classSelfMismatch.js"
@@ -41,6 +42,7 @@ import { missingLayerContext } from "./diagnostics/missingLayerContext.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
+import { newPromise } from "./diagnostics/newPromise.js"
 import { nodeBuiltinImport } from "./diagnostics/nodeBuiltinImport.js"
 import { nonObjectEffectServiceType } from "./diagnostics/nonObjectEffectServiceType.js"
 import { outdatedApi } from "./diagnostics/outdatedApi.js"
@@ -70,6 +72,7 @@ import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAcc
 export const diagnostics = [
   outdatedApi,
   anyUnknownInErrorContext,
+  asyncFunction,
   instanceOfSchema,
   catchAllToMapError,
   catchUnfailableEffect,
@@ -86,6 +89,7 @@ export const diagnostics = [
   floatingEffect,
   effectInFailure,
   missingStarInYieldEffectGen,
+  newPromise,
   unnecessaryEffectGen,
   unnecessaryFailYieldableError,
   missingReturnYieldStar,

@@ -26,9 +26,11 @@
       "name": "effect-native",
       "description": "Enable all Effect-native diagnostics at warning level.",
       "diagnosticSeverity": {
+        "asyncFunction": "warning",
         "instanceOfSchema": "warning",
         "cryptoRandomUUID": "warning",
         "cryptoRandomUUIDInEffect": "warning",
+        "newPromise": "warning",
         "globalFetch": "warning",
         "globalFetchInEffect": "warning",
         "processEnv": "warning",
@@ -757,6 +759,27 @@
       }
     },
     {
+      "name": "asyncFunction",
+      "group": "effectNative",
+      "description": "Warns when declaring async functions and suggests using Effect values and Effect.gen for async control flow",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nexport const preview = async () => {\n  await Promise.resolve(1)\n}\n",
+        "diagnostics": [
+          {
+            "start": 24,
+            "end": 66,
+            "text": "This code declares an async function, consider representing this async control flow with Effect values and `Effect.gen`.    effect(asyncFunction)"
+          }
+        ]
+      }
+    },
+    {
       "name": "cryptoRandomUUID",
       "group": "effectNative",
       "description": "Warns when using crypto.randomUUID() outside Effect generators instead of the Effect Random module, which uses Effect-injected randomness rather than the crypto module behind the scenes",
@@ -1038,6 +1061,27 @@
             "start": 159,
             "end": 180,
             "text": "This code uses `instanceof` with an Effect Schema type. `Schema.is` is the schema-aware runtime check for this case.    effect(instanceOfSchema)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "newPromise",
+      "group": "effectNative",
+      "description": "Warns when constructing promises with new Promise instead of using Effect APIs",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "\nexport const preview = new Promise<number>((resolve) => resolve(1))\n",
+        "diagnostics": [
+          {
+            "start": 24,
+            "end": 68,
+            "text": "This code constructs `new Promise(...)`, prefer Effect APIs such as `Effect.async`, `Effect.promise`, or `Effect.tryPromise` instead of manual Promise construction.    effect(newPromise)"
           }
         ]
       }

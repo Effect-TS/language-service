@@ -1,0 +1,23 @@
+export async function declaredAsync() {
+  await Promise.resolve(1)
+  return 1
+}
+5:0 - 8:1 | 0 | This code declares an async function, consider representing this async control flow with Effect values and `Effect.gen`.    effect(asyncFunction)
+
+async () => {
+  await Promise.resolve(2)
+  return 2
+}
+11:26 - 14:1 | 0 | This code declares an async function, consider representing this async control flow with Effect values and `Effect.gen`.    effect(asyncFunction)
+
+async run() {
+    await Promise.resolve(3)
+    return 3
+  }
+18:2 - 21:3 | 0 | This code declares an async function, consider representing this async control flow with Effect values and `Effect.gen`.    effect(asyncFunction)
+
+async function nested() {
+    await Promise.resolve(4)
+    return 4
+  }
+26:9 - 29:3 | 0 | This code declares an async function, consider representing this async control flow with Effect values and `Effect.gen`.    effect(asyncFunction)
