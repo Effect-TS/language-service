@@ -9,7 +9,7 @@ export function createMockLanguageServiceHost(
   sourceText: string,
   compilerOptionsOverrides: ts.CompilerOptions = {}
 ): ts.LanguageServiceHost {
-  const realPath = (fileName: string) => path.resolve(harnessDir, fileName)
+  const realPath = (fileName: string) => path.isAbsolute(fileName) ? fileName : path.resolve(harnessDir, fileName)
 
   return {
     getCompilationSettings() {
@@ -36,7 +36,12 @@ export function createMockLanguageServiceHost(
       if (_fileName === fileName) {
         return ts.ScriptSnapshot.fromString(sourceText)
       }
-      return ts.ScriptSnapshot.fromString(fs.readFileSync(realPath(_fileName)).toString())
+      const resolved = realPath(_fileName)
+      if (fs.existsSync(resolved)) {
+        return ts.ScriptSnapshot.fromString(fs.readFileSync(resolved).toString())
+      }
+      const text = ts.sys.readFile(_fileName)
+      return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text)
     },
     getCurrentDirectory: () => ".",
     getDefaultLibFileName(options) {
@@ -44,11 +49,15 @@ export function createMockLanguageServiceHost(
     },
     fileExists: (_fileName) => {
       if (_fileName === fileName) return true
-      return fs.existsSync(realPath(_fileName))
+      return fs.existsSync(realPath(_fileName)) || ts.sys.fileExists(_fileName)
     },
     readFile: (_fileName) => {
       if (_fileName === fileName) return sourceText
-      return fs.readFileSync(realPath(_fileName)).toString()
+      const resolved = realPath(_fileName)
+      if (fs.existsSync(resolved)) {
+        return fs.readFileSync(resolved).toString()
+      }
+      return ts.sys.readFile(_fileName)
     }
   }
 }

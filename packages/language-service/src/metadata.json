@@ -29,6 +29,8 @@
         "instanceOfSchema": "warning",
         "globalFetch": "warning",
         "globalFetchInEffect": "warning",
+        "processEnv": "warning",
+        "processEnvInEffect": "warning",
         "preferSchemaOverJson": "warning",
         "extendsNativeError": "warning",
         "nodeBuiltinImport": "warning",
@@ -1036,6 +1038,48 @@
             "start": 142,
             "end": 158,
             "text": "This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "processEnv",
+      "group": "effectNative",
+      "description": "Warns when reading process.env outside Effect generators instead of using Effect Config",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "/// <reference types=\"node\" />\n\nexport const preview = process.env.PORT\n",
+        "diagnostics": [
+          {
+            "start": 55,
+            "end": 71,
+            "text": "This code reads from `process.env`, environment configuration is represented through `Config` from Effect.    effect(processEnv)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "processEnvInEffect",
+      "group": "effectNative",
+      "description": "Warns when reading process.env inside Effect generators instead of using Effect Config",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "/// <reference types=\"node\" />\nimport { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  return process.env.PORT\n})\n",
+        "diagnostics": [
+          {
+            "start": 121,
+            "end": 137,
+            "text": "This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)"
           }
         ]
       }
