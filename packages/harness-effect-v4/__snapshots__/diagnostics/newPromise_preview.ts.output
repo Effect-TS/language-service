@@ -1,0 +1,2 @@
+new Promise<number>((resolve) => resolve(1))
+4:23 - 4:67 | 0 | This code constructs `new Promise(...)`, prefer Effect APIs such as `Effect.async`, `Effect.promise`, or `Effect.tryPromise` instead of manual Promise construction.    effect(newPromise)

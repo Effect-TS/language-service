@@ -1,0 +1,4 @@
+async () => {
+  await Promise.resolve(1)
+}
+4:23 - 6:1 | 0 | This code declares an async function, consider representing this async control flow with Effect values and `Effect.gen`.    effect(asyncFunction)
