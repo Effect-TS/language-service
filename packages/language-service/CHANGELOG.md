@@ -1,5 +1,28 @@
 # @effect/language-service
 
+## 0.85.0
+
+### Minor Changes
+
+- [#718](https://github.com/Effect-TS/language-service/pull/718) [`0af7c0f`](https://github.com/Effect-TS/language-service/commit/0af7c0f48ffb698c6e6ed37022cb16ecd659f554) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `lazyPromiseInEffectSync` diagnostic to catch `Effect.sync(() => Promise...)` patterns and suggest using `Effect.promise` or `Effect.tryPromise` for async work.
+
+  Example:
+
+  ```ts
+  Effect.sync(() => Promise.resolve(1));
+  ```
+
+- [#714](https://github.com/Effect-TS/language-service/pull/714) [`32985b2`](https://github.com/Effect-TS/language-service/commit/32985b2cf6dce571c7771501c66f2df9afb6d4e2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `processEnv` and `processEnvInEffect` diagnostics to guide `process.env.*` reads toward Effect `Config` APIs.
+
+  Examples:
+
+  - `process.env.PORT`
+  - `process.env["API_KEY"]`
+
+- [#717](https://github.com/Effect-TS/language-service/pull/717) [`b77848a`](https://github.com/Effect-TS/language-service/commit/b77848a6ed27773de1ddfc2f37970360490cfc2e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `newPromise` and `asyncFunction` effect-native diagnostics to report manual `Promise` construction and async function declarations, with guidance toward Effect-based async control flow.
+
+- [#716](https://github.com/Effect-TS/language-service/pull/716) [`c3f67b0`](https://github.com/Effect-TS/language-service/commit/c3f67b0411c0fdb75695f253ba130deca9d20190) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `cryptoRandomUUID` and `cryptoRandomUUIDInEffect` diagnostics for Effect v4 to discourage `crypto.randomUUID()` in favor of the Effect `Random` module, which uses Effect-injected randomness instead of the global crypto implementation.
+
 ## 0.84.3
 
 ### Patch Changes
