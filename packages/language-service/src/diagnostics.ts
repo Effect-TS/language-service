@@ -33,6 +33,7 @@ import { globalTimersInEffect } from "./diagnostics/globalTimersInEffect.js"
 import { importFromBarrel } from "./diagnostics/importFromBarrel.js"
 import { instanceOfSchema } from "./diagnostics/instanceOfSchema.js"
 import { layerMergeAllWithDependencies } from "./diagnostics/layerMergeAllWithDependencies.js"
+import { lazyPromiseInEffectSync } from "./diagnostics/lazyPromiseInEffectSync.js"
 import { leakingRequirements } from "./diagnostics/leakingRequirements.js"
 import { missedPipeableOpportunity } from "./diagnostics/missedPipeableOpportunity.js"
 import { missingEffectContext } from "./diagnostics/missingEffectContext.js"
@@ -90,6 +91,7 @@ export const diagnostics = [
   effectInFailure,
   missingStarInYieldEffectGen,
   newPromise,
+  lazyPromiseInEffectSync,
   unnecessaryEffectGen,
   unnecessaryFailYieldableError,
   missingReturnYieldStar,

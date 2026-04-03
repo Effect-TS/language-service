@@ -224,6 +224,10 @@ export interface TypeParser {
     type: ts.Type,
     atLocation: ts.Node
   ) => Nano.Nano<{ type: ts.Type }, TypeParserIssue>
+  promiseType: (
+    type: ts.Type,
+    atLocation: ts.Node
+  ) => Nano.Nano<ts.Type, TypeParserIssue>
   extendsEffectService: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
@@ -1861,6 +1865,28 @@ export function make(
     (type) => type
   )
 
+  const promiseType = Nano.cachedBy(
+    function(
+      type: ts.Type,
+      atLocation: ts.Node
+    ) {
+      const promiseSymbol = typeChecker.resolveName("Promise", undefined, ts.SymbolFlags.Type, false)
+      if (!promiseSymbol) return typeParserIssue("global Promise type not found", type, atLocation)
+      const globalPromiseType = typeChecker.getDeclaredTypeOfSymbol(promiseSymbol)
+
+      if (
+        type === globalPromiseType ||
+        ("target" in type && (type as ts.TypeReference).target === globalPromiseType) ||
+        typeChecker.isTypeAssignableTo(type, globalPromiseType)
+      ) {
+        return Nano.succeed(type)
+      }
+      return typeParserIssue("type is not a Promise", type, atLocation)
+    },
+    "TypeParser.promiseType",
+    (type) => type
+  )
+
   const extendsSchemaClass = Nano.cachedBy(
     Nano.fn("TypeParser.extendsSchemaClass")(function*(
       atLocation: ts.ClassDeclaration
@@ -3184,6 +3210,7 @@ export function make(
     singleArgCall,
     scopeType,
     promiseLike,
+    promiseType,
     extendsEffectTag,
     extendsEffectService,
     extendsServiceMapService,

@@ -1,0 +1,2 @@
+() => Promise.resolve(1)
+5:35 - 5:59 | 0 | This `Effect.sync` thunk returns a Promise. Use `Effect.promise` or `Effect.tryPromise` to represent async work.    effect(lazyPromiseInEffectSync)

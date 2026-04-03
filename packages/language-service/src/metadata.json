@@ -572,6 +572,27 @@
       }
     },
     {
+      "name": "lazyPromiseInEffectSync",
+      "group": "antipattern",
+      "description": "Warns when Effect.sync lazily returns a Promise instead of using an async Effect constructor",
+      "defaultSeverity": "warning",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.sync(() => Promise.resolve(1))\n",
+        "diagnostics": [
+          {
+            "start": 68,
+            "end": 92,
+            "text": "This `Effect.sync` thunk returns a Promise. Use `Effect.promise` or `Effect.tryPromise` to represent async work.    effect(lazyPromiseInEffectSync)"
+          }
+        ]
+      }
+    },
+    {
       "name": "leakingRequirements",
       "group": "antipattern",
       "description": "Detects implementation services leaked in service methods",

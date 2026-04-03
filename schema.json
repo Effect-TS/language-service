@@ -2579,6 +2579,18 @@
           "default": "warning",
           "description": "Detects interdependencies in Layer.mergeAll calls where one layer provides a service that another layer requires Default severity: warning."
         },
+        "lazyPromiseInEffectSync": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "warning",
+          "description": "Warns when Effect.sync lazily returns a Promise instead of using an async Effect constructor Default severity: warning."
+        },
         "leakingRequirements": {
           "type": "string",
           "enum": [
