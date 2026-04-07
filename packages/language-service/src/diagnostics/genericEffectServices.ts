@@ -45,6 +45,7 @@ export const genericEffectServices = LSP.createDiagnostic({
       for (const [type, reportAt] of typesToCheck) {
         yield* pipe(
           typeParser.contextTag(type, node),
+          Nano.orElse(() => typeParser.serviceType(type, node)),
           Nano.map(() => {
             report({
               location: reportAt,
