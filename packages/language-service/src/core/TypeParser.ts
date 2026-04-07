@@ -1634,26 +1634,26 @@ export function make(
       atLocation: ts.Node
     ) {
       // v4 only
-      if(supportedEffect() !== "v4") return yield* typeParserIssue("v4 only")
+      if (supportedEffect() !== "v4") return yield* typeParserIssue("v4 only")
       // should be pipeable
       yield* pipeableType(type, atLocation)
       // Effect v4 beta.43 switched ServiceMap keys from nested variance markers
-          const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/ServiceMap/Service")
-    if (!typeIdSymbol) {
-      return yield* typeParserIssue("Type has no service key type id", type, atLocation)
-    }
-    const identifierSymbol = typeChecker.getPropertyOfType(type, "Identifier")
-    if (!identifierSymbol) {
-      return yield* typeParserIssue("Type has no 'Identifier' property", type, atLocation)
-    }
-    const serviceSymbol = typeChecker.getPropertyOfType(type, "Service")
-    if (!serviceSymbol) {
-      return yield* typeParserIssue("Type has no 'Service' property", type, atLocation)
-    }
-    return ({
-      Identifier: typeChecker.getTypeOfSymbolAtLocation(identifierSymbol, atLocation),
-      Service: typeChecker.getTypeOfSymbolAtLocation(serviceSymbol, atLocation)
-    })
+      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/ServiceMap/Service")
+      if (!typeIdSymbol) {
+        return yield* typeParserIssue("Type has no service key type id", type, atLocation)
+      }
+      const identifierSymbol = typeChecker.getPropertyOfType(type, "Identifier")
+      if (!identifierSymbol) {
+        return yield* typeParserIssue("Type has no 'Identifier' property", type, atLocation)
+      }
+      const serviceSymbol = typeChecker.getPropertyOfType(type, "Service")
+      if (!serviceSymbol) {
+        return yield* typeParserIssue("Type has no 'Service' property", type, atLocation)
+      }
+      return ({
+        Identifier: typeChecker.getTypeOfSymbolAtLocation(identifierSymbol, atLocation),
+        Service: typeChecker.getTypeOfSymbolAtLocation(serviceSymbol, atLocation)
+      })
     }),
     "TypeParser.serviceType",
     (type) => type
@@ -1665,7 +1665,7 @@ export function make(
       atLocation: ts.Node
     ) {
       // v4 only
-      if(supportedEffect() !== "v3") return yield* typeParserIssue("v3 only")
+      if (supportedEffect() !== "v3") return yield* typeParserIssue("v3 only")
       // should be pipeable
       yield* pipeableType(type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
