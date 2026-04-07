@@ -136,6 +136,7 @@ export function collectExportedItems(
       // Check if it's a Context.Tag (has _Identifier and _Service variance)
       const contextTagResult = yield* pipe(
         typeParser.contextTag(type, declaration),
+                  Nano.orElse(() => typeParser.serviceType(type, declaration)),
         Nano.option
       )
       if (Option.isSome(contextTagResult)) {

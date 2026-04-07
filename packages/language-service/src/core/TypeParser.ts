@@ -1628,40 +1628,32 @@ export function make(
       ([Identifier, Service]) => ({ Identifier, Service })
     )
 
-  const serviceVarianceStruct = (
-    type: ts.Type,
-    atLocation: ts.Node
-  ) =>
-    Nano.map(
-      Nano.all(
-        varianceStructInvariantType(type, atLocation, "_Identifier"),
-        varianceStructInvariantType(type, atLocation, "_Service")
-      ),
-      ([Identifier, Service]) => ({ Identifier, Service })
-    )
-
   const serviceType = Nano.cachedBy(
     Nano.fn("TypeParser.serviceType")(function*(
       type: ts.Type,
       atLocation: ts.Node
     ) {
+      // v4 only
+      if(supportedEffect() !== "v4") return yield* typeParserIssue("v4 only")
       // should be pipeable
       yield* pipeableType(type, atLocation)
-      // get the properties to check (exclude non-property and optional properties)
-      const propertiesSymbols = typeChecker.getPropertiesOfType(type).filter((_) =>
-        _.flags & ts.SymbolFlags.Property && !(_.flags & ts.SymbolFlags.Optional) && _.valueDeclaration
-      )
-      // early exit
-      if (propertiesSymbols.length === 0) {
-        return yield* typeParserIssue("Type has no tag variance struct", type, atLocation)
-      }
-      // try to put typeid first (heuristic to optimize hot path)
-      propertiesSymbols.sort((a, b) => ts.symbolName(b).indexOf("TypeId") - ts.symbolName(a).indexOf("TypeId"))
-      // has a property symbol which is a service variance struct
-      return yield* Nano.firstSuccessOf(propertiesSymbols.map((propertySymbol) => {
-        const propertyType = typeChecker.getTypeOfSymbolAtLocation(propertySymbol, atLocation)
-        return serviceVarianceStruct(propertyType, atLocation)
-      }))
+      // Effect v4 beta.43 switched ServiceMap keys from nested variance markers
+          const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/ServiceMap/Service")
+    if (!typeIdSymbol) {
+      return yield* typeParserIssue("Type has no service key type id", type, atLocation)
+    }
+    const identifierSymbol = typeChecker.getPropertyOfType(type, "Identifier")
+    if (!identifierSymbol) {
+      return yield* typeParserIssue("Type has no 'Identifier' property", type, atLocation)
+    }
+    const serviceSymbol = typeChecker.getPropertyOfType(type, "Service")
+    if (!serviceSymbol) {
+      return yield* typeParserIssue("Type has no 'Service' property", type, atLocation)
+    }
+    return ({
+      Identifier: typeChecker.getTypeOfSymbolAtLocation(identifierSymbol, atLocation),
+      Service: typeChecker.getTypeOfSymbolAtLocation(serviceSymbol, atLocation)
+    })
     }),
     "TypeParser.serviceType",
     (type) => type
@@ -1672,6 +1664,8 @@ export function make(
       type: ts.Type,
       atLocation: ts.Node
     ) {
+      // v4 only
+      if(supportedEffect() !== "v3") return yield* typeParserIssue("v3 only")
       // should be pipeable
       yield* pipeableType(type, atLocation)
       // get the properties to check (exclude non-property and optional properties)
