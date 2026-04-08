@@ -1,0 +1,4 @@
+// code fix unnecessaryArrowBlock_fix  output for range 124 - 149
+// @effect-diagnostics *:off
+// @effect-diagnostics unnecessaryArrowBlock:warning
+export const preview = (value: string) => (value.trim())

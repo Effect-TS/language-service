@@ -1,0 +1,14 @@
+{
+  return arg.trim()
+}
+2:45 - 4:1 | 0 | This arrow function block only returns an expression and can use a concise body.    effect(unnecessaryArrowBlock)
+
+{
+  return arg + "!"
+}
+6:51 - 8:1 | 0 | This arrow function block only returns an expression and can use a concise body.    effect(unnecessaryArrowBlock)
+
+{
+  return { arg }
+}
+15:58 - 17:1 | 0 | This arrow function block only returns an expression and can use a concise body.    effect(unnecessaryArrowBlock)

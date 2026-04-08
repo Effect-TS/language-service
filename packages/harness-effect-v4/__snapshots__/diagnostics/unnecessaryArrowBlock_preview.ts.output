@@ -1,0 +1,4 @@
+{
+  return value.trim()
+}
+3:42 - 5:1 | 0 | This arrow function block only returns an expression and can use a concise body.    effect(unnecessaryArrowBlock)

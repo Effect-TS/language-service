@@ -65,6 +65,7 @@ import { strictBooleanExpressions } from "./diagnostics/strictBooleanExpressions
 import { strictEffectProvide } from "./diagnostics/strictEffectProvide.js"
 import { tryCatchInEffectGen } from "./diagnostics/tryCatchInEffectGen.js"
 import { unknownInEffectCatch } from "./diagnostics/unknownInEffectCatch.js"
+import { unnecessaryArrowBlock } from "./diagnostics/unnecessaryArrowBlock.js"
 import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryFailYieldableError } from "./diagnostics/unnecessaryFailYieldableError.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
@@ -121,6 +122,7 @@ export const diagnostics = [
   unknownInEffectCatch,
   runEffectInsideEffect,
   nestedEffectGenYield,
+  unnecessaryArrowBlock,
   schemaUnionOfLiterals,
   schemaStructWithTag,
   globalErrorInEffectCatch,
