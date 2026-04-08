@@ -1488,6 +1488,27 @@
       }
     },
     {
+      "name": "unnecessaryArrowBlock",
+      "group": "style",
+      "description": "Suggests using a concise arrow body when the block only returns an expression",
+      "defaultSeverity": "off",
+      "fixable": true,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "export const preview = (value: string) => {\n  return value.trim()\n}\n",
+        "diagnostics": [
+          {
+            "start": 42,
+            "end": 67,
+            "text": "This arrow function block only returns an expression and can use a concise body.    effect(unnecessaryArrowBlock)"
+          }
+        ]
+      }
+    },
+    {
       "name": "unnecessaryEffectGen",
       "group": "style",
       "description": "Suggests removing Effect.gen when it contains only a single return statement",

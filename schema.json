@@ -2963,6 +2963,18 @@
           "default": "warning",
           "description": "Warns when catch callbacks return unknown instead of typed errors Default severity: warning."
         },
+        "unnecessaryArrowBlock": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Suggests using a concise arrow body when the block only returns an expression Default severity: off."
+        },
         "unnecessaryEffectGen": {
           "type": "string",
           "enum": [
