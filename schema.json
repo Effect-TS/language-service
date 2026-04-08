@@ -2267,6 +2267,18 @@
           "default": "warning",
           "description": "Detects when multiple versions of the same Effect package are loaded Default severity: warning."
         },
+        "effectDoNotation": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Suggests using Effect.gen or Effect.fn instead of the Effect.Do notation helpers Default severity: off."
+        },
         "effectFnIife": {
           "type": "string",
           "enum": [

@@ -1234,6 +1234,27 @@
       }
     },
     {
+      "name": "effectDoNotation",
+      "group": "style",
+      "description": "Suggests using Effect.gen or Effect.fn instead of the Effect.Do notation helpers",
+      "defaultSeverity": "off",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\nimport { pipe } from \"effect/Function\"\n\nexport const preview = pipe(\n  Effect.Do,\n  Effect.bind(\"a\", () => Effect.succeed(1)),\n  Effect.let(\"b\", ({ a }) => a + 1),\n  Effect.bind(\"c\", ({ b }) => Effect.succeed(b.toString()))\n)\n",
+        "diagnostics": [
+          {
+            "start": 103,
+            "end": 112,
+            "text": "This uses the Effect do emulation. `Effect.gen` or `Effect.fn` achieve the same result with native JS scopes.    effect(effectDoNotation)"
+          }
+        ]
+      }
+    },
+    {
       "name": "effectFnOpportunity",
       "group": "style",
       "description": "Suggests using Effect.fn for functions that returns an Effect",
