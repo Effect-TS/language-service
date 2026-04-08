@@ -190,6 +190,14 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "yieldNow": asUnchanged,
   "zip": asUnchanged,
   "zipWith": asUnchanged,
+  "annotateLogsScoped": asUnchanged,
+  "awaitAllChildren": asUnchanged,
+  "bind": asUnchanged,
+  "bindTo": asUnchanged,
+  "Do": asUnchanged,
+  "let": asUnchanged,
+  "partition": asUnchanged,
+  "validate": asUnchanged,
 
   // Renamed APIs (v3 name → v4 name)
   "catchAll": asRenamedSameBehaviour("catch"),
@@ -211,14 +219,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "tapErrorCause": asRenamedSameBehaviour("tapCause"),
 
   // Removed APIs
-  "annotateLogsScoped": asUnchanged,
-  "awaitAllChildren": asUnchanged,
-  "bind": asUnchanged,
-  "bindTo": asUnchanged,
-  "Do": asUnchanged,
-  "let": asUnchanged,
-  "partition": asUnchanged,
-  "validate": asUnchanged,
   "catchSomeDefect": asRemoved(
     "Use Effect.catchDefect or Effect.matchCause to handle specific defects."
   ),

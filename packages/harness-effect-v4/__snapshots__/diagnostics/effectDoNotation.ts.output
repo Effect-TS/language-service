@@ -1,0 +1,8 @@
+Effect.Do
+4:22 - 4:31 | 0 | This uses the Effect do emulation. `Effect.gen` or `Effect.fn` achieve the same result with native JS scopes.    effect(effectDoNotation)
+
+Effect.Do
+6:33 - 6:42 | 0 | This uses the Effect do emulation. `Effect.gen` or `Effect.fn` achieve the same result with native JS scopes.    effect(effectDoNotation)
+
+alias.Do
+9:23 - 9:31 | 0 | This uses the Effect do emulation. `Effect.gen` or `Effect.fn` achieve the same result with native JS scopes.    effect(effectDoNotation)

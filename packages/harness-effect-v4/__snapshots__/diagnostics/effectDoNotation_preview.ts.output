@@ -1,0 +1,2 @@
+Effect.Do
+7:2 - 7:11 | 0 | This uses the Effect do emulation. `Effect.gen` or `Effect.fn` achieve the same result with native JS scopes.    effect(effectDoNotation)

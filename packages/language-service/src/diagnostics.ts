@@ -7,6 +7,7 @@ import { cryptoRandomUUID } from "./diagnostics/cryptoRandomUUID.js"
 import { cryptoRandomUUIDInEffect } from "./diagnostics/cryptoRandomUUIDInEffect.js"
 import { deterministicKeys } from "./diagnostics/deterministicKeys.js"
 import { duplicatePackage } from "./diagnostics/duplicatePackage.js"
+import { effectDoNotation } from "./diagnostics/effectDoNotation.js"
 import { effectFnIife } from "./diagnostics/effectFnIife.js"
 import { effectFnImplicitAny } from "./diagnostics/effectFnImplicitAny.js"
 import { effectFnOpportunity } from "./diagnostics/effectFnOpportunity.js"
@@ -83,6 +84,7 @@ export const diagnostics = [
   cryptoRandomUUID,
   cryptoRandomUUIDInEffect,
   duplicatePackage,
+  effectDoNotation,
   effectFnImplicitAny,
   effectGenUsesAdapter,
   missingEffectContext,
