@@ -118,6 +118,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>importFromBarrel</code></td><td>➖</td><td>🔧</td><td>Suggests importing from specific module paths instead of barrel exports</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>missedPipeableOpportunity</code></td><td>➖</td><td>🔧</td><td>Enforces the use of pipeable style for nested function calls</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>missingEffectServiceDependency</code></td><td>➖</td><td></td><td>Checks that Effect.Service dependencies satisfy all required layer inputs</td><td>✓</td><td></td></tr>
+    <tr><td><code>nestedEffectGenYield</code></td><td>➖</td><td></td><td>Warns when yielding a nested bare Effect.gen inside an existing Effect generator context</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>redundantSchemaTagIdentifier</code></td><td>💡</td><td>🔧</td><td>Suggests removing redundant identifier argument when it equals the tag value in Schema.TaggedClass/TaggedError/TaggedRequest</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>schemaStructWithTag</code></td><td>💡</td><td>🔧</td><td>Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>schemaUnionOfLiterals</code></td><td>➖</td><td>🔧</td><td>Simplifies Schema.Union of multiple Schema.Literal calls into single Schema.Literal</td><td>✓</td><td></td></tr>

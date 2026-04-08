@@ -2699,6 +2699,18 @@
           "default": "warning",
           "description": "Warns against chaining Effect.provide calls which can cause service lifecycle issues Default severity: warning."
         },
+        "nestedEffectGenYield": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Warns when yielding a nested bare Effect.gen inside an existing Effect generator context Default severity: off."
+        },
         "newPromise": {
           "type": "string",
           "enum": [

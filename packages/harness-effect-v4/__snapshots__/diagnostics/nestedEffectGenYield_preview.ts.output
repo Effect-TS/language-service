@@ -1,0 +1,4 @@
+Effect.gen(function*() {
+    return 1
+  })
+6:9 - 8:4 | 0 | This `yield*` is applied to a nested `Effect.gen(...)` that can be inlined in the parent Effect generator context.    effect(nestedEffectGenYield)

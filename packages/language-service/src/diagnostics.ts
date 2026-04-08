@@ -43,6 +43,7 @@ import { missingLayerContext } from "./diagnostics/missingLayerContext.js"
 import { missingReturnYieldStar } from "./diagnostics/missingReturnYieldStar.js"
 import { missingStarInYieldEffectGen } from "./diagnostics/missingStarInYieldEffectGen.js"
 import { multipleEffectProvide } from "./diagnostics/multipleEffectProvide.js"
+import { nestedEffectGenYield } from "./diagnostics/nestedEffectGenYield.js"
 import { newPromise } from "./diagnostics/newPromise.js"
 import { nodeBuiltinImport } from "./diagnostics/nodeBuiltinImport.js"
 import { nonObjectEffectServiceType } from "./diagnostics/nonObjectEffectServiceType.js"
@@ -119,6 +120,7 @@ export const diagnostics = [
   strictEffectProvide,
   unknownInEffectCatch,
   runEffectInsideEffect,
+  nestedEffectGenYield,
   schemaUnionOfLiterals,
   schemaStructWithTag,
   globalErrorInEffectCatch,
