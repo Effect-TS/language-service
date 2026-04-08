@@ -1,3 +1,7 @@
+## Developing new rules
+- Ensure you create a new branch from the latest main branch for the rule you want to add
+- While developing the rule, you can test it out quickly by running targeted tests with commands such as `EFFECT_HARNESS_VERSION=v4 pnpm --filter @effect/language-service test -- test/diagnostics.test.ts -t ruleNameGoesHere` and update only that rule snapshots with `EFFECT_HARNESS_VERSION=v4 pnpm --filter @effect/language-service test-update -- test/diagnostics.test.ts -t ruleNameGoesHere` (Note that the full pr workflow will require to run all tests, but you can save a lot of time by running only the tests related to the rule you are working on, for the effect versions v3 and/or v4)
+
 ## Push PR to GitHub workflow
 This workflow should be initiated only if asked by the user.
 
