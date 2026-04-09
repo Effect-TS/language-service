@@ -1,5 +1,82 @@
 # @effect/language-service
 
+## 0.85.0
+
+### Minor Changes
+
+- [#720](https://github.com/Effect-TS/language-service/pull/720) [`4229bb9`](https://github.com/Effect-TS/language-service/commit/4229bb9ec89cfbcd7635c06fa75bf4b922c9bef6) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `nestedEffectGenYield` diagnostic to detect `yield* Effect.gen(...)` inside an existing Effect generator context.
+
+  Example:
+
+  ```ts
+  Effect.gen(function* () {
+    yield* Effect.gen(function* () {
+      yield* Effect.succeed(1);
+    });
+  });
+  ```
+
+- [#723](https://github.com/Effect-TS/language-service/pull/723) [`da9cc4b`](https://github.com/Effect-TS/language-service/commit/da9cc4bed785486280cf537e88667502638ed3a5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `effectMapFlatten` style diagnostic for `Effect.map(...)` immediately followed by `Effect.flatten` in pipe flows.
+
+  Example:
+
+  ```ts
+  import { Effect } from "effect";
+
+  const program = Effect.succeed(1).pipe(
+    Effect.map((n) => Effect.succeed(n + 1)),
+    Effect.flatten
+  );
+  ```
+
+- [#718](https://github.com/Effect-TS/language-service/pull/718) [`0af7c0f`](https://github.com/Effect-TS/language-service/commit/0af7c0f48ffb698c6e6ed37022cb16ecd659f554) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `lazyPromiseInEffectSync` diagnostic to catch `Effect.sync(() => Promise...)` patterns and suggest using `Effect.promise` or `Effect.tryPromise` for async work.
+
+  Example:
+
+  ```ts
+  Effect.sync(() => Promise.resolve(1));
+  ```
+
+- [#714](https://github.com/Effect-TS/language-service/pull/714) [`32985b2`](https://github.com/Effect-TS/language-service/commit/32985b2cf6dce571c7771501c66f2df9afb6d4e2) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `processEnv` and `processEnvInEffect` diagnostics to guide `process.env.*` reads toward Effect `Config` APIs.
+
+  Examples:
+
+  - `process.env.PORT`
+  - `process.env["API_KEY"]`
+
+- [#721](https://github.com/Effect-TS/language-service/pull/721) [`f05ae89`](https://github.com/Effect-TS/language-service/commit/f05ae898bb276d547b347e393ff907f546c568d8) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `unnecessaryArrowBlock` style diagnostic for arrow functions whose block body only returns an expression.
+
+  Example:
+
+  ```ts
+  const trim = (value: string) => {
+    return value.trim();
+  };
+  ```
+
+- [#717](https://github.com/Effect-TS/language-service/pull/717) [`b77848a`](https://github.com/Effect-TS/language-service/commit/b77848a6ed27773de1ddfc2f37970360490cfc2e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `newPromise` and `asyncFunction` effect-native diagnostics to report manual `Promise` construction and async function declarations, with guidance toward Effect-based async control flow.
+
+- [#722](https://github.com/Effect-TS/language-service/pull/722) [`6f19858`](https://github.com/Effect-TS/language-service/commit/6f198588081761b9dc4f43315f4f9cb90fbafa8f) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `effectDoNotation` style diagnostic for `Effect.Do` usage and suggest migrating to `Effect.gen` or `Effect.fn`.
+
+  Example:
+
+  ```ts
+  import { pipe } from "effect/Function";
+  import { Effect } from "effect";
+
+  const program = pipe(
+    Effect.Do,
+    Effect.bind("a", () => Effect.succeed(1)),
+    Effect.let("b", ({ a }) => a + 1)
+  );
+  ```
+
+- [#716](https://github.com/Effect-TS/language-service/pull/716) [`c3f67b0`](https://github.com/Effect-TS/language-service/commit/c3f67b0411c0fdb75695f253ba130deca9d20190) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add `cryptoRandomUUID` and `cryptoRandomUUIDInEffect` diagnostics for Effect v4 to discourage `crypto.randomUUID()` in favor of the Effect `Random` module, which uses Effect-injected randomness instead of the global crypto implementation.
+
+### Patch Changes
+
+- [#719](https://github.com/Effect-TS/language-service/pull/719) [`d23980a`](https://github.com/Effect-TS/language-service/commit/d23980a785508e53c83ffa49e1947f5ed1f66467) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the Effect v4 beta dependencies to `4.0.0-beta.43` for the language service and v4 harness packages.
+
 ## 0.84.3
 
 ### Patch Changes
