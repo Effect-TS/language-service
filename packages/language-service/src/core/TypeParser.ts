@@ -1461,14 +1461,26 @@ export function make(
   )
 
   const getEffectContextFlags = Nano.fn("TypeParser.getEffectContextFlags")(function*(node: ts.Node) {
-    const analysis = yield* effectContextAnalysis(node.getSourceFile())
+    const sourceFile = tsUtils.getSourceFileOfNode(node)
+
+    if (!sourceFile) {
+      return EffectContextFlags.None
+    }
+
+    const analysis = yield* effectContextAnalysis(sourceFile)
     return (analysis.flags.get(node) ?? EffectContextFlags.None) &
       EffectContextFlags.InEffect
   })
 
   const getEffectYieldGeneratorFunction = Nano.fn("TypeParser.getEffectYieldGeneratorFunction")(
     function*(node: ts.Node) {
-      const analysis = yield* effectContextAnalysis(node.getSourceFile())
+      const sourceFile = tsUtils.getSourceFileOfNode(node)
+
+      if (!sourceFile) {
+        return undefined
+      }
+
+      const analysis = yield* effectContextAnalysis(sourceFile)
       return analysis.generatorFunctions.get(node)
     }
   )
