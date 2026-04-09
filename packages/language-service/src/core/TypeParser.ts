@@ -1343,8 +1343,9 @@ export function make(
           (currentFlags & EffectContextFlags.PendingNextObjectTryPropertyIsEffectThunk) !== 0 &&
           ts.isObjectLiteralExpression(current)
         ) {
-          current.forEachChild((child) => {
+          ts.forEachChild(current, (child) => {
             setPendingDisableFlags(child, pendingFlagsMask)
+            return undefined
           })
 
           for (const property of current.properties) {
@@ -1355,16 +1356,18 @@ export function make(
         } else if (isTransparentPendingNode(current)) {
           const expression = transparentPendingExpression(current)
           if (expression) {
-            current.forEachChild((child) => {
+            ts.forEachChild(current, (child) => {
               if (child !== expression) {
                 setPendingDisableFlags(child, pendingFlagsMask)
               }
+              return undefined
             })
             setPendingEnableFlags(expression, currentFlags & pendingFlagsMask)
           }
         } else if ((currentFlags & pendingFlagsMask) !== 0) {
-          current.forEachChild((child) => {
+          ts.forEachChild(current, (child) => {
             setPendingDisableFlags(child, pendingFlagsMask)
+            return undefined
           })
         }
 
@@ -1440,8 +1443,9 @@ export function make(
         }
 
         if (isFunctionLikeNode(current)) {
-          current.forEachChild((child) => {
+          ts.forEachChild(current, (child) => {
             setPendingDisableFlags(child, functionScopeResetFlags)
+            return undefined
           })
         }
 
