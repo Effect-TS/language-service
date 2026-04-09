@@ -51,7 +51,8 @@ export const makeGlobalDateApply = (checkInEffect: boolean) =>
       if (!symbol) continue
       if (typeCheckerUtils.resolveToGlobalSymbol(symbol) !== dateSymbol) continue
 
-      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+      const inEffect =
+        ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.CanYieldEffect) !== 0
       if (inEffect !== checkInEffect) continue
 
       report({ location: node, messageText, fixes: [] })

@@ -21,6 +21,22 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const supportedEffect = typeParser.supportedEffect()
 
+    const getContainingFunctionLike = (node: ts.Node): ts.FunctionLikeDeclaration | undefined => {
+      for (let current = node.parent; current; current = current.parent) {
+        if (
+          ts.isFunctionExpression(current) ||
+          ts.isFunctionDeclaration(current) ||
+          ts.isMethodDeclaration(current) ||
+          ts.isArrowFunction(current) ||
+          ts.isGetAccessorDeclaration(current) ||
+          ts.isSetAccessorDeclaration(current)
+        ) {
+          return current
+        }
+      }
+      return undefined
+    }
+
     const parseEffectMethod = (node: ts.Node, methodName: string) =>
       pipe(
         typeParser.isNodeReferenceToEffectModuleApi(methodName)(node),
@@ -53,8 +69,66 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
 
       if (Option.isNone(isEffectRunCall)) continue
 
-      // Find enclosing scope and Effect generator using TypeParser helper
-      const { effectGen, scopeNode } = yield* typeParser.findEnclosingScopes(node)
+      const scopeNode = getContainingFunctionLike(node)
+      let generatorFunction = yield* typeParser.getEffectYieldGeneratorFunction(node)
+
+      if (!generatorFunction) {
+        for (let current = node.parent; current; current = current.parent) {
+          const currentFlags = yield* typeParser.getEffectContextFlags(current)
+          if ((currentFlags & TypeParser.EffectContextFlags.CanYieldEffect) === 0) continue
+          generatorFunction = yield* typeParser.getEffectYieldGeneratorFunction(current)
+          if (generatorFunction) break
+        }
+      }
+
+      let effectGen: {
+        node: ts.Node
+        effectModule: ts.Node | ts.Expression
+        generatorFunction: ts.FunctionExpression
+        body: ts.Block
+        pipeArguments?: ReadonlyArray<ts.Expression>
+      } | undefined = undefined
+
+      if (generatorFunction) {
+        for (let current = generatorFunction.parent; current; current = current.parent) {
+          effectGen = yield* pipe(
+            typeParser.effectGen(current),
+            Nano.map((result) => ({
+              node: result.node,
+              effectModule: result.effectModule,
+              generatorFunction: result.generatorFunction,
+              body: result.body
+            })),
+            Nano.orElse(() =>
+              pipe(
+                typeParser.effectFnUntracedGen(current),
+                Nano.map((result) => ({
+                  node: result.node,
+                  effectModule: result.effectModule,
+                  generatorFunction: result.generatorFunction,
+                  body: result.body,
+                  pipeArguments: result.pipeArguments
+                }))
+              )
+            ),
+            Nano.orElse(() =>
+              pipe(
+                typeParser.effectFnGen(current),
+                Nano.map((result) => ({
+                  node: result.node,
+                  effectModule: result.effectModule,
+                  generatorFunction: result.generatorFunction,
+                  body: result.body,
+                  pipeArguments: result.pipeArguments
+                }))
+              )
+            ),
+            Nano.orUndefined
+          )
+
+          if (effectGen) break
+        }
+      }
 
       if (effectGen && effectGen.body.statements.length > 0) {
         const nodeText = sourceFile.text.substring(

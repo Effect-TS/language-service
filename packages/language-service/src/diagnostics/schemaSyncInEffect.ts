@@ -64,7 +64,8 @@ export const schemaSyncInEffect = LSP.createDiagnostic({
       if (Option.isNone(isSchemaSyncCall)) continue
 
       // Find enclosing scope and Effect generator using TypeParser helper
-      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+      const inEffect =
+        ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.CanYieldEffect) !== 0
 
       if (!inEffect) continue
 

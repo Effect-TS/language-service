@@ -135,7 +135,8 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
     // Match direct JSON.parse/stringify inside Effect generator
     const jsonMethodInEffectGen = Nano.fn("preferSchemaOverJson.jsonMethodInEffectGen")(
       function*(jsonCall: ts.CallExpression) {
-        const { inEffect } = yield* typeParser.findEnclosingScopes(jsonCall)
+        const inEffect =
+          ((yield* typeParser.getEffectContextFlags(jsonCall)) & TypeParser.EffectContextFlags.CanYieldEffect) !== 0
         if (!inEffect) {
           return yield* TypeParser.TypeParserIssue.issue
         }

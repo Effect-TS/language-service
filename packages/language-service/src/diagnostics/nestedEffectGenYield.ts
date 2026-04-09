@@ -29,7 +29,8 @@ export const nestedEffectGenYield = LSP.createDiagnostic({
 
       if (!ts.isYieldExpression(node) || !node.asteriskToken || !node.expression) continue
 
-      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+      const inEffect =
+        ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.CanYieldEffect) !== 0
       if (!inEffect) continue
 
       const bareNestedEffectGen = yield* Nano.orUndefined(typeParser.effectGen(node.expression))

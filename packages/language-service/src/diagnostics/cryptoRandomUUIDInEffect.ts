@@ -37,7 +37,8 @@ export const makeCryptoRandomUUIDApply = (checkInEffect: boolean) =>
       if (!symbol) continue
       if (typeCheckerUtils.resolveToGlobalSymbol(symbol) !== cryptoSymbol) continue
 
-      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+      const inEffect =
+        ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.CanYieldEffect) !== 0
       if (inEffect !== checkInEffect) continue
 
       report({
