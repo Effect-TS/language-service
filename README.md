@@ -114,6 +114,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>deterministicKeys</code></td><td>➖</td><td>🔧</td><td>Enforces deterministic naming for service/tag/error identifiers based on class names</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>effectDoNotation</code></td><td>➖</td><td></td><td>Suggests using Effect.gen or Effect.fn instead of the Effect.Do notation helpers</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>effectFnOpportunity</code></td><td>💡</td><td>🔧</td><td>Suggests using Effect.fn for functions that returns an Effect</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>effectMapFlatten</code></td><td>💡</td><td></td><td>Suggests using Effect.flatMap instead of Effect.map followed by Effect.flatten in piping flows</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>effectMapVoid</code></td><td>💡</td><td>🔧</td><td>Suggests using Effect.asVoid instead of Effect.map(() =&gt; void 0), Effect.map(() =&gt; undefined), or Effect.map(() =&gt; {})</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>effectSucceedWithVoid</code></td><td>💡</td><td>🔧</td><td>Suggests using Effect.void instead of Effect.succeed(undefined) or Effect.succeed(void 0)</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>importFromBarrel</code></td><td>➖</td><td>🔧</td><td>Suggests importing from specific module paths instead of barrel exports</td><td>✓</td><td>✓</td></tr>

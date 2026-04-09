@@ -2351,6 +2351,18 @@
           "default": "warning",
           "description": "Detects nested Effects in void success channels that may cause unexecuted effects Default severity: warning."
         },
+        "effectMapFlatten": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "suggestion",
+          "description": "Suggests using Effect.flatMap instead of Effect.map followed by Effect.flatten in piping flows Default severity: suggestion."
+        },
         "effectMapVoid": {
           "type": "string",
           "enum": [

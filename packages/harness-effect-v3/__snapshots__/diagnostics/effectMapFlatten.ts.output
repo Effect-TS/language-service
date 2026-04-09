@@ -1,0 +1,8 @@
+Effect.flatten
+6:2 - 6:16 | 2 | `Effect.map` + `Effect.flatten` is the same as `Effect.flatMap` that expresses the same steps more directly.    effect(effectMapFlatten)
+
+Effect.flatten
+13:2 - 13:16 | 2 | `Effect.map` + `Effect.flatten` is the same as `Effect.flatMap` that expresses the same steps more directly.    effect(effectMapFlatten)
+
+Effect.flatten
+19:2 - 19:16 | 2 | `Effect.map` + `Effect.flatten` is the same as `Effect.flatMap` that expresses the same steps more directly.    effect(effectMapFlatten)

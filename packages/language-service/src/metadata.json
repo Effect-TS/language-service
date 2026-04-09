@@ -1276,6 +1276,27 @@
       }
     },
     {
+      "name": "effectMapFlatten",
+      "group": "style",
+      "description": "Suggests using Effect.flatMap instead of Effect.map followed by Effect.flatten in piping flows",
+      "defaultSeverity": "suggestion",
+      "fixable": false,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.succeed(1).pipe(\n  Effect.map((n) => Effect.succeed(n + 1)),\n  Effect.flatten\n)\n",
+        "diagnostics": [
+          {
+            "start": 126,
+            "end": 140,
+            "text": "`Effect.map` + `Effect.flatten` is the same as `Effect.flatMap` that expresses the same steps more directly.    effect(effectMapFlatten)"
+          }
+        ]
+      }
+    },
+    {
       "name": "effectMapVoid",
       "group": "style",
       "description": "Suggests using Effect.asVoid instead of Effect.map(() => void 0), Effect.map(() => undefined), or Effect.map(() => {})",
