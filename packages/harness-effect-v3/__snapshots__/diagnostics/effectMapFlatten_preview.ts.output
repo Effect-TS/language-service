@@ -1,0 +1,2 @@
+Effect.flatten
+7:2 - 7:16 | 0 | `Effect.map` + `Effect.flatten` is the same as `Effect.flatMap` that expresses the same steps more directly.    effect(effectMapFlatten)

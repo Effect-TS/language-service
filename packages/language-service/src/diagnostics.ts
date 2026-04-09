@@ -14,6 +14,7 @@ import { effectFnOpportunity } from "./diagnostics/effectFnOpportunity.js"
 import { effectGenUsesAdapter } from "./diagnostics/effectGenUsesAdapter.js"
 import { effectInFailure } from "./diagnostics/effectInFailure.js"
 import { effectInVoidSuccess } from "./diagnostics/effectInVoidSuccess.js"
+import { effectMapFlatten } from "./diagnostics/effectMapFlatten.js"
 import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
 import { effectSucceedWithVoid } from "./diagnostics/effectSucceedWithVoid.js"
 import { extendsNativeError } from "./diagnostics/extendsNativeError.js"
@@ -86,6 +87,7 @@ export const diagnostics = [
   duplicatePackage,
   effectDoNotation,
   effectFnImplicitAny,
+  effectMapFlatten,
   effectGenUsesAdapter,
   missingEffectContext,
   missingEffectError,
