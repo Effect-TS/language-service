@@ -1,0 +1,11 @@
+Math.random()
+6:46 - 6:59 | 0 | This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)
+
+Math.random()
+9:13 - 9:26 | 0 | This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)
+
+Math.random()
+13:64 - 13:77 | 0 | This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)
+
+Math.random()
+16:19 - 16:32 | 0 | This Effect code uses `Math.random()`, randomness is represented through the Effect `Random` service.    effect(globalRandomInEffect)

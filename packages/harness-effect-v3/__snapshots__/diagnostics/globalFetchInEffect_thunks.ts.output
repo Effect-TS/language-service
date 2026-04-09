@@ -1,0 +1,11 @@
+fetch
+6:45 - 6:50 | 0 | This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `@effect/platform`.    effect(globalFetchInEffect)
+
+fetch
+9:13 - 9:18 | 0 | This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `@effect/platform`.    effect(globalFetchInEffect)
+
+fetch
+13:63 - 13:68 | 0 | This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `@effect/platform`.    effect(globalFetchInEffect)
+
+fetch
+16:19 - 16:24 | 0 | This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `@effect/platform`.    effect(globalFetchInEffect)

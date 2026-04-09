@@ -1,0 +1,11 @@
+console.log("sync")
+6:47 - 6:66 | 0 | This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)
+
+console.warn("try")
+9:13 - 9:32 | 0 | This Effect code uses `console.warn`, logging in Effect code is represented through `Effect.logWarning or Logger`.    effect(globalConsoleInEffect)
+
+console.log("try-promise")
+13:65 - 13:91 | 0 | This Effect code uses `console.log`, logging in Effect code is represented through `Effect.log or Logger`.    effect(globalConsoleInEffect)
+
+console.warn("try-promise-object")
+16:19 - 16:53 | 0 | This Effect code uses `console.warn`, logging in Effect code is represented through `Effect.logWarning or Logger`.    effect(globalConsoleInEffect)

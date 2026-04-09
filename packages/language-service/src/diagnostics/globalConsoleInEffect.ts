@@ -49,8 +49,7 @@ export const makeGlobalConsoleApply = (checkInEffect: boolean) =>
       if (!symbol) continue
       if (typeCheckerUtils.resolveToGlobalSymbol(symbol) !== consoleSymbol) continue
 
-      const inEffect =
-        ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.CanYieldEffect) !== 0
+      const inEffect = ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.InEffect) !== 0
       if (inEffect !== checkInEffect) continue
 
       report({

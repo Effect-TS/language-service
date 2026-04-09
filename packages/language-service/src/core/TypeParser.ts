@@ -59,6 +59,7 @@ export const enum EffectContextFlags {
   None = 0,
   CanYieldEffect = 1 << 0,
   InEffectConstructorThunk = 1 << 1,
+  InEffect = CanYieldEffect | InEffectConstructorThunk,
   PendingNextFunctionIsEffectThunk = 1 << 2,
   PendingNextObjectTryPropertyIsEffectThunk = 1 << 3
 }
@@ -1462,7 +1463,7 @@ export function make(
   const getEffectContextFlags = Nano.fn("TypeParser.getEffectContextFlags")(function*(node: ts.Node) {
     const analysis = yield* effectContextAnalysis(node.getSourceFile())
     return (analysis.flags.get(node) ?? EffectContextFlags.None) &
-      (EffectContextFlags.CanYieldEffect | EffectContextFlags.InEffectConstructorThunk)
+      EffectContextFlags.InEffect
   })
 
   const getEffectYieldGeneratorFunction = Nano.fn("TypeParser.getEffectYieldGeneratorFunction")(
