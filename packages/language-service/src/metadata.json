@@ -978,7 +978,13 @@
       ],
       "preview": {
         "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  return yield* Effect.promise(() => fetch(\"https://example.com\"))\n})\n",
-        "diagnostics": []
+        "diagnostics": [
+          {
+            "start": 118,
+            "end": 123,
+            "text": "This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `effect/unstable/http`.    effect(globalFetchInEffect)"
+          }
+        ]
       }
     },
     {

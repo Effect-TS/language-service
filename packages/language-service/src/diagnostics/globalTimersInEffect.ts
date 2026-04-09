@@ -61,7 +61,7 @@ export const makeGlobalTimersApply = (checkInEffect: boolean) =>
       }
       if (!messageText) continue
 
-      const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+      const inEffect = ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.InEffect) !== 0
       if (inEffect !== checkInEffect) continue
 
       report({ location: node, messageText, fixes: [] })

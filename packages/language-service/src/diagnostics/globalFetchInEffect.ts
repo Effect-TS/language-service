@@ -35,7 +35,8 @@ export const makeGlobalFetchApply = (checkInEffect: boolean) =>
       if (ts.isCallExpression(node)) {
         const symbol = typeChecker.getSymbolAtLocation(node.expression)
         if (symbol && typeCheckerUtils.resolveToGlobalSymbol(symbol) === fetchSymbol) {
-          const { inEffect } = yield* typeParser.findEnclosingScopes(node)
+          const inEffect =
+            ((yield* typeParser.getEffectContextFlags(node)) & TypeParser.EffectContextFlags.InEffect) !== 0
           if (inEffect === checkInEffect) {
             report({
               location: node.expression,

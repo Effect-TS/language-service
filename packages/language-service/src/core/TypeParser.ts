@@ -55,6 +55,15 @@ export interface ParsedPipingFlowTransformation {
   kind: "pipe" | "pipeable" | "call" | "effectFn" | "effectFnUntraced" // the kind of transformation
 }
 
+export const enum EffectContextFlags {
+  None = 0,
+  CanYieldEffect = 1 << 0,
+  InEffectConstructorThunk = 1 << 1,
+  InEffect = CanYieldEffect | InEffectConstructorThunk,
+  PendingNextFunctionIsEffectThunk = 1 << 2,
+  PendingNextObjectTryPropertyIsEffectThunk = 1 << 3
+}
+
 export interface TypeParser {
   effectType: (
     type: ts.Type,
@@ -154,22 +163,12 @@ export interface TypeParser {
     },
     TypeParserIssue
   >
-  findEnclosingScopes: (
+  getEffectContextFlags: (
     node: ts.Node
-  ) => Nano.Nano<
-    {
-      inEffect: boolean
-      scopeNode: ts.FunctionLikeDeclaration | undefined
-      effectGen: {
-        node: ts.Node
-        effectModule: ts.Node | ts.Expression
-        generatorFunction: ts.FunctionExpression
-        body: ts.Block
-        pipeArguments?: ReadonlyArray<ts.Expression>
-      } | undefined
-    },
-    never
-  >
+  ) => Nano.Nano<EffectContextFlags, never>
+  getEffectYieldGeneratorFunction: (
+    node: ts.Node
+  ) => Nano.Nano<ts.FunctionExpression | undefined, never>
   effectFn: (
     node: ts.Node
   ) => Nano.Nano<
@@ -1256,94 +1255,239 @@ export function make(
     (node) => node
   )
 
-  const findEnclosingScopes = Nano.fn("TypeParser.findEnclosingScopes")(function*(
-    startNode: ts.Node
-  ) {
-    let currentParent: ts.Node | undefined = startNode.parent
-    let scopeNode: ts.FunctionLikeDeclaration | undefined = undefined
-    let effectGenResult: {
-      node: ts.Node
-      effectModule: ts.Node | ts.Expression
-      generatorFunction: ts.FunctionExpression
-      body: ts.Block
-      pipeArguments?: ReadonlyArray<ts.Expression>
-    } | undefined = undefined
+  type EffectContextAnalysis = {
+    flags: WeakMap<ts.Node, EffectContextFlags>
+    generatorFunctions: WeakMap<ts.Node, ts.FunctionExpression | undefined>
+  }
 
-    while (currentParent) {
-      const nodeToCheck: ts.Node = currentParent
+  const effectContextAnalysis = Nano.cachedBy(
+    Nano.fn("TypeParser.effectContextAnalysis")(function*(sourceFile: ts.SourceFile) {
+      const flags = new WeakMap<ts.Node, EffectContextFlags>()
+      const generatorFunctions = new WeakMap<ts.Node, ts.FunctionExpression | undefined>()
 
-      // Check if this node introduces a function scope
-      if (!scopeNode) {
-        if (
-          ts.isFunctionExpression(nodeToCheck) ||
-          ts.isFunctionDeclaration(nodeToCheck) ||
-          ts.isMethodDeclaration(nodeToCheck) ||
-          ts.isArrowFunction(nodeToCheck) ||
-          ts.isGetAccessorDeclaration(nodeToCheck) ||
-          ts.isSetAccessorDeclaration(nodeToCheck)
-        ) {
-          scopeNode = nodeToCheck
-        }
+      const isFunctionLikeNode = (node: ts.Node): node is ts.FunctionLikeDeclaration =>
+        ts.isFunctionExpression(node) ||
+        ts.isFunctionDeclaration(node) ||
+        ts.isMethodDeclaration(node) ||
+        ts.isArrowFunction(node) ||
+        ts.isGetAccessorDeclaration(node) ||
+        ts.isSetAccessorDeclaration(node)
+
+      const isTransparentPendingNode = (node: ts.Node): node is ts.Expression =>
+        ts.isParenthesizedExpression(node) ||
+        ts.isSatisfiesExpression(node) ||
+        ts.isAsExpression(node) ||
+        ts.isNonNullExpression(node) ||
+        ts.isTypeAssertionExpression(node)
+
+      const transparentPendingExpression = (node: ts.Expression): ts.Expression | undefined => {
+        if (ts.isParenthesizedExpression(node)) return node.expression
+        if (ts.isSatisfiesExpression(node)) return node.expression
+        if (ts.isAsExpression(node)) return node.expression
+        if (ts.isNonNullExpression(node)) return node.expression
+        if (ts.isTypeAssertionExpression(node)) return node.expression
+        return undefined
       }
 
-      // Try to parse as Effect.gen, Effect.fnUntraced, or Effect.fn
-      if (!effectGenResult) {
-        const isEffectGen = yield* pipe(
-          effectGen(nodeToCheck),
+      const pendingEnableFlags = new WeakMap<ts.Node, EffectContextFlags>()
+      const pendingDisableFlags = new WeakMap<ts.Node, EffectContextFlags>()
+      const workQueue: Array<ts.Node> = [sourceFile]
+
+      const pendingFlagsMask = EffectContextFlags.PendingNextFunctionIsEffectThunk |
+        EffectContextFlags.PendingNextObjectTryPropertyIsEffectThunk
+
+      const functionScopeResetFlags = EffectContextFlags.CanYieldEffect |
+        EffectContextFlags.InEffectConstructorThunk |
+        pendingFlagsMask
+
+      const setPendingEnableFlags = (node: ts.Node, nextFlags: EffectContextFlags) => {
+        pendingEnableFlags.set(node, (pendingEnableFlags.get(node) ?? EffectContextFlags.None) | nextFlags)
+      }
+
+      const setPendingDisableFlags = (node: ts.Node, nextFlags: EffectContextFlags) => {
+        pendingDisableFlags.set(node, (pendingDisableFlags.get(node) ?? EffectContextFlags.None) | nextFlags)
+      }
+
+      while (workQueue.length > 0) {
+        const current = workQueue.pop()!
+        let currentFlags = current.parent
+          ? (flags.get(current.parent) ?? EffectContextFlags.None)
+          : EffectContextFlags.None
+        const currentGeneratorFunction = generatorFunctions.has(current)
+          ? generatorFunctions.get(current)
+          : current.parent
+          ? generatorFunctions.get(current.parent)
+          : undefined
+
+        if (pendingDisableFlags.has(current)) {
+          currentFlags &= ~pendingDisableFlags.get(current)!
+        }
+
+        if (pendingEnableFlags.has(current)) {
+          currentFlags |= pendingEnableFlags.get(current)!
+        }
+
+        flags.set(current, currentFlags)
+        generatorFunctions.set(
+          current,
+          (currentFlags & EffectContextFlags.CanYieldEffect) !== 0 ? currentGeneratorFunction : undefined
+        )
+
+        if (
+          (currentFlags & EffectContextFlags.PendingNextFunctionIsEffectThunk) !== 0 &&
+          (ts.isArrowFunction(current) || ts.isFunctionExpression(current))
+        ) {
+          setPendingEnableFlags(current.body, EffectContextFlags.InEffectConstructorThunk)
+          setPendingDisableFlags(current.body, pendingFlagsMask)
+        } else if (
+          (currentFlags & EffectContextFlags.PendingNextObjectTryPropertyIsEffectThunk) !== 0 &&
+          ts.isObjectLiteralExpression(current)
+        ) {
+          ts.forEachChild(current, (child) => {
+            setPendingDisableFlags(child, pendingFlagsMask)
+            return undefined
+          })
+
+          for (const property of current.properties) {
+            if (!ts.isPropertyAssignment(property)) continue
+            if (!ts.isIdentifier(property.name) || ts.idText(property.name) !== "try") continue
+            setPendingEnableFlags(property.initializer, EffectContextFlags.PendingNextFunctionIsEffectThunk)
+          }
+        } else if (isTransparentPendingNode(current)) {
+          const expression = transparentPendingExpression(current)
+          if (expression) {
+            ts.forEachChild(current, (child) => {
+              if (child !== expression) {
+                setPendingDisableFlags(child, pendingFlagsMask)
+              }
+              return undefined
+            })
+            setPendingEnableFlags(expression, currentFlags & pendingFlagsMask)
+          }
+        } else if ((currentFlags & pendingFlagsMask) !== 0) {
+          ts.forEachChild(current, (child) => {
+            setPendingDisableFlags(child, pendingFlagsMask)
+            return undefined
+          })
+        }
+
+        const parsedEffectGenerator = yield* pipe(
+          effectGen(current),
           Nano.map((result) => ({
-            node: result.node,
-            effectModule: result.effectModule,
-            generatorFunction: result.generatorFunction,
-            body: result.body
+            body: result.body,
+            generatorFunction: result.generatorFunction
           })),
           Nano.orElse(() =>
             pipe(
-              effectFnUntracedGen(nodeToCheck),
+              effectFnUntracedGen(current),
               Nano.map((result) => ({
-                node: result.node,
-                effectModule: result.effectModule,
-                generatorFunction: result.generatorFunction,
                 body: result.body,
-                pipeArguments: result.pipeArguments
+                generatorFunction: result.generatorFunction
               }))
             )
           ),
           Nano.orElse(() =>
             pipe(
-              effectFnGen(nodeToCheck),
+              effectFnGen(current),
               Nano.map((result) => ({
-                node: result.node,
-                effectModule: result.effectModule,
-                generatorFunction: result.generatorFunction,
                 body: result.body,
-                pipeArguments: result.pipeArguments
+                generatorFunction: result.generatorFunction
               }))
             )
           ),
           Nano.orUndefined
         )
 
-        if (isEffectGen) {
-          effectGenResult = isEffectGen
+        if (parsedEffectGenerator) {
+          setPendingEnableFlags(
+            parsedEffectGenerator.body,
+            EffectContextFlags.CanYieldEffect
+          )
+          generatorFunctions.set(parsedEffectGenerator.body, parsedEffectGenerator.generatorFunction)
         }
+
+        if (ts.isCallExpression(current) && current.arguments.length > 0) {
+          const effectThunkArgument = current.arguments[0]
+
+          if (yield* Nano.orUndefined(isNodeReferenceToEffectModuleApi("sync")(current.expression))) {
+            setPendingEnableFlags(effectThunkArgument, EffectContextFlags.PendingNextFunctionIsEffectThunk)
+          }
+
+          if (yield* Nano.orUndefined(isNodeReferenceToEffectModuleApi("promise")(current.expression))) {
+            setPendingEnableFlags(effectThunkArgument, EffectContextFlags.PendingNextFunctionIsEffectThunk)
+          }
+
+          if (yield* Nano.orUndefined(isNodeReferenceToEffectModuleApi("callback")(current.expression))) {
+            setPendingEnableFlags(effectThunkArgument, EffectContextFlags.PendingNextFunctionIsEffectThunk)
+          }
+
+          if (yield* Nano.orUndefined(isNodeReferenceToEffectModuleApi("suspend")(current.expression))) {
+            setPendingEnableFlags(effectThunkArgument, EffectContextFlags.PendingNextFunctionIsEffectThunk)
+          }
+
+          if (yield* Nano.orUndefined(isNodeReferenceToEffectModuleApi("try")(current.expression))) {
+            setPendingEnableFlags(
+              effectThunkArgument,
+              EffectContextFlags.PendingNextFunctionIsEffectThunk |
+                EffectContextFlags.PendingNextObjectTryPropertyIsEffectThunk
+            )
+          }
+
+          if (yield* Nano.orUndefined(isNodeReferenceToEffectModuleApi("tryPromise")(current.expression))) {
+            setPendingEnableFlags(
+              effectThunkArgument,
+              EffectContextFlags.PendingNextFunctionIsEffectThunk |
+                EffectContextFlags.PendingNextObjectTryPropertyIsEffectThunk
+            )
+          }
+        }
+
+        if (isFunctionLikeNode(current)) {
+          ts.forEachChild(current, (child) => {
+            setPendingDisableFlags(child, functionScopeResetFlags)
+            return undefined
+          })
+        }
+
+        ts.forEachChild(current, (child) => {
+          workQueue.push(child)
+          return undefined
+        })
       }
 
-      // If we found both, we can stop
-      if (scopeNode && effectGenResult) {
-        break
-      }
+      return {
+        flags,
+        generatorFunctions
+      } satisfies EffectContextAnalysis
+    }),
+    "TypeParser.effectContextAnalysis",
+    (sourceFile) => sourceFile
+  )
 
-      currentParent = nodeToCheck.parent
+  const getEffectContextFlags = Nano.fn("TypeParser.getEffectContextFlags")(function*(node: ts.Node) {
+    const sourceFile = tsUtils.getSourceFileOfNode(node)
+
+    if (!sourceFile) {
+      return EffectContextFlags.None
     }
 
-    return {
-      inEffect: effectGenResult !== undefined &&
-        effectGenResult.body.statements.length > 0 &&
-        scopeNode === effectGenResult.generatorFunction,
-      scopeNode,
-      effectGen: effectGenResult
-    }
+    const analysis = yield* effectContextAnalysis(sourceFile)
+    return (analysis.flags.get(node) ?? EffectContextFlags.None) &
+      EffectContextFlags.InEffect
   })
+
+  const getEffectYieldGeneratorFunction = Nano.fn("TypeParser.getEffectYieldGeneratorFunction")(
+    function*(node: ts.Node) {
+      const sourceFile = tsUtils.getSourceFileOfNode(node)
+
+      if (!sourceFile) {
+        return undefined
+      }
+
+      const analysis = yield* effectContextAnalysis(sourceFile)
+      return analysis.generatorFunctions.get(node)
+    }
+  )
 
   const effectFn = Nano.cachedBy(
     function(node: ts.Node) {
@@ -3192,7 +3336,8 @@ export function make(
     effectGen,
     effectFnUntracedGen,
     effectFnGen,
-    findEnclosingScopes,
+    getEffectContextFlags,
+    getEffectYieldGeneratorFunction,
     effectFn,
     extendsCauseYieldableError,
     unnecessaryEffectGen,

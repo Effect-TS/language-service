@@ -1,0 +1,11 @@
+crypto.randomUUID()
+6:44 - 6:63 | 0 | This Effect code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUIDInEffect)
+
+crypto.randomUUID()
+9:13 - 9:32 | 0 | This Effect code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUIDInEffect)
+
+crypto.randomUUID()
+13:62 - 13:81 | 0 | This Effect code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUIDInEffect)
+
+crypto.randomUUID()
+16:19 - 16:38 | 0 | This Effect code uses `crypto.randomUUID()`, prefer the Effect `Random` module instead because it uses Effect-injected randomness rather than the `crypto` module behind the scenes.    effect(cryptoRandomUUIDInEffect)

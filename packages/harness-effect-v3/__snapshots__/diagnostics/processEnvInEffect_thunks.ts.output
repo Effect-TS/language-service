@@ -1,0 +1,11 @@
+process.env.SYNC_SECRET
+7:43 - 7:66 | 0 | This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)
+
+process.env.TRY_SECRET
+10:13 - 10:35 | 0 | This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)
+
+process.env.TRY_PROMISE_SECRET
+14:61 - 14:91 | 0 | This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)
+
+process.env.TRY_PROMISE_OBJECT_SECRET
+17:19 - 17:56 | 0 | This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)

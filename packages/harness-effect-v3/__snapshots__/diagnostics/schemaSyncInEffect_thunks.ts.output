@@ -1,0 +1,11 @@
+Schema.decodeSync
+10:46 - 10:63 | 2 | `Schema.decodeSync` is used inside an Effect generator. `Schema.decode` preserves the typed Effect error channel for this operation without throwing.    effect(schemaSyncInEffect)
+
+Schema.decodeSync
+13:13 - 13:30 | 2 | `Schema.decodeSync` is used inside an Effect generator. `Schema.decode` preserves the typed Effect error channel for this operation without throwing.    effect(schemaSyncInEffect)
+
+Schema.encodeSync
+17:64 - 17:81 | 2 | `Schema.encodeSync` is used inside an Effect generator. `Schema.encode` preserves the typed Effect error channel for this operation without throwing.    effect(schemaSyncInEffect)
+
+Schema.encodeUnknownSync
+20:19 - 20:43 | 2 | `Schema.encodeUnknownSync` is used inside an Effect generator. `Schema.encodeUnknown` preserves the typed Effect error channel for this operation without throwing.    effect(schemaSyncInEffect)
