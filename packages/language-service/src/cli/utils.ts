@@ -7,7 +7,7 @@ import * as Path from "effect/Path"
 import * as Predicate from "effect/Predicate"
 import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
-import * as ServiceMap from "effect/ServiceMap"
+import * as Context from "effect/Context"
 import type * as ts from "typescript"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
@@ -65,7 +65,7 @@ export interface FileInput {
 /**
  * TypeScript API context for CLI operations
  */
-export class TypeScriptContext extends ServiceMap.Service<TypeScriptContext, TypeScriptApi>()("TypeScriptContext") {
+export class TypeScriptContext extends Context.Service<TypeScriptContext, TypeScriptApi>()("TypeScriptContext") {
   static live = (cwd: string) =>
     Layer.effect(
       TypeScriptContext,

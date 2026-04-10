@@ -1,0 +1,22 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 338 - 341
+// @test-config { "effectFn": ["inferred-span"] }
+import { Effect, Layer, Context } from "effect"
+
+export class MyService extends Context.Service<MyService, {
+  log: (_what: string) => Effect.Effect<void>
+}>()("MyService") {
+    static layer = Layer.effect(this, Effect.gen(function*() {
+        yield* Effect.log("log")
+        return { log: Effect.fn("MyService.log")(function(what: string) {
+            return Effect.log(what)
+        }) }
+    }))
+
+    static layerSucceed = Layer.succeed(this)({
+        log: (what: string) => Effect.log(what)
+    })
+
+    static layerSync = Layer.sync(this)(() => {
+        return { log: (what: string) => Effect.log(what) }
+    })
+}

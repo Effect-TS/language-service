@@ -97,7 +97,7 @@ export const deterministicKeys = LSP.createDiagnostic({
             typeParser.extendsEffectService(node),
             Nano.orElse(() => typeParser.extendsContextTag(node)),
             Nano.orElse(() => typeParser.extendsEffectTag(node)),
-            Nano.orElse(() => typeParser.extendsServiceMapService(node)),
+            Nano.orElse(() => typeParser.extendsContextService(node)),
             Nano.map(({ className, keyStringLiteral }) => ({ keyStringLiteral, className, target: "service" as const }))
           ),
           Nano.orElse(() =>

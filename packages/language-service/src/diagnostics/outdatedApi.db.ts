@@ -229,13 +229,13 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Fork the effect with Effect.forkChild and observe the fiber result via Fiber.join or Fiber.await."
   ),
   "Tag": asRemoved(
-    "Use ServiceMap.Service instead of Effect.Tag."
+    "Use Context.Service instead of Effect.Tag."
   ),
   "Service": asRemoved(
-    "Use ServiceMap.Service instead of Effect.Service."
+    "Use Context.Service instead of Effect.Service."
   ),
   "runtime": asRemoved(
-    "Runtime has been removed in Effect v4. Use Effect.services to grab services and then run using Effect.runPromiseWith."
+    "Runtime has been removed in Effect v4. Use Effect.context to grab services and then run using Effect.runPromiseWith."
   ),
   "bindAll": asRemoved(
     "Use Effect.gen instead of Effect.bindAll."
@@ -292,12 +292,8 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "consoleWith": asRemoved(
     "Console access has been reworked in Effect v4."
   ),
-  "context": asRemoved(
-    "Use Effect.context is removed. Access services directly via yield* or Effect.provideService."
-  ),
-  "contextWith": asRemoved(
-    "Use Effect.map with service access instead."
-  ),
+  "context": asUnchanged,
+  "contextWith": asUnchanged,
   "contextWithEffect": asRemoved(
     "Use Effect.flatMap with service access instead."
   ),
@@ -320,7 +316,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Use Effect.die with a lazily evaluated value instead."
   ),
   "diffFiberRefs": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "disconnect": asRemoved(
     "Fiber disconnect has been removed in Effect v4."
@@ -385,7 +381,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Use Effect.withSpan instead."
   ),
   "getFiberRefs": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "getRuntimeFlags": asRemoved(
     "Runtime flags have been removed in Effect v4."
@@ -400,7 +396,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Logging configuration has been reworked in Effect v4."
   ),
   "inheritFiberRefs": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "interruptWith": asRemoved(
     "Use Effect.interrupt instead."
@@ -424,16 +420,16 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Use Effect.linkSpans instead."
   ),
   "locally": asRemoved(
-    "FiberRef.locally has been removed. Use Effect.provideService with ServiceMap.Reference instead."
+    "FiberRef.locally has been removed. Use Effect.provideService with Context.Reference instead."
   ),
   "locallyScoped": asRemoved(
-    "FiberRef.locally has been removed. Use Effect.provideService with ServiceMap.Reference instead."
+    "FiberRef.locally has been removed. Use Effect.provideService with Context.Reference instead."
   ),
   "locallyScopedWith": asRemoved(
-    "FiberRef.locally has been removed. Use Effect.provideService with ServiceMap.Reference instead."
+    "FiberRef.locally has been removed. Use Effect.provideService with Context.Reference instead."
   ),
   "locallyWith": asRemoved(
-    "FiberRef.locally has been removed. Use Effect.provideService with ServiceMap.Reference instead."
+    "FiberRef.locally has been removed. Use Effect.provideService with Context.Reference instead."
   ),
   "logAnnotations": asRemoved(
     "Use Effect.annotateLogs instead."
@@ -487,7 +483,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Finalizer ordering configuration has been removed in Effect v4."
   ),
   "patchFiberRefs": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "patchRuntimeFlags": asRemoved(
     "Runtime flags have been removed in Effect v4."
@@ -526,22 +522,22 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Finalizer ordering configuration has been removed in Effect v4."
   ),
   "serviceConstants": asRemoved(
-    "Service helpers have been removed. Use ServiceMap.Service and yield* to access services."
+    "Service helpers have been removed. Use Context.Service and yield* to access services."
   ),
   "serviceFunction": asRemoved(
-    "Service helpers have been removed. Use ServiceMap.Service and yield* to access services."
+    "Service helpers have been removed. Use Context.Service and yield* to access services."
   ),
   "serviceFunctionEffect": asRemoved(
-    "Service helpers have been removed. Use ServiceMap.Service and yield* to access services."
+    "Service helpers have been removed. Use Context.Service and yield* to access services."
   ),
   "serviceFunctions": asRemoved(
-    "Service helpers have been removed. Use ServiceMap.Service and yield* to access services."
+    "Service helpers have been removed. Use Context.Service and yield* to access services."
   ),
   "serviceMembers": asRemoved(
-    "Service helpers have been removed. Use ServiceMap.Service and yield* to access services."
+    "Service helpers have been removed. Use Context.Service and yield* to access services."
   ),
   "setFiberRefs": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "step": asRemoved(
     "The request batching API has been reworked in Effect v4."
@@ -613,7 +609,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Use Effect.catchCause instead."
   ),
   "updateFiberRefs": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "using": asRemoved(
     "Use Effect.scoped instead."
@@ -631,7 +627,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Use Effect.when with an effectful condition via Effect.flatMap instead."
   ),
   "whenFiberRef": asRemoved(
-    "FiberRef has been replaced by ServiceMap.Reference in Effect v4."
+    "FiberRef has been replaced by Context.Reference in Effect v4."
   ),
   "whenLogLevel": asRemoved(
     "Log level checking has been reworked in Effect v4."
@@ -665,7 +661,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Note: in v4, only the Fiber is provided (not the full FiberRuntime with status). The callback receives (fiber: Fiber<unknown, unknown>) instead of (fiber: FiberRuntime<A, E>, status: FiberStatus)."
   ),
   "withMaxOpsBeforeYield": asRemoved(
-    "Use ServiceMap.Reference for MaxOpsBeforeYield configuration instead."
+    "Use Context.Reference for MaxOpsBeforeYield configuration instead."
   ),
   "withMetric": asRemoved(
     "Metric configuration has been reworked in Effect v4."
@@ -695,7 +691,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Runtime flags have been removed in Effect v4."
   ),
   "withScheduler": asRemoved(
-    "Use ServiceMap.Reference for Scheduler configuration instead."
+    "Use Context.Reference for Scheduler configuration instead."
   ),
   "withSchedulingPriority": asRemoved(
     "Scheduling priority configuration has been removed in Effect v4."
@@ -704,7 +700,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Use Effect.withTracer instead."
   ),
   "withUnhandledErrorLogLevel": asRemoved(
-    "Use ServiceMap.Reference for UnhandledLogLevel configuration instead."
+    "Use Context.Reference for UnhandledLogLevel configuration instead."
   ),
   "zipLeft": asRemoved(
     "Use Effect.tap instead of Effect.zipLeft."

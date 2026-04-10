@@ -335,27 +335,27 @@ exports[`Completion genFunctionStar > genFunctionStar.ts at 4:24 1`] = `
 
 exports[`Completion genFunctionStar > genFunctionStar_imports.ts at 2:16 1`] = `[]`;
 
-exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses.ts at 4:43 1`] = `
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses.ts at 4:40 1`] = `
 [
   {
-    "insertText": "ServiceMap.Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
+    "insertText": "Context.Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService, {}>",
     "replacementSpan": {
-      "length": 11,
-      "start": 153,
+      "length": 8,
+      "start": 147,
     },
     "sortText": "11",
   },
   {
-    "insertText": "ServiceMap.Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
+    "insertText": "Context.Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService>({ make })",
     "replacementSpan": {
-      "length": 11,
-      "start": 153,
+      "length": 8,
+      "start": 147,
     },
     "sortText": "11",
   },
@@ -371,7 +371,7 @@ exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_directImpo
     "name": "Service<MyService, {}>",
     "replacementSpan": {
       "length": 7,
-      "start": 149,
+      "start": 146,
     },
     "sortText": "11",
   },
@@ -382,61 +382,61 @@ exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_directImpo
     "name": "Service<MyService>({ make })",
     "replacementSpan": {
       "length": 7,
-      "start": 149,
+      "start": 146,
     },
     "sortText": "11",
   },
 ]
 `;
 
-exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_identifierKey.ts at 5:43 1`] = `
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_identifierKey.ts at 5:40 1`] = `
 [
   {
-    "insertText": "ServiceMap.Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
+    "insertText": "Context.Service<MyService, {\${0}}>()("@effect/harness-effect-v4/MyService"){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService, {}>",
     "replacementSpan": {
-      "length": 11,
-      "start": 249,
+      "length": 8,
+      "start": 243,
     },
     "sortText": "11",
   },
   {
-    "insertText": "ServiceMap.Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
+    "insertText": "Context.Service<MyService>()("@effect/harness-effect-v4/MyService", { make: \${0} }){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<MyService>({ make })",
     "replacementSpan": {
-      "length": 11,
-      "start": 249,
+      "length": 8,
+      "start": 243,
     },
     "sortText": "11",
   },
 ]
 `;
 
-exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_middle.ts at 4:31 1`] = `
+exports[`Completion serviceMapSelfInClasses > serviceMapSelfInClasses_middle.ts at 4:28 1`] = `
 [
   {
-    "insertText": "ServiceMap.Service<Foo, {\${0}}>()("@effect/harness-effect-v4/Foo"){}",
+    "insertText": "Context.Service<Foo, {\${0}}>()("@effect/harness-effect-v4/Foo"){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<Foo, {}>",
     "replacementSpan": {
-      "length": 12,
-      "start": 144,
+      "length": 9,
+      "start": 141,
     },
     "sortText": "11",
   },
   {
-    "insertText": "ServiceMap.Service<Foo>()("@effect/harness-effect-v4/Foo", { make: \${0} }){}",
+    "insertText": "Context.Service<Foo>()("@effect/harness-effect-v4/Foo", { make: \${0} }){}",
     "isSnippet": true,
     "kind": "const",
     "name": "Service<Foo>({ make })",
     "replacementSpan": {
-      "length": 12,
-      "start": 144,
+      "length": 9,
+      "start": 141,
     },
     "sortText": "11",
   },

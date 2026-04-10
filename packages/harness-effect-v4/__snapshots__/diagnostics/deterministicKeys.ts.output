@@ -1,5 +1,5 @@
 "ExpectedServiceIdentifier"
-6:62 - 6:89 | 1 | This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v4/ExpectedServiceIdentifier`.    effect(deterministicKeys)
+6:59 - 6:86 | 1 | This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v4/ExpectedServiceIdentifier`.    effect(deterministicKeys)
 
 "ErrorA"
 9:45 - 9:53 | 1 | This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v4/ErrorA`.    effect(deterministicKeys)

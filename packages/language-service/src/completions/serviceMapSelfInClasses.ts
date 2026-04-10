@@ -20,14 +20,14 @@ export const serviceMapSelfInClasses = LSP.createCompletion({
     const { accessedObject, className, replacementSpan } = maybeInfos
 
     // first, given the position, we go back
-    const serviceMapIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
+    const contextIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
       sourceFile,
       "effect",
-      "ServiceMap"
-    ) || "ServiceMap"
+      "Context"
+    ) || "Context"
 
     // Check if this is a fully qualified name (e.g., Effect.Service)
-    const isFullyQualified = serviceMapIdentifier === ts.idText(accessedObject)
+    const isFullyQualified = contextIdentifier === ts.idText(accessedObject)
 
     const name = ts.idText(className)
 
@@ -37,10 +37,10 @@ export const serviceMapSelfInClasses = LSP.createCompletion({
     // Build completions based on what the user is extending
     const completions: Array<LSP.CompletionEntryDefinition> = []
 
-    // If extending ServiceMap.Service (either ServiceMap.Service or direct import ServiceMap.Service)
+    // If extending Context.Service (either Context.Service or direct import Context.Service)
     const hasServiceCompletion = isFullyQualified || Option.isSome(
       yield* pipe(
-        typeParser.isNodeReferenceToServiceMapModuleApi("Service")(accessedObject),
+        typeParser.isNodeReferenceToContextModuleApi("Service")(accessedObject),
         Nano.option
       )
     )
@@ -49,7 +49,7 @@ export const serviceMapSelfInClasses = LSP.createCompletion({
         name: `Service<${name}, {}>`,
         kind: ts.ScriptElementKind.constElement,
         insertText: isFullyQualified
-          ? `${serviceMapIdentifier}.Service<${name}, {${"${0}"}}>()("${tagKey}"){}`
+          ? `${contextIdentifier}.Service<${name}, {${"${0}"}}>()("${tagKey}"){}`
           : `Service<${name}, {${"${0}"}}>()("${tagKey}"){}`,
         replacementSpan,
         isSnippet: true
@@ -58,7 +58,7 @@ export const serviceMapSelfInClasses = LSP.createCompletion({
         name: `Service<${name}>({ make })`,
         kind: ts.ScriptElementKind.constElement,
         insertText: isFullyQualified
-          ? `${serviceMapIdentifier}.Service<${name}>()("${tagKey}", { make: ${"${0}"} }){}`
+          ? `${contextIdentifier}.Service<${name}>()("${tagKey}", { make: ${"${0}"} }){}`
           : `Service<${name}>()("${tagKey}", { make: ${"${0}"} }){}`,
         replacementSpan,
         isSnippet: true

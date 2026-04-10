@@ -1,5 +1,5 @@
-ServiceMap.Service<ConfigService>("Config")
-7:15 - 7:58 | 0 | `ServiceMap.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Config extends ServiceMap.Service<Config, ConfigService>()("Config") {}`.    effect(serviceNotAsClass)
+Context.Service<ConfigService>("Config")
+7:15 - 7:55 | 0 | `Context.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Config extends Context.Service<Config, ConfigService>()("Config") {}`.    effect(serviceNotAsClass)
 
-ServiceMap.Service<ArtifactStoreService>("@my-app/ArtifactStore")
-11:29 - 11:94 | 0 | `ServiceMap.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class ArtifactStore extends ServiceMap.Service<ArtifactStore, ArtifactStoreService>()("@my-app/ArtifactStore") {}`.    effect(serviceNotAsClass)
+Context.Service<ArtifactStoreService>("@my-app/ArtifactStore")
+11:29 - 11:91 | 0 | `Context.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class ArtifactStore extends Context.Service<ArtifactStore, ArtifactStoreService>()("@my-app/ArtifactStore") {}`.    effect(serviceNotAsClass)

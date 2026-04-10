@@ -1,2 +1,2 @@
 CorrectName
-8:50 - 8:61 | 1 | The `Self` type parameter for this class should be `WrongName`.    effect(classSelfMismatch)
+8:47 - 8:58 | 1 | The `Self` type parameter for this class should be `WrongName`.    effect(classSelfMismatch)

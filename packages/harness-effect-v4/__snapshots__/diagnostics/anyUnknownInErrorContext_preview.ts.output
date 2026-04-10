@@ -3,8 +3,8 @@ preview
 Only service identifiers should appear in the requirements channel.
 Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
 
-Effect.services<unknown>()
-6:9 - 6:35 | 0 | This has unknown in the requirements channel which is not recommended.
+Effect.context<unknown>()
+6:9 - 6:34 | 0 | This has unknown in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
 Effect.fail<any>("boom")

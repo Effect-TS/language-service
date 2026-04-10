@@ -1,0 +1,6 @@
+// code fix serviceNotAsClass  output for range 135 - 179
+// @effect-diagnostics *:off
+// @effect-diagnostics serviceNotAsClass:warning
+import { Context } from "effect"
+
+export class Preview extends Context.Service<Preview, { port: number} >()("Preview") { }

@@ -1,5 +1,5 @@
-ServiceMap.Service<LeakingService>("LeakingService")
-13:26 - 13:78 | 2 | Methods of this Service require `FileSystem` from every caller.
+Context.Service<LeakingService>("LeakingService")
+13:26 - 13:75 | 2 | Methods of this Service require `FileSystem` from every caller.
 
 The requirement becomes part of the public service surface instead of remaining internal to Layer implementation.
 
