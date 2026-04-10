@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.85.1
+
+### Patch Changes
+
+- [#726](https://github.com/Effect-TS/language-service/pull/726) [`fd4a8da`](https://github.com/Effect-TS/language-service/commit/fd4a8da7f400457fa33ac7f8c133de9697913133) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the Effect v4 beta examples and type parsing to match the renamed Context APIs in the latest 4.0.0-beta releases.
+
+- [#724](https://github.com/Effect-TS/language-service/pull/724) [`14d5798`](https://github.com/Effect-TS/language-service/commit/14d57985e22545c49f6b8fba954096f3cb670372) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Refactor Effect context tracking to use cached node context flags and direct generator lookups.
+
+  This aligns the TypeScript implementation more closely with the TSGo version and simplifies diagnostics that need to detect whether code is inside an Effect generator.
+
 ## 0.85.0
 
 ### Minor Changes
