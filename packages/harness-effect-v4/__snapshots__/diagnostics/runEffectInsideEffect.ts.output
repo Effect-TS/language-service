@@ -2,4 +2,4 @@ Effect.runSync
 14:20 - 14:34 | 2 | `Effect.runSync` is called inside an existing Effect context. Here, the inner Effect can be used directly.    effect(runEffectInsideEffect)
 
 Effect.runPromise
-22:4 - 22:21 | 2 | `Effect.runPromise` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through `Effect.services` and `Effect.runPromiseWith`.    effect(runEffectInsideEffect)
+22:4 - 22:21 | 2 | `Effect.runPromise` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through `Effect.context` and `Effect.runPromiseWith`.    effect(runEffectInsideEffect)

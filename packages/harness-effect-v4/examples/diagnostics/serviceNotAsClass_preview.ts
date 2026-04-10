@@ -1,5 +1,5 @@
 // @effect-diagnostics *:off
 // @effect-diagnostics serviceNotAsClass:warning
-import { ServiceMap } from "effect"
+import { Context } from "effect"
 
-export const Preview = ServiceMap.Service<{ port: number }>("Preview")
+export const Preview = Context.Service<{ port: number }>("Preview")

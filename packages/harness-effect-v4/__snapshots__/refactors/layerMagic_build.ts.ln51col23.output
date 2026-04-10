@@ -1,23 +1,23 @@
 // Result of running refactor layerMagic at position 51:23
-import { Effect, Layer, ServiceMap } from "effect"
+import { Effect, Layer, Context } from "effect"
 
-class DbConnection extends ServiceMap.Service<DbConnection>()("DbConnection", {
+class DbConnection extends Context.Service<DbConnection>()("DbConnection", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-class FileSystem extends ServiceMap.Service<FileSystem>()("FileSystem", {
+class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
   static bothInAndOut = Layer.effect(FileSystem, FileSystem.asEffect())
 }
-class Cache extends ServiceMap.Service<Cache>()("Cache", {
+class Cache extends Context.Service<Cache>()("Cache", {
   make: Effect.as(FileSystem.asEffect(), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-class UserRepository extends ServiceMap.Service<UserRepository>()("UserRepository", {
+class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
   make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
 }) {
   static Default = Layer.effect(this, this.make)

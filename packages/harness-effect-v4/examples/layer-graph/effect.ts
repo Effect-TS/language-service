@@ -1,6 +1,6 @@
-import { Effect, Layer, ServiceMap } from "effect"
+import { Effect, Layer, Context } from "effect"
 
-class DatabaseContext extends ServiceMap.Service<DatabaseContext>()("DatabaseContext", {
+class DatabaseContext extends Context.Service<DatabaseContext>()("DatabaseContext", {
   make: Effect.succeed({
     value: "DatabaseContext" as const
   })

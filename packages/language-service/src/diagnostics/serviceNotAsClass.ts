@@ -8,7 +8,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const serviceNotAsClass = LSP.createDiagnostic({
   name: "serviceNotAsClass",
   code: 51,
-  description: "Warns when ServiceMap.Service is used as a variable instead of a class declaration",
+  description: "Warns when Context.Service is used as a variable instead of a class declaration",
   group: "style",
   severity: "off",
   fixable: true,
@@ -42,11 +42,11 @@ export const serviceNotAsClass = LSP.createDiagnostic({
       if (!ts.isVariableDeclarationList(declList)) continue
       if (!(declList.flags & ts.NodeFlags.Const)) continue
 
-      const isServiceMapService = yield* pipe(
-        typeParser.isNodeReferenceToServiceMapModuleApi("Service")(callExpr.expression),
+      const isContextService = yield* pipe(
+        typeParser.isNodeReferenceToContextModuleApi("Service")(callExpr.expression),
         Nano.orUndefined
       )
-      if (!isServiceMapService) continue
+      if (!isContextService) continue
 
       const variableName = ts.isIdentifier(node.name)
         ? ts.idText(node.name)
@@ -65,7 +65,7 @@ export const serviceNotAsClass = LSP.createDiagnostic({
       report({
         location: callExpr,
         messageText:
-          `\`ServiceMap.Service\` is assigned to a variable here, but this API is intended for a class declaration shape such as \`class ${variableName} extends ServiceMap.Service<${variableName}, ${shapeText}>()("${
+          `\`Context.Service\` is assigned to a variable here, but this API is intended for a class declaration shape such as \`class ${variableName} extends Context.Service<${variableName}, ${shapeText}>()("${
             argsText.replace(/['"]/g, "")
           }") {}\`.`,
         fixes: [{
@@ -75,21 +75,21 @@ export const serviceNotAsClass = LSP.createDiagnostic({
             const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
             const targetNode = ts.isVariableStatement(variableStatement) ? variableStatement : declList
 
-            // Build inner call: ServiceMap.Service<Self, ...OriginalTypeArgs>()
+            // Build inner call: Context.Service<Self, ...OriginalTypeArgs>()
             const innerCall = ts.factory.createCallExpression(
               callExpr.expression,
               [ts.factory.createTypeReferenceNode(variableName), ...typeArgs],
               []
             )
 
-            // Build outer call: ServiceMap.Service<FirstTypeArg, {}>()(args...)
+            // Build outer call: Context.Service<FirstTypeArg, {}>()(args...)
             const outerCall = ts.factory.createCallExpression(
               innerCall,
               undefined,
               [...callExpr.arguments]
             )
 
-            // Build heritage clause: extends ServiceMap.Service<FirstTypeArg, {}>()(args...)
+            // Build heritage clause: extends Context.Service<FirstTypeArg, {}>()(args...)
             const heritageClause = ts.factory.createHeritageClause(
               ts.SyntaxKind.ExtendsKeyword,
               [ts.factory.createExpressionWithTypeArguments(outerCall, undefined)]

@@ -2,11 +2,11 @@
 import { Effect, Layer } from "effect"
 
 export const withUnknownContext = Effect.gen(function*() {
-  yield* Effect.services<unknown>()
+  yield* Effect.context<unknown>()
 })
 
 export const withAnyContext = Effect.gen(function*() {
-  yield* Effect.services<any>()
+  yield* Effect.context<any>()
 })
 
 export const withAnyFailure = Effect.gen(function*() {
@@ -18,7 +18,7 @@ export const withUnknownFailure = Effect.gen(function*() {
 })
 
 export const hasBothAnyUnknown = Effect.gen(function*() {
-  yield* Effect.services<unknown>()
+  yield* Effect.context<unknown>()
   return yield* Effect.fail<any>(42)
 })
 
@@ -34,6 +34,6 @@ export class Test {
   a: Effect.Effect<void, number, any> = Effect.succeed(42)
 }
 
-const effectUnkown = Effect.services<unknown>()
+const effectUnkown = Effect.context<unknown>()
 const layerUnknown = Layer.effectDiscard(effectUnkown)
 export const composedLayerUnknown = Layer.empty.pipe(Layer.provide(layerUnknown))

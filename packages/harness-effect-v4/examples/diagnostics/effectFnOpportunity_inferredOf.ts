@@ -1,7 +1,7 @@
 // @test-config { "effectFn": ["inferred-span"] }
-import { Effect, Layer, ServiceMap } from "effect"
+import { Effect, Layer, Context } from "effect"
 
-class UserService extends ServiceMap.Service<UserService, {
+class UserService extends Context.Service<UserService, {
     getUser(id: string): Effect.Effect<void>
   }>()("UserService") {}
 

@@ -2937,7 +2937,7 @@
             "suggestion"
           ],
           "default": "off",
-          "description": "Warns when ServiceMap.Service is used as a variable instead of a class declaration Default severity: off."
+          "description": "Warns when Context.Service is used as a variable instead of a class declaration Default severity: off."
         },
         "strictBooleanExpressions": {
           "type": "string",

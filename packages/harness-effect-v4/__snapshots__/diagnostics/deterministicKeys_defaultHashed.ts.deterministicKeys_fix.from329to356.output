@@ -1,0 +1,10 @@
+// code fix deterministicKeys_fix  output for range 329 - 356
+// @effect-diagnostics deterministicKeys:error
+// @test-config { "keyPatterns": [ { "target": "service", "pattern": "default-hashed" }, { "target": "error", "pattern": "default-hashed" } ] }
+import { Context, Data } from "effect"
+
+export class ExpectedServiceIdentifier
+  extends Context.Service<ExpectedServiceIdentifier, {}>()("fc438e0396fbb4f7")
+{}
+
+export class ErrorA extends Data.TaggedError("ErrorA")<{}> {}

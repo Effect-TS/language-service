@@ -1,9 +1,9 @@
-import { Effect, Layer, ServiceMap } from "effect"
+import { Effect, Layer, Context } from "effect"
 
 /**
  * Manages database connections and pooling
  */
-export class DbConnection extends ServiceMap.Service<DbConnection>()("DbConnection", {
+export class DbConnection extends Context.Service<DbConnection>()("DbConnection", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
@@ -12,7 +12,7 @@ export class DbConnection extends ServiceMap.Service<DbConnection>()("DbConnecti
 /**
  * Provides file system access for reading and writing files
  */
-export class FileSystem extends ServiceMap.Service<FileSystem>()("FileSystem", {
+export class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
@@ -21,7 +21,7 @@ export class FileSystem extends ServiceMap.Service<FileSystem>()("FileSystem", {
 /**
  * In-memory caching layer for improved performance
  */
-export class Cache extends ServiceMap.Service<Cache>()("Cache", {
+export class Cache extends Context.Service<Cache>()("Cache", {
   make: Effect.as(FileSystem.asEffect(), {})
 }) {
   static Default = Layer.effect(this, this.make)
@@ -30,7 +30,7 @@ export class Cache extends ServiceMap.Service<Cache>()("Cache", {
 /**
  * Repository for user data access and persistence
  */
-export class UserRepository extends ServiceMap.Service<UserRepository>()("UserRepository", {
+export class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
   make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
 }) {
   static Default = Layer.effect(this, this.make)

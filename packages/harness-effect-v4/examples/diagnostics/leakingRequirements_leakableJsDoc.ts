@@ -1,10 +1,10 @@
 import type { Effect } from "effect"
-import { ServiceMap } from "effect"
+import { Context } from "effect"
 
 /**
  * @effect-leakable-service
  */
-export class FileSystem extends ServiceMap.Service<FileSystem, {
+export class FileSystem extends Context.Service<FileSystem, {
   writeFile: (content: string) => Effect.Effect<void>
 }>()("FileSystem") {
 }
@@ -14,4 +14,4 @@ interface LeakingService {
   readCache: Effect.Effect<void, never, FileSystem>
 }
 
-export const GenericTag = ServiceMap.Service<LeakingService>("LeakingService")
+export const GenericTag = Context.Service<LeakingService>("LeakingService")

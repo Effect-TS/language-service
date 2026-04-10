@@ -1,22 +1,22 @@
 // 25:20,27:20,32:20
-import { Effect, Layer, pipe, ServiceMap  } from "effect"
+import { Effect, Layer, pipe, Context  } from "effect"
 
-class DbConnection extends ServiceMap.Service<DbConnection>()("DbConnection", {
+class DbConnection extends Context.Service<DbConnection>()("DbConnection", {
     make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-class FileSystem extends ServiceMap.Service<FileSystem>()("FileSystem", {
+class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-class Cache extends ServiceMap.Service<Cache>()("Cache", {
+class Cache extends Context.Service<Cache>()("Cache", {
   make: Effect.as(FileSystem.asEffect(), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-class UserRepository extends ServiceMap.Service<UserRepository>()("UserRepository", {
+class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
   make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
 }) {
   static Default = Layer.effect(this, this.make)

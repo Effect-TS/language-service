@@ -249,7 +249,7 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
 
           const v4MethodName = `${isEffectRunCall.value.methodName}With`
           const messageText = supportedEffect === "v4"
-            ? `\`${nodeText}\` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through \`Effect.services\` and \`Effect.${v4MethodName}\`.`
+            ? `\`${nodeText}\` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through \`Effect.context\` and \`Effect.${v4MethodName}\`.`
             : `\`${nodeText}\` is called inside an Effect with a separate runtime invocation. In this context, run child Effects with the surrounding runtime, which can be accessed through \`Effect.runtime\` and \`Runtime.${isEffectRunCall.value.methodName}\`.`
 
           report({

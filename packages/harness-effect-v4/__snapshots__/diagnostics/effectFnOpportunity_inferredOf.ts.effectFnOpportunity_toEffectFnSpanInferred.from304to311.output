@@ -1,0 +1,14 @@
+// code fix effectFnOpportunity_toEffectFnSpanInferred  output for range 304 - 311
+// @test-config { "effectFn": ["inferred-span"] }
+import { Effect, Layer, Context } from "effect"
+
+class UserService extends Context.Service<UserService, {
+    getUser(id: string): Effect.Effect<void>
+  }>()("UserService") {}
+
+  
+const _shouldTrigger = UserService.of({ // UserService is an Effect Tag
+  getUser: Effect.fn("UserService.getUser")(function*(id: string) {
+        yield* Effect.log(`Looking up user ${id}`)
+    })
+})

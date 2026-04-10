@@ -1,5 +1,5 @@
-// 5:43
+// 5:40
 // @test-config { "keyPatterns": [ { "pattern": "package-identifier", "target": "service" } ] }
-import * as ServiceMap from "effect/ServiceMap"
+import * as Context from "effect/Context"
 
-export class MyService extends ServiceMap.
+export class MyService extends Context.

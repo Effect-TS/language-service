@@ -6,7 +6,7 @@ export interface Service {}
 
 export const simple = Effect.succeed(true)
 export const simpleFailure: Effect.Effect<never, string> = Effect.fail("Hello")
-export const simpleRequire = Effect.services<Service>()
+export const simpleRequire = Effect.context<Service>()
 
 export const inUnion = Math.random() > 0.1 ? Effect.succeed(true) : Effect.succeed(42)
 

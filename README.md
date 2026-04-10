@@ -124,7 +124,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>redundantSchemaTagIdentifier</code></td><td>💡</td><td>🔧</td><td>Suggests removing redundant identifier argument when it equals the tag value in Schema.TaggedClass/TaggedError/TaggedRequest</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>schemaStructWithTag</code></td><td>💡</td><td>🔧</td><td>Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>schemaUnionOfLiterals</code></td><td>➖</td><td>🔧</td><td>Simplifies Schema.Union of multiple Schema.Literal calls into single Schema.Literal</td><td>✓</td><td></td></tr>
-    <tr><td><code>serviceNotAsClass</code></td><td>➖</td><td>🔧</td><td>Warns when ServiceMap.Service is used as a variable instead of a class declaration</td><td></td><td>✓</td></tr>
+    <tr><td><code>serviceNotAsClass</code></td><td>➖</td><td>🔧</td><td>Warns when Context.Service is used as a variable instead of a class declaration</td><td></td><td>✓</td></tr>
     <tr><td><code>strictBooleanExpressions</code></td><td>➖</td><td></td><td>Enforces boolean types in conditional expressions for type safety</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>unnecessaryArrowBlock</code></td><td>➖</td><td>🔧</td><td>Suggests using a concise arrow body when the block only returns an expression</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>unnecessaryEffectGen</code></td><td>💡</td><td>🔧</td><td>Suggests removing Effect.gen when it contains only a single return statement</td><td>✓</td><td>✓</td></tr>

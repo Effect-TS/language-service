@@ -123,8 +123,8 @@ export interface TypeParser {
   isNodeReferenceToEffectLayerModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
-  isServiceMapTypeSourceFile: (sourceFile: ts.SourceFile) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
-  isNodeReferenceToServiceMapModuleApi: (
+  isContextTypeSourceFile: (sourceFile: ts.SourceFile) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
+  isNodeReferenceToContextModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   effectGen: (
@@ -242,7 +242,7 @@ export interface TypeParser {
     TypeParserIssue,
     never
   >
-  extendsServiceMapService: (atLocation: ts.ClassDeclaration) => Nano.Nano<
+  extendsContextService: (atLocation: ts.ClassDeclaration) => Nano.Nano<
     {
       className: ts.Identifier
       selfTypeNode: ts.TypeNode
@@ -1781,8 +1781,8 @@ export function make(
       if (supportedEffect() !== "v4") return yield* typeParserIssue("v4 only")
       // should be pipeable
       yield* pipeableType(type, atLocation)
-      // Effect v4 beta.43 switched ServiceMap keys from nested variance markers
-      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/ServiceMap/Service")
+      // Effect v4 beta.43 switched Context keys from nested variance markers
+      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Context/Service")
       if (!typeIdSymbol) {
         return yield* typeParserIssue("Type has no service key type id", type, atLocation)
       }
@@ -2584,8 +2584,8 @@ export function make(
     (atLocation) => atLocation
   )
 
-  const extendsServiceMapService = Nano.cachedBy(
-    Nano.fn("TypeParser.extendsServiceMapService")(function*(
+  const extendsContextService = Nano.cachedBy(
+    Nano.fn("TypeParser.extendsContextService")(function*(
       atLocation: ts.ClassDeclaration
     ) {
       if (!atLocation.name) {
@@ -2600,18 +2600,18 @@ export function make(
           if (ts.isExpressionWithTypeArguments(typeX)) {
             const wholeCall = typeX.expression
             if (ts.isCallExpression(wholeCall)) {
-              const serviceMapServiceCall = wholeCall.expression
+              const contextServiceCall = wholeCall.expression
               if (
-                ts.isCallExpression(serviceMapServiceCall) &&
-                serviceMapServiceCall.typeArguments && serviceMapServiceCall.typeArguments.length > 0
+                ts.isCallExpression(contextServiceCall) &&
+                contextServiceCall.typeArguments && contextServiceCall.typeArguments.length > 0
               ) {
-                const serviceMapServiceIdentifier = serviceMapServiceCall.expression
-                const selfTypeNode = serviceMapServiceCall.typeArguments[0]!
-                const isServiceMapService = yield* pipe(
-                  isNodeReferenceToServiceMapModuleApi("Service")(serviceMapServiceIdentifier),
+                const contextServiceIdentifier = contextServiceCall.expression
+                const selfTypeNode = contextServiceCall.typeArguments[0]!
+                const isContextService = yield* pipe(
+                  isNodeReferenceToContextModuleApi("Service")(contextServiceIdentifier),
                   Nano.orUndefined
                 )
-                if (isServiceMapService) {
+                if (isContextService) {
                   const classSym = typeChecker.getSymbolAtLocation(atLocation.name)
                   if (!classSym) return yield* typeParserIssue("Class has no symbol", undefined, atLocation)
                   const type = typeChecker.getTypeOfSymbol(classSym)
@@ -2636,9 +2636,9 @@ export function make(
         }
       }
 
-      return yield* typeParserIssue("Class does not extend ServiceMap.Service", undefined, atLocation)
+      return yield* typeParserIssue("Class does not extend Context.Service", undefined, atLocation)
     }),
-    "TypeParser.extendsServiceMapService",
+    "TypeParser.extendsContextService",
     (atLocation) => atLocation
   )
 
@@ -2836,28 +2836,28 @@ export function make(
       (node) => node
     )
 
-  const isServiceMapTypeSourceFile = Nano.cachedBy(
-    Nano.fn("TypeParser.isServiceMapTypeSourceFile")(function*(
+  const isContextTypeSourceFile = Nano.cachedBy(
+    Nano.fn("TypeParser.isContextTypeSourceFile")(function*(
       sourceFile: ts.SourceFile
     ) {
       const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile)
       if (!moduleSymbol) return yield* typeParserIssue("Node has no symbol", undefined, sourceFile)
-      const serviceMapSymbol = typeChecker.tryGetMemberInModuleExports("ServiceMap", moduleSymbol)
-      if (!serviceMapSymbol) return yield* typeParserIssue("ServiceMap not found", undefined, sourceFile)
+      const contextSymbol = typeChecker.tryGetMemberInModuleExports("Context", moduleSymbol)
+      if (!contextSymbol) return yield* typeParserIssue("Context not found", undefined, sourceFile)
       return sourceFile
     }),
-    "TypeParser.isServiceMapTypeSourceFile",
+    "TypeParser.isContextTypeSourceFile",
     (sourceFile) => sourceFile
   )
 
-  const isNodeReferenceToServiceMapModuleApi = (memberName: string) =>
+  const isNodeReferenceToContextModuleApi = (memberName: string) =>
     Nano.cachedBy(
-      Nano.fn("TypeParser.isNodeReferenceToServiceMapModuleApi")(function*(
+      Nano.fn("TypeParser.isNodeReferenceToContextModuleApi")(function*(
         node: ts.Node
       ) {
-        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isServiceMapTypeSourceFile, memberName)
+        return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isContextTypeSourceFile, memberName)
       }),
-      `TypeParser.isNodeReferenceToServiceMapModuleApi(${memberName})`,
+      `TypeParser.isNodeReferenceToContextModuleApi(${memberName})`,
       (node) => node
     )
 
@@ -3323,8 +3323,8 @@ export function make(
     isNodeReferenceToEffectSchemaModelModuleApi,
     isNodeReferenceToEffectLayerModuleApi,
     isNodeReferenceToEffectSchemaParserModuleApi,
-    isServiceMapTypeSourceFile,
-    isNodeReferenceToServiceMapModuleApi,
+    isContextTypeSourceFile,
+    isNodeReferenceToContextModuleApi,
     effectType,
     streamType,
     strictEffectType,
@@ -3352,7 +3352,7 @@ export function make(
     promiseType,
     extendsEffectTag,
     extendsEffectService,
-    extendsServiceMapService,
+    extendsContextService,
     extendsContextTag,
     extendsSchemaClass,
     extendsSchemaTaggedClass,

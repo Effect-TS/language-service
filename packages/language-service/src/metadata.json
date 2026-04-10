@@ -61,7 +61,7 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  yield* Effect.services<unknown>()\n  return yield* Effect.fail<any>(\"boom\")\n})\n",
+        "sourceText": "import { Effect } from \"effect\"\n\nexport const preview = Effect.gen(function*() {\n  yield* Effect.context<unknown>()\n  return yield* Effect.fail<any>(\"boom\")\n})\n",
         "diagnostics": [
           {
             "start": 46,
@@ -70,12 +70,12 @@
           },
           {
             "start": 90,
-            "end": 116,
+            "end": 115,
             "text": "This has unknown in the requirements channel which is not recommended.\nOnly service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)"
           },
           {
-            "start": 133,
-            "end": 157,
+            "start": 132,
+            "end": 156,
             "text": "This has any in the error channel which is not recommended.\nHaving an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)"
           }
         ]
@@ -191,11 +191,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, ServiceMap } from \"effect\"\n\nclass Db extends ServiceMap.Service<Db>()(\"Db\", { make: Effect.succeed({}) }) {}\n\n// @ts-expect-error\nexport const preview: Effect.Effect<void> = Db.asEffect().pipe(Effect.asVoid)\n",
+        "sourceText": "import { Effect, Context } from \"effect\"\n\nclass Db extends Context.Service<Db>()(\"Db\", { make: Effect.succeed({}) }) {}\n\n// @ts-expect-error\nexport const preview: Effect.Effect<void> = Db.asEffect().pipe(Effect.asVoid)\n",
         "diagnostics": [
           {
-            "start": 160,
-            "end": 167,
+            "start": 154,
+            "end": 161,
             "text": "This Effect requires a service that is missing from the expected Effect context: `Db`.    effect(missingEffectContext)"
           }
         ]
@@ -233,11 +233,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, Layer, ServiceMap } from \"effect\"\n\nclass A extends ServiceMap.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\ndeclare const layer: Layer.Layer<A, never, A>\n// @ts-expect-error\nexport const preview: Layer.Layer<A> = layer\n",
+        "sourceText": "import { Effect, Layer, Context } from \"effect\"\n\nclass A extends Context.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\ndeclare const layer: Layer.Layer<A, never, A>\n// @ts-expect-error\nexport const preview: Layer.Layer<A> = layer\n",
         "diagnostics": [
           {
-            "start": 259,
-            "end": 266,
+            "start": 253,
+            "end": 260,
             "text": "Missing 'A' in the expected Layer context.    effect(missingLayerContext)"
           }
         ]
@@ -561,11 +561,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, Layer, ServiceMap } from \"effect\"\n\nclass A extends ServiceMap.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nclass B extends ServiceMap.Service<B>()(\"B\", { make: Effect.as(A.asEffect(), {}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Layer.mergeAll(A.Default, B.Default)\n",
+        "sourceText": "import { Effect, Layer, Context } from \"effect\"\n\nclass A extends Context.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nclass B extends Context.Service<B>()(\"B\", { make: Effect.as(A.asEffect(), {}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Layer.mergeAll(A.Default, B.Default)\n",
         "diagnostics": [
           {
-            "start": 355,
-            "end": 364,
+            "start": 346,
+            "end": 355,
             "text": "This layer provides A which is required by another layer in the same Layer.mergeAll call. Layer.mergeAll creates layers in parallel, so dependencies between layers will not be satisfied. Consider moving this layer into a Layer.provideMerge after the Layer.mergeAll.    effect(layerMergeAllWithDependencies)"
           }
         ]
@@ -603,11 +603,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import type { Effect } from \"effect\"\nimport { ServiceMap } from \"effect\"\n\nclass FileSystem extends ServiceMap.Service<FileSystem, {\n  write: (s: string) => Effect.Effect<void>\n}>()(\"FileSystem\") {}\n\nexport class Cache extends ServiceMap.Service<Cache, {\n  read: Effect.Effect<string, never, FileSystem>\n  save: () => Effect.Effect<void, never, FileSystem>\n}>()(\"Cache\") {}\n",
+        "sourceText": "import type { Effect } from \"effect\"\nimport { Context } from \"effect\"\n\nclass FileSystem extends Context.Service<FileSystem, {\n  write: (s: string) => Effect.Effect<void>\n}>()(\"FileSystem\") {}\n\nexport class Cache extends Context.Service<Cache, {\n  read: Effect.Effect<string, never, FileSystem>\n  save: () => Effect.Effect<void, never, FileSystem>\n}>()(\"Cache\") {}\n",
         "diagnostics": [
           {
-            "start": 212,
-            "end": 217,
+            "start": 206,
+            "end": 211,
             "text": "Methods of this Service require `FileSystem` from every caller.\n\nThe requirement becomes part of the public service surface instead of remaining internal to Layer implementation.\n\nResolve these dependencies at Layer creation and provide them to each method, so the service's type reflects its purpose, not its implementation.\n\nTo suppress this diagnostic for specific dependency types that are intentionally passed through (e.g., HttpServerRequest), add `@effect-leakable-service` JSDoc to their interface declarations (e.g., the `FileSystem` interface), or to this service by adding a `@effect-expect-leaking FileSystem` JSDoc.\n\nMore info and examples at https://effect.website/docs/requirements-management/layers/#avoiding-requirement-leakage    effect(leakingRequirements)"
           }
         ]
@@ -624,11 +624,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, Layer, ServiceMap } from \"effect\"\n\nclass A extends ServiceMap.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nclass B extends ServiceMap.Service<B>()(\"B\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Effect.void.pipe(Effect.provide(A.Default), Effect.provide(B.Default))\n",
+        "sourceText": "import { Effect, Layer, Context } from \"effect\"\n\nclass A extends Context.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nclass B extends Context.Service<B>()(\"B\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Effect.void.pipe(Effect.provide(A.Default), Effect.provide(B.Default))\n",
         "diagnostics": [
           {
-            "start": 348,
-            "end": 373,
+            "start": 339,
+            "end": 364,
             "text": "This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)"
           }
         ]
@@ -671,7 +671,7 @@
           {
             "start": 101,
             "end": 115,
-            "text": "`Effect.runSync` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through `Effect.services` and `Effect.runSyncWith`.    effect(runEffectInsideEffect)"
+            "text": "`Effect.runSync` is called inside an Effect with a separate services invocation. In this context, child Effects run with the surrounding services, which can be accessed through `Effect.context` and `Effect.runSyncWith`.    effect(runEffectInsideEffect)"
           }
         ]
       }
@@ -727,11 +727,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, Layer, ServiceMap } from \"effect\"\n\nclass Config extends ServiceMap.Service<Config>()(\"Config\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Effect.void.pipe(Effect.provide(Config.Default))\n",
+        "sourceText": "import { Effect, Layer, Context } from \"effect\"\n\nclass Config extends Context.Service<Config>()(\"Config\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Effect.void.pipe(Effect.provide(Config.Default))\n",
         "diagnostics": [
           {
-            "start": 235,
-            "end": 265,
+            "start": 229,
+            "end": 259,
             "text": "Effect.provide with a Layer should only be used at application entry points. If this is an entry point, you can safely disable this diagnostic. Otherwise, using Effect.provide may break scope lifetimes. Compose all layers at your entry point and provide them at once.    effect(strictEffectProvide)"
           }
         ]
@@ -1229,11 +1229,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { ServiceMap } from \"effect\"\n\nexport class RenamedService\n  extends ServiceMap.Service<RenamedService, {}>()(\"CustomIdentifier\") {}\n",
+        "sourceText": "import { Context } from \"effect\"\n\nexport class RenamedService\n  extends Context.Service<RenamedService, {}>()(\"CustomIdentifier\") {}\n",
         "diagnostics": [
           {
-            "start": 116,
-            "end": 134,
+            "start": 110,
+            "end": 128,
             "text": "This key does not match the deterministic key for this declaration. The expected key is `@effect/harness-effect-v4/examples/diagnostics/deterministicKeys_preview/RenamedService`.    effect(deterministicKeys)"
           }
         ]
@@ -1492,19 +1492,19 @@
     {
       "name": "serviceNotAsClass",
       "group": "style",
-      "description": "Warns when ServiceMap.Service is used as a variable instead of a class declaration",
+      "description": "Warns when Context.Service is used as a variable instead of a class declaration",
       "defaultSeverity": "off",
       "fixable": true,
       "supportedEffect": [
         "v4"
       ],
       "preview": {
-        "sourceText": "import { ServiceMap } from \"effect\"\n\nexport const Preview = ServiceMap.Service<{ port: number }>(\"Preview\")\n",
+        "sourceText": "import { Context } from \"effect\"\n\nexport const Preview = Context.Service<{ port: number }>(\"Preview\")\n",
         "diagnostics": [
           {
-            "start": 60,
-            "end": 107,
-            "text": "`ServiceMap.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Preview extends ServiceMap.Service<Preview, { port: number }>()(\"Preview\") {}`.    effect(serviceNotAsClass)"
+            "start": 57,
+            "end": 101,
+            "text": "`Context.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Preview extends Context.Service<Preview, { port: number }>()(\"Preview\") {}`.    effect(serviceNotAsClass)"
           }
         ]
       }

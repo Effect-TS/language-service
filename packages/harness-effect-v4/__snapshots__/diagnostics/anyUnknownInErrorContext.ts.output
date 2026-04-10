@@ -2,16 +2,16 @@ withUnknownContext
 4:13 - 4:31 | 0 | This has unknown in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
-Effect.services<unknown>()
-5:9 - 5:35 | 0 | This has unknown in the requirements channel which is not recommended.
+Effect.context<unknown>()
+5:9 - 5:34 | 0 | This has unknown in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
 withAnyContext
 8:13 - 8:27 | 0 | This has any in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
-Effect.services<any>()
-9:9 - 9:31 | 0 | This has any in the requirements channel which is not recommended.
+Effect.context<any>()
+9:9 - 9:30 | 0 | This has any in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
 withAnyFailure
@@ -35,8 +35,8 @@ hasBothAnyUnknown
 Only service identifiers should appear in the requirements channel.
 Having an unknown or any error type is not useful. Consider instead using specific error types baked by Data.TaggedError for example.    effect(anyUnknownInErrorContext)
 
-Effect.services<unknown>()
-21:9 - 21:35 | 0 | This has unknown in the requirements channel which is not recommended.
+Effect.context<unknown>()
+21:9 - 21:34 | 0 | This has unknown in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
 Effect.fail<any>(42)
@@ -47,8 +47,8 @@ effectUnkown
 37:6 - 37:18 | 0 | This has unknown in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
-Effect.services<unknown>()
-37:21 - 37:47 | 0 | This has unknown in the requirements channel which is not recommended.
+Effect.context<unknown>()
+37:21 - 37:46 | 0 | This has unknown in the requirements channel which is not recommended.
 Only service identifiers should appear in the requirements channel.    effect(anyUnknownInErrorContext)
 
 layerUnknown

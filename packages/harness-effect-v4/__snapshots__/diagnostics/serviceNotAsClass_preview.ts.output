@@ -1,2 +1,2 @@
-ServiceMap.Service<{ port: number }>("Preview")
-5:23 - 5:70 | 0 | `ServiceMap.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Preview extends ServiceMap.Service<Preview, { port: number }>()("Preview") {}`.    effect(serviceNotAsClass)
+Context.Service<{ port: number }>("Preview")
+5:23 - 5:67 | 0 | `Context.Service` is assigned to a variable here, but this API is intended for a class declaration shape such as `class Preview extends Context.Service<Preview, { port: number }>()("Preview") {}`.    effect(serviceNotAsClass)

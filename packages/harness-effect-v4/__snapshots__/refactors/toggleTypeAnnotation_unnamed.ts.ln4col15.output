@@ -3,4 +3,4 @@ import * as Schema from "effect/Schema"
 
 export const debug: (input: { readonly id: import("node_modules/effect/dist/Option", { with: { "resolution-mode": "import" } }).Option<number> }, options?: Schema.MakeOptions) => { readonly id: import("node_modules/effect/dist/Option", { with: { "resolution-mode": "import" } }).Option<number> } = Schema.Struct({
   id: Schema.Option(Schema.Number)
-}).makeUnsafe
+}).make

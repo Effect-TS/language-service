@@ -1,7 +1,7 @@
-import {Effect, ServiceMap} from "effect"
+import {Effect, Context} from "effect"
 import { pipe } from "effect/Function"
 
-class ServiceA extends ServiceMap.Service<ServiceA>()("ServiceA", {
+class ServiceA extends Context.Service<ServiceA>()("ServiceA", {
   make: Effect.succeed({ a: 1 })
 }) {}
 

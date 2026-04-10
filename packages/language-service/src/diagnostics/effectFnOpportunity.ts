@@ -258,9 +258,9 @@ export const effectFnOpportunity = LSP.createDiagnostic({
       }
     )
 
-    const tryMatchServiceMapMakeInference: (
+    const tryMatchContextMakeInference: (
       objectLiteral: ts.ObjectLiteralExpression
-    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchServiceMapMakeInference")(
+    ) => Nano.Nano<string | undefined, never, never> = Nano.fn("effectFnOpportunity.tryMatchContextMakeInference")(
       function*(objectLiteral: ts.ObjectLiteralExpression) {
         const returnStatement = objectLiteral.parent
         if (!returnStatement || !ts.isReturnStatement(returnStatement)) return undefined
@@ -293,8 +293,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         }
         if (!classDeclaration || !classDeclaration.name) return undefined
 
-        const parsedServiceMapService = yield* Nano.option(typeParser.extendsServiceMapService(classDeclaration))
-        if (parsedServiceMapService._tag === "None") return undefined
+        const parsedContextService = yield* Nano.orUndefined(typeParser.extendsContextService(classDeclaration))
+        if (!parsedContextService) return undefined
 
         return ts.idText(classDeclaration.name)
       }
@@ -334,8 +334,8 @@ export const effectFnOpportunity = LSP.createDiagnostic({
         const ofServiceName = yield* tryMatchOfInference(objectLiteral)
         if (ofServiceName) return `${ofServiceName}.${suggestedTraceName}`
 
-        const serviceMapMakeServiceName = yield* tryMatchServiceMapMakeInference(objectLiteral)
-        return serviceMapMakeServiceName ? `${serviceMapMakeServiceName}.${suggestedTraceName}` : undefined
+        const contextMakeServiceName = yield* tryMatchContextMakeInference(objectLiteral)
+        return contextMakeServiceName ? `${contextMakeServiceName}.${suggestedTraceName}` : undefined
       }
     )
 

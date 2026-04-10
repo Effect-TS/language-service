@@ -1,8 +1,8 @@
 // @effect-diagnostics *:off
 // @effect-diagnostics missingLayerContext:warning
-import { Effect, Layer, ServiceMap } from "effect"
+import { Effect, Layer, Context } from "effect"
 
-class A extends ServiceMap.Service<A>()("A", { make: Effect.succeed({}) }) {
+class A extends Context.Service<A>()("A", { make: Effect.succeed({}) }) {
   static Default = Layer.effect(this, this.make)
 }
 declare const layer: Layer.Layer<A, never, A>

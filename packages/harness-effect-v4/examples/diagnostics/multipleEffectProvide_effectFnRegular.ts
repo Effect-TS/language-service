@@ -1,18 +1,18 @@
-import { ServiceMap, Effect, Layer } from "effect"
+import { Context, Effect, Layer } from "effect"
 
-class MyService1 extends ServiceMap.Service<MyService1>()("MyService1", {
+class MyService1 extends Context.Service<MyService1>()("MyService1", {
   make: Effect.succeed({ value: 1 })
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
-class MyService2 extends ServiceMap.Service<MyService2>()("MyService2", {
+class MyService2 extends Context.Service<MyService2>()("MyService2", {
   make: Effect.succeed({ value: 2 })
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
-class MyService3 extends ServiceMap.Service<MyService3>()("MyService3", {
+class MyService3 extends Context.Service<MyService3>()("MyService3", {
   make: Effect.succeed({ value: 3 })
 }) {
   static Default = Layer.effect(this, this.make)
