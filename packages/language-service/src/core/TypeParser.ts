@@ -3352,7 +3352,7 @@ export function make(
     promiseType,
     extendsEffectTag,
     extendsEffectService,
-    extendsContextService: extendsContextService,
+    extendsContextService,
     extendsContextTag,
     extendsSchemaClass,
     extendsSchemaTaggedClass,

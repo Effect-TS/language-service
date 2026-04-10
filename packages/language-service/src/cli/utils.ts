@@ -1,3 +1,4 @@
+import * as Context from "effect/Context"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Encoding from "effect/Encoding"
@@ -7,7 +8,6 @@ import * as Path from "effect/Path"
 import * as Predicate from "effect/Predicate"
 import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
-import * as Context from "effect/Context"
 import type * as ts from "typescript"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
