@@ -1,4 +1,4 @@
-// 4:43
-import * as ServiceMap from "effect/ServiceMap"
+// 4:40
+import * as Context from "effect/Context"
 
-export class MyService extends ServiceMap.
+export class MyService extends Context.

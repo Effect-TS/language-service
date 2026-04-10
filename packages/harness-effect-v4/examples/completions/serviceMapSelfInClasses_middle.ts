@@ -1,7 +1,7 @@
-// 4:31
-import { Effect, ServiceMap, Stream } from "effect"
+// 4:28
+import { Effect, Context, Stream } from "effect"
 
-class Foo extends ServiceMap.S
+class Foo extends Context.S
 
 Stream.unwrap(Effect.gen(function*() {
   const a = yield* Foo

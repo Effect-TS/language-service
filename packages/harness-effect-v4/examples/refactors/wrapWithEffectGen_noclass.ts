@@ -1,6 +1,6 @@
 // 4:36
-import { Effect, ServiceMap } from "effect"
+import { Effect, Context } from "effect"
 
-export class Asd extends ServiceMap.Service<Asd>()("Asd", {
+export class Asd extends Context.Service<Asd>()("Asd", {
   make: Effect.succeed({})
 }) {}

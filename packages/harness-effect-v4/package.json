@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "effect": "^4.0.0-beta.43"
+    "effect": "^4.0.0-beta.46"
   },
   "devDependencies": {
     "@types/node": "^25.0.6"

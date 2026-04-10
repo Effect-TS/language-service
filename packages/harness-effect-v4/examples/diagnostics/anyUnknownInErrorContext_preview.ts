@@ -3,6 +3,6 @@
 import { Effect } from "effect"
 
 export const preview = Effect.gen(function*() {
-  yield* Effect.services<unknown>()
+  yield* Effect.context<unknown>()
   return yield* Effect.fail<any>("boom")
 })

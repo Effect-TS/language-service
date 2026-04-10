@@ -1,18 +1,18 @@
 import type { Effect } from "effect"
-import { ServiceMap } from "effect"
+import { Context } from "effect"
 
-export class FileSystem extends ServiceMap.Service<FileSystem, {
+export class FileSystem extends Context.Service<FileSystem, {
   writeFile: (content: string) => Effect.Effect<void>
 }>()("FileSystem") {}
 
-export class Cache extends ServiceMap.Service<Cache, {
+export class Cache extends Context.Service<Cache, {
     writeFile: (content: string) => Effect.Effect<void>
   }>()("Cache") {}
 
 // LeakingDeps is leaking FileSystem and Cache, but only Cache should be considered to be leaked
 
 // @effect-expect-leaking FileSystem
-export class LeakingDeps extends ServiceMap.Service<LeakingDeps, {
+export class LeakingDeps extends Context.Service<LeakingDeps, {
   writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
   readCache: Effect.Effect<void, never, FileSystem | Cache>
 }>()("LeakingDeps") {}
@@ -20,7 +20,7 @@ export class LeakingDeps extends ServiceMap.Service<LeakingDeps, {
 // LeakingDeps2 is leaking FileSystem and Cache, but both are expected to be leaked
 
 // @effect-expect-leaking FileSystem Cache
-export class LeakingDeps2 extends ServiceMap.Service<LeakingDeps2, {
+export class LeakingDeps2 extends Context.Service<LeakingDeps2, {
     writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
     readCache: Effect.Effect<void, never, FileSystem | Cache>
 }>()("LeakingDeps2") {}
@@ -32,7 +32,7 @@ export class LeakingDeps2 extends ServiceMap.Service<LeakingDeps2, {
  * @effect-leakable-service
  * @effect-expect-leaking FileSystem Cache
  */
-export class LeakingDeps3 extends ServiceMap.Service<LeakingDeps3, {
+export class LeakingDeps3 extends Context.Service<LeakingDeps3, {
     writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
     readCache: Effect.Effect<void, never, FileSystem | Cache>
 }>()("LeakingDeps3") {}
@@ -40,7 +40,7 @@ export class LeakingDeps3 extends ServiceMap.Service<LeakingDeps3, {
 // LeakingDeps4 is leaking FileSystem and Cache, but both are expected to be leaked
 
 // @effect-expect-leaking FileSystem Cache
-export const LeakingDeps4 = ServiceMap.Service<{
+export const LeakingDeps4 = Context.Service<{
     writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
     readCache: Effect.Effect<void, never, FileSystem | Cache>
 }>("LeakingDeps4")

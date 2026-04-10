@@ -1781,8 +1781,8 @@ export function make(
       if (supportedEffect() !== "v4") return yield* typeParserIssue("v4 only")
       // should be pipeable
       yield* pipeableType(type, atLocation)
-      // Effect v4 beta.43 switched ServiceMap keys from nested variance markers
-      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/ServiceMap/Service")
+      // Effect v4 beta.43 switched Context keys from nested variance markers
+      const typeIdSymbol = typeChecker.getPropertyOfType(type, "~effect/Context/Service")
       if (!typeIdSymbol) {
         return yield* typeParserIssue("Type has no service key type id", type, atLocation)
       }

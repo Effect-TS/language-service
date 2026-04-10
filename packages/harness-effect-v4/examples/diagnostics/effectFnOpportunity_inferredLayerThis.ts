@@ -1,7 +1,7 @@
 // @test-config { "effectFn": ["inferred-span"] }
-import { Effect, Layer, ServiceMap } from "effect"
+import { Effect, Layer, Context } from "effect"
 
-export class MyService extends ServiceMap.Service<MyService, {
+export class MyService extends Context.Service<MyService, {
   log: (_what: string) => Effect.Effect<void>
 }>()("MyService") {
     static layer = Layer.effect(this, Effect.gen(function*() {

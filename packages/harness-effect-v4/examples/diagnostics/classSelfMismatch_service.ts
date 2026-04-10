@@ -1,11 +1,11 @@
-import { ServiceMap, Effect } from "effect"
+import { Context, Effect } from "effect"
 
-export class CorrectName extends ServiceMap.Service<CorrectName, {
+export class CorrectName extends Context.Service<CorrectName, {
     writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
     readCache: Effect.Effect<void, never, FileSystem | Cache>
 }>()("CorrectName") {}
 
-export class WrongName extends ServiceMap.Service<CorrectName, {
+export class WrongName extends Context.Service<CorrectName, {
     writeCache: () => Effect.Effect<void, never, FileSystem | Cache>
     readCache: Effect.Effect<void, never, FileSystem | Cache>
 }>()("WrongName") {}

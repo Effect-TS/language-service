@@ -1,11 +1,11 @@
 // @effect-diagnostics deterministicKeys:error
 // @test-config { "extendedKeyDetection": true }
 import * as Persistable from "@/diagnostics/utils"
-import { ServiceMap } from "effect"
+import { Context } from "effect"
 
 // simple case inside same file
 export function MyConstructor<X>(/** @effect-identifier */ identifier: string) {
-  return class extends ServiceMap.Service<X, {}>()("hey/" + identifier) {}
+  return class extends Context.Service<X, {}>()("hey/" + identifier) {}
 }
 
 export class MyClass extends MyConstructor<MyClass>("Hello") {

@@ -1,15 +1,15 @@
-import { ServiceMap} from "effect"
+import { Context} from "effect"
 import * as Effect from "effect/Effect"
 
-class ServiceA extends ServiceMap.Service<ServiceA>()("ServiceA", {
+class ServiceA extends Context.Service<ServiceA>()("ServiceA", {
   make: Effect.succeed({ a: 1 })
 }) {}
 
-class ServiceB extends ServiceMap.Service<ServiceB>()("ServiceB", {
+class ServiceB extends Context.Service<ServiceB>()("ServiceB", {
   make: Effect.succeed({ a: 2 })
 }) {}
 
-class ServiceC extends ServiceMap.Service<ServiceC>()("ServiceC", {
+class ServiceC extends Context.Service<ServiceC>()("ServiceC", {
   make: Effect.succeed({ a: 3 })
 }) {}
 
@@ -30,7 +30,7 @@ export const missingServiceCWithSubtyping: EffectSubtyping<number> = effectWithS
 
 export function missingServiceWithGenericType<A>(service: A) {
   // @ts-expect-error
-  const missingServiceA: Effect.Effect<ServiceMap.ServiceMap<A>> = Effect.services<A>()
+  const missingServiceA: Effect.Effect<Context.Context<A>> = Effect.context<A>()
   return missingServiceA
 }
 

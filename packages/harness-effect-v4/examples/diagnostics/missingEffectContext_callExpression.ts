@@ -1,14 +1,14 @@
-import { Effect, ServiceMap} from "effect"
+import { Effect, Context} from "effect"
 
-class ServiceA extends ServiceMap.Service<ServiceA>()("ServiceA", {
+class ServiceA extends Context.Service<ServiceA>()("ServiceA", {
   make: Effect.succeed({ a: 1 })
 }) {}
 
-class ServiceB extends ServiceMap.Service<ServiceB>()("ServiceB", {
+class ServiceB extends Context.Service<ServiceB>()("ServiceB", {
   make: Effect.succeed({ a: 2 })
 }) {}
 
-class ServiceC extends ServiceMap.Service<ServiceC>()("ServiceC", {
+class ServiceC extends Context.Service<ServiceC>()("ServiceC", {
   make: Effect.succeed({ a: 3 })
 }) {}
 

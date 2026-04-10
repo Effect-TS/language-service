@@ -1,17 +1,17 @@
 // @effect-diagnostics serviceNotAsClass:warning
-import { ServiceMap } from "effect"
+import { Context } from "effect"
 
 interface ConfigService {}
 
-// Flagged: const variable with ServiceMap.Service
-const Config = ServiceMap.Service<ConfigService>("Config")
+// Flagged: const variable with Context.Service
+const Config = Context.Service<ConfigService>("Config")
 
-// Flagged: exported const variable with ServiceMap.Service
+// Flagged: exported const variable with Context.Service
 interface ArtifactStoreService {}
-export const ArtifactStore = ServiceMap.Service<ArtifactStoreService>("@my-app/ArtifactStore")
+export const ArtifactStore = Context.Service<ArtifactStoreService>("@my-app/ArtifactStore")
 
 // Not flagged: correct class extends form
-class MyService extends ServiceMap.Service<MyService, { port: number }>()("MyService") {}
+class MyService extends Context.Service<MyService, { port: number }>()("MyService") {}
 
-// Not flagged: non-ServiceMap.Service const
+// Not flagged: non-Context.Service const
 const x = 42
