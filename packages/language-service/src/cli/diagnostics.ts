@@ -18,7 +18,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
-import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import { extractEffectLspOptions, filterFilesByPaths, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
 
 interface DiagnosticReporterState {
   tsInstance: typeof ts
@@ -322,10 +322,17 @@ export const diagnostics = Command.make(
       Flag.withDescription(
         "An optional inline JSON lsp config that replaces the current project lsp config. e.g. '{ \"effectFn\": [\"untraced\"] }'"
       )
+    ),
+    paths: Flag.string("paths").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "Optional inline JSON path globs used to filter files after tsconfig discovery. e.g. '{ \"include\": [\"src/**/*\"], \"exclude\": [\"**/*.test.ts\"] }'"
+      )
     )
   },
-  Effect.fn("diagnostics")(function*({ file, format, lspconfig, progress, project, severity, strict }) {
+  Effect.fn("diagnostics")(function*({ file, format, lspconfig, paths, progress, project, severity, strict }) {
     const path = yield* Path.Path
+    const projectRoot = Option.isSome(project) ? path.dirname(project.value) : path.resolve(".")
     const severityFilter = parseSeverityFilter(severity)
     const state: DiagnosticReporterState = {
       tsInstance: yield* TypeScriptContext,
@@ -345,12 +352,13 @@ export const diagnostics = Command.make(
     if (Option.isSome(file)) {
       filesToCheck.add(path.resolve(file.value))
     }
+    const filteredFilesToCheck = yield* filterFilesByPaths(filesToCheck, projectRoot, paths)
 
-    if (filesToCheck.size === 0) {
+    if (filteredFilesToCheck.size === 0) {
       return yield* new NoFilesToCheckError()
     }
 
-    state.totalFilesCount = filesToCheck.size
+    state.totalFilesCount = filteredFilesToCheck.size
 
     let reporter: DiagnosticReporter | undefined
     switch (format) {
@@ -382,7 +390,7 @@ export const diagnostics = Command.make(
       }
     }
 
-    for (const batch of Array.chunksOf(filesToCheck, BATCH_SIZE)) {
+    for (const batch of Array.chunksOf(filteredFilesToCheck, BATCH_SIZE)) {
       const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
       for (const filePath of batch) {
@@ -421,7 +429,10 @@ export const diagnostics = Command.make(
             Nano.provideService(TypeScriptApi.TypeScriptApi, state.tsInstance),
             Nano.provideService(
               LanguageServicePluginOptions.LanguageServicePluginOptions,
-              { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
+              {
+                ...LanguageServicePluginOptions.parse(pluginConfig, { projectRoot }),
+                diagnosticsName: false
+              }
             ),
             Nano.run,
             Result.map((_) => _.diagnostics),

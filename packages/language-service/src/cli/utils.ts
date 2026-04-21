@@ -4,11 +4,13 @@ import * as Effect from "effect/Effect"
 import * as Encoding from "effect/Encoding"
 import * as FileSystem from "effect/FileSystem"
 import * as Layer from "effect/Layer"
+import * as Option from "effect/Option"
 import * as Path from "effect/Path"
 import * as Predicate from "effect/Predicate"
 import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
 import type * as ts from "typescript"
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 
 const PackageJsonSchema = Schema.Struct({
@@ -49,6 +51,14 @@ export class UnableToFindInstalledTypeScriptPackage extends Data.TaggedError("Un
 }> {
   get message(): string {
     return `Unable to find an installed typescript package`
+  }
+}
+
+export class InvalidPathsConfigError extends Data.TaggedError("InvalidPathsConfigError")<{
+  paths: string
+}> {
+  get message(): string {
+    return `Invalid JSON paths config: ${this.paths}`
   }
 }
 
@@ -340,4 +350,32 @@ export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(functi
     parsedConfig.fileNames.forEach((_) => filesToCheck.add(_))
   }
   return filesToCheck
+})
+
+export const parseInlinePathsConfig = Effect.fn("parseInlinePathsConfig")(function*(paths: Option.Option<string>) {
+  if (Option.isNone(paths)) {
+    return Option.none<LanguageServicePluginOptions.LanguageServiceFileGlobSpec>()
+  }
+  try {
+    return Option.some(LanguageServicePluginOptions.parseFileGlobSpec(JSON.parse(paths.value)))
+  } catch {
+    return yield* new InvalidPathsConfigError({ paths: paths.value })
+  }
+})
+
+export const filterFilesByPaths = Effect.fn("filterFilesByPaths")(function*(
+  files: Set<string>,
+  projectRoot: string,
+  paths: Option.Option<string>
+) {
+  const tsInstance = yield* TypeScriptContext
+  const parsedPaths = yield* parseInlinePathsConfig(paths)
+  if (Option.isNone(parsedPaths)) {
+    return files
+  }
+  return new Set(
+    [...files].filter((filePath) =>
+      LanguageServicePluginOptions.matchesFileGlobs(tsInstance, parsedPaths.value, filePath, projectRoot)
+    )
+  )
 })

@@ -2,6 +2,7 @@ import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Predicate from "effect/Predicate"
 import * as Result from "effect/Result"
+import * as path from "node:path"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
 import * as LSP from "./core/LSP"
@@ -56,9 +57,12 @@ export function checkSourceFileWorker(
   // check if the plugin is enabled
   const pluginOptions = extractEffectLspOptions(compilerOptions)
   if (!pluginOptions) return
+  const projectRoot = typeof compilerOptions.configFilePath === "string"
+    ? path.dirname(compilerOptions.configFilePath)
+    : process.cwd()
 
   const parsedOptions: LanguageServicePluginOptions.LanguageServicePluginOptions = {
-    ...LanguageServicePluginOptions.parse(pluginOptions),
+    ...LanguageServicePluginOptions.parse(pluginOptions, { projectRoot }),
     diagnosticsName: true
   }
 
@@ -113,7 +117,11 @@ export function extractDiagnosticsForExitStatus(
   _moduleName: string
 ) {
   const options = extractEffectLspOptions(program.getCompilerOptions())
-  const parsedOptions = LanguageServicePluginOptions.parse(options)
+  const compilerOptions = program.getCompilerOptions()
+  const projectRoot = typeof compilerOptions.configFilePath === "string"
+    ? path.dirname(compilerOptions.configFilePath)
+    : process.cwd()
+  const parsedOptions = LanguageServicePluginOptions.parse(options, { projectRoot })
 
   let newDiagnostics = diagnostics
 

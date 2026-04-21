@@ -18,7 +18,13 @@ import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
-import { applyTextChanges, extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import {
+  applyTextChanges,
+  extractEffectLspOptions,
+  filterFilesByPaths,
+  getFileNamesInTsConfig,
+  TypeScriptContext
+} from "./utils"
 
 export class NoFilesToCodegenError extends Data.TaggedError("NoFilesToCodegenError")<{}> {
   get message(): string {
@@ -46,15 +52,23 @@ const force = Flag.boolean("force").pipe(
   Flag.withDescription("Force codegen even if no changes are needed.")
 )
 
+const paths = Flag.string("paths").pipe(
+  Flag.optional,
+  Flag.withDescription(
+    "Optional inline JSON path globs used to filter files after tsconfig discovery. e.g. '{ \"include\": [\"src/**/*\"], \"exclude\": [\"**/*.test.ts\"] }'"
+  )
+)
+
 const BATCH_SIZE = 50
 
 export const codegen = Command.make(
   "codegen",
-  { file, project, verbose, force },
-  Effect.fn("codegen")(function*({ file, force, project, verbose }) {
+  { file, project, verbose, force, paths },
+  Effect.fn("codegen")(function*({ file, force, paths, project, verbose }) {
     const path = yield* Path.Path
     const fs = yield* FileSystem.FileSystem
     const tsInstance = yield* TypeScriptContext
+    const projectRoot = Option.isSome(project) ? path.dirname(project.value) : path.resolve(".")
     let filesToCodegen = new Set<string>()
     let checkedFilesCount = 0
     let updatedFilesCount = 0
@@ -66,6 +80,7 @@ export const codegen = Command.make(
     if (Option.isSome(file)) {
       filesToCodegen.add(path.resolve(file.value))
     }
+    filesToCodegen = yield* filterFilesByPaths(filesToCodegen, projectRoot, paths)
     if (filesToCodegen.size === 0) {
       return yield* new NoFilesToCodegenError()
     }
@@ -153,7 +168,10 @@ export const codegen = Command.make(
             Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
             Nano.provideService(
               LanguageServicePluginOptions.LanguageServicePluginOptions,
-              { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
+              {
+                ...LanguageServicePluginOptions.parse(pluginConfig, { projectRoot }),
+                diagnosticsName: false
+              }
             ),
             Nano.run,
             Result.getOrElse(() => [] as Array<ts.FileTextChanges>)

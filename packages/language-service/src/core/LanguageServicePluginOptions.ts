@@ -3,6 +3,8 @@ import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import { hasProperty, isBoolean, isNumber, isObject, isString } from "effect/Predicate"
 import * as Record from "effect/Record"
+import * as path from "node:path"
+import type * as ts from "typescript"
 import * as Nano from "./Nano"
 
 export type DiagnosticSeverity = "error" | "warning" | "message" | "suggestion"
@@ -15,10 +17,26 @@ export interface LanguageServicePluginOptionsKeyPattern {
   skipLeadingPath: Array<string>
 }
 
+export interface LanguageServicePluginOptionsOverride {
+  include: Array<string>
+  exclude: Array<string>
+  diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
+}
+
+export interface LanguageServicePluginParseContext {
+  projectRoot?: string | undefined
+}
+
+export interface LanguageServiceFileGlobSpec {
+  include: Array<string>
+  exclude: Array<string>
+}
+
 export interface LanguageServicePluginOptions {
   refactors: boolean
   diagnostics: boolean
   diagnosticSeverity: Record<string, DiagnosticSeverity | "off">
+  overrides: Array<LanguageServicePluginOptionsOverride>
   diagnosticsName: boolean
   missingDiagnosticNextLine: DiagnosticSeverity | "off"
   includeSuggestionsInTsc: boolean
@@ -45,6 +63,7 @@ export interface LanguageServicePluginOptions {
   layerGraphFollowDepth: number
   mermaidProvider: "mermaid.com" | "mermaid.live" | ({} & string)
   skipDisabledOptimization: boolean
+  projectRoot: string | undefined
 }
 
 export interface JsonSchema {
@@ -82,10 +101,41 @@ function parseDiagnosticSeverity(config: Record<PropertyKey, unknown>): Record<s
   )
 }
 
+function parseStringArray(config: unknown, fallback: Array<string>): Array<string> {
+  return isArray(config) && config.every(isString) ? config : fallback
+}
+
+export function parseFileGlobSpec(
+  config: unknown,
+  fallback: LanguageServiceFileGlobSpec = { include: ["**/*"], exclude: [] }
+): LanguageServiceFileGlobSpec {
+  if (!isObject(config)) return fallback
+  return {
+    include: parseStringArray(hasProperty(config, "include") ? config.include : undefined, fallback.include),
+    exclude: parseStringArray(hasProperty(config, "exclude") ? config.exclude : undefined, fallback.exclude)
+  }
+}
+
+function parseOverrides(config: unknown): Array<LanguageServicePluginOptionsOverride> {
+  if (!isArray(config)) return []
+  const result: Array<LanguageServicePluginOptionsOverride> = []
+  for (const entry of config) {
+    if (!isObject(entry)) continue
+    result.push({
+      ...parseFileGlobSpec(entry),
+      diagnosticSeverity: hasProperty(entry, "diagnosticSeverity") && isObject(entry.diagnosticSeverity)
+        ? parseDiagnosticSeverity(entry.diagnosticSeverity as Record<PropertyKey, unknown>)
+        : {}
+    })
+  }
+  return result
+}
+
 export const defaults: LanguageServicePluginOptions = {
   refactors: true,
   diagnostics: true,
   diagnosticSeverity: {},
+  overrides: [],
   diagnosticsName: true,
   missingDiagnosticNextLine: "warning",
   includeSuggestionsInTsc: true,
@@ -119,7 +169,8 @@ export const defaults: LanguageServicePluginOptions = {
   effectFn: ["span"],
   layerGraphFollowDepth: 0,
   mermaidProvider: "mermaid.live",
-  skipDisabledOptimization: false
+  skipDisabledOptimization: false,
+  projectRoot: undefined
 }
 
 const booleanSchema = (description: string, defaultValue: boolean): JsonSchema => ({
@@ -146,11 +197,38 @@ const stringEnumSchema = <A extends ReadonlyArray<string>>(
   default: defaultValue
 })
 
-type LanguageServicePluginAdditionalProperty = Exclude<keyof LanguageServicePluginOptions, "diagnosticSeverity">
+const effectPluginDiagnosticSeverityDefinitionRef =
+  "#/definitions/effectLanguageServicePluginDiagnosticSeverityDefinition"
+
+type LanguageServicePluginAdditionalProperty = Exclude<
+  keyof LanguageServicePluginOptions,
+  "diagnosticSeverity" | "projectRoot"
+>
 
 export const languageServicePluginAdditionalPropertiesJsonSchema = {
   refactors: booleanSchema("Controls Effect refactors.", defaults.refactors),
   diagnostics: booleanSchema("Controls Effect diagnostics.", defaults.diagnostics),
+  overrides: {
+    type: "array",
+    description: "Ordered per-file diagnostic severity overrides. Later overrides win.",
+    default: defaults.overrides,
+    items: {
+      type: "object",
+      properties: {
+        include: stringArraySchema(
+          "Glob patterns to include. Patterns are resolved relative to the project root.",
+          ["**/*"]
+        ),
+        exclude: stringArraySchema(
+          "Glob patterns to exclude after include matching. Patterns are resolved relative to the project root.",
+          []
+        ),
+        diagnosticSeverity: {
+          $ref: effectPluginDiagnosticSeverityDefinitionRef
+        }
+      }
+    }
+  },
   diagnosticsName: booleanSchema(
     "Controls whether to include the rule name in diagnostic messages.",
     defaults.diagnosticsName
@@ -293,7 +371,7 @@ function parseKeyPatterns(patterns: Array<unknown>): Array<LanguageServicePlugin
   return result
 }
 
-export function parse(config: any): LanguageServicePluginOptions {
+export function parse(config: any, context: LanguageServicePluginParseContext = {}): LanguageServicePluginOptions {
   return {
     refactors: isObject(config) && hasProperty(config, "refactors") && isBoolean(config.refactors)
       ? config.refactors
@@ -305,6 +383,9 @@ export function parse(config: any): LanguageServicePluginOptions {
       isObject(config) && hasProperty(config, "diagnosticSeverity") && isObject(config.diagnosticSeverity)
         ? parseDiagnosticSeverity(config.diagnosticSeverity as Record<PropertyKey, unknown>)
         : defaults.diagnosticSeverity,
+    overrides: isObject(config) && hasProperty(config, "overrides")
+      ? parseOverrides(config.overrides)
+      : defaults.overrides,
     diagnosticsName: isObject(config) && hasProperty(config, "diagnosticsName") && isBoolean(config.diagnosticsName)
       ? config.diagnosticsName
       : defaults.diagnosticsName,
@@ -404,6 +485,59 @@ export function parse(config: any): LanguageServicePluginOptions {
     skipDisabledOptimization: isObject(config) && hasProperty(config, "skipDisabledOptimization") &&
         isBoolean(config.skipDisabledOptimization)
       ? config.skipDisabledOptimization
-      : defaults.skipDisabledOptimization
+      : defaults.skipDisabledOptimization,
+    projectRoot: context.projectRoot ?? defaults.projectRoot
   }
+}
+
+function normalizeFilePath(filePath: string): string {
+  return filePath.replace(/\\/g, "/")
+}
+
+function resolveCandidateFilePath(filePath: string, projectRoot: string | undefined): string {
+  if (path.isAbsolute(filePath)) {
+    return normalizeFilePath(filePath)
+  }
+  return normalizeFilePath(projectRoot ? path.resolve(projectRoot, filePath) : filePath)
+}
+
+function matchesPatterns(
+  tsInstance: typeof ts,
+  filePath: string,
+  patterns: Array<string>,
+  projectRoot: string | undefined,
+  usage: "files" | "exclude"
+): boolean {
+  if (patterns.length === 0) return false
+  const candidate = resolveCandidateFilePath(filePath, projectRoot)
+  const basePath = normalizeFilePath(projectRoot ? path.resolve(projectRoot) : process.cwd())
+  const regexText = (tsInstance as typeof ts & {
+    getRegularExpressionForWildcard: (patterns: Array<string>, basePath: string, usage: "files" | "exclude") => string
+  }).getRegularExpressionForWildcard(patterns, basePath, usage)
+  return regexText ? new RegExp(regexText).test(candidate) : false
+}
+
+export function matchesFileGlobs(
+  tsInstance: typeof ts,
+  spec: LanguageServiceFileGlobSpec,
+  filePath: string,
+  projectRoot: string | undefined
+): boolean {
+  const isIncluded = matchesPatterns(tsInstance, filePath, spec.include, projectRoot, "files")
+  const isExcluded = matchesPatterns(tsInstance, filePath, spec.exclude, projectRoot, "exclude")
+  return isIncluded && !isExcluded
+}
+
+export function getEffectiveDiagnosticSeverity(
+  tsInstance: typeof ts,
+  pluginOptions: LanguageServicePluginOptions,
+  filePath: string
+): Record<string, DiagnosticSeverity | "off"> {
+  let severity = pluginOptions.diagnosticSeverity
+  for (const override of pluginOptions.overrides) {
+    if (matchesFileGlobs(tsInstance, override, filePath, pluginOptions.projectRoot)) {
+      severity = { ...severity, ...override.diagnosticSeverity }
+    }
+  }
+  return severity
 }

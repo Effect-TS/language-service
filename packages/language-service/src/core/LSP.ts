@@ -384,7 +384,12 @@ const createDiagnosticExecutor = Nano.fn("LSP.createCommentDirectivesProcessor")
       const diagnostics: Array<ts.Diagnostic> = []
       const codeFixes: Array<ApplicableDiagnosticDefinitionFixWithPositionAndCode> = []
       const ruleNameLowered = rule.name.toLowerCase()
-      const defaultLevel = pluginOptions.diagnosticSeverity[ruleNameLowered] || rule.severity
+      const effectiveDiagnosticSeverity = LanguageServicePluginOptions.getEffectiveDiagnosticSeverity(
+        ts,
+        pluginOptions,
+        sourceFile.fileName
+      )
+      const defaultLevel = effectiveDiagnosticSeverity[ruleNameLowered] || rule.severity
       // if file is skipped entirely, do not process the rule
       if (skippedRules.indexOf(ruleNameLowered) > -1 || skippedRules.indexOf("*") > -1) {
         return { diagnostics, codeFixes }
