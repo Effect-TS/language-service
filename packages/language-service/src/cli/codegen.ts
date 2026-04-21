@@ -18,7 +18,13 @@ import * as TypeCheckerUtils from "../core/TypeCheckerUtils"
 import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
-import { applyTextChanges, extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import {
+  applyTextChanges,
+  extractEffectLspOptions,
+  filterFilesByPaths,
+  getFileNamesInTsConfig,
+  TypeScriptContext
+} from "./utils"
 
 export class NoFilesToCodegenError extends Data.TaggedError("NoFilesToCodegenError")<{}> {
   get message(): string {
@@ -46,15 +52,30 @@ const force = Flag.boolean("force").pipe(
   Flag.withDescription("Force codegen even if no changes are needed.")
 )
 
+const include = Flag.string("include").pipe(
+  Flag.optional,
+  Flag.withDescription(
+    "Optional comma-separated include globs used to filter files after tsconfig discovery. e.g. 'src/**/*,test/**/*'"
+  )
+)
+
+const exclude = Flag.string("exclude").pipe(
+  Flag.optional,
+  Flag.withDescription(
+    "Optional comma-separated exclude globs used to filter files after tsconfig discovery. e.g. '**/*.test.ts,**/*.spec.ts'"
+  )
+)
+
 const BATCH_SIZE = 50
 
 export const codegen = Command.make(
   "codegen",
-  { file, project, verbose, force },
-  Effect.fn("codegen")(function*({ file, force, project, verbose }) {
+  { file, project, verbose, force, include, exclude },
+  Effect.fn("codegen")(function*({ exclude, file, force, include, project, verbose }) {
     const path = yield* Path.Path
     const fs = yield* FileSystem.FileSystem
     const tsInstance = yield* TypeScriptContext
+    const projectRoot = Option.isSome(project) ? path.dirname(project.value) : path.resolve(".")
     let filesToCodegen = new Set<string>()
     let checkedFilesCount = 0
     let updatedFilesCount = 0
@@ -66,6 +87,7 @@ export const codegen = Command.make(
     if (Option.isSome(file)) {
       filesToCodegen.add(path.resolve(file.value))
     }
+    filesToCodegen = yield* filterFilesByPaths(filesToCodegen, projectRoot, { include, exclude })
     if (filesToCodegen.size === 0) {
       return yield* new NoFilesToCodegenError()
     }
@@ -153,7 +175,10 @@ export const codegen = Command.make(
             Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
             Nano.provideService(
               LanguageServicePluginOptions.LanguageServicePluginOptions,
-              { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
+              {
+                ...LanguageServicePluginOptions.parse(pluginConfig, { projectRoot }),
+                diagnosticsName: false
+              }
             ),
             Nano.run,
             Result.getOrElse(() => [] as Array<ts.FileTextChanges>)

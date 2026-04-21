@@ -21,7 +21,7 @@ import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
 import { ansi, BOLD, CYAN, DIM, YELLOW } from "./ansi"
 import { NoFilesToCheckError } from "./diagnostics"
 import { renderTextChange } from "./setup/diff-renderer"
-import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import { extractEffectLspOptions, filterFilesByPaths, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
 
 // Build a set of valid diagnostic names and codes for validation
 const validDiagnosticNames = new Set(diagnosticsDefinitions.map((_) => _.name))
@@ -158,9 +158,21 @@ export const quickfixes = Command.make(
     fix: Flag.string("fix").pipe(
       Flag.withDescription("Filter by fix name (e.g., 'floatingEffect_yieldStar')."),
       Flag.optional
+    ),
+    include: Flag.string("include").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "Optional comma-separated include globs used to filter files after tsconfig discovery. e.g. 'src/**/*,test/**/*'"
+      )
+    ),
+    exclude: Flag.string("exclude").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "Optional comma-separated exclude globs used to filter files after tsconfig discovery. e.g. '**/*.test.ts,**/*.spec.ts'"
+      )
     )
   },
-  Effect.fn("quickfixes")(function*({ code, column, file, fix, line, project }) {
+  Effect.fn("quickfixes")(function*({ code, column, exclude, file, fix, include, line, project }) {
     // Validate that column requires line
     if (Option.isSome(column) && Option.isNone(line)) {
       return yield* new ColumnRequiresLineError()
@@ -168,6 +180,7 @@ export const quickfixes = Command.make(
 
     const path = yield* Path.Path
     const tsInstance = yield* TypeScriptContext
+    const projectRoot = Option.isSome(project) ? path.dirname(project.value) : path.resolve(".")
 
     // Collect files to check
     const filesToCheck = Option.isSome(project)
@@ -177,14 +190,15 @@ export const quickfixes = Command.make(
     if (Option.isSome(file)) {
       filesToCheck.add(path.resolve(file.value))
     }
+    const filteredFilesToCheck = yield* filterFilesByPaths(filesToCheck, projectRoot, { include, exclude })
 
-    if (filesToCheck.size === 0) {
+    if (filteredFilesToCheck.size === 0) {
       return yield* new NoFilesToCheckError()
     }
 
     let totalDiagnosticsWithFixes = 0
 
-    for (const batch of Arr.chunksOf(filesToCheck, BATCH_SIZE)) {
+    for (const batch of Arr.chunksOf(filteredFilesToCheck, BATCH_SIZE)) {
       const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
 
       for (const filePath of batch) {
@@ -215,7 +229,10 @@ export const quickfixes = Command.make(
             Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
             Nano.provideService(
               LanguageServicePluginOptions.LanguageServicePluginOptions,
-              { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
+              {
+                ...LanguageServicePluginOptions.parse(pluginConfig, { projectRoot }),
+                diagnosticsName: false
+              }
             ),
             Nano.run,
             Result.getOrElse(

@@ -4,12 +4,15 @@ import * as Effect from "effect/Effect"
 import * as Encoding from "effect/Encoding"
 import * as FileSystem from "effect/FileSystem"
 import * as Layer from "effect/Layer"
+import type * as Option from "effect/Option"
 import * as Path from "effect/Path"
 import * as Predicate from "effect/Predicate"
 import * as Result from "effect/Result"
 import * as Schema from "effect/Schema"
 import type * as ts from "typescript"
+import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
+import { makeFileGlobSpec } from "./pathGlobs"
 
 const PackageJsonSchema = Schema.Struct({
   name: Schema.String,
@@ -340,4 +343,24 @@ export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(functi
     parsedConfig.fileNames.forEach((_) => filesToCheck.add(_))
   }
   return filesToCheck
+})
+
+export const filterFilesByPaths = Effect.fn("filterFilesByPaths")(function*(
+  files: Set<string>,
+  projectRoot: string,
+  filters: {
+    include: Option.Option<string>
+    exclude: Option.Option<string>
+  }
+) {
+  const tsInstance = yield* TypeScriptContext
+  const parsedPaths = makeFileGlobSpec(filters)
+  if (!parsedPaths) {
+    return files
+  }
+  return new Set(
+    [...files].filter((filePath) =>
+      LanguageServicePluginOptions.matchesFileGlobs(tsInstance, parsedPaths, filePath, projectRoot)
+    )
+  )
 })
