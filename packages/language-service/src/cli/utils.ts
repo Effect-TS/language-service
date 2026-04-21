@@ -54,14 +54,6 @@ export class UnableToFindInstalledTypeScriptPackage extends Data.TaggedError("Un
   }
 }
 
-export class InvalidPathsConfigError extends Data.TaggedError("InvalidPathsConfigError")<{
-  paths: string
-}> {
-  get message(): string {
-    return `Invalid JSON paths config: ${this.paths}`
-  }
-}
-
 export type TypeScriptApi = typeof ts
 
 /**
@@ -352,30 +344,35 @@ export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(functi
   return filesToCheck
 })
 
-export const parseInlinePathsConfig = Effect.fn("parseInlinePathsConfig")(function*(paths: Option.Option<string>) {
-  if (Option.isNone(paths)) {
-    return Option.none<LanguageServicePluginOptions.LanguageServiceFileGlobSpec>()
-  }
-  try {
-    return Option.some(LanguageServicePluginOptions.parseFileGlobSpec(JSON.parse(paths.value)))
-  } catch {
-    return yield* new InvalidPathsConfigError({ paths: paths.value })
-  }
-})
+function parseGlobList(value: Option.Option<string>): Array<string> {
+  if (Option.isNone(value)) return []
+  return value.value
+    .split(",")
+    .map((glob) => glob.trim())
+    .filter((glob) => glob.length > 0)
+}
 
 export const filterFilesByPaths = Effect.fn("filterFilesByPaths")(function*(
   files: Set<string>,
   projectRoot: string,
-  paths: Option.Option<string>
+  filters: {
+    include: Option.Option<string>
+    exclude: Option.Option<string>
+  }
 ) {
   const tsInstance = yield* TypeScriptContext
-  const parsedPaths = yield* parseInlinePathsConfig(paths)
-  if (Option.isNone(parsedPaths)) {
+  const include = parseGlobList(filters.include)
+  const exclude = parseGlobList(filters.exclude)
+  if (include.length === 0 && exclude.length === 0) {
     return files
   }
+  const parsedPaths = LanguageServicePluginOptions.parseFileGlobSpec({
+    include: include.length > 0 ? include : ["**/*"],
+    exclude
+  })
   return new Set(
     [...files].filter((filePath) =>
-      LanguageServicePluginOptions.matchesFileGlobs(tsInstance, parsedPaths.value, filePath, projectRoot)
+      LanguageServicePluginOptions.matchesFileGlobs(tsInstance, parsedPaths, filePath, projectRoot)
     )
   )
 })

@@ -2,7 +2,7 @@
 "@effect/language-service": minor
 ---
 
-Add per-file diagnostic severity overrides in plugin config and inline `--paths` glob filtering for CLI commands.
+Add per-file diagnostic severity overrides in plugin config and inline `--include` / `--exclude` glob filtering for CLI commands.
 
 Example plugin config:
 
@@ -27,5 +27,6 @@ Example inline CLI filtering:
 ```bash
 effect-language-service diagnostics \
   --project tsconfig.json \
-  --paths '{"include":["src/**/*"],"exclude":["**/*.test.ts"]}'
+  --include 'src/**/*' \
+  --exclude '**/*.test.ts'
 ```

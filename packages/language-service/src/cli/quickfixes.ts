@@ -159,14 +159,20 @@ export const quickfixes = Command.make(
       Flag.withDescription("Filter by fix name (e.g., 'floatingEffect_yieldStar')."),
       Flag.optional
     ),
-    paths: Flag.string("paths").pipe(
+    include: Flag.string("include").pipe(
       Flag.optional,
       Flag.withDescription(
-        "Optional inline JSON path globs used to filter files after tsconfig discovery. e.g. '{ \"include\": [\"src/**/*\"], \"exclude\": [\"**/*.test.ts\"] }'"
+        "Optional comma-separated include globs used to filter files after tsconfig discovery. e.g. 'src/**/*,test/**/*'"
+      )
+    ),
+    exclude: Flag.string("exclude").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "Optional comma-separated exclude globs used to filter files after tsconfig discovery. e.g. '**/*.test.ts,**/*.spec.ts'"
       )
     )
   },
-  Effect.fn("quickfixes")(function*({ code, column, file, fix, line, paths, project }) {
+  Effect.fn("quickfixes")(function*({ code, column, exclude, file, fix, include, line, project }) {
     // Validate that column requires line
     if (Option.isSome(column) && Option.isNone(line)) {
       return yield* new ColumnRequiresLineError()
@@ -184,7 +190,7 @@ export const quickfixes = Command.make(
     if (Option.isSome(file)) {
       filesToCheck.add(path.resolve(file.value))
     }
-    const filteredFilesToCheck = yield* filterFilesByPaths(filesToCheck, projectRoot, paths)
+    const filteredFilesToCheck = yield* filterFilesByPaths(filesToCheck, projectRoot, { include, exclude })
 
     if (filteredFilesToCheck.size === 0) {
       return yield* new NoFilesToCheckError()

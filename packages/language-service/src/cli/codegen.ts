@@ -52,10 +52,17 @@ const force = Flag.boolean("force").pipe(
   Flag.withDescription("Force codegen even if no changes are needed.")
 )
 
-const paths = Flag.string("paths").pipe(
+const include = Flag.string("include").pipe(
   Flag.optional,
   Flag.withDescription(
-    "Optional inline JSON path globs used to filter files after tsconfig discovery. e.g. '{ \"include\": [\"src/**/*\"], \"exclude\": [\"**/*.test.ts\"] }'"
+    "Optional comma-separated include globs used to filter files after tsconfig discovery. e.g. 'src/**/*,test/**/*'"
+  )
+)
+
+const exclude = Flag.string("exclude").pipe(
+  Flag.optional,
+  Flag.withDescription(
+    "Optional comma-separated exclude globs used to filter files after tsconfig discovery. e.g. '**/*.test.ts,**/*.spec.ts'"
   )
 )
 
@@ -63,8 +70,8 @@ const BATCH_SIZE = 50
 
 export const codegen = Command.make(
   "codegen",
-  { file, project, verbose, force, paths },
-  Effect.fn("codegen")(function*({ file, force, paths, project, verbose }) {
+  { file, project, verbose, force, include, exclude },
+  Effect.fn("codegen")(function*({ exclude, file, force, include, project, verbose }) {
     const path = yield* Path.Path
     const fs = yield* FileSystem.FileSystem
     const tsInstance = yield* TypeScriptContext
@@ -80,7 +87,7 @@ export const codegen = Command.make(
     if (Option.isSome(file)) {
       filesToCodegen.add(path.resolve(file.value))
     }
-    filesToCodegen = yield* filterFilesByPaths(filesToCodegen, projectRoot, paths)
+    filesToCodegen = yield* filterFilesByPaths(filesToCodegen, projectRoot, { include, exclude })
     if (filesToCodegen.size === 0) {
       return yield* new NoFilesToCodegenError()
     }
