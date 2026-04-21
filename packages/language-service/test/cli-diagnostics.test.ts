@@ -1,3 +1,4 @@
+import { makeFileGlobSpec, parseGlobList } from "@effect/language-service/cli/pathGlobs"
 import * as Option from "effect/Option"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
@@ -114,6 +115,42 @@ describe("CLI Diagnostics", () => {
       expect(result?.has("error")).toBe(true)
       expect(result?.has("warning")).toBe(true)
       expect(result?.has("message")).toBe(true)
+    })
+  })
+
+  describe("parseGlobList", () => {
+    it("should return an empty array for None option", () => {
+      expect(parseGlobList(Option.none())).toEqual([])
+    })
+
+    it("should parse a single glob", () => {
+      expect(parseGlobList(Option.some("src/**/*"))).toEqual(["src/**/*"])
+    })
+
+    it("should parse comma-separated globs", () => {
+      expect(parseGlobList(Option.some("src/**/*,test/**/*"))).toEqual([
+        "src/**/*",
+        "test/**/*"
+      ])
+    })
+
+    it("should trim whitespace and drop empty entries", () => {
+      expect(parseGlobList(Option.some(" src/**/* , , **/*.test.ts "))).toEqual([
+        "src/**/*",
+        "**/*.test.ts"
+      ])
+    })
+
+    it("should build a file glob spec from include and exclude flags", () => {
+      expect(
+        makeFileGlobSpec({
+          include: Option.some("src/**/*,test/**/*"),
+          exclude: Option.some("**/*.test.ts")
+        })
+      ).toEqual({
+        include: ["src/**/*", "test/**/*"],
+        exclude: ["**/*.test.ts"]
+      })
     })
   })
 

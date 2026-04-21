@@ -4,7 +4,7 @@ import * as Effect from "effect/Effect"
 import * as Encoding from "effect/Encoding"
 import * as FileSystem from "effect/FileSystem"
 import * as Layer from "effect/Layer"
-import * as Option from "effect/Option"
+import type * as Option from "effect/Option"
 import * as Path from "effect/Path"
 import * as Predicate from "effect/Predicate"
 import * as Result from "effect/Result"
@@ -12,6 +12,7 @@ import * as Schema from "effect/Schema"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "../core/LanguageServicePluginOptions"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
+import { makeFileGlobSpec } from "./pathGlobs"
 
 const PackageJsonSchema = Schema.Struct({
   name: Schema.String,
@@ -344,14 +345,6 @@ export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(functi
   return filesToCheck
 })
 
-function parseGlobList(value: Option.Option<string>): Array<string> {
-  if (Option.isNone(value)) return []
-  return value.value
-    .split(",")
-    .map((glob) => glob.trim())
-    .filter((glob) => glob.length > 0)
-}
-
 export const filterFilesByPaths = Effect.fn("filterFilesByPaths")(function*(
   files: Set<string>,
   projectRoot: string,
@@ -361,15 +354,10 @@ export const filterFilesByPaths = Effect.fn("filterFilesByPaths")(function*(
   }
 ) {
   const tsInstance = yield* TypeScriptContext
-  const include = parseGlobList(filters.include)
-  const exclude = parseGlobList(filters.exclude)
-  if (include.length === 0 && exclude.length === 0) {
+  const parsedPaths = makeFileGlobSpec(filters)
+  if (!parsedPaths) {
     return files
   }
-  const parsedPaths = LanguageServicePluginOptions.parseFileGlobSpec({
-    include: include.length > 0 ? include : ["**/*"],
-    exclude
-  })
   return new Set(
     [...files].filter((filePath) =>
       LanguageServicePluginOptions.matchesFileGlobs(tsInstance, parsedPaths, filePath, projectRoot)
