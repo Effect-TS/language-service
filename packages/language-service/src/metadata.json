@@ -35,6 +35,7 @@
         "globalFetchInEffect": "warning",
         "processEnv": "warning",
         "processEnvInEffect": "warning",
+        "unsafeEffectTypeAssertion": "warning",
         "preferSchemaOverJson": "warning",
         "extendsNativeError": "warning",
         "nodeBuiltinImport": "warning",
@@ -1193,6 +1194,27 @@
             "start": 121,
             "end": 137,
             "text": "This Effect code reads from `process.env`, environment configuration in Effect code is represented through `Config` from Effect.    effect(processEnvInEffect)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unsafeEffectTypeAssertion",
+      "group": "effectNative",
+      "description": "Detects unsafe type assertions that narrow Effect error or requirements channels",
+      "defaultSeverity": "off",
+      "fixable": true,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\ndeclare const program: Effect.Effect<string, \"boom\", \"service\">\n\nexport const preview = program as Effect.Effect<string, never, never>\n",
+        "diagnostics": [
+          {
+            "start": 121,
+            "end": 167,
+            "text": "This type assertion unsafely narrows the Effect error or requirements channels.\nThe error channel is narrowed from `\"boom\"` to `never`.\nThe requirements channel is narrowed from `\"service\"` to `never`.    effect(unsafeEffectTypeAssertion)"
           }
         ]
       }
