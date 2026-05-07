@@ -3047,6 +3047,18 @@
           "default": "suggestion",
           "description": "Simplifies chained pipe calls into a single pipe call Default severity: suggestion."
         },
+        "unsafeEffectTypeAssertion": {
+          "type": "string",
+          "enum": [
+            "off",
+            "error",
+            "warning",
+            "message",
+            "suggestion"
+          ],
+          "default": "off",
+          "description": "Detects unsafe type assertions that narrow Effect error or requirements channels Default severity: off."
+        },
         "unsupportedServiceAccessors": {
           "type": "string",
           "enum": [

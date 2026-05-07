@@ -72,6 +72,7 @@ import { unnecessaryEffectGen } from "./diagnostics/unnecessaryEffectGen.js"
 import { unnecessaryFailYieldableError } from "./diagnostics/unnecessaryFailYieldableError.js"
 import { unnecessaryPipe } from "./diagnostics/unnecessaryPipe.js"
 import { unnecessaryPipeChain } from "./diagnostics/unnecessaryPipeChain.js"
+import { unsafeEffectTypeAssertion } from "./diagnostics/unsafeEffectTypeAssertion.js"
 import { unsupportedServiceAccessors } from "./diagnostics/unsupportedServiceAccessors.js"
 
 export const diagnostics = [
@@ -124,6 +125,7 @@ export const diagnostics = [
   missedPipeableOpportunity,
   strictEffectProvide,
   unknownInEffectCatch,
+  unsafeEffectTypeAssertion,
   runEffectInsideEffect,
   nestedEffectGenYield,
   unnecessaryArrowBlock,
