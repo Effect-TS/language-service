@@ -1,3 +1,4 @@
+// code fix unsafeEffectTypeAssertion_fix  output for range 1128 - 1181
 // @effect-diagnostics unsafeEffectTypeAssertion:warning
 import { Effect, Layer, Stream } from "effect"
 
@@ -16,7 +17,7 @@ export const skipsAnyError = anyError as Effect.Effect<string, never, "service">
 export const skipsAnyRequirements = anyRequirements as Effect.Effect<string, "boom", never>
 export const safeWiden = program as Effect.Effect<string, "boom" | "other", "service">
 export const narrowsRequirements = noError as Effect.Effect<string, never, never>
-export const narrowsError = noRequirements as Effect.Effect<string, never, never>
+export const narrowsError = noRequirements
 export const narrowsStreamBoth = stream as Stream.Stream<string, never, never>
 export const narrowsLayerBoth = layer as Layer.Layer<"out", never, never>
 export const narrowsLayerRequirements = layerNoError as Layer.Layer<"out", never, never>

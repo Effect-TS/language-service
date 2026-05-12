@@ -1,4 +1,4 @@
 program as Effect.Effect<string, never, never>
-7:23 - 7:69 | 0 | This type assertion unsafely narrows the Effect error or requirements channels.
+7:23 - 7:69 | 0 | This type assertion unsafely narrows the error or requirements channels.
 The error channel is narrowed from `"boom"` to `never`.
 The requirements channel is narrowed from `"service"` to `never`.    effect(unsafeEffectTypeAssertion)

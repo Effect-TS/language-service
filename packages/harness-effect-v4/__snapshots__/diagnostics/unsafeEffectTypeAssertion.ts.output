@@ -1,12 +1,30 @@
 program as Effect.Effect<string, never, never>
-10:27 - 10:73 | 0 | This type assertion unsafely narrows the Effect error or requirements channels.
+14:27 - 14:73 | 0 | This type assertion unsafely narrows the error or requirements channels.
 The error channel is narrowed from `"boom"` to `never`.
 The requirements channel is narrowed from `"service"` to `never`.    effect(unsafeEffectTypeAssertion)
 
 noError as Effect.Effect<string, never, never>
-14:35 - 14:81 | 0 | This type assertion unsafely narrows the Effect error or requirements channels.
+18:35 - 18:81 | 0 | This type assertion unsafely narrows the error or requirements channels.
 The requirements channel is narrowed from `"service"` to `never`.    effect(unsafeEffectTypeAssertion)
 
 noRequirements as Effect.Effect<string, never, never>
-15:28 - 15:81 | 0 | This type assertion unsafely narrows the Effect error or requirements channels.
+19:28 - 19:81 | 0 | This type assertion unsafely narrows the error or requirements channels.
+The error channel is narrowed from `"boom"` to `never`.    effect(unsafeEffectTypeAssertion)
+
+stream as Stream.Stream<string, never, never>
+20:33 - 20:78 | 0 | This type assertion unsafely narrows the error or requirements channels.
+The error channel is narrowed from `"boom"` to `never`.
+The requirements channel is narrowed from `"service"` to `never`.    effect(unsafeEffectTypeAssertion)
+
+layer as Layer.Layer<"out", never, never>
+21:32 - 21:73 | 0 | This type assertion unsafely narrows the error or requirements channels.
+The error channel is narrowed from `"boom"` to `never`.
+The requirements channel is narrowed from `"service"` to `never`.    effect(unsafeEffectTypeAssertion)
+
+layerNoError as Layer.Layer<"out", never, never>
+22:40 - 22:88 | 0 | This type assertion unsafely narrows the error or requirements channels.
+The requirements channel is narrowed from `"service"` to `never`.    effect(unsafeEffectTypeAssertion)
+
+layerNoRequirements as Layer.Layer<"out", never, never>
+23:33 - 23:88 | 0 | This type assertion unsafely narrows the error or requirements channels.
 The error channel is narrowed from `"boom"` to `never`.    effect(unsafeEffectTypeAssertion)
