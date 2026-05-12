@@ -192,7 +192,7 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, Context } from \"effect\"\n\nclass Db extends Context.Service<Db>()(\"Db\", { make: Effect.succeed({}) }) {}\n\n// @ts-expect-error\nexport const preview: Effect.Effect<void> = Db.asEffect().pipe(Effect.asVoid)\n",
+        "sourceText": "import { Effect, Context } from \"effect\"\n\nclass Db extends Context.Service<Db>()(\"Db\", { make: Effect.succeed({}) }) {}\n\n// @ts-expect-error\nexport const preview: Effect.Effect<void> = Db.pipe(Effect.asVoid)\n",
         "diagnostics": [
           {
             "start": 154,
@@ -562,11 +562,11 @@
         "v4"
       ],
       "preview": {
-        "sourceText": "import { Effect, Layer, Context } from \"effect\"\n\nclass A extends Context.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nclass B extends Context.Service<B>()(\"B\", { make: Effect.as(A.asEffect(), {}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Layer.mergeAll(A.Default, B.Default)\n",
+        "sourceText": "import { Effect, Layer, Context } from \"effect\"\n\nclass A extends Context.Service<A>()(\"A\", { make: Effect.succeed({}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nclass B extends Context.Service<B>()(\"B\", { make: Effect.as(A, {}) }) {\n  static Default = Layer.effect(this, this.make)\n}\nexport const preview = Layer.mergeAll(A.Default, B.Default)\n",
         "diagnostics": [
           {
-            "start": 346,
-            "end": 355,
+            "start": 335,
+            "end": 344,
             "text": "This layer provides A which is required by another layer in the same Layer.mergeAll call. Layer.mergeAll creates layers in parallel, so dependencies between layers will not be satisfied. Consider moving this layer into a Layer.provideMerge after the Layer.mergeAll.    effect(layerMergeAllWithDependencies)"
           }
         ]

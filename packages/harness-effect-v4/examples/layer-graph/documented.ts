@@ -22,7 +22,7 @@ export class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
  * In-memory caching layer for improved performance
  */
 export class Cache extends Context.Service<Cache>()("Cache", {
-  make: Effect.as(FileSystem.asEffect(), {})
+  make: Effect.as(FileSystem, {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
@@ -31,7 +31,7 @@ export class Cache extends Context.Service<Cache>()("Cache", {
  * Repository for user data access and persistence
  */
 export class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
-  make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
+  make: Effect.as(Effect.andThen(DbConnection, Cache), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }

@@ -7,13 +7,13 @@ class Database extends Context.Service<Database>()("Database", {
 }
 
 class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
-  make: Effect.as(Database.asEffect(), {})
+  make: Effect.as(Database, {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
 class EventsRepository extends Context.Service<EventsRepository>()("EventsRepository", {
-  make: Effect.as(Database.asEffect(), {})
+  make: Effect.as(Database, {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
@@ -25,19 +25,19 @@ class Analytics extends Context.Service<Analytics>()("Analytics", {
 }
 
 class UserService extends Context.Service<UserService>()("UserService", {
-  make: Effect.as(Effect.andThen(UserRepository.asEffect(), Analytics.asEffect()), {})
+  make: Effect.as(Effect.andThen(UserRepository, Analytics), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
 class EventService extends Context.Service<EventService>()("EventService", {
-  make: Effect.as(Effect.andThen(EventsRepository.asEffect(), Analytics.asEffect()), {})
+  make: Effect.as(Effect.andThen(EventsRepository, Analytics), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
 class AppService extends Context.Service<AppService>()("AppService", {
-  make: Effect.as(Effect.andThen(UserService.asEffect(), EventService.asEffect()), {})
+  make: Effect.as(Effect.andThen(UserService, EventService), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
