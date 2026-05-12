@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.86.0
+
+### Minor Changes
+
+- [#728](https://github.com/Effect-TS/language-service/pull/728) [`a5b0e47`](https://github.com/Effect-TS/language-service/commit/a5b0e4775a33f23150a0695d54cc81f784120f3e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `unsafeEffectTypeAssertion` diagnostic to catch `as Effect<...>`, `as Stream<...>`, and `as Layer<...>` assertions that unsafely narrow the error or requirements channels.
+
+  The rule skips channels whose original type is `any` and offers a quick fix that removes the assertion while preserving the original expression.
+
 ## 0.85.1
 
 ### Patch Changes
