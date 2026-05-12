@@ -10,15 +10,15 @@ class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
-  static bothInAndOut = Layer.effect(FileSystem, FileSystem.asEffect())
+  static bothInAndOut = Layer.effect(FileSystem, FileSystem)
 }
 class Cache extends Context.Service<Cache>()("Cache", {
-  make: Effect.as(FileSystem.asEffect(), {})
+  make: Effect.as(FileSystem, {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
-  make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
+  make: Effect.as(Effect.andThen(DbConnection, Cache), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }

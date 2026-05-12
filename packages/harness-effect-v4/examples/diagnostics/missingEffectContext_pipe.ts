@@ -6,4 +6,4 @@ class ServiceA extends Context.Service<ServiceA>()("ServiceA", {
 }) {}
 
 // @ts-expect-error
-pipe(ServiceA.asEffect(), Effect.flatMap(() => Effect.void), Effect.runPromise)
+pipe(ServiceA, Effect.flatMap(() => Effect.void), Effect.runPromise)

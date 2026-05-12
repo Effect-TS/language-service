@@ -11,17 +11,17 @@ export class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
   static Default = Layer.effect(this, this.make)
 }
 export class Cache extends Context.Service<Cache>()("Cache", {
-  make: Effect.as(FileSystem.asEffect(), {})
+  make: Effect.as(FileSystem, {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 export class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
-  make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
+  make: Effect.as(Effect.andThen(DbConnection, Cache), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
-const cachePassthrough = Layer.effect(Cache, Cache.asEffect())
+const cachePassthrough = Layer.effect(Cache, Cache)
 
 export const shouldNotWarn = Layer.mergeAll(
   DbConnection.Default,

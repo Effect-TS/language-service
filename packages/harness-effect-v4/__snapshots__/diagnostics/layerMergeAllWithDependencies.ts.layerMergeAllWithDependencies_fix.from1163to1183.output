@@ -1,28 +1,28 @@
-// code fix layerMergeAllWithDependencies_fix  output for range 1222 - 1242
-import { Effect, Layer, ServiceMap } from "effect"
+// code fix layerMergeAllWithDependencies_fix  output for range 1163 - 1183
+import { Effect, Layer, Context } from "effect"
 
-export class DbConnection extends ServiceMap.Service<DbConnection>()("DbConnection", {
+export class DbConnection extends Context.Service<DbConnection>()("DbConnection", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-export class FileSystem extends ServiceMap.Service<FileSystem>()("FileSystem", {
+export class FileSystem extends Context.Service<FileSystem>()("FileSystem", {
   make: Effect.succeed({})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-export class Cache extends ServiceMap.Service<Cache>()("Cache", {
-  make: Effect.as(FileSystem.asEffect(), {})
+export class Cache extends Context.Service<Cache>()("Cache", {
+  make: Effect.as(FileSystem, {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
-export class UserRepository extends ServiceMap.Service<UserRepository>()("UserRepository", {
-  make: Effect.as(Effect.andThen(DbConnection.asEffect(), Cache.asEffect()), {})
+export class UserRepository extends Context.Service<UserRepository>()("UserRepository", {
+  make: Effect.as(Effect.andThen(DbConnection, Cache), {})
 }) {
   static Default = Layer.effect(this, this.make)
 }
 
-const cachePassthrough = Layer.effect(Cache, Cache.asEffect())
+const cachePassthrough = Layer.effect(Cache, Cache)
 
 export const shouldNotWarn = Layer.mergeAll(
   DbConnection.Default,

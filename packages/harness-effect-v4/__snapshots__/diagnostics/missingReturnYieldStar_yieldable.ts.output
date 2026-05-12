@@ -1,2 +1,0 @@
-yield* Option.none()
-7:6 - 7:26 | 1 | This Effect never succeeds; using `return yield*` preserves a definitive generator exit point for type narrowing and tooling support.    effect(missingReturnYieldStar)
