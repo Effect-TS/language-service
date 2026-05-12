@@ -362,9 +362,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
     "Finalizer masking has been removed in Effect v4."
   ),
   "findFirst": asUnchanged,
-  "firstSuccessOf": asRemoved(
-    "Use Effect.raceAll instead."
-  ),
+  "firstSuccessOf": asUnchanged,
   "flipWith": asRemoved(
     "Use Effect.flip combined with the desired transformation instead."
   ),
