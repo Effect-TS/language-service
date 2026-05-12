@@ -10,7 +10,7 @@ import * as TypeScriptApi from "../core/TypeScriptApi.js"
 export const unsafeEffectTypeAssertion = LSP.createDiagnostic({
   name: "unsafeEffectTypeAssertion",
   code: 75,
-  description: "Detects unsafe type assertions that narrow Effect error or requirements channels",
+  description: "Detects unsafe type assertions that narrow Effect, Stream, or Layer error or requirements channels",
   group: "effectNative",
   severity: "off",
   fixable: true,
@@ -22,6 +22,23 @@ export const unsafeEffectTypeAssertion = LSP.createDiagnostic({
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const isAnyType = (type: ts.Type | undefined) => !!type && (type.flags & ts.TypeFlags.Any) !== 0
+    const parseEffectStreamOrLayer = (type: ts.Type, atLocation: ts.Node) =>
+      pipe(
+        typeParser.effectType(type, atLocation),
+        Nano.map(({ E, R }) => ({ E, R })),
+        Nano.orElse(() =>
+          pipe(
+            typeParser.streamType(type, atLocation),
+            Nano.map(({ E, R }) => ({ E, R }))
+          )
+        ),
+        Nano.orElse(() =>
+          pipe(
+            typeParser.layerType(type, atLocation),
+            Nano.map(({ E, RIn }) => ({ E, R: RIn }))
+          )
+        )
+      )
 
     const nodeToVisit: Array<ts.Node> = []
     const appendNodeToVisit = (node: ts.Node) => {
@@ -40,10 +57,10 @@ export const unsafeEffectTypeAssertion = LSP.createDiagnostic({
       const assertedType = typeCheckerUtils.getTypeAtLocation(node)
       if (!originalType || !assertedType) continue
 
-      const originalEffect = yield* pipe(typeParser.effectType(originalType, node.expression), Nano.orUndefined)
+      const originalEffect = yield* pipe(parseEffectStreamOrLayer(originalType, node.expression), Nano.orUndefined)
       if (!originalEffect) continue
 
-      const assertedEffect = yield* pipe(typeParser.effectType(assertedType, node), Nano.orUndefined)
+      const assertedEffect = yield* pipe(parseEffectStreamOrLayer(assertedType, node), Nano.orUndefined)
       if (!assertedEffect) continue
 
       const invalidChannels: Array<{ name: string; original: ts.Type; asserted: ts.Type }> = []
@@ -74,10 +91,10 @@ export const unsafeEffectTypeAssertion = LSP.createDiagnostic({
 
       report({
         location: node,
-        messageText: "This type assertion unsafely narrows the Effect error or requirements channels.\n" + details,
+        messageText: "This type assertion unsafely narrows the error or requirements channels.\n" + details,
         fixes: [{
           fixName: "unsafeEffectTypeAssertion_fix",
-          description: "Remove the unsafe Effect assertion",
+          description: "Remove the unsafe assertion",
           apply: Nano.gen(function*() {
             const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
             changeTracker.replaceNode(sourceFile, node, node.expression)

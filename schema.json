@@ -3057,7 +3057,7 @@
             "suggestion"
           ],
           "default": "off",
-          "description": "Detects unsafe type assertions that narrow Effect error or requirements channels Default severity: off."
+          "description": "Detects unsafe type assertions that narrow Effect, Stream, or Layer error or requirements channels Default severity: off."
         },
         "unsupportedServiceAccessors": {
           "type": "string",
