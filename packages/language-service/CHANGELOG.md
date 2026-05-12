@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.86.1
+
+### Patch Changes
+
+- [#732](https://github.com/Effect-TS/language-service/pull/732) [`0674371`](https://github.com/Effect-TS/language-service/commit/06743719d0dbcddf070884f2e64beba4e0eb3388) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the Effect v4 test harness and language service development dependencies to Effect 4.0.0 beta 66, including fixture updates for the latest Context service API.
+
 ## 0.86.0
 
 ### Minor Changes
