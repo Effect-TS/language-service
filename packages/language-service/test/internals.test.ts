@@ -1,6 +1,8 @@
+import * as LanguageServicePluginOptions from "@effect/language-service/core/LanguageServicePluginOptions"
 import * as Nano from "@effect/language-service/core/Nano"
 import { pipe } from "effect/Function"
 import * as Result from "effect/Result"
+import * as ts from "typescript"
 import { configFromSourceComment } from "./utils/mocks"
 
 import { describe, expect, it } from "vitest"
@@ -16,6 +18,103 @@ describe("configFromSourceComment", () => {
   it("should return an empty object if there is no config", () => {
     const config = configFromSourceComment("console.log('hello')")
     expect(config).toEqual({})
+  })
+})
+
+describe("getEffectiveDiagnosticSeverity", () => {
+  it("parses file glob specs with sane defaults", () => {
+    expect(LanguageServicePluginOptions.parseFileGlobSpec({})).toEqual({
+      include: ["**/*"],
+      exclude: []
+    })
+    expect(
+      LanguageServicePluginOptions.parseFileGlobSpec({
+        include: ["src/**/*"],
+        exclude: ["**/*.test.ts"]
+      })
+    ).toEqual({
+      include: ["src/**/*"],
+      exclude: ["**/*.test.ts"]
+    })
+  })
+
+  it("matches file globs relative to the project root", () => {
+    const spec = LanguageServicePluginOptions.parseFileGlobSpec({
+      include: ["src/**/*"],
+      exclude: ["src/**/*.test.ts"]
+    })
+
+    expect(LanguageServicePluginOptions.matchesFileGlobs(ts, spec, "/repo/src/index.ts", "/repo")).toBe(true)
+    expect(LanguageServicePluginOptions.matchesFileGlobs(ts, spec, "/repo/src/index.test.ts", "/repo")).toBe(false)
+    expect(LanguageServicePluginOptions.matchesFileGlobs(ts, spec, "/repo/test/index.ts", "/repo")).toBe(false)
+  })
+
+  it("applies ordered overrides by file glob", () => {
+    const options = LanguageServicePluginOptions.parse(
+      {
+        diagnosticSeverity: {
+          strictEffectProvide: "warning"
+        },
+        overrides: [
+          {
+            include: ["test/**/*"],
+            diagnosticSeverity: {
+              strictEffectProvide: "off"
+            }
+          },
+          {
+            include: ["test/integration/**/*"],
+            diagnosticSeverity: {
+              strictEffectProvide: "error"
+            }
+          },
+          {
+            include: ["test/fixtures/**/*"],
+            exclude: ["test/fixtures/allowed/**/*"],
+            diagnosticSeverity: {
+              strictEffectProvide: "message"
+            }
+          }
+        ]
+      },
+      { projectRoot: "/repo" }
+    )
+
+    expect(LanguageServicePluginOptions.getEffectiveDiagnosticSeverity(ts, options, "/repo/src/index.ts")).toEqual({
+      stricteffectprovide: "warning"
+    })
+    expect(
+      LanguageServicePluginOptions.getEffectiveDiagnosticSeverity(ts, options, "/repo/test/unit/example.test.ts")
+    ).toEqual({
+      stricteffectprovide: "off"
+    })
+    expect(
+      LanguageServicePluginOptions.getEffectiveDiagnosticSeverity(
+        ts,
+        options,
+        "/repo/test/integration/example.test.ts"
+      )
+    ).toEqual({
+      stricteffectprovide: "error"
+    })
+    expect(
+      LanguageServicePluginOptions.getEffectiveDiagnosticSeverity(
+        ts,
+        options,
+        "/repo/test/fixtures/disallowed/example.test.ts"
+      )
+    ).toEqual({
+      stricteffectprovide: "message"
+    })
+    expect(
+      LanguageServicePluginOptions.getEffectiveDiagnosticSeverity(
+        ts,
+        options,
+        "/repo/test/fixtures/allowed/example.test.ts"
+      )
+    ).toEqual({
+      stricteffectprovide: "off"
+    })
   })
 })
 

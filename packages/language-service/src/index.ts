@@ -43,16 +43,20 @@ const init = (
     // eslint-disable-next-line no-empty, @typescript-eslint/no-unused-vars
   } catch (_) {}
 
+  let projectRoot: string | undefined
   let languageServicePluginOptions: LanguageServicePluginOptions.LanguageServicePluginOptions =
     LanguageServicePluginOptions.parse({})
 
+  const parseProjectConfig = (config: unknown) => LanguageServicePluginOptions.parse(config, { projectRoot })
+
   function onConfigurationChanged(config: any) {
-    languageServicePluginOptions = LanguageServicePluginOptions.parse(config)
+    languageServicePluginOptions = parseProjectConfig(config)
   }
 
   function create(info: ts.server.PluginCreateInfo) {
     const languageService = info.languageService
-    languageServicePluginOptions = LanguageServicePluginOptions.parse(info.config)
+    projectRoot = info.project.getCurrentDirectory?.()
+    languageServicePluginOptions = parseProjectConfig(info.config)
 
     // prevent double-injection of the effect language service
     if ((languageService as any)[LSP_INJECTED_URI]) return languageService
