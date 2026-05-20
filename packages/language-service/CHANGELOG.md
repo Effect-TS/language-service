@@ -1,5 +1,20 @@
 # @effect/language-service
 
+## 0.86.2
+
+### Patch Changes
+
+- [#739](https://github.com/Effect-TS/language-service/pull/739) [`2a21b07`](https://github.com/Effect-TS/language-service/commit/2a21b0724cc90c411c6d13531de16fb1aece9ed5) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the generated `schema.json` to include the TypeScript 6.0 `ES2025` target and lib entries.
+
+- [#738](https://github.com/Effect-TS/language-service/pull/738) [`ec42fd6`](https://github.com/Effect-TS/language-service/commit/ec42fd619a1746d01b109f99055b07665a4764db) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update `preferSchemaOverJson` to be off by default.
+
+  Improve the diagnostic guidance for JSON parsing and stringifying:
+
+  - in Effect v3, suggest `Schema.parseJson(Schema.Unknown)` for unknown shapes and `Schema.parseJson(schema)` for known ones
+  - in Effect v4, suggest `Schema.UnknownFromJsonString`, `Schema.fromJsonString(schema)`, and `Schema.toCodecJson(schema)` depending on whether the target shape is known and whether the code is working with JSON strings or JSON values
+
+- [#736](https://github.com/Effect-TS/language-service/pull/736) [`4bf81c4`](https://github.com/Effect-TS/language-service/commit/4bf81c4b69c363ffb1f2f00739799814b4dfc262) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the Effect v4 beta dependencies to 4.0.0-beta.68.
+
 ## 0.86.1
 
 ### Patch Changes
