@@ -2816,8 +2816,8 @@
             "message",
             "suggestion"
           ],
-          "default": "suggestion",
-          "description": "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw Default severity: suggestion."
+          "default": "off",
+          "description": "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw Default severity: off."
         },
         "processEnv": {
           "type": "string",

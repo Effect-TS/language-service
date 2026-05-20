@@ -1,20 +1,20 @@
 JSON.parse("{\"name\":\"John\"}")
-4:44 - 4:77 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+5:44 - 5:77 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)
 
 JSON.parse("{\"name\":\"Jane\"}")
-8:13 - 8:46 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+9:13 - 9:46 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)
 
 JSON.stringify({ name: "Bob" })
-13:48 - 13:79 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+14:48 - 14:79 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)
 
 JSON.stringify({ name: "Alice" })
-17:13 - 17:46 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+18:13 - 18:46 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)
 
 JSON.parse(text)
-24:17 - 24:33 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+25:17 - 25:33 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)
 
 JSON.stringify(data)
-32:15 - 32:35 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+33:15 - 33:35 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)
 
 JSON.parse(text)
-40:17 - 40:33 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+41:17 - 41:33 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones.    effect(preferSchemaOverJson)

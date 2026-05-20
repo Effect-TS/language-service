@@ -2732,10 +2732,10 @@ export function make(
       // check for Class
       const classSymbol = typeChecker.tryGetMemberInModuleExports("Class", moduleSymbol)
       if (!classSymbol) return yield* typeParserIssue("Model's Class type not found", undefined, sourceFile)
-      // check for Generated (unique to Model, not present in Schema)
-      const generatedSymbol = typeChecker.tryGetMemberInModuleExports("Generated", moduleSymbol)
-      if (!generatedSymbol) {
-        return yield* typeParserIssue("Model's Generated type not found", undefined, sourceFile)
+      // check for UuidV4Insert (unique to Model, not present in Schema)
+      const uuidV4InsertSymbol = typeChecker.tryGetMemberInModuleExports("UuidV4Insert", moduleSymbol)
+      if (!uuidV4InsertSymbol) {
+        return yield* typeParserIssue("Model's UuidV4Insert type not found", undefined, sourceFile)
       }
       // check for FieldOption (unique to v4 Model)
       const fieldOptionSymbol = typeChecker.tryGetMemberInModuleExports("FieldOption", moduleSymbol)

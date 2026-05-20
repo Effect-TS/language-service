@@ -106,7 +106,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>instanceOfSchema</code></td><td>➖</td><td>🔧</td><td>Suggests using Schema.is instead of instanceof for Effect Schema types</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>newPromise</code></td><td>➖</td><td></td><td>Warns when constructing promises with new Promise instead of using Effect APIs</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>nodeBuiltinImport</code></td><td>➖</td><td></td><td>Warns when importing Node.js built-in modules that have Effect-native counterparts</td><td>✓</td><td>✓</td></tr>
-    <tr><td><code>preferSchemaOverJson</code></td><td>💡</td><td></td><td>Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>preferSchemaOverJson</code></td><td>➖</td><td></td><td>Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>processEnv</code></td><td>➖</td><td></td><td>Warns when reading process.env outside Effect generators instead of using Effect Config</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>processEnvInEffect</code></td><td>➖</td><td></td><td>Warns when reading process.env inside Effect generators instead of using Effect Config</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>unsafeEffectTypeAssertion</code></td><td>➖</td><td>🔧</td><td>Detects unsafe type assertions that narrow Effect, Stream, or Layer error or requirements channels</td><td>✓</td><td>✓</td></tr>
