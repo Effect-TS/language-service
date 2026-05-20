@@ -11,12 +11,16 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
   code: 44,
   description: "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw",
   group: "effectNative",
-  severity: "suggestion",
+  severity: "off",
   fixable: false,
   supportedEffect: ["v3", "v4"],
   apply: Nano.fn("preferSchemaOverJson.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const supportedEffect = typeParser.supportedEffect()
+    const messageText = supportedEffect === "v4"
+      ? "This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings."
+      : "This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.parseJson(Schema.Unknown)` for unknown shapes or `Schema.parseJson(schema)` for known ones."
 
     // Plain check: is this node a JSON.parse or JSON.stringify call?
     const isJsonCall = (node: ts.Node): node is ts.CallExpression =>
@@ -167,8 +171,7 @@ export const preferSchemaOverJson = LSP.createDiagnostic({
       if (Option.isSome(match)) {
         report({
           location: match.value,
-          messageText:
-            "This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.",
+          messageText,
           fixes: []
         })
       }

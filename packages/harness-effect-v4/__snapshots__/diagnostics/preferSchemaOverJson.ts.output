@@ -1,14 +1,14 @@
 JSON.parse("{\"name\":\"Jane\"}")
-5:13 - 5:46 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+6:13 - 6:46 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings.    effect(preferSchemaOverJson)
 
 JSON.stringify({ name: "Alice" })
-11:13 - 11:46 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+12:13 - 12:46 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings.    effect(preferSchemaOverJson)
 
 JSON.parse(text)
-18:17 - 18:33 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+19:17 - 19:33 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings.    effect(preferSchemaOverJson)
 
 JSON.stringify(data)
-26:15 - 26:35 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+27:15 - 27:35 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings.    effect(preferSchemaOverJson)
 
 JSON.parse(text)
-34:17 - 34:33 | 2 | This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)
+35:17 - 35:33 | 0 | This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings.    effect(preferSchemaOverJson)

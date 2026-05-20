@@ -1139,7 +1139,7 @@
       "name": "preferSchemaOverJson",
       "group": "effectNative",
       "description": "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify which may throw",
-      "defaultSeverity": "suggestion",
+      "defaultSeverity": "off",
       "fixable": false,
       "supportedEffect": [
         "v3",
@@ -1151,7 +1151,7 @@
           {
             "start": 142,
             "end": 158,
-            "text": "This code uses `JSON.parse` or `JSON.stringify`. Effect Schema provides Effect-aware APIs for JSON parsing and stringifying.    effect(preferSchemaOverJson)"
+            "text": "This code uses `JSON.parse` or `JSON.stringify`. Use `Schema.UnknownFromJsonString` for unknown shapes, `Schema.fromJsonString(schema)` for known ones, or `Schema.toCodecJson(schema)` when working with JSON values instead of strings.    effect(preferSchemaOverJson)"
           }
         ]
       }

@@ -1,3 +1,4 @@
+// @effect-diagnostics preferSchemaOverJson:warning
 import { Effect } from "effect"
 
 // Should trigger diagnostic - JSON.parse inside Effect.try (object form)
