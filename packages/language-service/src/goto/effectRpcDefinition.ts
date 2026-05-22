@@ -68,7 +68,12 @@ export function effectRpcDefinition(
         tsUtils.isNodeInRange(textRange)(node.name)
       ) {
         const type = typeCheckerUtils.getTypeAtLocation(node)
-        if (!type) return undefined
+        // Skip ancestors whose type the checker cannot resolve (e.g. JSX
+        // tag-name nodes, which `getTypeAtLocation` deliberately returns
+        // `undefined` for). Returning `undefined` here would wipe the
+        // upstream `applicableGotoDefinition`, breaking cmd+click on JSX
+        // components.
+        if (!type) continue
         for (const callSig of typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call)) {
           // we detect if it is an RPC api based on where the options simbol is declared from
           if (callSig.parameters.length >= 2 && isSymbolFromEffectRpcClientModule(callSig.parameters[1])) {
