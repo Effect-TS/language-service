@@ -234,6 +234,17 @@ export function renderFileChanges(
 }
 
 /**
+ * Render a new file as added lines
+ */
+function renderNewFileChanges(textChanges: ReadonlyArray<ts.TextChange>): ReadonlyArray<string> {
+  const newText = textChanges.map((change) => change.newText).join("")
+  return newText
+    .split("\n")
+    .filter((line, index, lines) => !(index === lines.length - 1 && line.length === 0))
+    .map((line) => renderLine(undefined, "+", line, GREEN))
+}
+
+/**
  * Render code actions with diffs
  */
 export const renderCodeActions = (
@@ -254,6 +265,9 @@ export const renderCodeActions = (
     ]
     if (Option.isSome(assessmentState.vscodeSettings)) {
       sourceFiles.push(assessmentState.vscodeSettings.value.sourceFile)
+    }
+    if (Option.isSome(assessmentState.zedSettings)) {
+      sourceFiles.push(assessmentState.zedSettings.value.sourceFile)
     }
 
     // Collect plain text files from assessment state (markdown files)
@@ -294,6 +308,10 @@ export const renderCodeActions = (
         } else if (plainTextFile) {
           // Use plain text renderer for diff generation (markdown files)
           const diffLines = renderPlainTextFileChanges(plainTextFile.text, fileChange.textChanges)
+          yield* Console.log(diffLines.join("\n"))
+        } else if (fileChange.isNewFile) {
+          // New files are not present in assessment state, so render the full content as additions.
+          const diffLines = renderNewFileChanges(fileChange.textChanges)
           yield* Console.log(diffLines.join("\n"))
         } else {
           // File not in assessment state, just mention we want to change it
