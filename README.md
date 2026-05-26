@@ -34,6 +34,44 @@ This package implements a TypeScript language service plugin that allows additio
            "typescript.enablePromptUseWorkspaceTsdk": true
          }
          ```
+   - In Zed, `effect-language-service setup` can add or update `.zed/settings.json` so `vtsls` loads workspace TypeScript plugins:
+     ```jsonc
+     {
+       "languages": {
+         "TSX": {
+           "language_servers": [
+             "vtsls",
+             "typescript-language-server",
+             "..."
+           ]
+         },
+         "TypeScript": {
+           "language_servers": [
+             "vtsls",
+             "typescript-language-server",
+             "..."
+           ]
+         }
+       },
+       "lsp": {
+         "vtsls": {
+           "settings": {
+             "typescript": {
+               "tsserver": {
+                 "pluginPaths": [
+                   "./node_modules"
+                 ]
+               }
+             },
+             "vtsls": {
+               "autoUseWorkspaceTsdk": true
+             }
+           }
+         }
+       }
+     }
+     ```
+     `show_edit_predictions` is intentionally not configured.
    - In JetBrains you may have to disable the Vue language service, and choose the workspace version of TypeScript in the settings from the dropdown.
    - In NVim with nvim-vtsls you should refer to [how to enable TypeScript plugins in vtsls](https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated)
    - In Emacs, additional steps are required to enable LSPs, [step by step instructions can be found here](https://gosha.net/2025/effect-ls-emacs/)
