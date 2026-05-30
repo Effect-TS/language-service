@@ -18,7 +18,7 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
-import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import { extractEffectLspOptions, filterFilesByPaths, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
 
 interface DiagnosticReporterState {
   tsInstance: typeof ts
@@ -322,148 +322,167 @@ export const diagnostics = Command.make(
       Flag.withDescription(
         "An optional inline JSON lsp config that replaces the current project lsp config. e.g. '{ \"effectFn\": [\"untraced\"] }'"
       )
+    ),
+    include: Flag.string("include").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "Optional comma-separated include globs used to filter files after tsconfig discovery. e.g. 'src/**/*,test/**/*'"
+      )
+    ),
+    exclude: Flag.string("exclude").pipe(
+      Flag.optional,
+      Flag.withDescription(
+        "Optional comma-separated exclude globs used to filter files after tsconfig discovery. e.g. '**/*.test.ts,**/*.spec.ts'"
+      )
     )
   },
-  Effect.fn("diagnostics")(function*({ file, format, lspconfig, progress, project, severity, strict }) {
-    const path = yield* Path.Path
-    const severityFilter = parseSeverityFilter(severity)
-    const state: DiagnosticReporterState = {
-      tsInstance: yield* TypeScriptContext,
-      checkedCount: 0,
-      errorsCount: 0,
-      warningsCount: 0,
-      messagesCount: 0,
-      languageService: undefined,
-      totalFilesCount: 0,
-      currentFileIndex: 0
-    }
-
-    const filesToCheck = Option.isSome(project)
-      ? yield* getFileNamesInTsConfig(project.value)
-      : new Set<string>()
-
-    if (Option.isSome(file)) {
-      filesToCheck.add(path.resolve(file.value))
-    }
-
-    if (filesToCheck.size === 0) {
-      return yield* new NoFilesToCheckError()
-    }
-
-    state.totalFilesCount = filesToCheck.size
-
-    let reporter: DiagnosticReporter | undefined
-    switch (format) {
-      case "pretty":
-        reporter = yield* diagnosticPrettyFormatter
-        break
-      case "text":
-        reporter = yield* diagnosticTextFormatter
-        break
-      case "json":
-        reporter = yield* diagnosticJsonFormatter
-        break
-      case "github-actions":
-        reporter = yield* diagnosticGitHubActionsFormatter
-        break
-      default:
-        reporter = yield* diagnosticPrettyFormatter
-    }
-    if (progress) {
-      reporter = yield* withDiagnosticsProgressFormatter(reporter)
-    }
-
-    yield* reporter.onBegin(state)
-
-    const disposeIfLanguageServiceChanged = (languageService: ts.LanguageService | undefined) => {
-      if (state.languageService !== languageService) {
-        state.languageService?.dispose()
-        state.languageService = languageService
+  Effect.fn("diagnostics")(
+    function*({ exclude, file, format, include, lspconfig, progress, project, severity, strict }) {
+      const path = yield* Path.Path
+      const projectRoot = Option.isSome(project) ? path.dirname(project.value) : path.resolve(".")
+      const severityFilter = parseSeverityFilter(severity)
+      const state: DiagnosticReporterState = {
+        tsInstance: yield* TypeScriptContext,
+        checkedCount: 0,
+        errorsCount: 0,
+        warningsCount: 0,
+        messagesCount: 0,
+        languageService: undefined,
+        totalFilesCount: 0,
+        currentFileIndex: 0
       }
-    }
 
-    for (const batch of Array.chunksOf(filesToCheck, BATCH_SIZE)) {
-      const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
+      const filesToCheck = Option.isSome(project)
+        ? yield* getFileNamesInTsConfig(project.value)
+        : new Set<string>()
 
-      for (const filePath of batch) {
-        state.currentFileIndex++
-        yield* reporter.onFile(state, filePath)
+      if (Option.isSome(file)) {
+        filesToCheck.add(path.resolve(file.value))
+      }
+      const filteredFilesToCheck = yield* filterFilesByPaths(filesToCheck, projectRoot, { include, exclude })
 
-        service.openClientFile(filePath)
-        try {
-          const scriptInfo = service.getScriptInfo(filePath)
-          if (!scriptInfo) continue
+      if (filteredFilesToCheck.size === 0) {
+        return yield* new NoFilesToCheckError()
+      }
 
-          const projectInfo = scriptInfo.getDefaultProject()
-          const languageService = projectInfo.getLanguageService(true)
-          disposeIfLanguageServiceChanged(languageService)
-          const program = languageService.getProgram()
-          if (!program) continue
-          const sourceFile = program.getSourceFile(filePath)
-          if (!sourceFile) continue
-          let pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
-          if (Option.isSome(lspconfig)) {
-            try {
-              pluginConfig = { name: "@effect/language-service", ...JSON.parse(lspconfig.value) }
-            } catch {
-              return yield* new InvalidLspConfigError({ lspconfig: lspconfig.value })
-            }
-          }
-          if (!pluginConfig) continue
+      state.totalFilesCount = filteredFilesToCheck.size
 
-          const rawResults = pipe(
-            LSP.getSemanticDiagnosticsWithCodeFixes(diagnosticsDefinitions, sourceFile),
-            TypeParser.nanoLayer,
-            TypeCheckerUtils.nanoLayer,
-            TypeScriptUtils.nanoLayer,
-            Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
-            Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
-            Nano.provideService(TypeScriptApi.TypeScriptApi, state.tsInstance),
-            Nano.provideService(
-              LanguageServicePluginOptions.LanguageServicePluginOptions,
-              { ...LanguageServicePluginOptions.parse(pluginConfig), diagnosticsName: false }
-            ),
-            Nano.run,
-            Result.map((_) => _.diagnostics),
-            Result.map(
-              Array.map((_) =>
-                _.category === state.tsInstance.DiagnosticCategory.Suggestion
-                  ? { ..._, category: state.tsInstance.DiagnosticCategory.Message }
-                  : _
-              )
-            ),
-            Result.getOrElse(() => [])
-          )
+      let reporter: DiagnosticReporter | undefined
+      switch (format) {
+        case "pretty":
+          reporter = yield* diagnosticPrettyFormatter
+          break
+        case "text":
+          reporter = yield* diagnosticTextFormatter
+          break
+        case "json":
+          reporter = yield* diagnosticJsonFormatter
+          break
+        case "github-actions":
+          reporter = yield* diagnosticGitHubActionsFormatter
+          break
+        default:
+          reporter = yield* diagnosticPrettyFormatter
+      }
+      if (progress) {
+        reporter = yield* withDiagnosticsProgressFormatter(reporter)
+      }
 
-          // Apply severity filter if specified
-          const results = severityFilter
-            ? rawResults.filter((d) => severityFilter.has(categoryToSeverity(d.category, state.tsInstance)))
-            : rawResults
+      yield* reporter.onBegin(state)
 
-          state.checkedCount++
-          state.errorsCount += results.filter((_) => _.category === state.tsInstance.DiagnosticCategory.Error).length
-          state.warningsCount += results.filter((_) =>
-            _.category === state.tsInstance.DiagnosticCategory.Warning
-          ).length
-          state.messagesCount += results.filter((_) =>
-            _.category === state.tsInstance.DiagnosticCategory.Message
-          ).length
-
-          yield* reporter.onDiagnostics(state, filePath, results)
-        } finally {
-          service.closeClientFile(filePath)
+      const disposeIfLanguageServiceChanged = (languageService: ts.LanguageService | undefined) => {
+        if (state.languageService !== languageService) {
+          state.languageService?.dispose()
+          state.languageService = languageService
         }
       }
-      yield* Effect.yieldNow
+
+      for (const batch of Array.chunksOf(filteredFilesToCheck, BATCH_SIZE)) {
+        const { service } = createProjectService({ options: { loadTypeScriptPlugins: false } })
+
+        for (const filePath of batch) {
+          state.currentFileIndex++
+          yield* reporter.onFile(state, filePath)
+
+          service.openClientFile(filePath)
+          try {
+            const scriptInfo = service.getScriptInfo(filePath)
+            if (!scriptInfo) continue
+
+            const projectInfo = scriptInfo.getDefaultProject()
+            const languageService = projectInfo.getLanguageService(true)
+            disposeIfLanguageServiceChanged(languageService)
+            const program = languageService.getProgram()
+            if (!program) continue
+            const sourceFile = program.getSourceFile(filePath)
+            if (!sourceFile) continue
+            let pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
+            if (Option.isSome(lspconfig)) {
+              try {
+                pluginConfig = { name: "@effect/language-service", ...JSON.parse(lspconfig.value) }
+              } catch {
+                return yield* new InvalidLspConfigError({ lspconfig: lspconfig.value })
+              }
+            }
+            if (!pluginConfig) continue
+
+            const rawResults = pipe(
+              LSP.getSemanticDiagnosticsWithCodeFixes(diagnosticsDefinitions, sourceFile),
+              TypeParser.nanoLayer,
+              TypeCheckerUtils.nanoLayer,
+              TypeScriptUtils.nanoLayer,
+              Nano.provideService(TypeCheckerApi.TypeCheckerApi, program.getTypeChecker()),
+              Nano.provideService(TypeScriptApi.TypeScriptProgram, program),
+              Nano.provideService(TypeScriptApi.TypeScriptApi, state.tsInstance),
+              Nano.provideService(
+                LanguageServicePluginOptions.LanguageServicePluginOptions,
+                {
+                  ...LanguageServicePluginOptions.parse(pluginConfig, { projectRoot }),
+                  diagnosticsName: false
+                }
+              ),
+              Nano.run,
+              Result.map((_) => _.diagnostics),
+              Result.map(
+                Array.map((_) =>
+                  _.category === state.tsInstance.DiagnosticCategory.Suggestion
+                    ? { ..._, category: state.tsInstance.DiagnosticCategory.Message }
+                    : _
+                )
+              ),
+              Result.getOrElse(() => [])
+            )
+
+            // Apply severity filter if specified
+            const results = severityFilter
+              ? rawResults.filter((d) => severityFilter.has(categoryToSeverity(d.category, state.tsInstance)))
+              : rawResults
+
+            state.checkedCount++
+            state.errorsCount += results.filter((_) => _.category === state.tsInstance.DiagnosticCategory.Error).length
+            state.warningsCount += results.filter((_) =>
+              _.category === state.tsInstance.DiagnosticCategory.Warning
+            ).length
+            state.messagesCount += results.filter((_) =>
+              _.category === state.tsInstance.DiagnosticCategory.Message
+            ).length
+
+            yield* reporter.onDiagnostics(state, filePath, results)
+          } finally {
+            service.closeClientFile(filePath)
+          }
+        }
+        yield* Effect.yieldNow
+      }
+      disposeIfLanguageServiceChanged(undefined)
+
+      yield* reporter.onEnd(state)
+
+      // Determine if we should fail based on errors (and warnings if --strict)
+      const hasFailures = state.errorsCount > 0 || (strict && state.warningsCount > 0)
+      if (hasFailures) return yield* Effect.sync(() => process.exit(1))
     }
-    disposeIfLanguageServiceChanged(undefined)
-
-    yield* reporter.onEnd(state)
-
-    // Determine if we should fail based on errors (and warnings if --strict)
-    const hasFailures = state.errorsCount > 0 || (strict && state.warningsCount > 0)
-    if (hasFailures) return yield* Effect.sync(() => process.exit(1))
-  })
+  )
 ).pipe(
   Command.withDescription("Gets the effect-language-service diagnostics on the given files or project.")
 )

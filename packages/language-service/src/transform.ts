@@ -1,6 +1,7 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Result from "effect/Result"
+import * as path from "node:path"
 import type { PluginConfig, TransformerExtras } from "ts-patch"
 import type * as ts from "typescript"
 import * as LanguageServicePluginOptions from "./core/LanguageServicePluginOptions"
@@ -18,6 +19,7 @@ export default function(
   pluginConfig: PluginConfig,
   { addDiagnostic, ts: tsInstance }: TransformerExtras
 ) {
+  const configFilePath = program.getCompilerOptions().configFilePath
   return (_: ts.TransformationContext) => {
     return (sourceFile: ts.SourceFile) => {
       // run the diagnostics and pipe them into addDiagnostic
@@ -31,7 +33,11 @@ export default function(
         Nano.provideService(TypeScriptApi.TypeScriptApi, tsInstance),
         Nano.provideService(
           LanguageServicePluginOptions.LanguageServicePluginOptions,
-          LanguageServicePluginOptions.parse(pluginConfig)
+          LanguageServicePluginOptions.parse(pluginConfig, {
+            projectRoot: typeof configFilePath === "string"
+              ? path.dirname(configFilePath)
+              : process.cwd()
+          })
         ),
         Nano.run,
         Result.map((_) => _.diagnostics),
