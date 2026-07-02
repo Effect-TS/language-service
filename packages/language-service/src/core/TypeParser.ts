@@ -2012,6 +2012,10 @@ export function make(
       if (!promiseSymbol) return typeParserIssue("global Promise type not found", type, atLocation)
       const globalPromiseType = typeChecker.getDeclaredTypeOfSymbol(promiseSymbol)
 
+      if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
+        return typeParserIssue("type is not a Promise (any/unknown)", type, atLocation)
+      }
+
       if (
         type === globalPromiseType ||
         ("target" in type && (type as ts.TypeReference).target === globalPromiseType) ||

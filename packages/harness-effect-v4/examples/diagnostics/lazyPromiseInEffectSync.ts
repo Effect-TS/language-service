@@ -18,3 +18,12 @@ export const fromThenable = Effect.sync(() => thenableValue)
 
 // Should NOT trigger - already using the async constructor
 export const fromEffectPromise = Effect.promise(() => Promise.resolve(1))
+
+declare const anyValue: any
+declare const unknownValue: unknown
+
+// Should NOT trigger - any is not enough evidence that the thunk returns a Promise
+export const fromAny = Effect.sync(() => anyValue)
+
+// Should NOT trigger - unknown is not enough evidence that the thunk returns a Promise
+export const fromUnknown = Effect.sync(() => unknownValue)
