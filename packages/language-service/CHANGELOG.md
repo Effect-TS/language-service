@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.86.3
+
+### Patch Changes
+
+- [#744](https://github.com/Effect-TS/language-service/pull/744) [`1707983`](https://github.com/Effect-TS/language-service/commit/1707983d98fef64ef90dde682653af07c83ce9b3) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Fix `lazyPromiseInEffectSync` false positives for `Effect.sync` thunks whose return type degrades to `any`. Promise detection now ignores `any` and `unknown` before falling back to assignability against the global `Promise` type.
+
+- [#740](https://github.com/Effect-TS/language-service/pull/740) [`df50dfc`](https://github.com/Effect-TS/language-service/commit/df50dfce9ab8b299f6d21c35c231bcc12cbca4ee) Thanks [@jbmusso](https://github.com/jbmusso)! - Fix `effectRpcDefinition` wiping the upstream go-to-definition result when the user clicks on a JSX `<Namespace.Component />` tag name. The plugin's RpcClient → Rpc enrichment now skips ancestor nodes whose type cannot be resolved (such as JSX tag-name nodes) instead of returning `undefined` for the entire request.
+
 ## 0.86.2
 
 ### Patch Changes
