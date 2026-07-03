@@ -1566,6 +1566,24 @@ export function make(
         // yield* XXX
         if (ts.isYieldExpression(nodeToCheck) && nodeToCheck.asteriskToken && nodeToCheck.expression) {
           const yieldedExpression = nodeToCheck.expression
+          let hasNestedYieldStar = false
+          const findNestedYieldStar = (current: ts.Node) => {
+            if (hasNestedYieldStar) return
+            if (current !== yieldedExpression && ts.isFunctionLike(current)) return
+            if (ts.isYieldExpression(current) && current.asteriskToken) {
+              hasNestedYieldStar = true
+              return
+            }
+            ts.forEachChild(current, findNestedYieldStar)
+          }
+          findNestedYieldStar(yieldedExpression)
+          if (hasNestedYieldStar) {
+            return yield* typeParserIssue(
+              "Yielded expression should not contain a nested yield* expression",
+              undefined,
+              node
+            )
+          }
           const type = typeCheckerUtils.getTypeAtLocation(yieldedExpression)
           if (!type) continue
           const { A: successType } = yield* effectType(type, yieldedExpression)
