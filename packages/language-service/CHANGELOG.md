@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.86.4
+
+### Patch Changes
+
+- [#746](https://github.com/Effect-TS/language-service/pull/746) [`5da9914`](https://github.com/Effect-TS/language-service/commit/5da99146ff999aaccb8e0d2987315a27807c1b10) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Avoid suggesting removal of `Effect.gen` when a single return statement contains multiple `yield*` expressions, which would produce invalid code.
+
 ## 0.86.3
 
 ### Patch Changes
