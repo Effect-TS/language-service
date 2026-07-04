@@ -18,7 +18,12 @@ import * as TypeParser from "../core/TypeParser"
 import * as TypeScriptApi from "../core/TypeScriptApi"
 import * as TypeScriptUtils from "../core/TypeScriptUtils"
 import { diagnostics as diagnosticsDefinitions } from "../diagnostics"
-import { extractEffectLspOptions, getFileNamesInTsConfig, TypeScriptContext } from "./utils"
+import {
+  getEffectLspOptionsFromTsConfig,
+  getFileNamesInTsConfig,
+  resolveEffectLspPluginConfig,
+  TypeScriptContext
+} from "./utils"
 
 interface DiagnosticReporterState {
   tsInstance: typeof ts
@@ -350,6 +355,13 @@ export const diagnostics = Command.make(
       return yield* new NoFilesToCheckError()
     }
 
+    // Plugin config read once from the --project tsconfig. Used as a fallback for
+    // files the project service resolves to an inferred project, whose per-file
+    // compilerOptions carry no plugins entry.
+    const projectPluginConfig = Option.isSome(project)
+      ? yield* getEffectLspOptionsFromTsConfig(project.value)
+      : undefined
+
     state.totalFilesCount = filesToCheck.size
 
     let reporter: DiagnosticReporter | undefined
@@ -401,7 +413,7 @@ export const diagnostics = Command.make(
           if (!program) continue
           const sourceFile = program.getSourceFile(filePath)
           if (!sourceFile) continue
-          let pluginConfig = extractEffectLspOptions(program.getCompilerOptions())
+          let pluginConfig = resolveEffectLspPluginConfig(program.getCompilerOptions(), projectPluginConfig)
           if (Option.isSome(lspconfig)) {
             try {
               pluginConfig = { name: "@effect/language-service", ...JSON.parse(lspconfig.value) }
@@ -409,7 +421,6 @@ export const diagnostics = Command.make(
               return yield* new InvalidLspConfigError({ lspconfig: lspconfig.value })
             }
           }
-          if (!pluginConfig) continue
 
           const rawResults = pipe(
             LSP.getSemanticDiagnosticsWithCodeFixes(diagnosticsDefinitions, sourceFile),

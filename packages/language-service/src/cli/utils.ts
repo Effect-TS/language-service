@@ -316,6 +316,44 @@ export const extractEffectLspOptions = (compilerOptions: ts.CompilerOptions) => 
     : []).find((_) => Predicate.hasProperty(_, "name") && _.name === "@effect/language-service")
 }
 
+/**
+ * Resolves the effect-language-service plugin config to use when checking a file.
+ *
+ * The per-file program's compilerOptions are the primary source, so a file's own
+ * tsconfig diagnosticSeverity is honored. A file that the project service resolves
+ * to an inferred project carries no plugins entry, so we fall back to the config
+ * parsed once from the --project tsconfig, and finally to a bare default. Returning
+ * a config unconditionally (never undefined) means every file with a source file is
+ * checked, matching the overview command, instead of being silently skipped.
+ */
+export const resolveEffectLspPluginConfig = (
+  fileCompilerOptions: ts.CompilerOptions,
+  projectFallback: ts.PluginImport | undefined
+): ts.PluginImport =>
+  extractEffectLspOptions(fileCompilerOptions) ?? projectFallback ?? { name: "@effect/language-service" }
+
+/**
+ * Reads the effect-language-service plugin config directly from a tsconfig, so it
+ * can serve as a fallback for files the project service assigns to an inferred
+ * project (whose compilerOptions do not carry the plugins array).
+ */
+export const getEffectLspOptionsFromTsConfig = Effect.fn("getEffectLspOptionsFromTsConfig")(
+  function*(tsconfigPath: string) {
+    const path = yield* Path.Path
+    const tsInstance = yield* TypeScriptContext
+    const resolved = path.resolve(tsconfigPath)
+    const tsconfigAbsolutePath = resolved.endsWith("tsconfig.json") ? resolved : path.resolve(resolved, "tsconfig.json")
+    const configFile = tsInstance.readConfigFile(tsconfigAbsolutePath, tsInstance.sys.readFile)
+    if (configFile.error) return undefined
+    const parsedConfig = tsInstance.parseJsonConfigFileContent(
+      configFile.config,
+      tsInstance.sys,
+      path.dirname(tsconfigAbsolutePath)
+    )
+    return extractEffectLspOptions(parsedConfig.options)
+  }
+)
+
 export const getFileNamesInTsConfig = Effect.fn("getFileNamesInTsConfig")(function*(tsconfigPath: string) {
   const path = yield* Path.Path
   const tsInstance = yield* TypeScriptContext

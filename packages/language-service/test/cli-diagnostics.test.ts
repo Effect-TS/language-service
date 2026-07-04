@@ -1,6 +1,7 @@
 import * as Option from "effect/Option"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+import { resolveEffectLspPluginConfig } from "../src/cli/utils"
 
 // Import the functions and types we're testing
 // Note: These would need to be exported from diagnostics.ts for testing
@@ -247,6 +248,37 @@ describe("CLI Diagnostics", () => {
       const filtered = applyFilter(diagnostics, undefined)
 
       expect(filtered.length).toBe(3)
+    })
+  })
+
+  describe("resolveEffectLspPluginConfig", () => {
+    const effectPlugin = { name: "@effect/language-service", diagnosticSeverity: { floatingEffect: "error" } }
+
+    it("uses the file's own plugin config when present", () => {
+      const fileOptions: ts.CompilerOptions = { plugins: [effectPlugin] }
+      const projectFallback: ts.PluginImport = { name: "@effect/language-service" }
+      expect(resolveEffectLspPluginConfig(fileOptions, projectFallback)).toBe(effectPlugin)
+    })
+
+    it("falls back to the project config when the file has no plugins entry", () => {
+      // A file the project service assigns to an inferred project carries no plugins.
+      const fileOptions: ts.CompilerOptions = {}
+      expect(resolveEffectLspPluginConfig(fileOptions, effectPlugin)).toBe(effectPlugin)
+    })
+
+    it("falls back to the project config when the file's plugins omit effect", () => {
+      const fileOptions: ts.CompilerOptions = {
+        plugins: [{ name: "some-other-plugin" }]
+      }
+      expect(resolveEffectLspPluginConfig(fileOptions, effectPlugin)).toBe(effectPlugin)
+    })
+
+    it("falls back to a bare default so the file is never skipped", () => {
+      // Neither the file nor the project carry an effect plugin config. Returning a
+      // config unconditionally is what stops the diagnostics command from silently
+      // skipping the file (the regression this guards against).
+      const fileOptions: ts.CompilerOptions = {}
+      expect(resolveEffectLspPluginConfig(fileOptions, undefined)).toEqual({ name: "@effect/language-service" })
     })
   })
 })
