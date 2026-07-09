@@ -1,5 +1,8 @@
 # language-service
 
+> [!IMPORTANT]
+> If you are using TypeScript 7.0 or newer, use [`@effect/tsgo`](https://github.com/effect-ts/tsgo) instead.
+
 This package implements a TypeScript language service plugin that allows additional refactors and diagnostics with your VSCode editor (or any editor that supports TypeScript's LSP).
 
 ## Installation
