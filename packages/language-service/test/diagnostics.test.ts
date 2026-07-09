@@ -13,6 +13,8 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 import { describe, expect, it } from "vitest"
+
+import { checkSourceFileWorker } from "@effect/language-service/effect-lsp-patch-utils"
 import {
   getExamplesDir,
   getExamplesSubdir,
@@ -322,6 +324,34 @@ function testAllDagnostics() {
 }
 
 describe("Diagnostics", () => {
+  it("should not produce diagnostics on .d.ts declaration files", () => {
+    const sourceText = `// @effect-diagnostics extendsNativeError:warning
+export declare class DOMException extends Error {}
+`
+    const { program, sourceFile } = createServicesWithMockedVFS(
+      getHarnessDir(),
+      getExamplesDir(),
+      "extendsNativeError_declaration.d.ts",
+      sourceText,
+      {}
+    )
+
+    const collected: ts.Diagnostic[] = []
+    const compilerOptions = program.getCompilerOptions()
+    compilerOptions.plugins = [{ name: "@effect/language-service" }]
+
+    checkSourceFileWorker(
+      ts,
+      program,
+      sourceFile,
+      compilerOptions,
+      (d) => collected.push(d),
+      "tsc"
+    )
+
+    expect(collected).toEqual([])
+  })
+
   it("the diagnostic code should be unique among all diagnostics", () => {
     const codes = diagnostics.reduce((acc, d) => {
       acc[d.code] = (acc[d.code] || 0) + 1

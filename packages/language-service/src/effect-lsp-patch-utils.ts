@@ -57,6 +57,8 @@ export function checkSourceFileWorker(
   const pluginOptions = extractEffectLspOptions(compilerOptions)
   if (!pluginOptions) return
 
+  if (sourceFile.isDeclarationFile) return
+
   const parsedOptions: LanguageServicePluginOptions.LanguageServicePluginOptions = {
     ...LanguageServicePluginOptions.parse(pluginOptions),
     diagnosticsName: true
