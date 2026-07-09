@@ -22,7 +22,7 @@ jobs:
       matrix:
         harness: [v3, v4]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - name: Install dependencies
         uses: ./.github/actions/setup
       - run: pnpm test:${{ matrix.harness }}
