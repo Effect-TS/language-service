@@ -13,7 +13,8 @@ import {
   getTypeScriptApisUtils,
   getUnpatchedSourceFile,
   makeEffectLspPatchChange,
-  TypeScriptContext
+  TypeScriptContext,
+  TypeScriptFoundIsNot5Or6
 } from "./utils"
 
 export class UnableToFindPositionToPatchError extends Data.TaggedError("UnableToFindPositionToPatchError")<{
@@ -350,6 +351,14 @@ export const patch = Command.make(
     yield* Effect.logDebug(`Searching for typescript in ${dirPath}...`)
     const { version: typescriptVersion } = yield* getPackageJsonData(dirPath)
     yield* Effect.logDebug(`Found typescript version ${typescriptVersion}!`)
+
+    // confirm that's 5 or 6
+    if (!typescriptVersion.startsWith("5") && !typescriptVersion.startsWith("6")) {
+      yield* Effect.logError(
+        "@effect/language-service supports only typescript 5 or 6, for 7 support look into @effect/tsgo."
+      )
+      return yield* new TypeScriptFoundIsNot5Or6()
+    }
 
     const modulesToPatch = moduleNames.length === 0 ? ["typescript", "tsc"] as const : moduleNames
     for (const moduleName of modulesToPatch) {

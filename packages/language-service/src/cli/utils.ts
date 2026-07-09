@@ -52,6 +52,12 @@ export class UnableToFindInstalledTypeScriptPackage extends Data.TaggedError("Un
   }
 }
 
+export class TypeScriptFoundIsNot5Or6 extends Data.TaggedError("TypeScriptFoundIsNot5Or6")<{}> {
+  get message(): string {
+    return `@effect/language-service supports TypeScript 5.x and 6.x; for TypeScript 7.x and forward use @effect/tsgo or refer to side-by-side usage on https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0.`
+  }
+}
+
 export type TypeScriptApi = typeof ts
 
 /**
@@ -69,19 +75,29 @@ export class TypeScriptContext extends Context.Service<TypeScriptContext, TypeSc
   static live = (cwd: string) =>
     Layer.effect(
       TypeScriptContext,
-      Effect.try({
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        try: () => require(require.resolve("typescript", { paths: [cwd] })) as typeof ts,
-        catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
-      }).pipe(
-        Effect.catch(() =>
-          Effect.try({
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            try: () => require("typescript") as typeof ts,
-            catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
-          })
+      Effect.gen(function*() {
+        const tsModule = yield* Effect.try({
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          try: () => require(require.resolve("typescript", { paths: [cwd] })) as typeof ts,
+          catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
+        }).pipe(
+          Effect.catch(() =>
+            Effect.try({
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              try: () => require("typescript") as typeof ts,
+              catch: (cause) => new UnableToFindInstalledTypeScriptPackage({ cause })
+            })
+          )
         )
-      )
+
+        const tsVersion = tsModule.versionMajorMinor || "N"
+
+        if (!tsVersion.startsWith("5") && !tsVersion.startsWith("6")) {
+          return yield* new TypeScriptFoundIsNot5Or6()
+        }
+
+        return tsModule
+      })
     )
 }
 
