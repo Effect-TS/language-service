@@ -8,5 +8,5 @@ class Person extends Schema.Class<Person>("Person")({
   name: Schema.NonEmptyString,
   age: Schema.Int
 }) {
-  static decode: (input: { readonly name: string; readonly age: number }, options?: ParseOption.ParseOptions) => Effect.Effect<Person, Schema.SchemaError> = Schema.decodeEffect(Person)
+  static decode: (input: Schema.Struct.ReadonlySide<{ readonly name: Schema.NonEmptyString; readonly age: Schema.Int }, "Encoded">, options?: ParseOption.ParseOptions) => Effect.Effect<Person, Schema.SchemaError> = Schema.decodeEffect(Person)
 }

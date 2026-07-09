@@ -540,8 +540,8 @@ export interface LayerMagicResult {
   missingOutputTypes: Set<ts.Type>
 }
 
-export const dfsPostOrderWithOrder = <N, E, T extends Graph.Kind = "directed">(
-  graph: Graph.Graph<N, E, T> | Graph.MutableGraph<N, E, T>,
+export const dfsPostOrderWithOrder = <N, E>(
+  graph: Graph.Graph<N, E, "directed"> | Graph.MutableGraph<N, E, "directed">,
   config: Graph.SearchConfig & { order: Order.Order<N> }
 ): Graph.NodeWalker<N> => {
   const start = config.start ?? []
@@ -654,8 +654,8 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
 )
 
 // walk the graph and emit nodes matching the predicate, where no children match the predicate
-export const walkLeavesMatching = <N, E, T extends Graph.Kind = "directed">(
-  graph: Graph.Graph<N, E, T> | Graph.MutableGraph<N, E, T>,
+export const walkLeavesMatching = <N, E>(
+  graph: Graph.Graph<N, E, "directed"> | Graph.MutableGraph<N, E, "directed">,
   predicate: (node: N) => boolean,
   config: Graph.SearchConfig = {}
 ): Graph.NodeWalker<N> => {

@@ -582,9 +582,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "transposeMapOption": asRemoved(
     "Use Effect.map with Option operations instead."
   ),
-  "transposeOption": asRemoved(
-    "Use Effect.option instead."
-  ),
+  "transposeOption": asUnchanged,
   "tryMap": asRemoved(
     "Use Effect.map inside Effect.try instead."
   ),
