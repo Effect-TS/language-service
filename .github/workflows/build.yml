@@ -24,13 +24,11 @@ jobs:
       id-token: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install dependencies
         uses: ./.github/actions/setup
         with:
           registry-url: "https://registry.npmjs.org"
-      - name: Upgrade npm for OIDC support
-        run: npm install -g npm@latest
       - run: pnpm build
       - name: Check source state
         run: git add packages && git diff-index --cached HEAD --exit-code packages
