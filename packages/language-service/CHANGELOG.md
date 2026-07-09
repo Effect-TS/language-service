@@ -1,5 +1,13 @@
 # @effect/language-service
 
+## 0.86.5
+
+### Patch Changes
+
+- [#751](https://github.com/Effect-TS/language-service/pull/751) [`8d0b85a`](https://github.com/Effect-TS/language-service/commit/8d0b85a3ff99ed238677db91ba7727da36e237fd) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Reject unsupported TypeScript versions when loading or patching TypeScript, directing TypeScript 7 users to @effect/tsgo.
+
+- [#754](https://github.com/Effect-TS/language-service/pull/754) [`1dce66b`](https://github.com/Effect-TS/language-service/commit/1dce66b2d3e9e22fd7f6b3009a9d1771ee895ebe) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the Effect v4 harness and language-service development dependencies to Effect 4.0.0-beta.94, including compatibility updates for the latest Effect API and Schema type output.
+
 ## 0.86.4
 
 ### Patch Changes
