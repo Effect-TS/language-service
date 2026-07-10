@@ -18,6 +18,7 @@ import { effectMapFlatten } from "./diagnostics/effectMapFlatten.js"
 import { effectMapVoid } from "./diagnostics/effectMapVoid.js"
 import { effectSucceedWithVoid } from "./diagnostics/effectSucceedWithVoid.js"
 import { extendsNativeError } from "./diagnostics/extendsNativeError.js"
+import { flatMapToMap } from "./diagnostics/flatMapToMap.js"
 import { floatingEffect } from "./diagnostics/floatingEffect.js"
 import { genericEffectServices } from "./diagnostics/genericEffectServices.js"
 import { globalConsole } from "./diagnostics/globalConsole.js"
@@ -89,6 +90,7 @@ export const diagnostics = [
   effectDoNotation,
   effectFnImplicitAny,
   effectMapFlatten,
+  flatMapToMap,
   effectGenUsesAdapter,
   missingEffectContext,
   missingEffectError,

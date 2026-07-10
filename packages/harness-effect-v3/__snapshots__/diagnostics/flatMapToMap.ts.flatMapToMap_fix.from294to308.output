@@ -1,0 +1,43 @@
+// code fix flatMapToMap_fix  output for range 294 - 308
+import { Effect, pipe } from "effect"
+
+// Should trigger: pipeable style
+export const shouldTriggerPipeable = Effect.succeed(1).pipe(
+  Effect.flatMap((n) => Effect.succeed(n + 1))
+)
+
+// Should trigger: pipe style with a block body
+export const shouldTriggerPipe = pipe(
+  Effect.succeed(1),
+  Effect.map((n) => {
+    return n + 1
+  })
+)
+
+// Should trigger: pipeable style with a function expression
+export const shouldTriggerFunctionExpression = Effect.succeed(1).pipe(Effect.flatMap(function(n) {
+  return Effect.succeed(n + 1)
+}))
+
+// Should NOT trigger: data-first calls are not piping transformations
+export const shouldNotTriggerDataFirst = Effect.flatMap(Effect.succeed(1), (n) => Effect.succeed(n + 1))
+
+// Should NOT trigger: callback returns another Effect operation
+export const shouldNotTriggerEffect = Effect.succeed(1).pipe(
+  Effect.flatMap((n) => Effect.log(n))
+)
+
+// Should NOT trigger: callback contains additional logic
+export const shouldNotTriggerLogic = Effect.succeed(1).pipe(
+  Effect.flatMap((n) => {
+    console.log(n)
+    return Effect.succeed(n + 1)
+  })
+)
+
+// Should NOT trigger: unrelated flatMap and succeed functions
+const unrelated = {
+  flatMap: <A, B>(value: A, f: (value: A) => B): B => f(value),
+  succeed: <A>(value: A): A => value
+}
+export const shouldNotTriggerUnrelated = unrelated.flatMap(1, (n) => unrelated.succeed(n + 1))

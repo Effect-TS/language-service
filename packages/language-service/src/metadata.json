@@ -1367,6 +1367,27 @@
       }
     },
     {
+      "name": "flatMapToMap",
+      "group": "style",
+      "description": "Suggests using Effect.map instead of Effect.flatMap when the callback only wraps its result with Effect.succeed",
+      "defaultSeverity": "suggestion",
+      "fixable": true,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect } from \"effect\"\n\nconst program = Effect.succeed(1).pipe(\n  Effect.flatMap((value) => Effect.succeed(value + 1))\n)\n",
+        "diagnostics": [
+          {
+            "start": 75,
+            "end": 89,
+            "text": "`Effect.map` expresses this success-value transformation more directly than `Effect.flatMap` followed by `Effect.succeed`.    effect(flatMapToMap)"
+          }
+        ]
+      }
+    },
+    {
       "name": "importFromBarrel",
       "group": "style",
       "description": "Suggests importing from specific module paths instead of barrel exports",
