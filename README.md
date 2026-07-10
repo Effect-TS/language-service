@@ -121,6 +121,7 @@ Some diagnostics are off by default or have a default severity of suggestion, bu
     <tr><td><code>effectMapFlatten</code></td><td>💡</td><td></td><td>Suggests using Effect.flatMap instead of Effect.map followed by Effect.flatten in piping flows</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>effectMapVoid</code></td><td>💡</td><td>🔧</td><td>Suggests using Effect.asVoid instead of Effect.map(() =&gt; void 0), Effect.map(() =&gt; undefined), or Effect.map(() =&gt; {})</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>effectSucceedWithVoid</code></td><td>💡</td><td>🔧</td><td>Suggests using Effect.void instead of Effect.succeed(undefined) or Effect.succeed(void 0)</td><td>✓</td><td>✓</td></tr>
+    <tr><td><code>flatMapToMap</code></td><td>💡</td><td>🔧</td><td>Suggests using Effect.map instead of Effect.flatMap when the callback only wraps its result with Effect.succeed</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>importFromBarrel</code></td><td>➖</td><td>🔧</td><td>Suggests importing from specific module paths instead of barrel exports</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>missedPipeableOpportunity</code></td><td>➖</td><td>🔧</td><td>Enforces the use of pipeable style for nested function calls</td><td>✓</td><td>✓</td></tr>
     <tr><td><code>missingEffectServiceDependency</code></td><td>➖</td><td></td><td>Checks that Effect.Service dependencies satisfy all required layer inputs</td><td>✓</td><td></td></tr>

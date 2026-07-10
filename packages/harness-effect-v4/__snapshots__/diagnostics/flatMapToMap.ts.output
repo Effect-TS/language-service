@@ -1,0 +1,8 @@
+Effect.flatMap
+5:2 - 5:16 | 2 | `Effect.map` expresses this success-value transformation more directly than `Effect.flatMap` followed by `Effect.succeed`.    effect(flatMapToMap)
+
+Effect.flatMap
+11:2 - 11:16 | 2 | `Effect.map` expresses this success-value transformation more directly than `Effect.flatMap` followed by `Effect.succeed`.    effect(flatMapToMap)
+
+Effect.flatMap
+17:70 - 17:84 | 2 | `Effect.map` expresses this success-value transformation more directly than `Effect.flatMap` followed by `Effect.succeed`.    effect(flatMapToMap)

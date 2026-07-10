@@ -24,12 +24,14 @@ export interface ParsedSingleArgCall {
   subject: ts.Expression
 }
 
-export interface ParsedLazyExpression {
+export interface ParsedFunctionExpression {
   node: ts.ArrowFunction | ts.FunctionExpression
   body: ts.Expression | ts.Block
   expression: ts.Expression
   returnType: ts.TypeNode | undefined
 }
+
+export type ParsedLazyExpression = ParsedFunctionExpression
 
 export interface ParsedEmptyFunction {
   node: ts.ArrowFunction | ts.FunctionExpression
@@ -359,6 +361,11 @@ export interface TypeParser {
   >
   lazyExpression: (node: ts.Node) => Nano.Nano<
     ParsedLazyExpression,
+    TypeParserIssue,
+    never
+  >
+  functionExpression: (node: ts.Node) => Nano.Nano<
+    ParsedFunctionExpression,
     TypeParserIssue,
     never
   >
@@ -2883,16 +2890,11 @@ export function make(
       (node) => node
     )
 
-  const lazyExpression = Nano.cachedBy(
-    function(node: ts.Node): Nano.Nano<ParsedLazyExpression, TypeParserIssue, never> {
+  const functionExpression = Nano.cachedBy(
+    function(node: ts.Node): Nano.Nano<ParsedFunctionExpression, TypeParserIssue, never> {
       // Must be an arrow function or function expression
       if (!ts.isArrowFunction(node) && !ts.isFunctionExpression(node)) {
         return typeParserIssue("Node is not an arrow function or function expression", undefined, node)
-      }
-
-      // Must have zero parameters
-      if (node.parameters.length !== 0) {
-        return typeParserIssue("Function must have zero parameters", undefined, node)
       }
 
       // Must have no type parameters
@@ -2938,6 +2940,21 @@ export function make(
       }
 
       return typeParserIssue("Invalid function body", undefined, node)
+    },
+    "TypeParser.functionExpression",
+    (node) => node
+  )
+
+  const lazyExpression = Nano.cachedBy(
+    function(node: ts.Node): Nano.Nano<ParsedLazyExpression, TypeParserIssue, never> {
+      return pipe(
+        functionExpression(node),
+        Nano.flatMap((parsed) =>
+          parsed.node.parameters.length === 0
+            ? Nano.succeed(parsed)
+            : typeParserIssue("Function must have zero parameters", undefined, node)
+        )
+      )
     },
     "TypeParser.lazyExpression",
     (node) => node
@@ -3385,6 +3402,7 @@ export function make(
     extendsSchemaRequestClass,
     extendsEffectSqlModelClass,
     extendsEffectSchemaModelClass,
+    functionExpression,
     lazyExpression,
     emptyFunction,
     pipingFlows,

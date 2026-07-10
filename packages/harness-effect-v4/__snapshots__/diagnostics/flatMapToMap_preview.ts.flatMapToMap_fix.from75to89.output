@@ -1,0 +1,6 @@
+// code fix flatMapToMap_fix  output for range 75 - 89
+import { Effect } from "effect"
+
+const program = Effect.succeed(1).pipe(
+  Effect.map((value) => value + 1)
+)
