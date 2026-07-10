@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.86.6
+
+### Patch Changes
+
+- [#758](https://github.com/Effect-TS/language-service/pull/758) [`6ef9a46`](https://github.com/Effect-TS/language-service/commit/6ef9a4612238b40886b851c507169779e2738416) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Skip Effect diagnostics for external library files in patched tsc runs when TypeScript `skipLibCheck` is enabled.
+
 ## 0.86.5
 
 ### Patch Changes
