@@ -45,6 +45,7 @@ export interface LanguageServicePluginOptions {
   layerGraphFollowDepth: number
   mermaidProvider: "mermaid.com" | "mermaid.live" | ({} & string)
   skipDisabledOptimization: boolean
+  excludeExternalLibrariesWhenSkipLibCheck: boolean
 }
 
 export interface JsonSchema {
@@ -119,7 +120,8 @@ export const defaults: LanguageServicePluginOptions = {
   effectFn: ["span"],
   layerGraphFollowDepth: 0,
   mermaidProvider: "mermaid.live",
-  skipDisabledOptimization: false
+  skipDisabledOptimization: false,
+  excludeExternalLibrariesWhenSkipLibCheck: true
 }
 
 const booleanSchema = (description: string, defaultValue: boolean): JsonSchema => ({
@@ -268,6 +270,10 @@ export const languageServicePluginAdditionalPropertiesJsonSchema = {
   skipDisabledOptimization: booleanSchema(
     "When enabled, disabled diagnostics are still processed so comment-based overrides can be honored.",
     defaults.skipDisabledOptimization
+  ),
+  excludeExternalLibrariesWhenSkipLibCheck: booleanSchema(
+    "When enabled with skipLibCheck, external library files are skipped by patched tsc diagnostics.",
+    defaults.excludeExternalLibrariesWhenSkipLibCheck
   )
 } satisfies Record<LanguageServicePluginAdditionalProperty, JsonSchema>
 
@@ -404,6 +410,11 @@ export function parse(config: any): LanguageServicePluginOptions {
     skipDisabledOptimization: isObject(config) && hasProperty(config, "skipDisabledOptimization") &&
         isBoolean(config.skipDisabledOptimization)
       ? config.skipDisabledOptimization
-      : defaults.skipDisabledOptimization
+      : defaults.skipDisabledOptimization,
+    excludeExternalLibrariesWhenSkipLibCheck:
+      isObject(config) && hasProperty(config, "excludeExternalLibrariesWhenSkipLibCheck") &&
+        isBoolean(config.excludeExternalLibrariesWhenSkipLibCheck)
+        ? config.excludeExternalLibrariesWhenSkipLibCheck
+        : defaults.excludeExternalLibrariesWhenSkipLibCheck
   }
 }
