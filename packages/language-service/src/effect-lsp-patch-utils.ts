@@ -62,6 +62,12 @@ export function checkSourceFileWorker(
     diagnosticsName: true
   }
 
+  if (
+    program.getCompilerOptions().skipLibCheck &&
+    parsedOptions.excludeExternalLibrariesWhenSkipLibCheck &&
+    program.isSourceFileFromExternalLibrary(sourceFile)
+  ) return
+
   // run the diagnostics and pipe them into addDiagnostic
   pipe(
     LSP.getSemanticDiagnosticsWithCodeFixes(diagnostics, sourceFile),

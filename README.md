@@ -208,6 +208,7 @@ Few options can be provided alongside the initialization of the Language Service
         "ignoreEffectErrorsInTscExitCode": false, // if set to true, effect-related errors won't change the exit code of tsc (default: false)
         "ignoreEffectSuggestionsInTscExitCode": true, // if set to true, effect-related suggestions won't change the exit code of tsc (default: true)
         "skipDisabledOptimization": false, // if set to true, disabled diagnostics are still processed so per-line or per-section overrides can be honored in patched tsc runs (default: false)
+        "excludeExternalLibrariesWhenSkipLibCheck": true, // when enabled with skipLibCheck, external library files are skipped by patched tsc diagnostics (default: true)
         "quickinfo": true, // controls Effect quickinfo (default: true)
         "quickinfoEffectParameters": "whenTruncated", // (default: "whenTruncated") controls when to display effect type parameters always,never,whenTruncated
         "quickinfoMaximumLength": -1, // controls how long can be the types in the quickinfo hover (helps with very long type to improve perfs, defaults to -1 for no truncation, can be any number eg. 1000 and TS will try to fit as much as possible in that budget, higher number means more info.)
