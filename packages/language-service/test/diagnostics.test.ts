@@ -27,6 +27,7 @@ const getExamplesDiagnosticsDir = () => getExamplesSubdir("diagnostics")
 
 function compilerOptionsFromSourceComment(sourceText: string): ts.CompilerOptions {
   return {
+    skipLibCheck: true,
     ...(sourceText.includes("// @strict") ? { strict: true } : {})
   }
 }
