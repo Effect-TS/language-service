@@ -96,8 +96,8 @@ exports[`Setup CLI > should add LSP plugin alongside existing plugins > tsconfig
 
 exports[`Setup CLI > should add LSP with VS Code editor selected and configure VS Code settings > .vscode/settings.json 1`] = `
 "{
-	"typescript.tsdk": "./node_modules/typescript/lib",
-	"typescript.enablePromptUseWorkspaceTsdk": true
+	"js/ts.tsdk.path": "./node_modules/typescript/lib",
+	"js/ts.tsdk.promptToUseWorkspaceVersion": true
 }"
 `;
 
@@ -112,7 +112,7 @@ exports[`Setup CLI > should add LSP with VS Code editor selected and configure V
     "file": "tsconfig.json",
   },
   {
-    "description": "Add typescript.tsdk setting; Add typescript.enablePromptUseWorkspaceTsdk setting",
+    "description": "Add js/ts.tsdk.path setting; Add js/ts.tsdk.promptToUseWorkspaceVersion setting",
     "file": ".vscode/settings.json",
   },
 ]
@@ -568,8 +568,8 @@ exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-sp
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "files.autoSave": "onFocusChange",
-"typescript.enablePromptUseWorkspaceTsdk": true,
-"typescript.tsdk": "./node_modules/typescript/lib"
+"js/ts.tsdk.promptToUseWorkspaceVersion": true,
+"js/ts.tsdk.path": "./node_modules/typescript/lib"
 }"
 `;
 
@@ -584,7 +584,7 @@ exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-sp
     "file": "tsconfig.json",
   },
   {
-    "description": "Add typescript.tsdk setting; Add typescript.enablePromptUseWorkspaceTsdk setting",
+    "description": "Add js/ts.tsdk.path setting; Add js/ts.tsdk.promptToUseWorkspaceVersion setting",
     "file": ".vscode/settings.json",
   },
 ]
