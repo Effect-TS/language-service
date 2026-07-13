@@ -73,8 +73,8 @@ export const computeChanges = (
       if (Option.isSome(target.packageJson.lspVersion) && Option.isSome(assessment.vscodeSettings)) {
         const vscodeTarget: Target.VSCodeSettings = {
           settings: {
-            "typescript.tsdk": "./node_modules/typescript/lib",
-            "typescript.enablePromptUseWorkspaceTsdk": true
+            "js/ts.tsdk.path": "./node_modules/typescript/lib",
+            "js/ts.tsdk.promptToUseWorkspaceVersion": true
           }
         }
 

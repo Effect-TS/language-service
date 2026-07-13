@@ -754,9 +754,9 @@ describe("Setup CLI", () => {
         }
       },
       {
-        "typescript.tsdk": "./packages/core/node_modules/typescript/lib",
+        "js/ts.tsdk.path": "./packages/core/node_modules/typescript/lib",
         "typescript.preferences.importModuleSpecifier": "non-relative",
-        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "js/ts.tsdk.promptToUseWorkspaceVersion": true,
         "editor.formatOnSave": true,
         "eslint.format.enable": true,
         "editor.acceptSuggestionOnCommitCharacter": true,
