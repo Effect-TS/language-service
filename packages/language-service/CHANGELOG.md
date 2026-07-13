@@ -1,5 +1,19 @@
 # @effect/language-service
 
+## 0.87.0
+
+### Minor Changes
+
+- [#760](https://github.com/Effect-TS/language-service/pull/760) [`f1fca78`](https://github.com/Effect-TS/language-service/commit/f1fca784260b0326062323e0130a95bd5a39f925) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Add the `flatMapToMap` style diagnostic, which suggests replacing `Effect.flatMap((value) => Effect.succeed(f(value)))` with `Effect.map((value) => f(value))`.
+
+### Patch Changes
+
+- [#762](https://github.com/Effect-TS/language-service/pull/762) [`5e71871`](https://github.com/Effect-TS/language-service/commit/5e718719738bcf89fc06ad08413fad2f159c2b72) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Enable `skipLibCheck` in the diagnostics test harness to reduce test runtime and memory usage.
+
+- [#763](https://github.com/Effect-TS/language-service/pull/763) [`0dc8034`](https://github.com/Effect-TS/language-service/commit/0dc8034ffc6a175aaca0e7b3b9b9a92d25149a14) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update the setup command to configure VS Code with the unified `js/ts` TypeScript settings.
+
+- [#742](https://github.com/Effect-TS/language-service/pull/742) [`939a049`](https://github.com/Effect-TS/language-service/commit/939a049c441b39deb1f883f742c238e130e9fab3) Thanks [@RezaOwliaei](https://github.com/RezaOwliaei)! - Update README to replace deprecated VSCode TypeScript settings (`typescript.tsdk` and `typescript.enablePromptUseWorkspaceTsdk`) with the current recommended configuration.
+
 ## 0.86.6
 
 ### Patch Changes
