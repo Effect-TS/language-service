@@ -33,8 +33,8 @@ This package implements a TypeScript language service plugin that allows additio
        - Not required, but to remember the user to do so, you can update your `.vscode/settings.json`
          ```jsonc
          {
-           "typescript.tsdk": "./node_modules/typescript/lib",
-           "typescript.enablePromptUseWorkspaceTsdk": true
+            "js/ts.tsdk.path": "node_modules/typescript/lib",
+            "js/ts.tsdk.promptToUseWorkspaceVersion": true
          }
          ```
    - In JetBrains you may have to disable the Vue language service, and choose the workspace version of TypeScript in the settings from the dropdown.
