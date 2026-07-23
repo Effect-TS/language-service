@@ -36,3 +36,14 @@ export const shouldReportSingle = Effect.void.pipe(
   Effect.provide(MyService2.Default),
   Effect.provide(MyService3.Default)
 )
+
+export const shouldNotReportLocalProvide = Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.provide(MyService2.Default, { local: true })
+)
+
+export const shouldReportAfterLocalProvide = Effect.void.pipe(
+  Effect.provide(MyService1.Default, { local: true }),
+  Effect.provide(MyService2.Default),
+  Effect.provide(MyService3.Default)
+)

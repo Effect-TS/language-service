@@ -9,3 +9,6 @@ Effect.provide(MyService1.Default)
 
 Effect.provide(MyService1.Default)
 35:2 - 35:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
+
+Effect.provide(MyService2.Default)
+47:2 - 47:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
