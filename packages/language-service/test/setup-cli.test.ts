@@ -14,7 +14,8 @@ function createTestAssessmentInput(
   tsconfig: Record<string, unknown>,
   vscodeSettings?: Record<string, unknown>,
   agentsMd?: string,
-  claudeMd?: string
+  claudeMd?: string,
+  zedSettings?: Record<string, unknown>
 ): Assessment.Input {
   return {
     packageJson: {
@@ -29,6 +30,12 @@ function createTestAssessmentInput(
       ? Option.some({
         fileName: ".vscode/settings.json",
         text: JSON.stringify(vscodeSettings, null, 2)
+      })
+      : Option.none(),
+    zedSettings: zedSettings
+      ? Option.some({
+        fileName: ".zed/settings.json",
+        text: JSON.stringify(zedSettings, null, 2)
       })
       : Option.none(),
     agentsMd: agentsMd !== undefined
@@ -135,7 +142,28 @@ export async function expectSetupChanges(
     }).not.toThrow()
   }
 
-  // 5. Snapshot of final AGENTS.md
+  // 5. Snapshot of final .zed/settings.json and validate it's valid JSON
+  const zedSettingsFileChange = result.codeActions
+    .flatMap((action) => action.changes)
+    .find((fc) => fc.fileName === ".zed/settings.json")
+  if (zedSettingsFileChange) {
+    const finalZedSettings = Option.isSome(assessmentInput.zedSettings)
+      ? applyTextChanges(
+        assessmentInput.zedSettings.value.text,
+        zedSettingsFileChange.textChanges
+      )
+      : zedSettingsFileChange.textChanges.map((change) => change.newText).join("")
+
+    expect(finalZedSettings).toMatchSnapshot(".zed/settings.json")
+    expect(finalZedSettings).not.toContain("show_edit_predictions")
+
+    // Assert that the final .zed/settings.json is valid JSON
+    expect(() => {
+      JSON.parse(finalZedSettings)
+    }).not.toThrow()
+  }
+
+  // 6. Snapshot of final AGENTS.md
   const agentsMdFileChange = result.codeActions
     .flatMap((action) => action.changes)
     .find((fc) => fc.fileName === "AGENTS.md")
@@ -147,7 +175,7 @@ export async function expectSetupChanges(
     expect(finalAgentsMd).toMatchSnapshot("AGENTS.md")
   }
 
-  // 6. Snapshot of final CLAUDE.md
+  // 7. Snapshot of final CLAUDE.md
   const claudeMdFileChange = result.codeActions
     .flatMap((action) => action.changes)
     .find((fc) => fc.fileName === "CLAUDE.md")
@@ -185,6 +213,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -210,6 +239,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.some({ floatingEffect: "warning" })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -250,6 +280,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -281,6 +312,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -314,6 +346,7 @@ describe("Setup CLI", () => {
         })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -354,6 +387,7 @@ describe("Setup CLI", () => {
         })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -384,6 +418,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -425,6 +460,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -467,6 +503,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -510,6 +547,7 @@ describe("Setup CLI", () => {
         })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -545,6 +583,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -587,6 +626,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -626,6 +666,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -657,6 +698,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: ["vscode"]
     }
 
@@ -699,6 +741,7 @@ describe("Setup CLI", () => {
         })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -734,6 +777,7 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: ["vscode"]
     }
 
@@ -781,10 +825,177 @@ describe("Setup CLI", () => {
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: ["vscode"]
     }
 
     await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should add LSP with Zed editor selected and create Zed settings", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
+      editors: ["zed"]
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should preserve existing Zed settings when adding missing vtsls config", async () => {
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        dependencies: {}
+      },
+      {
+        compilerOptions: {
+          strict: true,
+          target: "ES2022"
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      {
+        theme: "Ayu Dark",
+        languages: {
+          TSX: {
+            formatter: "prettier",
+            language_servers: ["custom-tsx-server"]
+          },
+          JavaScript: {
+            formatter: "prettier"
+          }
+        },
+        lsp: {
+          vtsls: {
+            initialization_options: {
+              maxTsServerMemory: 4096
+            },
+            settings: {
+              vtsls: {
+                experimental: true
+              }
+            }
+          }
+        }
+      }
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
+      editors: ["zed"]
+    }
+
+    await expectSetupChanges(assessmentInput, targetState)
+  })
+
+  it("should not overwrite existing Zed vtsls settings", async () => {
+    const schemaUrl = "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
+    const assessmentInput = createTestAssessmentInput(
+      {
+        name: "test-project",
+        version: "1.0.0",
+        devDependencies: {
+          "@effect/language-service": "workspace:*"
+        }
+      },
+      {
+        $schema: schemaUrl,
+        compilerOptions: {
+          strict: true,
+          target: "ES2022",
+          plugins: [
+            {
+              name: "@effect/language-service"
+            }
+          ]
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      {
+        languages: {
+          TSX: {
+            language_servers: ["vtsls", "typescript-language-server", "..."]
+          },
+          TypeScript: {
+            language_servers: ["vtsls", "typescript-language-server", "..."]
+          }
+        },
+        lsp: {
+          vtsls: {
+            settings: {
+              typescript: {
+                tsserver: {
+                  pluginPaths: ["./node_modules", "./custom-plugin-dir"]
+                }
+              },
+              vtsls: {
+                autoUseWorkspaceTsdk: false
+              }
+            }
+          }
+        }
+      }
+    )
+
+    const assessmentState = await Effect.runPromise(
+      assess(assessmentInput).pipe(Effect.provide(TypeScriptContext.live(".")))
+    )
+
+    const targetState: Target.State = {
+      packageJson: {
+        lspVersion: Option.some({ dependencyType: "devDependencies" as const, version: "workspace:*" }),
+        prepareScript: false
+      },
+      tsconfig: {
+        diagnosticSeverities: Option.none()
+      },
+      vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
+      editors: ["zed"]
+    }
+
+    const result = await Effect.runPromise(
+      computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContext.live(".")))
+    )
+
+    expect(
+      result.codeActions.some((action) => action.changes.some((change) => change.fileName === ".zed/settings.json"))
+    ).toBe(false)
   })
 
   it("should handle tsconfig with existing plugin having custom options and diagnosticSeverity", async () => {
@@ -852,6 +1063,7 @@ describe("Setup CLI", () => {
         })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -893,6 +1105,7 @@ This is a TypeScript project using Effect.
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -940,6 +1153,7 @@ This is a TypeScript project using Effect.
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 
@@ -995,6 +1209,7 @@ This is a TypeScript project using Effect.
         diagnosticSeverities: Option.none()
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 

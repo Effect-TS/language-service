@@ -63,6 +63,7 @@ export const gatherTargetState = (
           diagnosticSeverities: Option.none()
         },
         vscodeSettings: Option.none(),
+        zedSettings: Option.none(),
         editors: []
       }
     }
@@ -133,8 +134,9 @@ export const gatherTargetState = (
     })
 
     // Editor Selection - Using multi-select
-    // Pre-select VSCode if .vscode/settings.json exists
+    // Pre-select editors when their settings files exist
     const hasVscodeSettings = Option.isSome(assessment.vscodeSettings)
+    const hasZedSettings = Option.isSome(assessment.zedSettings)
 
     const editors = yield* Prompt.multiSelect({
       message: "Which editors do you use?",
@@ -143,6 +145,11 @@ export const gatherTargetState = (
           title: "VS Code / Cursor / VS Code-based editors",
           value: "vscode" as Editor,
           selected: hasVscodeSettings
+        },
+        {
+          title: "Zed",
+          value: "zed" as Editor,
+          selected: hasZedSettings
         },
         {
           title: "Neovim",
@@ -165,6 +172,7 @@ export const gatherTargetState = (
         diagnosticSeverities
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors
     }
   })
