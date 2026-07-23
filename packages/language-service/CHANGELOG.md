@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.87.1
+
+### Patch Changes
+
+- [#765](https://github.com/Effect-TS/language-service/pull/765) [`6b9dab5`](https://github.com/Effect-TS/language-service/commit/6b9dab53ff1d02270358f09ecb3290d0b0f7d244) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Ignore Effect v4 local `Effect.provide(..., { local: true })` calls when reporting chained provides with the `multipleEffectProvide` diagnostic.
+
 ## 0.87.0
 
 ### Minor Changes

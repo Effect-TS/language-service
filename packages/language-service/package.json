@@ -1,6 +1,6 @@
 {
   "name": "@effect/language-service",
-  "version": "0.87.0",
+  "version": "0.87.1",
   "publishConfig": {
     "access": "public",
     "directory": "dist"
