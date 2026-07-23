@@ -21,6 +21,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
+    const supportedEffect = typeParser.supportedEffect()
 
     const effectModuleIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
       sourceFile,
@@ -58,6 +59,23 @@ export const multipleEffectProvide = LSP.createDiagnostic({
         )
 
         if (Option.isSome(isProvideCall)) {
+          const options = transformation.args[1]
+          const isLocalProvide = supportedEffect === "v4" &&
+            options !== undefined &&
+            ts.isObjectLiteralExpression(options) &&
+            options.properties.some((property) =>
+              ts.isPropertyAssignment(property) &&
+              ts.isIdentifier(property.name) &&
+              ts.idText(property.name) === "local" &&
+              property.initializer.kind === ts.SyntaxKind.TrueKeyword
+            )
+
+          if (isLocalProvide) {
+            currentChunk++
+            previousLayers.push([])
+            continue
+          }
+
           const layer = transformation.args[0]
           const type = typeCheckerUtils.getTypeAtLocation(layer)
           const node = ts.findAncestor(transformation.callee, ts.isCallExpression)
