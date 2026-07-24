@@ -40,7 +40,12 @@ export const multipleEffectProvide = LSP.createDiagnostic({
 
     for (const flow of flows) {
       let currentChunk = 0
-      const previousLayers: Array<Array<{ layer: ts.Expression; node: ts.CallExpression }>> = [[]]
+      const previousLayers: Array<
+        Array<{
+          layers: ReadonlyArray<ts.Expression>
+          node: ts.CallExpression
+        }>
+      > = [[]]
 
       // Look for consecutive Effect.provide transformations in the flow
       for (const transformation of flow.transformations) {
@@ -77,19 +82,28 @@ export const multipleEffectProvide = LSP.createDiagnostic({
           }
 
           const layer = transformation.args[0]
-          const type = typeCheckerUtils.getTypeAtLocation(layer)
+          const layers = ts.isArrayLiteralExpression(layer)
+            ? Array.from(layer.elements)
+            : [layer]
           const node = ts.findAncestor(transformation.callee, ts.isCallExpression)
 
-          // Check if the argument is a Layer type and we found the call expression
-          const isLayerType = type
-            ? yield* pipe(
-              typeParser.layerType(type, layer),
-              Nano.option
-            )
-            : Option.none()
+          let allLayers = layers.length > 0
+          for (const candidate of layers) {
+            const type = typeCheckerUtils.getTypeAtLocation(candidate)
+            const isLayerType = type
+              ? yield* pipe(
+                typeParser.layerType(type, candidate),
+                Nano.option
+              )
+              : Option.none()
+            if (Option.isNone(isLayerType)) {
+              allLayers = false
+              break
+            }
+          }
 
-          if (Option.isSome(isLayerType) && node) {
-            previousLayers[currentChunk].push({ layer, node })
+          if (allLayers && node) {
+            previousLayers[currentChunk].push({ layers, node })
           } else {
             // Not a layer, breaks the chain
             currentChunk++
@@ -130,7 +144,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
                     ts.factory.createIdentifier("mergeAll")
                   ),
                   undefined,
-                  chunk.map((c) => c.layer)
+                  chunk.flatMap((c) => c.layers)
                 )]
               )
               changeTracker.insertNodeAt(sourceFile, ts.getTokenPosOfNode(chunk[0].node, sourceFile), newNode)
