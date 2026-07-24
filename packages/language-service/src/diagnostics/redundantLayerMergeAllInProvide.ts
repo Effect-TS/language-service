@@ -4,6 +4,7 @@ import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import { findLayerMergeAllDependencies } from "./layerMergeAllDependencies.js"
 
 export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
   name: "redundantLayerMergeAllInProvide",
@@ -44,6 +45,7 @@ export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
           Nano.orUndefined
         )
         if (!isLayerMergeAll) continue
+        if ((yield* findLayerMergeAllDependencies(argument.arguments)).length > 0) continue
 
         const startLine = sourceFile.getLineAndCharacterOfPosition(ts.getTokenPosOfNode(argument, sourceFile)).line
         const endLine = sourceFile.getLineAndCharacterOfPosition(argument.end).line

@@ -1,13 +1,11 @@
 import { pipe } from "effect/Function"
-import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
-import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
+import { findLayerMergeAllDependencies } from "./layerMergeAllDependencies.js"
 
 export const layerMergeAllWithDependencies = LSP.createDiagnostic({
   name: "layerMergeAllWithDependencies",
@@ -20,8 +18,6 @@ export const layerMergeAllWithDependencies = LSP.createDiagnostic({
   supportedEffect: ["v3", "v4"],
   apply: Nano.fn("layerMergeAllWithDependencies.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
 
@@ -49,123 +45,59 @@ export const layerMergeAllWithDependencies = LSP.createDiagnostic({
         )
 
         if (checkLayerMergeAll) {
-          // Get all layer arguments
           const layerArgs = node.arguments
+          const dependencies = yield* findLayerMergeAllDependencies(layerArgs)
+          for (const dependency of dependencies) {
+            const providerArg = dependency.provider
+            const providedTypes = dependency.providedTypes
+            report({
+              location: providerArg,
+              messageText:
+                `This layer provides ${providedTypes} which is required by another layer in the same Layer.mergeAll call. Layer.mergeAll creates layers in parallel, so dependencies between layers will not be satisfied. Consider moving this layer into a Layer.provideMerge after the Layer.mergeAll.`,
+              fixes: [{
+                fixName: "layerMergeAllWithDependencies_fix",
+                description: "Move layer to Layer.provideMerge",
+                apply: Nano.gen(function*() {
+                  const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
 
-          if (layerArgs.length > 1) {
-            // Parse all layers to extract their ROut (provided) and RIn (required) types
-            const layerInfos: Array<{
-              arg: ts.Expression
-              requirementsType: ts.Type
-            }> = []
+                  // Find the index of the provider argument
+                  const providerIndex = layerArgs.indexOf(providerArg as ts.Expression)
+                  if (providerIndex === -1) return
 
-            // Map of actually provided types -> layer argument that provides it
-            const actuallyProvidedMap = new Map<ts.Type, ts.Expression>()
-
-            for (const arg of layerArgs) {
-              const argType = typeCheckerUtils.getTypeAtLocation(arg)
-              if (!argType) continue
-
-              const layerTypeParsedOption = yield* Nano.option(typeParser.layerType(argType, arg))
-              if (Option.isNone(layerTypeParsedOption)) continue
-
-              const layerTypeParsed = layerTypeParsedOption.value
-
-              // Unroll union members for provided types (ROut)
-              const providedMembers = typeCheckerUtils.unrollUnionMembers(layerTypeParsed.ROut)
-
-              // Filter out pass-through types: types that are both provided and required
-              // Add only actually provided types to the map
-              for (const providedType of providedMembers) {
-                if (providedType.flags & ts.TypeFlags.Never) continue
-                const isPassThrough = typeChecker.isTypeAssignableTo(providedType, layerTypeParsed.RIn)
-                if (!isPassThrough) {
-                  actuallyProvidedMap.set(providedType, arg)
-                }
-              }
-
-              layerInfos.push({
-                arg,
-                requirementsType: layerTypeParsed.RIn
-              })
-            }
-
-            // Check for interdependencies
-            // Build a map of provider -> layers that depend on it
-            const providerToConsumers = new Map<
-              ts.Expression,
-              Array<{ consumer: ts.Expression; providedType: ts.Type }>
-            >()
-
-            for (const layer of layerInfos) {
-              // Check if any of the actually provided types satisfy this layer's requirements
-              for (const [providedType, providerArg] of actuallyProvidedMap) {
-                // Skip if this is the same layer
-                if (providerArg === layer.arg) continue
-
-                // Check if this provided type is assignable to the layer's requirements type
-                if (typeChecker.isTypeAssignableTo(providedType, layer.requirementsType)) {
-                  const consumers = providerToConsumers.get(providerArg) || []
-                  consumers.push({ consumer: layer.arg, providedType })
-                  providerToConsumers.set(providerArg, consumers)
-                }
-              }
-            }
-
-            // Report on providers that have consumers
-            for (const [providerArg, consumers] of providerToConsumers) {
-              const providedTypes = Array.from(new Set(consumers.map((c) => typeChecker.typeToString(c.providedType))))
-                .join(", ")
-
-              report({
-                location: providerArg,
-                messageText:
-                  `This layer provides ${providedTypes} which is required by another layer in the same Layer.mergeAll call. Layer.mergeAll creates layers in parallel, so dependencies between layers will not be satisfied. Consider moving this layer into a Layer.provideMerge after the Layer.mergeAll.`,
-                fixes: [{
-                  fixName: "layerMergeAllWithDependencies_fix",
-                  description: "Move layer to Layer.provideMerge",
-                  apply: Nano.gen(function*() {
-                    const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-
-                    // Find the index of the provider argument
-                    const providerIndex = layerArgs.indexOf(providerArg as ts.Expression)
-                    if (providerIndex === -1) return
-
-                    // Step 1: Delete the provider argument from Layer.mergeAll
-                    // Need to handle commas correctly
-                    const providerArgNode = providerArg as ts.Expression
-                    if (providerIndex === 0 && layerArgs.length > 1) {
-                      // First argument - delete including the trailing comma
-                      changeTracker.deleteRange(sourceFile, {
-                        pos: providerArgNode.pos,
-                        end: layerArgs[1].pos
-                      })
-                    } else if (providerIndex > 0) {
-                      // Not first argument - delete including the preceding comma
-                      changeTracker.deleteRange(sourceFile, {
-                        pos: layerArgs[providerIndex - 1].end,
-                        end: providerArgNode.end
-                      })
-                    }
-
-                    // Step 2: Insert .pipe(Layer.provideMerge(providerArg)) at the end
-                    const provideMergeCall = ts.factory.createCallExpression(
-                      ts.factory.createPropertyAccessExpression(
-                        ts.factory.createIdentifier(layerModuleIdentifier),
-                        ts.factory.createIdentifier("provideMerge")
-                      ),
-                      undefined,
-                      [providerArgNode]
-                    )
-
-                    changeTracker.insertNodeAt(sourceFile, node.end, provideMergeCall, {
-                      prefix: ".pipe("
+                  // Step 1: Delete the provider argument from Layer.mergeAll
+                  // Need to handle commas correctly
+                  const providerArgNode = providerArg as ts.Expression
+                  if (providerIndex === 0 && layerArgs.length > 1) {
+                    // First argument - delete including the trailing comma
+                    changeTracker.deleteRange(sourceFile, {
+                      pos: providerArgNode.pos,
+                      end: layerArgs[1].pos
                     })
-                    changeTracker.insertText(sourceFile, node.end, ")")
+                  } else if (providerIndex > 0) {
+                    // Not first argument - delete including the preceding comma
+                    changeTracker.deleteRange(sourceFile, {
+                      pos: layerArgs[providerIndex - 1].end,
+                      end: providerArgNode.end
+                    })
+                  }
+
+                  // Step 2: Insert .pipe(Layer.provideMerge(providerArg)) at the end
+                  const provideMergeCall = ts.factory.createCallExpression(
+                    ts.factory.createPropertyAccessExpression(
+                      ts.factory.createIdentifier(layerModuleIdentifier),
+                      ts.factory.createIdentifier("provideMerge")
+                    ),
+                    undefined,
+                    [providerArgNode]
+                  )
+
+                  changeTracker.insertNodeAt(sourceFile, node.end, provideMergeCall, {
+                    prefix: ".pipe("
                   })
-                }]
-              })
-            }
+                  changeTracker.insertText(sourceFile, node.end, ")")
+                })
+              }]
+            })
           }
         }
       }

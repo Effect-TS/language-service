@@ -34,3 +34,14 @@ const combined = Layer.mergeAll(first, second)
 export const shouldNotReportPrecomposed = Effect.void.pipe(
   Effect.provide(combined)
 )
+
+class Dependency extends Effect.Service<Dependency>()("Dependency", {
+  succeed: {}
+}) {}
+class Consumer extends Effect.Service<Consumer>()("Consumer", {
+  effect: Effect.as(Dependency, {})
+}) {}
+
+export const shouldNotReportWithDependencies = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(Dependency.Default, Consumer.Default))
+)
