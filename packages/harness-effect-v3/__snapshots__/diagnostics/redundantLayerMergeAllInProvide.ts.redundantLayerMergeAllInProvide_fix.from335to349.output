@@ -1,3 +1,4 @@
+// code fix redundantLayerMergeAllInProvide_fix  output for range 335 - 349
 import { Effect, Layer } from "effect"
 
 const first = Layer.empty
@@ -11,7 +12,7 @@ export const shouldReportPipeable = Effect.void.pipe(
 
 export const shouldReportDataFirst = Effect.provide(
   Effect.void,
-  Layer.mergeAll(first, second)
+  [first, second]
 )
 
 export const shouldReportSpread = Effect.void.pipe(

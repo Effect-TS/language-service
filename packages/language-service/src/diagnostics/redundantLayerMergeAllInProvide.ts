@@ -57,13 +57,19 @@ export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
             description: "Replace Layer.mergeAll with an array",
             apply: Nano.gen(function*() {
               const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-              changeTracker.replaceNode(
-                sourceFile,
-                argument,
-                ts.factory.createArrayLiteralExpression(
+              const onlyArgument = argument.arguments.length === 1
+                ? argument.arguments[0]
+                : undefined
+              const replacement = onlyArgument && ts.isSpreadElement(onlyArgument)
+                ? onlyArgument.expression
+                : ts.factory.createArrayLiteralExpression(
                   argument.arguments,
                   startLine !== endLine
                 )
+              changeTracker.replaceNode(
+                sourceFile,
+                argument,
+                replacement
               )
             })
           }]

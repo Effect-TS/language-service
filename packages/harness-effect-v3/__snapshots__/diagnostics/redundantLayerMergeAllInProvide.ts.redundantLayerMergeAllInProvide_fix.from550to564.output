@@ -1,3 +1,4 @@
+// code fix redundantLayerMergeAllInProvide_fix  output for range 550 - 564
 import { Effect, Layer } from "effect"
 
 const first = Layer.empty
@@ -19,7 +20,7 @@ export const shouldReportSpread = Effect.void.pipe(
 )
 
 export const shouldReportTupleSpread = Effect.void.pipe(
-  Effect.provide(Layer.mergeAll(...layers))
+  Effect.provide(layers)
 )
 
 export const shouldNotReportTransformed = Effect.void.pipe(
