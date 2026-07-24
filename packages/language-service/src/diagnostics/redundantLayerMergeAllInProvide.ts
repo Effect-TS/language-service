@@ -45,8 +45,8 @@ export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
         )
         if (!isLayerMergeAll) continue
 
-        const startLine = sourceFile.getLineAndCharacterOfPosition(argument.getStart(sourceFile)).line
-        const endLine = sourceFile.getLineAndCharacterOfPosition(argument.getEnd()).line
+        const startLine = sourceFile.getLineAndCharacterOfPosition(ts.getTokenPosOfNode(argument, sourceFile)).line
+        const endLine = sourceFile.getLineAndCharacterOfPosition(argument.end).line
 
         report({
           location: argument.expression,
