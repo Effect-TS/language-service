@@ -1,0 +1,2 @@
+Layer.mergeAll
+6:17 - 6:31 | 2 | `Effect.provide` accepts an array of Layers directly, so this `Layer.mergeAll` call is redundant.    effect(redundantLayerMergeAllInProvide)

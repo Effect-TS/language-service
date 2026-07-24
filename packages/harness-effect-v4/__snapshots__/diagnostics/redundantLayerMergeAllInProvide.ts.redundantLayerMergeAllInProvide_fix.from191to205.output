@@ -1,0 +1,35 @@
+// code fix redundantLayerMergeAllInProvide_fix  output for range 191 - 205
+import { Effect, Layer } from "effect"
+
+const first = Layer.empty
+const second = Layer.empty
+const third = Layer.empty
+
+export const shouldReportPipeable = Effect.void.pipe(
+  Effect.provide([first, second])
+)
+
+export const shouldReportWithOptions = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(first, second), { local: true })
+)
+
+export const shouldReportDataFirst = Effect.provide(
+  Effect.void,
+  Layer.mergeAll(first, second)
+)
+
+export const shouldReportSpread = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(...[first, second]))
+)
+
+export const shouldNotReportTransformed = Effect.void.pipe(
+  Effect.provide(
+    Layer.mergeAll(first, second).pipe(Layer.provide(third))
+  )
+)
+
+const combined = Layer.mergeAll(first, second)
+
+export const shouldNotReportPrecomposed = Effect.void.pipe(
+  Effect.provide(combined)
+)
