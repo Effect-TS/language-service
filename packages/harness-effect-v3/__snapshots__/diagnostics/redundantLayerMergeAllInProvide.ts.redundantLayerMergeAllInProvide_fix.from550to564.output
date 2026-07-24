@@ -20,7 +20,7 @@ export const shouldReportSpread = Effect.void.pipe(
 )
 
 export const shouldReportTupleSpread = Effect.void.pipe(
-  Effect.provide(layers)
+  Effect.provide([layers[0], layers[1]])
 )
 
 export const shouldNotReportTransformed = Effect.void.pipe(

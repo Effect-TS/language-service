@@ -1,17 +1,20 @@
 Effect.provide(MyService1.Default)
-22:2 - 22:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
-
-Effect.provide(MyService1.Default)
 27:2 - 27:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
 
 Effect.provide(MyService1.Default)
-30:2 - 30:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
+32:2 - 32:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
 
 Effect.provide(MyService1.Default)
 35:2 - 35:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
 
+Effect.provide(MyService1.Default)
+40:2 - 40:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
+
 Effect.provide(MyService2.Default)
-47:2 - 47:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
+52:2 - 52:36 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
 
 Effect.provide([MyService1.Default, MyService2.Default])
-52:2 - 52:58 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
+57:2 - 57:58 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)
+
+Effect.provide(layerTuple)
+66:2 - 66:28 | 0 | This expression chains multiple `Effect.provide` calls. Providing Layers in multiple calls in a chain can break service lifecycle behavior compared with a single combined provide with merged layers.    effect(multipleEffectProvide)

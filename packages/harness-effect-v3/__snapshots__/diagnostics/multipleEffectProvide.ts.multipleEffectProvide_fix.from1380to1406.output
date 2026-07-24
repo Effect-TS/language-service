@@ -1,3 +1,4 @@
+// code fix multipleEffectProvide_fix  output for range 1380 - 1406
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 
@@ -47,8 +48,7 @@ export const shouldNotReportSingleArray = Effect.void.pipe(
 )
 
 export const shouldReportAfterTupleRewrite = Effect.void.pipe(
-  Effect.provide(layerTuple),
-  Effect.provide(MyService3.Default)
+  Effect.provide(Layer.mergeAll(...layerTuple, MyService3.Default))
 )
 
 export const shouldNotReportSingleTuple = Effect.void.pipe(

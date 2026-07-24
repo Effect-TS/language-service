@@ -2,6 +2,8 @@ import { pipe } from "effect/Function"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
+import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
+import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import { findLayerMergeAllDependencies } from "./layerMergeAllDependencies.js"
@@ -16,6 +18,8 @@ export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
   supportedEffect: ["v3", "v4"],
   apply: Nano.fn("redundantLayerMergeAllInProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
+    const typeChecker = yield* Nano.service(TypeCheckerApi.TypeCheckerApi)
+    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const nodesToVisit: Array<ts.Node> = []
@@ -49,6 +53,44 @@ export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
 
         const startLine = sourceFile.getLineAndCharacterOfPosition(ts.getTokenPosOfNode(argument, sourceFile)).line
         const endLine = sourceFile.getLineAndCharacterOfPosition(argument.end).line
+        const onlyArgument = argument.arguments.length === 1
+          ? argument.arguments[0]
+          : undefined
+        let replacement: ts.Expression
+        if (onlyArgument && ts.isSpreadElement(onlyArgument)) {
+          const spreadExpression = onlyArgument.expression
+          const spreadType = typeCheckerUtils.getTypeAtLocation(spreadExpression)
+          if (
+            spreadType &&
+            typeChecker.isTupleType(spreadType) &&
+            (spreadType as ts.TupleTypeReference).target.readonly
+          ) {
+            const tupleTarget = (spreadType as ts.TupleTypeReference).target
+            const elementTypes = typeChecker.getTypeArguments(spreadType as ts.TypeReference)
+            if (
+              !ts.isIdentifier(spreadExpression) ||
+              elementTypes.length === 0 ||
+              tupleTarget.elementFlags.some((flag) => flag !== ts.ElementFlags.Required)
+            ) {
+              continue
+            }
+            replacement = ts.factory.createArrayLiteralExpression(
+              elementTypes.map((_, index) =>
+                ts.factory.createElementAccessExpression(
+                  ts.factory.createIdentifier(spreadExpression.text),
+                  index
+                )
+              )
+            )
+          } else {
+            replacement = spreadExpression
+          }
+        } else {
+          replacement = ts.factory.createArrayLiteralExpression(
+            argument.arguments,
+            startLine !== endLine
+          )
+        }
 
         report({
           location: argument.expression,
@@ -59,15 +101,6 @@ export const redundantLayerMergeAllInProvide = LSP.createDiagnostic({
             description: "Replace Layer.mergeAll with an array",
             apply: Nano.gen(function*() {
               const changeTracker = yield* Nano.service(TypeScriptApi.ChangeTracker)
-              const onlyArgument = argument.arguments.length === 1
-                ? argument.arguments[0]
-                : undefined
-              const replacement = onlyArgument && ts.isSpreadElement(onlyArgument)
-                ? onlyArgument.expression
-                : ts.factory.createArrayLiteralExpression(
-                  argument.arguments,
-                  startLine !== endLine
-                )
               changeTracker.replaceNode(
                 sourceFile,
                 argument,

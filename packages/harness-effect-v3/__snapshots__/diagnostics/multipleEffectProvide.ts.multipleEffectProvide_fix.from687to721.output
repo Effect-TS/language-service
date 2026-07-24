@@ -1,3 +1,4 @@
+// code fix multipleEffectProvide_fix  output for range 687 - 721
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 
@@ -24,8 +25,7 @@ export const shouldReport = Effect.void.pipe(
 )
 
 export const shouldReportSeparately = Effect.void.pipe(
-  Effect.provide(MyService1.Default),
-  Effect.provide(MyService2.Default),
+  Effect.provide(Layer.mergeAll(MyService1.Default, MyService2.Default)),
   Effect.ignoreLogged,
   Effect.provide(MyService1.Default),
   Effect.provide(MyService2.Default)

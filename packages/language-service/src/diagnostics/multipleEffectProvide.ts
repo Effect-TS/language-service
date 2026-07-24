@@ -3,10 +3,10 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
+import { parseEffectProvideLayerArgument } from "./effectProvideLayerArgument.js"
 
 export const multipleEffectProvide = LSP.createDiagnostic({
   name: "multipleEffectProvide",
@@ -19,7 +19,6 @@ export const multipleEffectProvide = LSP.createDiagnostic({
   apply: Nano.fn("multipleEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const supportedEffect = typeParser.supportedEffect()
 
@@ -82,28 +81,14 @@ export const multipleEffectProvide = LSP.createDiagnostic({
           }
 
           const layer = transformation.args[0]
-          const layers = ts.isArrayLiteralExpression(layer)
-            ? Array.from(layer.elements)
-            : [layer]
           const node = ts.findAncestor(transformation.callee, ts.isCallExpression)
+          const layers = yield* pipe(
+            parseEffectProvideLayerArgument(layer),
+            Nano.option
+          )
 
-          let allLayers = layers.length > 0
-          for (const candidate of layers) {
-            const type = typeCheckerUtils.getTypeAtLocation(candidate)
-            const isLayerType = type
-              ? yield* pipe(
-                typeParser.layerType(type, candidate),
-                Nano.option
-              )
-              : Option.none()
-            if (Option.isNone(isLayerType)) {
-              allLayers = false
-              break
-            }
-          }
-
-          if (allLayers && node) {
-            previousLayers[currentChunk].push({ layers, node })
+          if (Option.isSome(layers) && node) {
+            previousLayers[currentChunk].push({ layers: layers.value, node })
           } else {
             // Not a layer, breaks the chain
             currentChunk++

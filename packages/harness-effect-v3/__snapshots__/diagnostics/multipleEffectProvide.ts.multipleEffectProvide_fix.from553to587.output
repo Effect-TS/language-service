@@ -1,3 +1,4 @@
+// code fix multipleEffectProvide_fix  output for range 553 - 587
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 
@@ -19,8 +20,7 @@ const layerTuple: [typeof MyService1.Default, typeof MyService2.Default] = [
 ]
 
 export const shouldReport = Effect.void.pipe(
-  Effect.provide(MyService1.Default),
-  Effect.provide(MyService2.Default)
+  Effect.provide(Layer.mergeAll(MyService1.Default, MyService2.Default))
 )
 
 export const shouldReportSeparately = Effect.void.pipe(
