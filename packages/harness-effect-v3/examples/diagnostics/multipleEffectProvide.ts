@@ -13,6 +13,11 @@ class MyService3 extends Effect.Service<MyService3>()("MyService3", {
   succeed: { value: 3 }
 }) {}
 
+const layerTuple: [typeof MyService1.Default, typeof MyService2.Default] = [
+  MyService1.Default,
+  MyService2.Default
+]
+
 export const shouldReport = Effect.void.pipe(
   Effect.provide(MyService1.Default),
   Effect.provide(MyService2.Default)
@@ -30,4 +35,22 @@ export const shouldReportSingle = Effect.void.pipe(
   Effect.provide(MyService1.Default),
   Effect.provide(MyService2.Default),
   Effect.provide(MyService3.Default)
+)
+
+export const shouldReportAfterArrayRewrite = Effect.void.pipe(
+  Effect.provide([MyService1.Default, MyService2.Default]),
+  Effect.provide(MyService3.Default)
+)
+
+export const shouldNotReportSingleArray = Effect.void.pipe(
+  Effect.provide([MyService1.Default, MyService2.Default])
+)
+
+export const shouldReportAfterTupleRewrite = Effect.void.pipe(
+  Effect.provide(layerTuple),
+  Effect.provide(MyService3.Default)
+)
+
+export const shouldNotReportSingleTuple = Effect.void.pipe(
+  Effect.provide(layerTuple)
 )

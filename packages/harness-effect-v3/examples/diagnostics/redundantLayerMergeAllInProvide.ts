@@ -1,0 +1,46 @@
+import { Effect, Layer } from "effect"
+
+const first = Layer.empty
+const second = Layer.empty
+const third = Layer.empty
+const layers = [first, second] as const
+
+export const shouldReportPipeable = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(first, second))
+)
+
+export const shouldReportDataFirst = Effect.provide(
+  Effect.void,
+  Layer.mergeAll(first, second)
+)
+
+export const shouldReportSpread = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(...[first, second]))
+)
+
+export const shouldReportTupleSpread = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(...layers))
+)
+
+export const shouldNotReportTransformed = Effect.void.pipe(
+  Effect.provide(
+    Layer.mergeAll(first, second).pipe(Layer.provide(third))
+  )
+)
+
+const combined = Layer.mergeAll(first, second)
+
+export const shouldNotReportPrecomposed = Effect.void.pipe(
+  Effect.provide(combined)
+)
+
+class Dependency extends Effect.Service<Dependency>()("Dependency", {
+  succeed: {}
+}) {}
+class Consumer extends Effect.Service<Consumer>()("Consumer", {
+  effect: Effect.as(Dependency, {})
+}) {}
+
+export const shouldNotReportWithDependencies = Effect.void.pipe(
+  Effect.provide(Layer.mergeAll(Dependency.Default, Consumer.Default))
+)

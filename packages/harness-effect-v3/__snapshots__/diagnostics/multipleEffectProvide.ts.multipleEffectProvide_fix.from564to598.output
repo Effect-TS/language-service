@@ -31,3 +31,12 @@ export const shouldReportSingle = Effect.void.pipe(
   Effect.provide(MyService2.Default),
   Effect.provide(MyService3.Default)
 )
+
+export const shouldReportAfterArrayRewrite = Effect.void.pipe(
+  Effect.provide([MyService1.Default, MyService2.Default]),
+  Effect.provide(MyService3.Default)
+)
+
+export const shouldNotReportSingleArray = Effect.void.pipe(
+  Effect.provide([MyService1.Default, MyService2.Default])
+)

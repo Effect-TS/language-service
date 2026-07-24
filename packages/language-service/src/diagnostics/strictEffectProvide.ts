@@ -3,9 +3,9 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
+import { parseEffectProvideLayerArgument } from "./effectProvideLayerArgument.js"
 
 export const strictEffectProvide = LSP.createDiagnostic({
   name: "strictEffectProvide",
@@ -17,7 +17,6 @@ export const strictEffectProvide = LSP.createDiagnostic({
   supportedEffect: ["v3", "v4"],
   apply: Nano.fn("strictEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
     const parseEffectProvideWithLayerGen = Nano.fn("strictEffectProvide.parseEffectProvideWithLayer")(
@@ -27,11 +26,7 @@ export const strictEffectProvide = LSP.createDiagnostic({
 
         // Check if any argument is a Layer using firstSuccessOf
         return yield* Nano.firstSuccessOf(
-          node.arguments.map((arg) => {
-            const argType = typeCheckerUtils.getTypeAtLocation(arg)
-            if (!argType) return TypeParser.typeParserIssue("Could not get argument type")
-            return typeParser.layerType(argType, arg)
-          })
+          node.arguments.map(parseEffectProvideLayerArgument)
         )
       }
     )
