@@ -1,5 +1,11 @@
 # @effect/language-service
 
+## 0.87.2
+
+### Patch Changes
+
+- [#768](https://github.com/Effect-TS/language-service/pull/768) [`15fb3c3`](https://github.com/Effect-TS/language-service/commit/15fb3c3d93f61300e2a0ba5f2b8b7c227d4cb593) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update Effect v4 compatibility to 4.0.0-beta.104, including the renamed `Schema.Error` and `Schema.TaggedError` constructors.
+
 ## 0.87.1
 
 ### Patch Changes
