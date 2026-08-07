@@ -9,7 +9,7 @@ class NonYieldable extends Error {
 
 class DataTaggedError extends Data.TaggedError("DataTaggedError")<{}> {}
 
-class SchemaError extends Schema.ErrorClass<SchemaError>("SchemaError")({
+class SchemaError extends Schema.Error<SchemaError>("SchemaError")({
   _tag: Schema.tag("SchemaError")
 }) {}
 

@@ -396,8 +396,8 @@ export const formatNestedLayerGraph = Nano.fn("formatNestedLayerGraph")(
 
     // and then the edges
     for (const edgeInfo of Graph.values(Graph.edges(layerGraph))) {
-      const sourceData = layerGraph.nodes.get(edgeInfo.source)!
-      const targetData = layerGraph.nodes.get(edgeInfo.target)!
+      const sourceData = Option.getOrUndefined(Graph.getNode(layerGraph, edgeInfo.source))!
+      const targetData = Option.getOrUndefined(Graph.getNode(layerGraph, edgeInfo.target))!
       let connected: boolean = false
       for (const kind of ["requires", "provides"] as const) {
         for (let i = 0; i < sourceData[kind].length; i++) {
@@ -540,13 +540,27 @@ export interface LayerMagicResult {
   missingOutputTypes: Set<ts.Type>
 }
 
+const traversalNeighbors = <N, E>(
+  graph: Graph.Graph<N, E, "directed"> | Graph.MutableGraph<N, E, "directed">,
+  node: Graph.NodeIndex,
+  direction: Graph.TraversalDirection
+) =>
+  direction === "undirected"
+    ? [...new Set([...Graph.successors(graph, node), ...Graph.predecessors(graph, node)])]
+    : direction === "outgoing"
+    ? Graph.successors(graph, node)
+    : Graph.predecessors(graph, node)
+
 export const dfsPostOrderWithOrder = <N, E>(
   graph: Graph.Graph<N, E, "directed"> | Graph.MutableGraph<N, E, "directed">,
   config: Graph.SearchConfig & { order: Order.Order<N> }
 ): Graph.NodeWalker<N> => {
   const start = config.start ?? []
   const direction = config.direction ?? "outgoing"
-  const orderByIndex = Order.mapInput(config.order, (_: Graph.NodeIndex) => graph.nodes.get(_)!)
+  const orderByIndex = Order.mapInput(
+    config.order,
+    (_: Graph.NodeIndex) => Option.getOrUndefined(Graph.getNode(graph, _))!
+  )
 
   return new Graph.Walker((f) => ({
     [Symbol.iterator]: () => {
@@ -572,7 +586,7 @@ export const dfsPostOrderWithOrder = <N, E>(
 
           if (!current.visitedChildren) {
             current.visitedChildren = true
-            const neighbors = Graph.neighborsDirected(graph, current.node, direction)
+            const neighbors = traversalNeighbors(graph, current.node, direction)
             const sortedNeighbors = Array.sort(neighbors, orderByIndex)
             for (let i = sortedNeighbors.length - 1; i >= 0; i--) {
               const neighbor = sortedNeighbors[i]
@@ -626,7 +640,10 @@ export const convertOutlineGraphToLayerMagic = Nano.fn("convertOutlineGraphToLay
     const layerOrder = Order.combine(orderByProvidedCount, orderByRequiredCount)
 
     // no need to filter because the outline graph is already deduplicated and only keeping childs
-    const reversedGraph = Graph.mutate(outlineGraph, Graph.reverse)
+    const reversedGraph = Graph.mutate(outlineGraph, (mutable) => {
+      Graph.reverse(mutable)
+      return undefined
+    })
     const rootIndexes = Array.fromIterable(Graph.indices(Graph.externals(reversedGraph, { direction: "incoming" })))
     const allNodes = Array.fromIterable(
       Graph.values(dfsPostOrderWithOrder(reversedGraph, { start: rootIndexes, order: layerOrder }))
@@ -674,7 +691,7 @@ export const walkLeavesMatching = <N, E>(
           if (discovered.has(current)) continue
           discovered.add(current)
 
-          const neighbors = Graph.neighborsDirected(graph, current, direction)
+          const neighbors = traversalNeighbors(graph, current, direction)
           const neighborsMatching: Array<Graph.NodeIndex> = []
           for (const neighbor of neighbors) {
             const neighborNode = Graph.getNode(graph, neighbor)

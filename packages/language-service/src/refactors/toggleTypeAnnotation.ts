@@ -1,6 +1,7 @@
 import * as Array from "effect/Array"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
+import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
 import * as TypeCheckerApi from "../core/TypeCheckerApi.js"
@@ -51,14 +52,38 @@ export const toggleTypeAnnotation = LSP.createRefactor({
             Option.getOrUndefined
           )
           if (initializerTypeNode) {
+            // Effect beta.104 exposes Option through its declaration path; emit the public package path.
+            const transformed = ts.transform(initializerTypeNode, [(context) => {
+              const visit = (node: ts.Node): ts.VisitResult<ts.Node> => {
+                if (
+                  ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) &&
+                  ts.isStringLiteral(node.argument.literal) &&
+                  node.argument.literal.text === "node_modules/effect/dist/Option"
+                ) {
+                  return ts.factory.updateImportTypeNode(
+                    node,
+                    ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(
+                      "effect/Option"
+                    )),
+                    node.attributes,
+                    node.qualifier,
+                    node.typeArguments,
+                    node.isTypeOf
+                  )
+                }
+                return ts.visitEachChild(node, visit, context)
+              }
+              return (node) => ts.visitNode(node, visit) as ts.TypeNode
+            }])
             changeTracker.insertNodeAt(
               sourceFile,
               node.name.end,
-              initializerTypeNode,
+              transformed.transformed[0] as ts.TypeNode,
               {
                 prefix: ": "
               }
             )
+            transformed.dispose()
           }
         }),
         Nano.provideService(TypeScriptApi.TypeScriptApi, ts)

@@ -133,6 +133,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "race": asUnchanged,
   "raceAll": asUnchanged,
   "raceFirst": asUnchanged,
+  "reduce": asUnchanged,
   "repeat": asUnchanged,
   "repeatOrElse": asUnchanged,
   "replicate": asUnchanged,
@@ -178,7 +179,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "void": asUnchanged,
   "when": asUnchanged,
   "whileLoop": asUnchanged,
-  "withConcurrency": asUnchanged,
   "withExecutionPlan": asUnchanged,
   "withLogSpan": asUnchanged,
   "withParentSpan": asUnchanged,
@@ -495,9 +495,6 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "randomWith": asRemoved(
     "Random access has been reworked in Effect v4."
   ),
-  "reduce": asRemoved(
-    "Use Effect.forEach with a mutable accumulator or Effect.gen instead."
-  ),
   "reduceEffect": asRemoved(
     "Use Effect.forEach with a mutable accumulator or Effect.gen instead."
   ),
@@ -648,6 +645,9 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   ),
   "withConsoleScoped": asRemoved(
     "Console configuration has been reworked in Effect v4."
+  ),
+  "withConcurrency": asRemoved(
+    "Pass concurrency through operation options, such as Effect.all or Effect.forEach."
   ),
   "withEarlyRelease": asRemoved(
     "Use Effect.scoped with manual resource management instead."

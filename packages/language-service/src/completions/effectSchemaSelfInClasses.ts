@@ -56,43 +56,22 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
     }
 
     // Check for Schema.TaggedError or direct import TaggedError
-    if (typeParser.supportedEffect() === "v3") {
-      const hasTaggedErrorCompletion = isFullyQualified || Option.isSome(
-        yield* pipe(
-          typeParser.isNodeReferenceToEffectSchemaModuleApi("TaggedError")(accessedObject),
-          Nano.option
-        )
+    const hasTaggedErrorCompletion = isFullyQualified || Option.isSome(
+      yield* pipe(
+        typeParser.isNodeReferenceToEffectSchemaModuleApi("TaggedError")(accessedObject),
+        Nano.option
       )
-      if (hasTaggedErrorCompletion) {
-        completions.push({
-          name: `TaggedError<${name}>`,
-          kind: ts.ScriptElementKind.constElement,
-          insertText: isFullyQualified
-            ? `${schemaIdentifier}.TaggedError<${name}>()("${errorTagKey}", {${"${0}"}}){}`
-            : `TaggedError<${name}>()("${errorTagKey}", {${"${0}"}}){}`,
-          replacementSpan,
-          isSnippet: true
-        })
-      }
-    }
-    if (typeParser.supportedEffect() === "v4") {
-      const hasTaggedErrorCompletion = isFullyQualified || Option.isSome(
-        yield* pipe(
-          typeParser.isNodeReferenceToEffectSchemaModuleApi("TaggedErrorClass")(accessedObject),
-          Nano.option
-        )
-      )
-      if (hasTaggedErrorCompletion) {
-        completions.push({
-          name: `TaggedErrorClass<${name}>`,
-          kind: ts.ScriptElementKind.constElement,
-          insertText: isFullyQualified
-            ? `${schemaIdentifier}.TaggedErrorClass<${name}>()("${errorTagKey}", {${"${0}"}}){}`
-            : `TaggedErrorClass<${name}>()("${errorTagKey}", {${"${0}"}}){}`,
-          replacementSpan,
-          isSnippet: true
-        })
-      }
+    )
+    if (hasTaggedErrorCompletion) {
+      completions.push({
+        name: `TaggedError<${name}>`,
+        kind: ts.ScriptElementKind.constElement,
+        insertText: isFullyQualified
+          ? `${schemaIdentifier}.TaggedError<${name}>()("${errorTagKey}", {${"${0}"}}){}`
+          : `TaggedError<${name}>()("${errorTagKey}", {${"${0}"}}){}`,
+        replacementSpan,
+        isSnippet: true
+      })
     }
 
     // Check for Schema.TaggedClass or direct import TaggedClass
@@ -136,19 +115,19 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
     }
 
     if (typeParser.supportedEffect() === "v4") {
-      const hasErrorClassCompletion = isFullyQualified || Option.isSome(
+      const hasErrorCompletion = isFullyQualified || Option.isSome(
         yield* pipe(
-          typeParser.isNodeReferenceToEffectSchemaModuleApi("ErrorClass")(accessedObject),
+          typeParser.isNodeReferenceToEffectSchemaModuleApi("Error")(accessedObject),
           Nano.option
         )
       )
-      if (hasErrorClassCompletion) {
+      if (hasErrorCompletion) {
         completions.push({
-          name: `ErrorClass<${name}>`,
+          name: `Error<${name}>`,
           kind: ts.ScriptElementKind.constElement,
           insertText: isFullyQualified
-            ? `${schemaIdentifier}.ErrorClass<${name}>("${name}")({${"${0}"}}){}`
-            : `ErrorClass<${name}>()({${"${0}"}}){}`,
+            ? `${schemaIdentifier}.Error<${name}>("${name}")({${"${0}"}}){}`
+            : `Error<${name}>("${name}")({${"${0}"}}){}`,
           replacementSpan,
           isSnippet: true
         })
