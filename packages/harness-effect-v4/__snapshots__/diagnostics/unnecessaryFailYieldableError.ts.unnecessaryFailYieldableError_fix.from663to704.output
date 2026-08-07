@@ -1,4 +1,4 @@
-// code fix unnecessaryFailYieldableError_fix  output for range 712 - 751
+// code fix unnecessaryFailYieldableError_fix  output for range 663 - 704
 /** @effect-diagnostics missingReturnYieldStar:skip-file */
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
@@ -10,7 +10,7 @@ class NonYieldable extends Error {
 
 class DataTaggedError extends Data.TaggedError("DataTaggedError")<{}> {}
 
-class SchemaError extends Schema.ErrorClass<SchemaError>("SchemaError")({
+class SchemaError extends Schema.Error<SchemaError>("SchemaError")({
   _tag: Schema.tag("SchemaError")
 }) {}
 
@@ -20,8 +20,8 @@ export const unnecessaryFailYieldableError = Effect.gen(function*() {
   const err = new DataTaggedError()
   console.log(err)
   // should report
-  yield* Effect.fail(new DataTaggedError())
-  yield* new SchemaError({})
+  yield* new DataTaggedError()
+  yield* Effect.fail(new SchemaError({}))
 })
 
 // should not report

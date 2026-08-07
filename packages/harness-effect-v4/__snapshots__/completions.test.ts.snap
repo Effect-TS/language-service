@@ -165,6 +165,38 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_direct
 ]
 `;
 
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportError.ts at 4:35 1`] = `
+[
+  {
+    "insertText": "Error<MyError>("MyError")({\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "Error<MyError>",
+    "replacementSpan": {
+      "length": 5,
+      "start": 143,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
+exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_directImportTaggedError.ts at 4:40 1`] = `
+[
+  {
+    "insertText": "TaggedError<MyError>()("MyError", {\${0}}){}",
+    "isSnippet": true,
+    "kind": "const",
+    "name": "TaggedError<MyError>",
+    "replacementSpan": {
+      "length": 11,
+      "start": 149,
+    },
+    "sortText": "11",
+  },
+]
+`;
+
 exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotToken.ts at 4:22 1`] = `
 [
   {
@@ -179,10 +211,10 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "sortText": "11",
   },
   {
-    "insertText": "S.TaggedErrorClass<Test>()("Test", {\${0}}){}",
+    "insertText": "S.TaggedError<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "TaggedErrorClass<Test>",
+    "name": "TaggedError<Test>",
     "replacementSpan": {
       "length": 2,
       "start": 130,
@@ -201,10 +233,10 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_dotTok
     "sortText": "11",
   },
   {
-    "insertText": "S.ErrorClass<Test>("Test")({\${0}}){}",
+    "insertText": "S.Error<Test>("Test")({\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "ErrorClass<Test>",
+    "name": "Error<Test>",
     "replacementSpan": {
       "length": 2,
       "start": 130,
@@ -244,10 +276,10 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "sortText": "11",
   },
   {
-    "insertText": "S.TaggedErrorClass<Test>()("Test", {\${0}}){}",
+    "insertText": "S.TaggedError<Test>()("Test", {\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "TaggedErrorClass<Test>",
+    "name": "TaggedError<Test>",
     "replacementSpan": {
       "length": 5,
       "start": 130,
@@ -266,10 +298,10 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_tagg.t
     "sortText": "11",
   },
   {
-    "insertText": "S.ErrorClass<Test>("Test")({\${0}}){}",
+    "insertText": "S.Error<Test>("Test")({\${0}}){}",
     "isSnippet": true,
     "kind": "const",
-    "name": "ErrorClass<Test>",
+    "name": "Error<Test>",
     "replacementSpan": {
       "length": 5,
       "start": 130,
