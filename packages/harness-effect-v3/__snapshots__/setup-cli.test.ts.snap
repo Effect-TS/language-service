@@ -140,6 +140,83 @@ exports[`Setup CLI > should add LSP with VS Code editor selected and configure V
 }"
 `;
 
+exports[`Setup CLI > should add LSP with Zed editor selected and create Zed settings > .zed/settings.json 1`] = `
+"{
+  "languages": {
+    "TSX": {
+      "language_servers": [
+        "vtsls",
+        "typescript-language-server",
+        "..."
+      ]
+    },
+    "TypeScript": {
+      "language_servers": [
+        "vtsls",
+        "typescript-language-server",
+        "..."
+      ]
+    }
+  },
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsserver": {
+            "pluginPaths": [
+              "./node_modules"
+            ]
+          }
+        },
+        "vtsls": {
+          "autoUseWorkspaceTsdk": true
+        }
+      }
+    }
+  }
+}
+"
+`;
+
+exports[`Setup CLI > should add LSP with Zed editor selected and create Zed settings > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Create .zed/settings.json with vtsls settings",
+    "file": ".zed/settings.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should add LSP with Zed editor selected and create Zed settings > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should add LSP with Zed editor selected and create Zed settings > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
+}"
+`;
+
 exports[`Setup CLI > should generate changes for adding LSP with custom diagnostic severities > change summary 1`] = `
 [
   {
@@ -600,6 +677,93 @@ exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-sp
 `;
 
 exports[`Setup CLI > should preserve existing VSCode settings when adding LSP-specific settings > tsconfig.json 1`] = `
+"{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+"plugins": [
+	{ "name": "@effect/language-service" }
+]
+  },
+"$schema": "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
+}"
+`;
+
+exports[`Setup CLI > should preserve existing Zed settings when adding missing vtsls config > .zed/settings.json 1`] = `
+"{
+  "theme": "Ayu Dark",
+  "languages": {
+    "TSX": {
+      "formatter": "prettier",
+      "language_servers": [
+        "vtsls",
+        "typescript-language-server",
+        "...",
+        "custom-tsx-server"
+      ]
+    },
+    "JavaScript": {
+      "formatter": "prettier"
+    },
+    "TypeScript": {
+      "language_servers": [
+        "vtsls",
+        "typescript-language-server",
+        "..."
+      ]
+    }
+  },
+  "lsp": {
+    "vtsls": {
+      "initialization_options": {
+        "maxTsServerMemory": 4096
+      },
+      "settings": {
+        "vtsls": {
+          "experimental": true,
+          "autoUseWorkspaceTsdk": true
+        },
+        "typescript": {
+          "tsserver": {
+            "pluginPaths": [
+              "./node_modules"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+"
+`;
+
+exports[`Setup CLI > should preserve existing Zed settings when adding missing vtsls config > change summary 1`] = `
+[
+  {
+    "description": "Add @effect/language-service@workspace:* to devDependencies",
+    "file": "package.json",
+  },
+  {
+    "description": "Add $schema to tsconfig; Add plugins array with @effect/language-service plugin",
+    "file": "tsconfig.json",
+  },
+  {
+    "description": "Update .zed/settings.json with vtsls settings",
+    "file": ".zed/settings.json",
+  },
+]
+`;
+
+exports[`Setup CLI > should preserve existing Zed settings when adding missing vtsls config > package.json 1`] = `
+"{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {},
+"devDependencies": { "@effect/language-service": "workspace:*" }
+}"
+`;
+
+exports[`Setup CLI > should preserve existing Zed settings when adding missing vtsls config > tsconfig.json 1`] = `
 "{
   "compilerOptions": {
     "strict": true,
