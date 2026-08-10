@@ -10,6 +10,11 @@ class MyService2 extends Effect.Service<MyService2>()("MyService2", {
   succeed: { value: 2 }
 }) {}
 
+const layerTuple: [typeof MyService1.Default, typeof MyService2.Default] = [
+  MyService1.Default,
+  MyService2.Default
+]
+
 // Should report: Effect.provide with a Layer
 export const shouldReport1 = Effect.void.pipe(
   Effect.provide(MyService1.Default)
@@ -28,6 +33,11 @@ export const shouldReport3 = Effect.void.pipe(
 // Should report: Multiple layers provided
 export const shouldReport4 = Effect.void.pipe(
   Effect.provide(Layer.mergeAll(MyService1.Default, MyService2.Default))
+)
+
+// Should report: non-empty tuples are Layer collections accepted by Effect.provide
+export const shouldReport5 = Effect.void.pipe(
+  Effect.provide(layerTuple)
 )
 
 // Should NOT report: providing a plain service (not a layer)

@@ -3,10 +3,10 @@ import * as Option from "effect/Option"
 import type ts from "typescript"
 import * as LSP from "../core/LSP.js"
 import * as Nano from "../core/Nano.js"
-import * as TypeCheckerUtils from "../core/TypeCheckerUtils.js"
 import * as TypeParser from "../core/TypeParser.js"
 import * as TypeScriptApi from "../core/TypeScriptApi.js"
 import * as TypeScriptUtils from "../core/TypeScriptUtils.js"
+import { parseEffectProvideLayerArgument } from "./effectProvideLayerArgument.js"
 
 export const multipleEffectProvide = LSP.createDiagnostic({
   name: "multipleEffectProvide",
@@ -19,7 +19,6 @@ export const multipleEffectProvide = LSP.createDiagnostic({
   apply: Nano.fn("multipleEffectProvide.apply")(function*(sourceFile, report) {
     const ts = yield* Nano.service(TypeScriptApi.TypeScriptApi)
     const tsUtils = yield* Nano.service(TypeScriptUtils.TypeScriptUtils)
-    const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
     const supportedEffect = typeParser.supportedEffect()
 
@@ -40,7 +39,12 @@ export const multipleEffectProvide = LSP.createDiagnostic({
 
     for (const flow of flows) {
       let currentChunk = 0
-      const previousLayers: Array<Array<{ layer: ts.Expression; node: ts.CallExpression }>> = [[]]
+      const previousLayers: Array<
+        Array<{
+          layers: ReadonlyArray<ts.Expression>
+          node: ts.CallExpression
+        }>
+      > = [[]]
 
       // Look for consecutive Effect.provide transformations in the flow
       for (const transformation of flow.transformations) {
@@ -77,19 +81,14 @@ export const multipleEffectProvide = LSP.createDiagnostic({
           }
 
           const layer = transformation.args[0]
-          const type = typeCheckerUtils.getTypeAtLocation(layer)
           const node = ts.findAncestor(transformation.callee, ts.isCallExpression)
+          const layers = yield* pipe(
+            parseEffectProvideLayerArgument(layer),
+            Nano.option
+          )
 
-          // Check if the argument is a Layer type and we found the call expression
-          const isLayerType = type
-            ? yield* pipe(
-              typeParser.layerType(type, layer),
-              Nano.option
-            )
-            : Option.none()
-
-          if (Option.isSome(isLayerType) && node) {
-            previousLayers[currentChunk].push({ layer, node })
+          if (Option.isSome(layers) && node) {
+            previousLayers[currentChunk].push({ layers: layers.value, node })
           } else {
             // Not a layer, breaks the chain
             currentChunk++
@@ -130,7 +129,7 @@ export const multipleEffectProvide = LSP.createDiagnostic({
                     ts.factory.createIdentifier("mergeAll")
                   ),
                   undefined,
-                  chunk.map((c) => c.layer)
+                  chunk.flatMap((c) => c.layers)
                 )]
               )
               changeTracker.insertNodeAt(sourceFile, ts.getTokenPosOfNode(chunk[0].node, sourceFile), newNode)

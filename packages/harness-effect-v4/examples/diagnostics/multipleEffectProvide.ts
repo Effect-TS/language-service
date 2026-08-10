@@ -18,6 +18,11 @@ class MyService3 extends Context.Service<MyService3>()("MyService3", {
   static Default = Layer.effect(this, this.make)
 }
 
+const layerTuple: [typeof MyService1.Default, typeof MyService2.Default] = [
+  MyService1.Default,
+  MyService2.Default
+]
+
 export const shouldReport = Effect.void.pipe(
   Effect.provide(MyService1.Default),
   Effect.provide(MyService2.Default)
@@ -46,4 +51,22 @@ export const shouldReportAfterLocalProvide = Effect.void.pipe(
   Effect.provide(MyService1.Default, { local: true }),
   Effect.provide(MyService2.Default),
   Effect.provide(MyService3.Default)
+)
+
+export const shouldReportAfterArrayRewrite = Effect.void.pipe(
+  Effect.provide([MyService1.Default, MyService2.Default]),
+  Effect.provide(MyService3.Default)
+)
+
+export const shouldNotReportSingleArray = Effect.void.pipe(
+  Effect.provide([MyService1.Default, MyService2.Default])
+)
+
+export const shouldReportAfterTupleRewrite = Effect.void.pipe(
+  Effect.provide(layerTuple),
+  Effect.provide(MyService3.Default)
+)
+
+export const shouldNotReportSingleTuple = Effect.void.pipe(
+  Effect.provide(layerTuple)
 )

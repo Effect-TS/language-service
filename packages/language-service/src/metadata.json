@@ -1471,6 +1471,27 @@
       }
     },
     {
+      "name": "redundantLayerMergeAllInProvide",
+      "group": "style",
+      "description": "Replaces direct Layer.mergeAll arguments to Effect.provide with an array of layers",
+      "defaultSeverity": "suggestion",
+      "fixable": true,
+      "supportedEffect": [
+        "v3",
+        "v4"
+      ],
+      "preview": {
+        "sourceText": "import { Effect, Layer } from \"effect\"\n\nexport const preview = Effect.void.pipe(\n  Effect.provide(Layer.mergeAll(Layer.empty, Layer.empty))\n)\n",
+        "diagnostics": [
+          {
+            "start": 98,
+            "end": 112,
+            "text": "`Effect.provide` accepts an array of Layers directly, so this `Layer.mergeAll` call is redundant.    effect(redundantLayerMergeAllInProvide)"
+          }
+        ]
+      }
+    },
+    {
       "name": "redundantSchemaTagIdentifier",
       "group": "style",
       "description": "Suggests removing redundant identifier argument when it equals the tag value in Schema.TaggedClass/TaggedError/TaggedRequest",

@@ -1,0 +1,8 @@
+// code fix redundantLayerMergeAllInProvide_fix  output for range 193 - 207
+// @effect-diagnostics *:off
+// @effect-diagnostics redundantLayerMergeAllInProvide:suggestion
+import { Effect, Layer } from "effect"
+
+export const preview = Effect.void.pipe(
+  Effect.provide([Layer.empty, Layer.empty])
+)

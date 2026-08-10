@@ -56,6 +56,7 @@ import { overriddenSchemaConstructor } from "./diagnostics/overriddenSchemaConst
 import { preferSchemaOverJson } from "./diagnostics/preferSchemaOverJson.js"
 import { processEnv } from "./diagnostics/processEnv.js"
 import { processEnvInEffect } from "./diagnostics/processEnvInEffect.js"
+import { redundantLayerMergeAllInProvide } from "./diagnostics/redundantLayerMergeAllInProvide.js"
 import { redundantSchemaTagIdentifier } from "./diagnostics/redundantSchemaTagIdentifier.js"
 import { returnEffectInGen } from "./diagnostics/returnEffectInGen.js"
 import { runEffectInsideEffect } from "./diagnostics/runEffectInsideEffect.js"
@@ -140,6 +141,7 @@ export const diagnostics = [
   effectSucceedWithVoid,
   effectFnIife,
   effectFnOpportunity,
+  redundantLayerMergeAllInProvide,
   redundantSchemaTagIdentifier,
   schemaSyncInEffect,
   preferSchemaOverJson,

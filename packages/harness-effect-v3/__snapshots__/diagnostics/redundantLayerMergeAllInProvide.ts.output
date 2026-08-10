@@ -1,0 +1,11 @@
+Layer.mergeAll
+9:17 - 9:31 | 2 | `Effect.provide` accepts an array of Layers directly, so this `Layer.mergeAll` call is redundant.    effect(redundantLayerMergeAllInProvide)
+
+Layer.mergeAll
+14:2 - 14:16 | 2 | `Effect.provide` accepts an array of Layers directly, so this `Layer.mergeAll` call is redundant.    effect(redundantLayerMergeAllInProvide)
+
+Layer.mergeAll
+18:17 - 18:31 | 2 | `Effect.provide` accepts an array of Layers directly, so this `Layer.mergeAll` call is redundant.    effect(redundantLayerMergeAllInProvide)
+
+Layer.mergeAll
+22:17 - 22:31 | 2 | `Effect.provide` accepts an array of Layers directly, so this `Layer.mergeAll` call is redundant.    effect(redundantLayerMergeAllInProvide)
