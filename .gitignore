@@ -15,3 +15,4 @@ specs/
 .context/
 .cuggino.json
 .cuggino/
+.zvec-grep

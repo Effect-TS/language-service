@@ -27,12 +27,12 @@ export class UnableToFindPositionToPatchError extends Data.TaggedError("UnableTo
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
-const dirPath = Flag.directory("dir").pipe(
+const dirPath = Flag.Directory("dir").pipe(
   Flag.withDefault(LOCAL_TYPESCRIPT_DIR),
   Flag.withDescription("The directory of the typescript package to patch.")
 )
 
-const moduleNames = Flag.choice("module", [
+const moduleNames = Flag.Literals("module", [
   "tsc",
   "typescript"
 ]).pipe(
@@ -40,7 +40,7 @@ const moduleNames = Flag.choice("module", [
   Flag.withDescription("The name of the module to patch.")
 )
 
-const force = Flag.boolean("force").pipe(
+const force = Flag.Boolean("force").pipe(
   Flag.withDefault(false),
   Flag.withDescription("Force patch even if already patched.")
 )

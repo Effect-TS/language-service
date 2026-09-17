@@ -98,6 +98,10 @@ export interface TypeParser {
   importedEffectModule: (
     node: ts.Node
   ) => Nano.Nano<ts.Node, TypeParserIssue>
+  isNodeReferenceToPackageModuleApi: (
+    packageName: string,
+    memberName: string
+  ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
   isNodeReferenceToEffectModuleApi: (
     memberName: string
   ) => (node: ts.Node) => Nano.Nano<ts.SourceFile, TypeParserIssue, never>
@@ -902,6 +906,20 @@ export function make(
         return yield* isNodeReferenceToExportOfPackageModule(node, "effect", isEffectTypeSourceFile, memberName)
       }),
       `TypeParser.isNodeReferenceToEffectModuleApi(${memberName})`,
+      (node) => node
+    )
+
+  const isNodeReferenceToPackageModuleApi = (packageName: string, memberName: string) =>
+    Nano.cachedBy(
+      Nano.fn("TypeParser.isNodeReferenceToPackageModuleApi")(function*(node: ts.Node) {
+        return yield* isNodeReferenceToExportOfPackageModule(
+          node,
+          packageName,
+          (sourceFile) => Nano.succeed(sourceFile),
+          memberName
+        )
+      }),
+      `TypeParser.isNodeReferenceToPackageModuleApi(${packageName}, ${memberName})`,
       (node) => node
     )
 
@@ -3354,6 +3372,7 @@ export function make(
 
   return {
     isNodeReferenceToEffectModuleApi,
+    isNodeReferenceToPackageModuleApi,
     isNodeReferenceToEffectSchemaModuleApi,
     isNodeReferenceToEffectParseResultModuleApi,
     isNodeReferenceToEffectDataModuleApi,

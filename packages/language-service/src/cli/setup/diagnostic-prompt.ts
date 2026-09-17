@@ -599,7 +599,7 @@ export function createDiagnosticPrompt(
 ): Prompt.Prompt<Record<string, DiagnosticSeverity | "off">> {
   const entries = getPromptEntries(diagnostics)
 
-  return Prompt.custom(buildState(entries, 0, "", initialSeverities), {
+  return Prompt.Custom(buildState(entries, 0, "", initialSeverities), {
     render: (state, action) => {
       switch (action._tag) {
         case "Beep":

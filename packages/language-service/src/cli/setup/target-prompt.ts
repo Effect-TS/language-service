@@ -29,7 +29,7 @@ export const gatherTargetState = (
     })
 
     // Ask what user wants to do
-    const lspDependencyType = yield* Prompt.select({
+    const lspDependencyType = yield* Prompt.Select({
       message: "Language service installation:",
       choices: [
         {
@@ -73,7 +73,7 @@ export const gatherTargetState = (
       onSome: (options) => options.diagnosticSeverity
     })
 
-    const selectedDiagnosticModes = yield* Prompt.multiSelect({
+    const selectedDiagnosticModes = yield* Prompt.MultiSelect({
       message: "Which diagnostic presets would you like to use?",
       choices: [
         {
@@ -113,7 +113,7 @@ export const gatherTargetState = (
       onSome: (script) => script.hasPatch
     })
 
-    const prepareScript = yield* Prompt.select({
+    const prepareScript = yield* Prompt.Select({
       message: "Enable language service diagnostics during TypeScript compilation?",
       choices: [
         {
@@ -136,7 +136,7 @@ export const gatherTargetState = (
     // Pre-select VSCode if .vscode/settings.json exists
     const hasVscodeSettings = Option.isSome(assessment.vscodeSettings)
 
-    const editors = yield* Prompt.multiSelect({
+    const editors = yield* Prompt.MultiSelect({
       message: "Which editors do you use?",
       choices: [
         {

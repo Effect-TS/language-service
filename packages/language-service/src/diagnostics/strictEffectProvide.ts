@@ -20,6 +20,23 @@ export const strictEffectProvide = LSP.createDiagnostic({
     const typeCheckerUtils = yield* Nano.service(TypeCheckerUtils.TypeCheckerUtils)
     const typeParser = yield* Nano.service(TypeParser.TypeParser)
 
+    const entryPointEffectRunners = [
+      "runPromise",
+      "runSync",
+      "runFork",
+      "runPromiseExit",
+      "runSyncExit"
+    ]
+
+    const isEntryPointRunner = (node: ts.Expression) =>
+      Nano.firstSuccessOf([
+        ...entryPointEffectRunners.map((name) => typeParser.isNodeReferenceToEffectModuleApi(name)(node)),
+        typeParser.isNodeReferenceToPackageModuleApi("@effect/platform-node", "runMain")(node),
+        typeParser.isNodeReferenceToPackageModuleApi("@effect/platform-bun", "runMain")(node),
+        typeParser.isNodeReferenceToPackageModuleApi("effect", "make")(node),
+        typeParser.isNodeReferenceToEffectLayerModuleApi("launch")(node)
+      ])
+
     const parseEffectProvideWithLayerGen = Nano.fn("strictEffectProvide.parseEffectProvideWithLayer")(
       function*(node: ts.CallExpression) {
         // Check if the expression is from the Effect module
@@ -49,6 +66,35 @@ export const strictEffectProvide = LSP.createDiagnostic({
     }
 
     const nodeToVisit: Array<ts.Node> = []
+    const entryPointProvides = new Set<ts.CallExpression>()
+    const flows = yield* typeParser.pipingFlows(false)(sourceFile)
+
+    for (const flow of flows) {
+      for (let index = 0; index < flow.transformations.length; index++) {
+        const transformation = flow.transformations[index]
+        const nextTransformation = flow.transformations[index + 1]
+        if (!nextTransformation) continue
+
+        const runner = yield* pipe(isEntryPointRunner(nextTransformation.callee), Nano.option)
+        if (Option.isNone(runner)) continue
+
+        if (
+          ts.isCallExpression(transformation.callee.parent) &&
+          transformation.callee.parent.expression === transformation.callee
+        ) {
+          entryPointProvides.add(transformation.callee.parent)
+        }
+      }
+
+      const firstTransformation = flow.transformations[0]
+      if (
+        ts.isCallExpression(flow.subject.node) &&
+        firstTransformation &&
+        Option.isSome(yield* pipe(isEntryPointRunner(firstTransformation.callee), Nano.option))
+      ) {
+        entryPointProvides.add(flow.subject.node)
+      }
+    }
     const appendNodeToVisit = (node: ts.Node) => {
       nodeToVisit.push(node)
       return undefined
@@ -60,6 +106,7 @@ export const strictEffectProvide = LSP.createDiagnostic({
       ts.forEachChild(node, appendNodeToVisit)
 
       if (ts.isCallExpression(node)) {
+        if (entryPointProvides.has(node)) continue
         const layerCheck = yield* pipe(parseEffectProvideWithLayer(node), Nano.option)
         if (Option.isSome(layerCheck)) {
           report({

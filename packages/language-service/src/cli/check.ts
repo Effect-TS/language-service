@@ -7,7 +7,7 @@ import { extractAppliedEffectLspPatches, getModuleFilePath, getPackageJsonData, 
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"
 
-const dirPath = Flag.directory("dir").pipe(
+const dirPath = Flag.Directory("dir").pipe(
   Flag.withDefault(LOCAL_TYPESCRIPT_DIR),
   Flag.withDescription("The directory of the typescript package to patch.")
 )
