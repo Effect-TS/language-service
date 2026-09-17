@@ -384,9 +384,7 @@ export const effectModuleMigrationDb: ModuleMigrationDb = {
   "getRuntimeFlags": asRemoved(
     "Runtime flags have been removed in Effect v4."
   ),
-  "head": asRemoved(
-    "Use Array.head and Effect.flatMap instead."
-  ),
+  "head": asUnchanged,
   "if": asRemoved(
     "Use Effect.when instead of Effect.if."
   ),

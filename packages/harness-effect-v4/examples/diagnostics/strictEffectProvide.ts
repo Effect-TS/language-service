@@ -1,4 +1,6 @@
 // @effect-diagnostics strictEffectProvide:warning
+import { BunRuntime } from "@effect/platform-bun"
+import { NodeRuntime } from "@effect/platform-node"
 import { Context, Effect, Layer } from "effect"
 
 class MyService1 extends Context.Service<MyService1>()("MyService1", {
@@ -49,3 +51,29 @@ export const shouldNotReport3 = Effect.gen(function*() {
   const ctx = yield* Effect.context<MyService1>()
   return yield* Effect.provide(Effect.void, ctx)
 })
+
+// Should NOT report: entry-point runners
+Effect.void.pipe(
+  Effect.provide(MyService1.Default),
+  Effect.runPromise
+)
+
+Effect.runSync(
+  Effect.void.pipe(Effect.provide(MyService1.Default))
+)
+
+Effect.runFork(Effect.provide(Effect.void, MyService1.Default))
+Effect.runPromiseExit(Effect.void.pipe(Effect.provide(MyService1.Default)))
+Effect.runSyncExit(Effect.void.pipe(Effect.provide(MyService1.Default)))
+
+NodeRuntime.runMain(
+  Effect.void.pipe(Effect.provide(MyService1.Default))
+)
+
+BunRuntime.runMain(
+  Effect.void.pipe(Effect.provide(MyService1.Default))
+)
+
+// Should report: a similarly named local function is not an entry point
+const FakeEffect = { runPromise: <A>(value: A) => value }
+Effect.void.pipe(Effect.provide(MyService1.Default), FakeEffect.runPromise)

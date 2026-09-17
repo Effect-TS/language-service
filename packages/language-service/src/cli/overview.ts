@@ -417,15 +417,15 @@ const collectAllItems = (
 export const overview = Command.make(
   "overview",
   {
-    file: Flag.file("file").pipe(
+    file: Flag.File("file").pipe(
       Flag.optional,
       Flag.withDescription("The full path of the file to analyze.")
     ),
-    project: Flag.file("project").pipe(
+    project: Flag.File("project").pipe(
       Flag.optional,
       Flag.withDescription("The full path of the project tsconfig.json file to analyze.")
     ),
-    maxSymbolDepth: Flag.integer("max-symbol-depth").pipe(
+    maxSymbolDepth: Flag.Int("max-symbol-depth").pipe(
       Flag.withDefault(3),
       Flag.withDescription(
         "Maximum depth to traverse nested symbol properties. 0 = only root exports, 1 = root + one level, etc."

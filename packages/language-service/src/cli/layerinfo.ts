@@ -423,13 +423,13 @@ const parseOutputIndices = (outputs: Option.Option<string>): ReadonlyArray<numbe
 export const layerInfo = Command.make(
   "layerinfo",
   {
-    file: Flag.file("file").pipe(
+    file: Flag.File("file").pipe(
       Flag.withDescription("The full path of the file containing the layer.")
     ),
-    name: Flag.string("name").pipe(
+    name: Flag.String("name").pipe(
       Flag.withDescription("The name of the exported layer to inspect.")
     ),
-    outputs: Flag.string("outputs").pipe(
+    outputs: Flag.String("outputs").pipe(
       Flag.withDescription(
         "Comma-separated list of output indices to include in suggested composition (e.g., 1,2,3). If not specified, all outputs are included."
       ),

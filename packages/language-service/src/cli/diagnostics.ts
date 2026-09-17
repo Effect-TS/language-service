@@ -289,35 +289,35 @@ const BATCH_SIZE = 50
 export const diagnostics = Command.make(
   "diagnostics",
   {
-    file: Flag.file("file").pipe(
+    file: Flag.File("file").pipe(
       Flag.optional,
       Flag.withDescription("The full path of the file to check for diagnostics.")
     ),
-    project: Flag.file("project").pipe(
+    project: Flag.File("project").pipe(
       Flag.optional,
       Flag.withDescription("The full path of the project tsconfig.json file to check for diagnostics.")
     ),
 
-    format: Flag.choice("format", ["json", "pretty", "text", "github-actions"] as ReadonlyArray<OutputFormat>)
+    format: Flag.Literals("format", ["json", "pretty", "text", "github-actions"] as ReadonlyArray<OutputFormat>)
       .pipe(
         Flag.withDefault("pretty" as const),
         Flag.withDescription(
           "Output format: json (machine-readable), pretty (colored with context), text (plain text), github-actions (workflow commands)"
         )
       ),
-    strict: Flag.boolean("strict").pipe(
+    strict: Flag.Boolean("strict").pipe(
       Flag.withDefault(false),
       Flag.withDescription("Treat warnings as errors (affects exit code)")
     ),
-    severity: Flag.string("severity").pipe(
+    severity: Flag.String("severity").pipe(
       Flag.optional,
       Flag.withDescription("Filter by severity levels (comma-separated: error,warning,message)")
     ),
-    progress: Flag.boolean("progress").pipe(
+    progress: Flag.Boolean("progress").pipe(
       Flag.withDefault(false),
       Flag.withDescription("Show progress as files are checked (outputs to stderr)")
     ),
-    lspconfig: Flag.string("lspconfig").pipe(
+    lspconfig: Flag.String("lspconfig").pipe(
       Flag.optional,
       Flag.withDescription(
         "An optional inline JSON lsp config that replaces the current project lsp config. e.g. '{ \"effectFn\": [\"untraced\"] }'"

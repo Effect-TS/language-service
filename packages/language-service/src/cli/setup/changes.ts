@@ -998,7 +998,7 @@ export const reviewAndApplyChanges = (
       return
     }
 
-    const shouldProceed = yield* Prompt.confirm({
+    const shouldProceed = yield* Prompt.Confirm({
       message: options?.confirmMessage ?? "Apply all changes?",
       initial: true
     })

@@ -28,7 +28,7 @@ const findTsConfigFiles = (
   })
 
 const promptForTsConfigPath = (currentDir: string) =>
-  Prompt.file({
+  Prompt.File({
     type: "file",
     message: "Select tsconfig to configure",
     startingPath: currentDir,
@@ -65,7 +65,7 @@ export const selectTsConfigFile = (
         }
       ]
 
-      const selected = yield* Prompt.select({
+      const selected = yield* Prompt.Select({
         message: "Select tsconfig to configure",
         choices
       })

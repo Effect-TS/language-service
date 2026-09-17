@@ -26,22 +26,22 @@ export class NoFilesToCodegenError extends Data.TaggedError("NoFilesToCodegenErr
   }
 }
 
-const file = Flag.file("file").pipe(
+const file = Flag.File("file").pipe(
   Flag.optional,
   Flag.withDescription("The full path of the file to codegen.")
 )
 
-const project = Flag.file("project").pipe(
+const project = Flag.File("project").pipe(
   Flag.optional,
   Flag.withDescription("The full path of the project tsconfig.json file to codegen.")
 )
 
-const verbose = Flag.boolean("verbose").pipe(
+const verbose = Flag.Boolean("verbose").pipe(
   Flag.withDefault(false),
   Flag.withDescription("Verbose output.")
 )
 
-const force = Flag.boolean("force").pipe(
+const force = Flag.Boolean("force").pipe(
   Flag.withDefault(false),
   Flag.withDescription("Force codegen even if no changes are needed.")
 )

@@ -117,15 +117,15 @@ const BATCH_SIZE = 50
 export const quickfixes = Command.make(
   "quickfixes",
   {
-    file: Flag.file("file").pipe(
+    file: Flag.File("file").pipe(
       Flag.optional,
       Flag.withDescription("The full path of the file to check for quick fixes.")
     ),
-    project: Flag.file("project").pipe(
+    project: Flag.File("project").pipe(
       Flag.optional,
       Flag.withDescription("The full path of the project tsconfig.json file to check for quick fixes.")
     ),
-    code: Flag.string("code").pipe(
+    code: Flag.String("code").pipe(
       Flag.withDescription("Filter by diagnostic name or code (e.g., 'floatingEffect' or '5')."),
       Flag.mapEffect((value) => {
         // Validate that the code is a known diagnostic name or code
@@ -147,15 +147,15 @@ export const quickfixes = Command.make(
       }),
       Flag.optional
     ),
-    line: Flag.integer("line").pipe(
+    line: Flag.Int("line").pipe(
       Flag.withDescription("Filter by line number (1-based)."),
       Flag.optional
     ),
-    column: Flag.integer("column").pipe(
+    column: Flag.Int("column").pipe(
       Flag.withDescription("Filter by column number (1-based). Requires --line to be specified."),
       Flag.optional
     ),
-    fix: Flag.string("fix").pipe(
+    fix: Flag.String("fix").pipe(
       Flag.withDescription("Filter by fix name (e.g., 'floatingEffect_yieldStar')."),
       Flag.optional
     )
