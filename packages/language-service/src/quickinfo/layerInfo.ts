@@ -1,5 +1,5 @@
 import * as Array from "effect/Array"
-import * as Encoding from "effect/Encoding"
+import { Base64Url } from "effect/encoding"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as pako from "pako"
@@ -21,7 +21,7 @@ function generateMarmaidUri(
     const state = JSON.stringify({ code })
     const data = new TextEncoder().encode(state)
     const compressed = pako.deflate(data, { level: 9 })
-    const pakoString = "pako:" + Encoding.encodeBase64Url(compressed)
+    const pakoString = "pako:" + Base64Url.encode(compressed)
     if (mermaidProvider === "mermaid.com") {
       return "https://www.mermaidchart.com/play#" + pakoString
     } else if (mermaidProvider === "mermaid.live") {

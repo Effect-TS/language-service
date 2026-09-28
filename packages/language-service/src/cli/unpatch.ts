@@ -1,6 +1,6 @@
+import { Command, Flag } from "effect/cli"
 import * as Effect from "effect/Effect"
 import * as FileSystem from "effect/FileSystem"
-import { Command, Flag } from "effect/unstable/cli"
 import { getModuleFilePath, getSourceFileText, getUnpatchedSourceFile } from "./utils"
 
 const LOCAL_TYPESCRIPT_DIR = "./node_modules/typescript"

@@ -1,7 +1,7 @@
+import { Command } from "effect/cli"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import * as Path from "effect/Path"
-import { Command } from "effect/unstable/cli"
 import * as Assessment from "./setup/assessment"
 import * as Changes from "./setup/changes"
 import { getAllDiagnostics } from "./setup/diagnostic-info"

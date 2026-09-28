@@ -1,8 +1,8 @@
+import { Command, Flag } from "effect/cli"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as FileSystem from "effect/FileSystem"
 import * as Option from "effect/Option"
-import { Command, Flag } from "effect/unstable/cli"
 import type * as ts from "typescript"
 import {
   applyTextChanges,

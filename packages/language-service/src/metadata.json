@@ -983,7 +983,7 @@
           {
             "start": 118,
             "end": 123,
-            "text": "This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `effect/unstable/http`.    effect(globalFetchInEffect)"
+            "text": "This Effect code calls the global `fetch` function, HTTP requests in Effect code are represented through `HttpClient` from `effect/http`.    effect(globalFetchInEffect)"
           }
         ]
       }

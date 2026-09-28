@@ -35,10 +35,10 @@ const moduleAlternativesV4 = new Map<string, { alternative: string; module: stri
   ["node:path/win32", { alternative: "Path", module: "path", package: "effect" }],
   ["child_process", { alternative: "ChildProcess", module: "child_process", package: "effect" }],
   ["node:child_process", { alternative: "ChildProcess", module: "child_process", package: "effect" }],
-  ["http", { alternative: "HttpClient", module: "http", package: "effect/unstable/http" }],
-  ["node:http", { alternative: "HttpClient", module: "http", package: "effect/unstable/http" }],
-  ["https", { alternative: "HttpClient", module: "https", package: "effect/unstable/http" }],
-  ["node:https", { alternative: "HttpClient", module: "https", package: "effect/unstable/http" }]
+  ["http", { alternative: "HttpClient", module: "http", package: "effect/http" }],
+  ["node:http", { alternative: "HttpClient", module: "http", package: "effect/http" }],
+  ["https", { alternative: "HttpClient", module: "https", package: "effect/http" }],
+  ["node:https", { alternative: "HttpClient", module: "https", package: "effect/http" }]
 ])
 
 export const nodeBuiltinImport = LSP.createDiagnostic({

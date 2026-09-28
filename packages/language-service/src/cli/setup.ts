@@ -1,6 +1,6 @@
+import { Command } from "effect/cli"
 import * as Effect from "effect/Effect"
 import * as Path from "effect/Path"
-import { Command } from "effect/unstable/cli"
 import packageJson from "../../package.json"
 import * as Assessment from "./setup/assessment"
 import * as Changes from "./setup/changes"

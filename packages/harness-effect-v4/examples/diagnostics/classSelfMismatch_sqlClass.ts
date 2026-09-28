@@ -1,4 +1,4 @@
-import { Model } from "effect/unstable/schema"
+import { Model } from "effect/schema"
 import {Schema} from "effect"
 
 // valid usage

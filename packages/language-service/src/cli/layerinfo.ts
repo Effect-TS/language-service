@@ -1,11 +1,11 @@
 import { createProjectService } from "@typescript-eslint/project-service"
+import { Command, Flag } from "effect/cli"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import { pipe } from "effect/Function"
 import * as Option from "effect/Option"
 import * as Path from "effect/Path"
 import * as Result from "effect/Result"
-import { Command, Flag } from "effect/unstable/cli"
 
 import type * as ts from "typescript"
 import * as LayerGraph from "../core/LayerGraph"

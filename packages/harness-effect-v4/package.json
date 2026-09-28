@@ -5,10 +5,10 @@
     "check": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@effect/platform-bun": "4.0.0-rc.115",
-    "@effect/platform-node": "4.0.0-rc.115",
+    "@effect/platform-bun": "4.0.0-rc.118",
+    "@effect/platform-node": "4.0.0-rc.118",
     "@standard-schema/spec": "^1.1.0",
-    "effect": "4.0.0-rc.115"
+    "effect": "4.0.0-rc.118"
   },
   "devDependencies": {
     "@types/node": "^25.0.6"

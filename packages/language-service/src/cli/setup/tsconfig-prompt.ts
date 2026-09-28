@@ -1,9 +1,9 @@
 import * as Array from "effect/Array"
+import * as Prompt from "effect/cli/Prompt"
 import * as Effect from "effect/Effect"
 import * as FileSystem from "effect/FileSystem"
 import * as Path from "effect/Path"
 import type * as PlatformError from "effect/PlatformError"
-import * as Prompt from "effect/unstable/cli/Prompt"
 import { FileReadError, TsConfigNotFoundError } from "./errors"
 
 /**
