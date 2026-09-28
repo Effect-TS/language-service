@@ -1,5 +1,15 @@
 # @effect/language-service
 
+## 0.87.3
+
+### Patch Changes
+
+- [#770](https://github.com/Effect-TS/language-service/pull/770) [`5e4d380`](https://github.com/Effect-TS/language-service/commit/5e4d380b6fcd20f048dd8d41515bcd9ea47ffda4) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update Effect v4 compatibility to 4.0.0-beta.107.
+
+- [#774](https://github.com/Effect-TS/language-service/pull/774) [`8e9cb21`](https://github.com/Effect-TS/language-service/commit/8e9cb21fef6d25c9b9f160f290231f0a216a2106) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update Effect v4 compatibility to 4.0.0-rc.115 and allow `Effect.provide` at recognized application entry points.
+
+- [#775](https://github.com/Effect-TS/language-service/pull/775) [`de7f7be`](https://github.com/Effect-TS/language-service/commit/de7f7be49ece34c5f648c8bd435ac38767937493) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update Effect v4 compatibility to 4.0.0-rc.118. Migrate CLI, HTTP, schema model, and encoding imports to the new package paths, including the v4 examples and diagnostics.
+
 ## 0.87.2
 
 ### Patch Changes
