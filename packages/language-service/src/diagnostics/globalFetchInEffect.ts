@@ -17,7 +17,7 @@ export const makeGlobalFetchApply = (checkInEffect: boolean) =>
     if (!fetchSymbol) return
 
     const effectVersion = typeParser.supportedEffect()
-    const packageName = effectVersion === "v3" ? "@effect/platform" : "effect/unstable/http"
+    const packageName = effectVersion === "v3" ? "@effect/platform" : "effect/http"
     const messageText = checkInEffect
       ? `This Effect code calls the global \`fetch\` function, HTTP requests in Effect code are represented through \`HttpClient\` from \`${packageName}\`.`
       : `This code uses the global \`fetch\` function, HTTP requests are represented through \`HttpClient\` from \`${packageName}\`.`

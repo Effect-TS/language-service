@@ -1,8 +1,8 @@
+import * as Prompt from "effect/cli/Prompt"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import * as Terminal from "effect/Terminal"
-import * as Prompt from "effect/unstable/cli/Prompt"
 import type { DiagnosticGroup } from "../../core/DiagnosticGroup"
 import type { DiagnosticSeverity } from "../../core/LanguageServicePluginOptions"
 import {

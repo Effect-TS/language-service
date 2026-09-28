@@ -1,7 +1,7 @@
 import * as Context from "effect/Context"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
-import * as Encoding from "effect/Encoding"
+import { Base64 } from "effect/encoding"
 import * as FileSystem from "effect/FileSystem"
 import * as Layer from "effect/Layer"
 import * as Path from "effect/Path"
@@ -172,7 +172,7 @@ export type AppliedPatchMetadata = typeof AppliedPatchMetadataStruct.Type
 
 /** Decode a base64-encoded JSON string into AppliedPatchMetadata */
 const decodeAppliedPatchMetadata = (base64str: string): Effect.Effect<AppliedPatchMetadata, unknown> => {
-  const decoded = Encoding.decodeBase64(base64str)
+  const decoded = Base64.decode(base64str)
   if (Result.isFailure(decoded)) {
     return Effect.fail(decoded.failure)
   }
@@ -183,7 +183,7 @@ const decodeAppliedPatchMetadata = (base64str: string): Effect.Effect<AppliedPat
 /** Encode AppliedPatchMetadata into a base64-encoded JSON string */
 const encodeAppliedPatchMetadata = (metadata: AppliedPatchMetadata): Effect.Effect<string, Schema.SchemaError> =>
   Schema.encodeEffect(Schema.fromJsonString(AppliedPatchMetadataStruct))(metadata).pipe(
-    Effect.map((jsonStr) => Encoding.encodeBase64(jsonStr))
+    Effect.map((jsonStr) => Base64.encode(jsonStr))
   )
 
 export const makeEffectLspPatchChange = Effect.fn("makeEffectLspPatchChange")(

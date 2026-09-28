@@ -255,7 +255,7 @@ exports[`Completion effectSchemaSelfInClasses > effectSchemaSelfInClasses_model.
     "name": "Class<MyDataModel>",
     "replacementSpan": {
       "length": 6,
-      "start": 156,
+      "start": 147,
     },
     "sortText": "11",
   },

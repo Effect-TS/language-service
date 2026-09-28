@@ -1,6 +1,6 @@
+import * as Prompt from "effect/cli/Prompt"
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
-import * as Prompt from "effect/unstable/cli/Prompt"
 import { applyPresetDiagnosticSeverities, type DiagnosticPresetName, isPresetEnabled } from "../../presets"
 import type { Assessment } from "./assessment"
 import { getAllDiagnostics, getDiagnosticPresets } from "./diagnostic-info"

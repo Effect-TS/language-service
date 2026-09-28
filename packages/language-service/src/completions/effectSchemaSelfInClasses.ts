@@ -134,15 +134,15 @@ export const effectSchemaSelfInClasses = LSP.createCompletion({
       }
     }
 
-    // Check for Model.Class (v4 only - Model moved to effect/unstable/schema)
+    // Check for Model.Class (v4 only - Model moved to effect/schema)
     if (typeParser.supportedEffect() === "v4") {
       const modelIdentifier = tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
         sourceFile,
-        "effect/unstable/schema",
+        "effect/schema",
         "Model"
       ) || tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(
         sourceFile,
-        "effect/unstable",
+        "effect",
         "Model"
       ) || "Model"
 

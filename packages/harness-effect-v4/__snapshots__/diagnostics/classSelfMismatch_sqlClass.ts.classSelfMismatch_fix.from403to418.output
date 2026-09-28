@@ -1,5 +1,5 @@
-// code fix classSelfMismatch_fix  output for range 412 - 427
-import { Model } from "effect/unstable/schema"
+// code fix classSelfMismatch_fix  output for range 403 - 418
+import { Model } from "effect/schema"
 import {Schema} from "effect"
 
 // valid usage

@@ -26,10 +26,10 @@
 13:22 - 13:42 | 0 | This module reference uses the `child_process` module, the corresponding Effect API is `ChildProcess` from `effect`.    effect(nodeBuiltinImport)
 
 "http"
-14:17 - 14:23 | 0 | This module reference uses the `http` module, the corresponding Effect API is `HttpClient` from `effect/unstable/http`.    effect(nodeBuiltinImport)
+14:17 - 14:23 | 0 | This module reference uses the `http` module, the corresponding Effect API is `HttpClient` from `effect/http`.    effect(nodeBuiltinImport)
 
 "node:https"
-15:18 - 15:30 | 0 | This module reference uses the `https` module, the corresponding Effect API is `HttpClient` from `effect/unstable/http`.    effect(nodeBuiltinImport)
+15:18 - 15:30 | 0 | This module reference uses the `https` module, the corresponding Effect API is `HttpClient` from `effect/http`.    effect(nodeBuiltinImport)
 
 "node:fs"
 18:7 - 18:16 | 0 | This module reference uses the `fs` module, the corresponding Effect API is `FileSystem` from `effect`.    effect(nodeBuiltinImport)

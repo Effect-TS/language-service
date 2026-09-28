@@ -2,10 +2,10 @@
 
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
 import * as NodeServices from "@effect/platform-node/NodeServices"
+import { Command } from "effect/cli"
 import * as Console from "effect/Console"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
-import { Command } from "effect/unstable/cli"
 import packageJson from "../package.json"
 import { check } from "./cli/check"
 import { codegen } from "./cli/codegen"
