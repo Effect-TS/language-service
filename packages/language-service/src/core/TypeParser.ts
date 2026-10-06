@@ -3090,6 +3090,8 @@ export function make(
                   kind: "call"
                 }]
                 flowNode = node
+                // Queue the callee for independent traversal (e.g. the receiver of `X.annotations({...})`)
+                childrenToTraverse = [parsed.callee]
               }
 
               // Handle parent flow or create new flow (common logic)
