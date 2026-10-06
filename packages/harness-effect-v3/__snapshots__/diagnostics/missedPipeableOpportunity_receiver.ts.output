@@ -1,0 +1,11 @@
+Schema.NullishOr(Inner)
+8:17 - 8:40 | 0 | This nested call structure has a pipeable form. `Inner.pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
+
+Schema.NullishOr(Schema.Struct({ x: Schema.Array(Inner) }))
+11:17 - 11:76 | 0 | This nested call structure has a pipeable form. `Schema.Struct({ x: Schema.Array(Inner) }).pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
+
+Schema.Array(Inner)
+11:53 - 11:72 | 0 | This nested call structure has a pipeable form. `Inner.pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)
+
+Schema.Array(Inner).pipe(Schema.minItems(1))
+14:17 - 14:61 | 0 | This nested call structure has a pipeable form. `Inner.pipe(...)` represents the same call sequence in pipe style and may be easier to read.    effect(missedPipeableOpportunity)

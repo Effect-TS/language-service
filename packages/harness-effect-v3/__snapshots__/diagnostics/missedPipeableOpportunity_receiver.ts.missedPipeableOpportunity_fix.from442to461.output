@@ -1,0 +1,15 @@
+// code fix missedPipeableOpportunity_fix  output for range 442 - 461
+// @effect-diagnostics missedPipeableOpportunity:warning
+// @test-config {"pipeableMinArgCount": 1}
+import * as Schema from "effect/Schema"
+
+const Inner = Schema.Struct({ a: Schema.String })
+
+// should trigger on the receiver of .annotations
+export const B = Schema.NullishOr(Inner).annotations({ identifier: "B" })
+
+// should trigger on the receiver and on the nested Schema.Array(Inner)
+export const C = Schema.NullishOr(Schema.Struct({ x: Inner.pipe(Schema.Array) })).annotations({ identifier: "C" })
+
+// should trigger with the merged suggestion Inner.pipe(Schema.Array, Schema.minItems(1))
+export const D = Schema.Array(Inner).pipe(Schema.minItems(1))
