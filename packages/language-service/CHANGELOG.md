@@ -1,5 +1,23 @@
 # @effect/language-service
 
+## 0.87.4
+
+### Patch Changes
+
+- [#777](https://github.com/Effect-TS/language-service/pull/777) [`4478eec`](https://github.com/Effect-TS/language-service/commit/4478eec0725b45f6b913cb081ab591aafde48a06) Thanks [@CasperEngl](https://github.com/CasperEngl)! - `missedPipeableOpportunity` now reports calls whose result is used as a method receiver, and the calls nested inside them. These were skipped before:
+
+  ```ts
+  // now reported: `Inner.pipe(...)`
+  export const B = Schema.NullishOr(Inner).annotations({ identifier: "B" });
+
+  // now reported, including the nested `Schema.Array(Inner)`
+  export const C = Schema.NullishOr(
+    Schema.Struct({ x: Schema.Array(Inner) })
+  ).annotations({ identifier: "C" });
+  ```
+
+  Other diagnostics built on the same piping analysis, such as `flatMapToMap` and `strictEffectProvide`, now also check calls in these positions.
+
 ## 0.87.3
 
 ### Patch Changes
