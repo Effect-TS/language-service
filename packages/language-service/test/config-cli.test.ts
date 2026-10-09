@@ -26,6 +26,7 @@ function createAssessmentInput(
         text: JSON.stringify(vscodeSettings, null, 2)
       })
       : Option.none(),
+    zedSettings: Option.none(),
     agentsMd: Option.none(),
     claudeMd: Option.none()
   }
@@ -75,6 +76,9 @@ describe("Config CLI", () => {
     expect(targetState.vscodeSettings).toEqual(Option.map(assessmentState.vscodeSettings, (settings) => ({
       settings: settings.settings
     })))
+    expect(targetState.zedSettings).toEqual(Option.map(assessmentState.zedSettings, (settings) => ({
+      settings: settings.settings
+    })))
 
     const result = await Effect.runPromise(
       computeChanges(assessmentState, targetState).pipe(Effect.provide(TypeScriptContext.live(".")))
@@ -86,6 +90,9 @@ describe("Config CLI", () => {
       .toBe(false)
     expect(
       result.codeActions.some((action) => action.changes.some((change) => change.fileName === ".vscode/settings.json"))
+    ).toBe(false)
+    expect(
+      result.codeActions.some((action) => action.changes.some((change) => change.fileName === ".zed/settings.json"))
     ).toBe(false)
   })
 })
