@@ -14,3 +14,7 @@ export class InvalidBecauseOfConstructor
         return _this
     }
 }
+
+
+b
+9:2 - 9:3 | 1 | Property 'b' has no initializer and is not definitely assigned in the constructor.

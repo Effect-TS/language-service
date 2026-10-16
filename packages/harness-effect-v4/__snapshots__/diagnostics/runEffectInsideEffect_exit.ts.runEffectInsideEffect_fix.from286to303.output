@@ -20,3 +20,7 @@ const effectServices = yield* Effect.services<never>()
     Effect.runSyncExit(child)
   }, 0)
 })
+
+
+services
+13:37 - 13:45 | 1 | Property 'services' does not exist on type 'typeof import("node_modules/effect/dist/Effect", { with: { "resolution-mode": "import" } })'. Did you mean 'service'?
