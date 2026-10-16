@@ -61,7 +61,9 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
       // Verify it's actually an Effect module call using TypeParser
       const isEffectRunCall = yield* pipe(
         parseEffectMethod(node.expression, "runPromise"),
+        Nano.orElse(() => parseEffectMethod(node.expression, "runPromiseExit")),
         Nano.orElse(() => parseEffectMethod(node.expression, "runSync")),
+        Nano.orElse(() => parseEffectMethod(node.expression, "runSyncExit")),
         Nano.orElse(() => parseEffectMethod(node.expression, "runFork")),
         Nano.orElse(() => parseEffectMethod(node.expression, "runCallback")),
         Nano.option

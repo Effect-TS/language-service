@@ -1,8 +1,17 @@
 Effect.runSync
 6:2 - 6:16 | 2 | `Effect.runSync` is called inside an existing Effect context. Here, the inner Effect can be used directly.    effect(runEffectInsideEffect)
 
+Effect.runSyncExit
+7:2 - 7:20 | 2 | `Effect.runSyncExit` is called inside an existing Effect context. Here, the inner Effect can be used directly.    effect(runEffectInsideEffect)
+
 Effect.runPromise
 14:4 - 14:21 | 2 | `Effect.runPromise` is called inside an Effect with a separate runtime invocation. In this context, run child Effects with the surrounding runtime, which can be accessed through `Effect.runtime` and `Runtime.runPromise`.    effect(runEffectInsideEffect)
 
+Effect.runPromiseExit
+15:4 - 15:25 | 2 | `Effect.runPromiseExit` is called inside an Effect with a separate runtime invocation. In this context, run child Effects with the surrounding runtime, which can be accessed through `Effect.runtime` and `Runtime.runPromiseExit`.    effect(runEffectInsideEffect)
+
 Effect.runSync
 16:4 - 16:18 | 2 | `Effect.runSync` is called inside an Effect with a separate runtime invocation. In this context, run child Effects with the surrounding runtime, which can be accessed through `Effect.runtime` and `Runtime.runSync`.    effect(runEffectInsideEffect)
+
+Effect.runSyncExit
+17:4 - 17:22 | 2 | `Effect.runSyncExit` is called inside an Effect with a separate runtime invocation. In this context, run child Effects with the surrounding runtime, which can be accessed through `Effect.runtime` and `Runtime.runSyncExit`.    effect(runEffectInsideEffect)
