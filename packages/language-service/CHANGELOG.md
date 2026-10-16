@@ -1,5 +1,33 @@
 # @effect/language-service
 
+## 0.87.5
+
+### Patch Changes
+
+- [#781](https://github.com/Effect-TS/language-service/pull/781) [`dae2015`](https://github.com/Effect-TS/language-service/commit/dae2015eaf7ce83400daf92a24b40ff23c32771e) Thanks [@mattiamanzati](https://github.com/mattiamanzati)! - Update Effect v4 support to 4.0.5 and fix `runEffectInsideEffect`.
+
+  `Effect.runPromiseExit` and `Effect.runSyncExit` called inside an Effect are now reported, like `Effect.runPromise` and `Effect.runSync`:
+
+  ```ts
+  export const program = Effect.gen(function* () {
+    yield* Effect.void;
+    setTimeout(() => {
+      Effect.runPromiseExit(child);
+      // ^- now suggests Effect.runPromiseExitWith (v4) or Runtime.runPromiseExit (v3)
+    }, 0);
+  });
+  ```
+
+  The v4 quick fix now inserts `yield* Effect.context<never>()` instead of the removed `Effect.services`, and reuses an existing `yield* Effect.context()` binding:
+
+  ```ts
+  export const program = Effect.gen(function* () {
+    const context = yield* Effect.context<never>();
+    const run = () => Effect.runSyncWith(context)(Effect.succeed(1));
+    return [context, run()] as const;
+  });
+  ```
+
 ## 0.87.4
 
 ### Patch Changes
