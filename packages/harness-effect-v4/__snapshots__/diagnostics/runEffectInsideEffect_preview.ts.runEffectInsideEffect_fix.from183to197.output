@@ -4,12 +4,8 @@
 import { Effect } from "effect"
 
 export const preview = Effect.gen(function*() {
-const effectServices = yield* Effect.services<never>()
+const effectContext = yield* Effect.context<never>()
 
-  const run = () => Effect.runSyncWith(effectServices)(Effect.succeed(1))
+  const run = () => Effect.runSyncWith(effectContext)(Effect.succeed(1))
   return run()
 })
-
-
-services
-7:37 - 7:45 | 1 | Property 'services' does not exist on type 'typeof import("node_modules/effect/dist/Effect", { with: { "resolution-mode": "import" } })'. Did you mean 'service'?

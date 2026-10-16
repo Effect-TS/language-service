@@ -10,17 +10,13 @@ export const sameScope = Effect.gen(function*() {
 })
 
 export const nested = Effect.gen(function*() {
-const effectServices = yield* Effect.services<never>()
+const effectContext = yield* Effect.context<never>()
 
   yield* Effect.void
   setTimeout(() => {
-    Effect.runPromiseWith(effectServices)(child)
+    Effect.runPromiseWith(effectContext)(child)
     Effect.runPromiseExit(child)
     Effect.runSync(child)
     Effect.runSyncExit(child)
   }, 0)
 })
-
-
-services
-13:37 - 13:45 | 1 | Property 'services' does not exist on type 'typeof import("node_modules/effect/dist/Effect", { with: { "resolution-mode": "import" } })'. Did you mean 'service'?

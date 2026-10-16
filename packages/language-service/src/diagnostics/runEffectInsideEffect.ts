@@ -145,7 +145,7 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
               tsUtils.findImportedModuleIdentifierByPackageAndNameOrBarrel(sourceFile, "effect", "Runtime") ||
               "Runtime"
             let runtimeIdentifier: string | undefined = undefined
-            let servicesIdentifier: string | undefined = undefined
+            let contextIdentifier: string | undefined = undefined
             for (const statement of effectGen.generatorFunction.body.statements) {
               if (ts.isVariableStatement(statement) && statement.declarationList.declarations.length === 1) {
                 const declaration = statement.declarationList.declarations[0]
@@ -162,25 +162,25 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
                     if (Option.isSome(maybeEffectRuntime) && ts.isIdentifier(declaration.name)) {
                       runtimeIdentifier = ts.idText(declaration.name)
                     }
-                    const maybeEffectServices = yield* pipe(
-                      typeParser.isNodeReferenceToEffectModuleApi("services")(yieldedExpression.expression),
+                    const maybeEffectContext = yield* pipe(
+                      typeParser.isNodeReferenceToEffectModuleApi("context")(yieldedExpression.expression),
                       Nano.option
                     )
-                    if (Option.isSome(maybeEffectServices) && ts.isIdentifier(declaration.name)) {
-                      servicesIdentifier = ts.idText(declaration.name)
+                    if (Option.isSome(maybeEffectContext) && ts.isIdentifier(declaration.name)) {
+                      contextIdentifier = ts.idText(declaration.name)
                     }
                   }
                 }
               }
             }
-            if (supportedEffect === "v4" && !servicesIdentifier) {
+            if (supportedEffect === "v4" && !contextIdentifier) {
               changeTracker.insertNodeAt(
                 sourceFile,
                 effectGen.body.statements[0].pos,
                 ts.factory.createVariableStatement(
                   undefined,
                   ts.factory.createVariableDeclarationList([ts.factory.createVariableDeclaration(
-                    "effectServices",
+                    "effectContext",
                     undefined,
                     undefined,
                     ts.factory.createYieldExpression(
@@ -188,7 +188,7 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
                       ts.factory.createCallExpression(
                         ts.factory.createPropertyAccessExpression(
                           ts.factory.createIdentifier(effectModuleIdentifier),
-                          "services"
+                          "context"
                         ),
                         [ts.factory.createKeywordTypeNode(ts.SyntaxKind.NeverKeyword)],
                         []
@@ -239,7 +239,7 @@ export const runEffectInsideEffect = LSP.createDiagnostic({
               node.arguments[0].pos,
               supportedEffect === "v4"
                 ? `${effectModuleIdentifier}.${isEffectRunCall.value.methodName}With(${
-                  servicesIdentifier || "effectServices"
+                  contextIdentifier || "effectContext"
                 })(`
                 : `${runtimeModuleIdentifier}.${isEffectRunCall.value.methodName}(${
                   runtimeIdentifier || "effectRuntime"

@@ -1,0 +1,8 @@
+// code fix runEffectInsideEffect_fix  output for range 150 - 164
+import { Effect } from "effect"
+
+export const program = Effect.gen(function*() {
+  const context = yield* Effect.context<never>()
+  const run = () => Effect.runSyncWith(context)(Effect.succeed(1))
+  return [context, run()] as const
+})
