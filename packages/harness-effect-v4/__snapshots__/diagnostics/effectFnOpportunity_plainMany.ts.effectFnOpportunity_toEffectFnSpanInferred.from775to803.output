@@ -35,3 +35,21 @@ export const functionDeclarationPlainMany = Effect.fn("functionDeclarationPlainM
     if (value === null) return Effect.fail("Error!")
     return Effect.succeed(a + b + c + d + e)
 })
+
+
+function
+29:86 - 29:94 | 1 | No overload matches this call.
+  Overload 1 of 63, '(body: (this: unassigned, value: T) => Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<...>)): <T>(value: T) => Effect<...>', gave the following error.
+    Argument of type '<T>(value: T) => Effect.Effect<never, string, never> | Effect.Effect<number, never, never>' is not assignable to parameter of type '(this: unassigned, value: T) => Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<...>)'.
+      Type 'Effect<never, string, never> | Effect<number, never, never>' is not assignable to type 'Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<number, any, any>)'.
+        Type 'Effect<number, never, never>' is not assignable to type 'Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<number, any, any>)'.
+          Type 'Effect<number, never, never>' is not assignable to type 'Effect<never, string, never> & Effect<number, any, any>'.
+            Type 'Effect<number, never, never>' is not assignable to type 'Effect<never, string, never>'.
+              Type 'number' is not assignable to type 'never'.
+  Overload 2 of 63, '(body: (this: unknown, value: T) => Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<number, any, any>)): <T>(this: unknown, value: T) => Effect<...>', gave the following error.
+    Argument of type '<T>(value: T) => Effect.Effect<never, string, never> | Effect.Effect<number, never, never>' is not assignable to parameter of type '(this: unknown, value: T) => Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<number, any, any>)'.
+      Type 'Effect<never, string, never> | Effect<number, never, never>' is not assignable to type 'Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<number, any, any>)'.
+        Type 'Effect<number, never, never>' is not assignable to type 'Generator<Effect<never, string, never>, number, never> | (Effect<never, string, never> & Effect<number, any, any>)'.
+          Type 'Effect<number, never, never>' is not assignable to type 'Effect<never, string, never> & Effect<number, any, any>'.
+            Type 'Effect<number, never, never>' is not assignable to type 'Effect<never, string, never>'.
+              Type 'number' is not assignable to type 'never'.

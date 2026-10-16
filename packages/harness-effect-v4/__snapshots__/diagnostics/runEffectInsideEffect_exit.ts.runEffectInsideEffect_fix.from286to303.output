@@ -1,0 +1,22 @@
+// code fix runEffectInsideEffect_fix  output for range 286 - 303
+import { Effect } from "effect"
+
+const child = Effect.succeed(1)
+
+export const sameScope = Effect.gen(function*() {
+  Effect.runSync(child)
+  Effect.runSyncExit(child)
+  yield* Effect.void
+})
+
+export const nested = Effect.gen(function*() {
+const effectContext = yield* Effect.context<never>()
+
+  yield* Effect.void
+  setTimeout(() => {
+    Effect.runPromiseWith(effectContext)(child)
+    Effect.runPromiseExit(child)
+    Effect.runSync(child)
+    Effect.runSyncExit(child)
+  }, 0)
+})

@@ -6,7 +6,7 @@ class DebuggerError extends Data.TaggedError("DebuggerError")<{
 }> {}
 
 export const program = Effect.gen(function*() {
-const effectServices = yield* Effect.services<never>()
+const effectContext = yield* Effect.context<never>()
 
   const response = yield* Effect.tryPromise({
     try: () => fetch("http://localhost:9229"),
@@ -22,7 +22,7 @@ const effectServices = yield* Effect.services<never>()
       try: () => fetch(event.data as string),
       catch: (e) => new DebuggerError({ cause: e })
     })
-    Effect.runPromiseWith(effectServices)(check)
+    Effect.runPromiseWith(effectContext)(check)
     //        ^- no runPromise, use the current services instead
   }
 })

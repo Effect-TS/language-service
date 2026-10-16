@@ -50,7 +50,9 @@ function diagnosticToLogFormat(
   )
 
   return errorSourceCode + "\n" +
-    `${start.line + 1}:${start.character} - ${end.line + 1}:${end.character} | ${error.category} | ${error.messageText}`
+    `${start.line + 1}:${start.character} - ${end.line + 1}:${end.character} | ${error.category} | ${
+      ts.flattenDiagnosticMessageText(error.messageText, "\n")
+    }`
 }
 
 function testDiagnosticOnExample(
@@ -76,8 +78,8 @@ function testDiagnosticOnExample(
 
     if (getHarnessVersion() === "v4") {
       // expect valid initial code
-      const typeDiags = program.getSemanticDiagnostics().filter((_) => _.source === sourceFile.fileName)
-      const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.source === sourceFile.fileName)
+      const typeDiags = program.getSemanticDiagnostics().filter((_) => _.file?.fileName === sourceFile.fileName)
+      const syntaxDiags = program.getSyntacticDiagnostics().filter((_) => _.file?.fileName === sourceFile.fileName)
       const tsDiagsText = [...syntaxDiags, ...typeDiags].map((diag) =>
         diagnosticToLogFormat(sourceFile, sourceText, diag)
       ).join("\n\n")
@@ -205,10 +207,10 @@ function testDiagnosticQuickfixesOnExample(
             )
             languageServicesToDispose.push(result.languageService)
             const typeDiags = result.program.getSemanticDiagnostics().filter((_) =>
-              _.source === result.sourceFile.fileName
+              _.file?.fileName === result.sourceFile.fileName
             )
             const syntaxDiags = result.program.getSyntacticDiagnostics().filter((_) =>
-              _.source === result.sourceFile.fileName
+              _.file?.fileName === result.sourceFile.fileName
             )
             const snapshotText = [
               finalSource,

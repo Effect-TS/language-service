@@ -23,6 +23,7 @@ export function createMockLanguageServiceHost(
         paths: {
           "@/*": [path.join(examplesDir, "*")]
         },
+        typeRoots: [path.join(harnessDir, "node_modules", "@types")],
         ...compilerOptionsOverrides
       }
     },
@@ -44,6 +45,7 @@ export function createMockLanguageServiceHost(
       return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text)
     },
     getCurrentDirectory: () => ".",
+    getDirectories: ts.sys.getDirectories,
     getDefaultLibFileName(options) {
       return ts.getDefaultLibFilePath(options)
     },

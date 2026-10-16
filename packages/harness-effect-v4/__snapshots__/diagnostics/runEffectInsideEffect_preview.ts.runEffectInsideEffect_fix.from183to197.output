@@ -4,8 +4,8 @@
 import { Effect } from "effect"
 
 export const preview = Effect.gen(function*() {
-const effectServices = yield* Effect.services<never>()
+const effectContext = yield* Effect.context<never>()
 
-  const run = () => Effect.runSyncWith(effectServices)(Effect.succeed(1))
+  const run = () => Effect.runSyncWith(effectContext)(Effect.succeed(1))
   return run()
 })

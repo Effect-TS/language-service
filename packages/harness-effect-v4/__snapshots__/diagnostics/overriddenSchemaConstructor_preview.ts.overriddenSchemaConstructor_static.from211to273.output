@@ -6,3 +6,7 @@ import * as Schema from "effect/Schema"
 export class User extends Schema.Class<User>("User")({ name: Schema.String }) {
   public static new(readonly input: { name: string} ) { const _this = new this(input); return _this }
 }
+
+
+readonly input: { name: string}
+7:20 - 7:51 | 1 | A parameter property is only allowed in a constructor implementation.
