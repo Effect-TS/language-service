@@ -19,6 +19,117 @@ interface ComputeFileChangesResult {
 }
 
 const TSCONFIG_SCHEMA_URL = "https://raw.githubusercontent.com/Effect-TS/language-service/refs/heads/main/schema.json"
+const ZED_SETTINGS_RELATIVE_PATH = ".zed/settings.json"
+const ZED_LANGUAGE_SERVERS = ["vtsls", "typescript-language-server", "..."] as const
+const ZED_PLUGIN_PATHS = ["./node_modules"] as const
+
+type JsonObject = Record<string, unknown>
+
+const isJsonObject = (value: unknown): value is JsonObject =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const cloneJsonValue = <A>(value: A): A => JSON.parse(JSON.stringify(value)) as A
+
+const formatJson = (value: JsonObject): string => `${JSON.stringify(value, null, 2)}\n`
+
+const createZedSettingsTarget = (): Target.ZedSettings => ({
+  settings: {
+    languages: {
+      TSX: {
+        language_servers: [...ZED_LANGUAGE_SERVERS]
+      },
+      TypeScript: {
+        language_servers: [...ZED_LANGUAGE_SERVERS]
+      }
+    },
+    lsp: {
+      vtsls: {
+        settings: {
+          typescript: {
+            tsserver: {
+              pluginPaths: [...ZED_PLUGIN_PATHS]
+            }
+          },
+          vtsls: {
+            autoUseWorkspaceTsdk: true
+          }
+        }
+      }
+    }
+  }
+})
+
+const mergeRequiredArrayValues = (
+  current: unknown,
+  required: ReadonlyArray<unknown>
+): unknown => {
+  if (current === undefined) {
+    return cloneJsonValue(required)
+  }
+
+  if (!Array.isArray(current)) {
+    return current
+  }
+
+  const missingRequired = required.filter((requiredValue) =>
+    !current.some((currentValue) => currentValue === requiredValue)
+  )
+
+  if (missingRequired.length === 0) {
+    return current
+  }
+
+  return [
+    ...required,
+    ...current.filter((currentValue) => !required.some((requiredValue) => currentValue === requiredValue))
+  ]
+}
+
+const mergeMissingJson = (current: unknown, target: unknown): unknown => {
+  if (Array.isArray(target)) {
+    return mergeRequiredArrayValues(current, target)
+  }
+
+  if (isJsonObject(target)) {
+    if (current === undefined) {
+      return cloneJsonValue(target)
+    }
+
+    if (!isJsonObject(current)) {
+      return current
+    }
+
+    let changed = false
+    const next: JsonObject = { ...current }
+
+    for (const [key, targetValue] of Object.entries(target)) {
+      const currentValue = next[key]
+      if (currentValue === undefined) {
+        next[key] = cloneJsonValue(targetValue)
+        changed = true
+      } else {
+        const mergedValue = mergeMissingJson(currentValue, targetValue)
+        if (mergedValue !== currentValue) {
+          next[key] = mergedValue
+          changed = true
+        }
+      }
+    }
+
+    return changed ? next : current
+  }
+
+  return current === undefined ? target : current
+}
+
+const getProjectFilePath = (packageJsonPath: string, relativePath: string): string => {
+  const separatorIndex = Math.max(packageJsonPath.lastIndexOf("/"), packageJsonPath.lastIndexOf("\\"))
+  if (separatorIndex === -1) {
+    return relativePath
+  }
+
+  return `${packageJsonPath.slice(0, separatorIndex + 1)}${relativePath}`
+}
 
 /**
  * Create an empty ComputeFileChangesResult
@@ -87,6 +198,16 @@ export const computeChanges = (
       }
     }
 
+    // Compute Zed settings changes if user selected Zed editor
+    if (target.editors.includes("zed") && Option.isSome(target.packageJson.lspVersion)) {
+      const zedResult = yield* computeZedSettingsChanges(
+        assessment,
+        createZedSettingsTarget()
+      )
+      codeActions = [...codeActions, ...zedResult.codeActions]
+      messages = [...messages, ...zedResult.messages]
+    }
+
     // Compute markdown file changes if the files exist
     const shouldInstallLsp = Option.isSome(target.packageJson.lspVersion)
 
@@ -128,6 +249,16 @@ export const computeChanges = (
           ...messages,
           "Neovim (with nvim-vtsls):",
           "  Refer to: https://github.com/yioneko/vtsls?tab=readme-ov-file#typescript-plugin-not-activated",
+          ""
+        ]
+      }
+
+      if (target.editors.includes("zed")) {
+        messages = [
+          ...messages,
+          "Zed:",
+          "  The CLI added .zed/settings.json so Zed uses vtsls with workspace TypeScript plugins.",
+          "  Reload the Zed language server or workspace if diagnostics do not appear.",
           ""
         ]
       }
@@ -978,6 +1109,59 @@ const computeVSCodeSettingsChanges = (
       }],
       messages
     }
+  })
+}
+
+/**
+ * Compute .zed/settings.json changes
+ */
+const computeZedSettingsChanges = (
+  assessment: Assessment.State,
+  target: Target.ZedSettings
+): Effect.Effect<ComputeFileChangesResult, never, TypeScriptContext> => {
+  const current = assessment.zedSettings
+  const targetSettings = target.settings
+
+  if (Option.isNone(current)) {
+    const newText = formatJson(targetSettings)
+    return Effect.succeed({
+      codeActions: [{
+        description: "Create .zed/settings.json with vtsls settings",
+        changes: [{
+          fileName: getProjectFilePath(assessment.packageJson.path, ZED_SETTINGS_RELATIVE_PATH),
+          textChanges: [{
+            span: { start: 0, length: 0 },
+            newText
+          }],
+          isNewFile: true
+        }]
+      }],
+      messages: []
+    })
+  }
+
+  const nextSettings = mergeMissingJson(current.value.settings, targetSettings) as JsonObject
+  if (nextSettings === current.value.settings) {
+    return Effect.succeed(emptyFileChangesResult())
+  }
+
+  const newText = formatJson(nextSettings)
+  if (newText === current.value.sourceFile.text) {
+    return Effect.succeed(emptyFileChangesResult())
+  }
+
+  return Effect.succeed({
+    codeActions: [{
+      description: "Update .zed/settings.json with vtsls settings",
+      changes: [{
+        fileName: current.value.path,
+        textChanges: [{
+          span: { start: 0, length: current.value.sourceFile.text.length },
+          newText
+        }]
+      }]
+    }],
+    messages: []
   })
 }
 

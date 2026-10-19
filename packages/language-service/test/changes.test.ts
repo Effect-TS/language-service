@@ -17,6 +17,7 @@ function createAssessmentInput(tsconfig: Record<string, unknown>): Assessment.In
       text: JSON.stringify(tsconfig, null, 2)
     },
     vscodeSettings: Option.none(),
+    zedSettings: Option.none(),
     agentsMd: Option.none(),
     claudeMd: Option.none()
   }
@@ -52,6 +53,7 @@ describe("computeChanges", () => {
         diagnosticSeverities: Option.some({ floatingEffect: "warning" })
       },
       vscodeSettings: Option.none(),
+      zedSettings: Option.none(),
       editors: []
     }
 

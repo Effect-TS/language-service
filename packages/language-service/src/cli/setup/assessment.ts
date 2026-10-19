@@ -36,6 +36,7 @@ export namespace Assessment {
     readonly packageJson: FileInput // Required
     readonly tsconfig: FileInput // Required
     readonly vscodeSettings: Option.Option<FileInput> // Optional
+    readonly zedSettings: Option.Option<FileInput> // Optional
     readonly agentsMd: Option.Option<FileInput> // Optional - agents.md
     readonly claudeMd: Option.Option<FileInput> // Optional - CLAUDE.md
   }
@@ -67,13 +68,23 @@ export namespace Assessment {
   }
 
   /**
-   * .vscode/settings.json assessment result
+   * JSON editor settings assessment result
    */
-  export interface VSCodeSettings {
+  export interface EditorSettings {
     readonly path: string
     readonly sourceFile: ts.JsonSourceFile // AST for modification
     readonly settings: Record<string, unknown> // Parsed JSON content
   }
+
+  /**
+   * .vscode/settings.json assessment result
+   */
+  export interface VSCodeSettings extends EditorSettings {}
+
+  /**
+   * .zed/settings.json assessment result
+   */
+  export interface ZedSettings extends EditorSettings {}
 
   /**
    * Markdown file assessment result (for CLAUDE.md or agents.md)
@@ -92,6 +103,7 @@ export namespace Assessment {
     readonly packageJson: PackageJson // Required
     readonly tsconfig: TsConfig // Required
     readonly vscodeSettings: Option.Option<VSCodeSettings> // Optional
+    readonly zedSettings: Option.Option<ZedSettings> // Optional
     readonly agentsMd: Option.Option<MarkdownDoc> // Optional - agents.md
     readonly claudeMd: Option.Option<MarkdownDoc> // Optional - CLAUDE.md
   }
@@ -190,11 +202,11 @@ const assessTsConfigFromInput = (
   })
 
 /**
- * Assess VSCode settings from input
+ * Assess JSON editor settings from input
  */
-const assessVSCodeSettingsFromInput = (
+const assessEditorSettingsFromInput = (
   input: FileInput
-): Effect.Effect<Assessment.VSCodeSettings, never, TypeScriptContext> =>
+): Effect.Effect<Assessment.EditorSettings, never, TypeScriptContext> =>
   Effect.gen(function*() {
     const ts = yield* TypeScriptContext
 
@@ -264,19 +276,25 @@ export const createAssessmentInput = (
       text: packageJsonText
     }
 
-    const vscodeSettingsPath = path.join(currentDir, ".vscode", "settings.json")
-    const vscodeSettingsExists = yield* fs.exists(vscodeSettingsPath)
+    const readOptionalFileInput = (filePath: string) =>
+      Effect.gen(function*() {
+        const exists = yield* fs.exists(filePath)
+        if (!exists) {
+          return Option.none<FileInput>()
+        }
 
-    let vscodeSettingsInput = Option.none<FileInput>()
-    if (vscodeSettingsExists) {
-      const vscodeSettingsText = yield* fs.readFileString(vscodeSettingsPath).pipe(
-        Effect.mapError((cause) => new FileReadError({ path: vscodeSettingsPath, cause }))
-      )
-      vscodeSettingsInput = Option.some({
-        fileName: vscodeSettingsPath,
-        text: vscodeSettingsText
+        const text = yield* fs.readFileString(filePath).pipe(
+          Effect.mapError((cause) => new FileReadError({ path: filePath, cause }))
+        )
+
+        return Option.some({
+          fileName: filePath,
+          text
+        })
       })
-    }
+
+    const vscodeSettingsInput = yield* readOptionalFileInput(path.join(currentDir, ".vscode", "settings.json"))
+    const zedSettingsInput = yield* readOptionalFileInput(path.join(currentDir, ".zed", "settings.json"))
 
     const agentsMdLowerPath = path.join(currentDir, "agents.md")
     const agentsMdUpperPath = path.join(currentDir, "AGENTS.md")
@@ -330,6 +348,7 @@ export const createAssessmentInput = (
       packageJson: packageJsonInput,
       tsconfig: tsconfigInput,
       vscodeSettings: vscodeSettingsInput,
+      zedSettings: zedSettingsInput,
       agentsMd: agentsMdInput,
       claudeMd: claudeMdInput
     }
@@ -350,8 +369,13 @@ export const assess = (
 
     // Assess VSCode settings (optional)
     const vscodeSettings = Option.isSome(input.vscodeSettings)
-      ? Option.some(yield* assessVSCodeSettingsFromInput(input.vscodeSettings.value))
+      ? Option.some(yield* assessEditorSettingsFromInput(input.vscodeSettings.value))
       : Option.none<Assessment.VSCodeSettings>()
+
+    // Assess Zed settings (optional)
+    const zedSettings = Option.isSome(input.zedSettings)
+      ? Option.some(yield* assessEditorSettingsFromInput(input.zedSettings.value))
+      : Option.none<Assessment.ZedSettings>()
 
     // Assess markdown files (optional)
     const agentsMd = Option.isSome(input.agentsMd)
@@ -366,6 +390,7 @@ export const assess = (
       packageJson,
       tsconfig,
       vscodeSettings,
+      zedSettings,
       agentsMd,
       claudeMd
     }

@@ -5,7 +5,7 @@ import type * as Assesment from "./assessment"
 /**
  * Supported editor types
  */
-export type Editor = "vscode" | "nvim" | "emacs"
+export type Editor = "vscode" | "zed" | "nvim" | "emacs"
 
 /**
  * Target namespace containing all target configuration types
@@ -37,12 +37,20 @@ export namespace Target {
   }
 
   /**
+   * Target .zed/settings.json configuration
+   */
+  export interface ZedSettings {
+    readonly settings: Record<string, unknown> // Desired settings
+  }
+
+  /**
    * Complete target state defining what configuration should be achieved
    */
   export interface State {
     readonly packageJson: PackageJson
     readonly tsconfig: TsConfig
     readonly vscodeSettings: Option.Option<VSCodeSettings>
+    readonly zedSettings: Option.Option<ZedSettings>
     readonly editors: ReadonlyArray<Editor>
   }
 }
@@ -58,6 +66,9 @@ export const fromAssessment = (inputState: Assesment.Assessment.State): Target.S
     diagnosticSeverities: Option.map(inputState.tsconfig.currentOptions, (_) => _.diagnosticSeverity)
   },
   vscodeSettings: Option.map(inputState.vscodeSettings, (settings) => ({
+    settings: settings.settings
+  })),
+  zedSettings: Option.map(inputState.zedSettings, (settings) => ({
     settings: settings.settings
   })),
   editors: []
