@@ -141,6 +141,10 @@ importers:
         version: 25.3.3
 
   packages/language-service:
+    dependencies:
+      typescript:
+        specifier: ^5.0.0 || ^6.0.0
+        version: 5.9.3
     devDependencies:
       '@effect/platform-node':
         specifier: 4.0.5
@@ -5990,7 +5994,6 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
-    dev: true
 
   /ufo@1.6.2:
     resolution: {integrity: sha512-heMioaxBcG9+Znsda5Q8sQbWnLJSl98AFDXTO80wELWEzX3hordXsTdxrIfMQoO9IY1MEnoGoPjpoKpMj+Yx0Q==}

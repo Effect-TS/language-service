@@ -46,7 +46,8 @@ export default defineConfig({
         bugs: json.bugs,
         homepage: json.homepage,
         tags: json.tags,
-        keywords: json.keywords
+        keywords: json.keywords,
+        peerDependencies: json.peerDependencies
       }
       yield* (fs.writeFileString(path.join("dist", "package.json"), JSON.stringify(pkg, null, 2)))
     }).pipe(
