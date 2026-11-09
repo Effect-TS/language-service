@@ -42,6 +42,9 @@
     "coverage": "vitest run --coverage",
     "perf": "tsx test/perf.ts"
   },
+  "peerDependencies": {
+    "typescript": "^5.0.0 || ^6.0.0"
+  },
   "devDependencies": {
     "@effect/platform-node": "4.0.5",
     "@types/pako": "^2.0.4",
